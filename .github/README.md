@@ -5,6 +5,9 @@
   <a href="https://github.com/PhinixTeam/Phinix/issues">
     <img src="https://img.shields.io/github/issues/PhinixTeam/Phinix.svg?style=flat-square" alt="Issues">
   </a>
+  <a href="https://travis-ci.org/PhinixTeam/Phinix">
+    <img src="https://img.shields.io/travis/PhinixTeam/Phinix.svg?style=flat-square" alt="Travis CI">
+  </a>
   <a href="https://discord.gg/d4Y5xks">
     <img src="https://img.shields.io/discord/363547745564360704.svg?colorB=7289DA&label=Discord&style=flat-square" alt="Discord">
   </a>
