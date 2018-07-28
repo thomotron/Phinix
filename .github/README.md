@@ -2,7 +2,7 @@
 <h4 align="center"><i>A Rimworld multiplayer mod</i></h4>
 <br><br>
 <p align="center">
-  <a href="https://github.com/PhinixTeam/Phinix/issues”>
+  <a href="https://github.com/PhinixTeam/Phinix/issues">
     <img src="https://img.shields.io/github/issues/PhinixTeam/Phinix.svg?style=flat-square" alt="Issues">
   </a>
   <a href="https://discord.gg/d4Y5xks">
