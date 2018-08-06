@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhinixClient", "PhinixClient\PhinixClient.csproj", "{EE778185-FDC1-401F-80ED-5FCA6166DD4D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhinixClient", "Client\Source\PhinixClient.csproj", "{EE778185-FDC1-401F-80ED-5FCA6166DD4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhinixServer", "PhinixServer\PhinixServer.csproj", "{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhinixServer", "Server\PhinixServer.csproj", "{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
