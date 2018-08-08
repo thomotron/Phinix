@@ -1,8 +1,5 @@
 <h1 align="center">PHINIX</h1>
 <h4 align="center"><i>A Rimworld multiplayer mod</i></h4>
-<p align="center">
-  <img width="300" src="https://spiffy.id.au/hello_small.jpg" alt="Hello" />
-</p>
 <br><br>
 <p align="center">
   <a href="https://github.com/PhinixTeam/Phinix/issues">
