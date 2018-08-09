@@ -14,6 +14,10 @@ namespace PhinixServer
         {
             Connections.Server.RegisterHandlers();
             Connections.Server.Start(new IPEndPoint(IPAddress.Any, 16180));
+
+            PhinixClient.Client.Main();
+
+            Console.Read();
         }
     }
 }

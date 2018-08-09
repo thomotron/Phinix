@@ -64,18 +64,18 @@ namespace Connections
         /// Placeholder for processing opened connections.
         /// </summary>
         /// <param name="connection"></param>
-        public static void ConnectionEstablishedHandler(Connection connection)
+        private static void ConnectionEstablishedHandler(Connection connection)
         {
-
+            Console.WriteLine($"Got a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
 
         /// <summary>
         /// Placeholder for processing closed connecctions.
         /// </summary>
         /// <param name="connection"></param>
-        public static void ConnectionClosedHandler(Connection connection)
+        private static void ConnectionClosedHandler(Connection connection)
         {
-
+            Console.WriteLine($"Lost a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
 
         /// <summary>
@@ -84,9 +84,9 @@ namespace Connections
         /// <param name="header"></param>
         /// <param name="connection"></param>
         /// <param name="incomingObject"></param>
-        public static void IncomingPacketHandler(PacketHeader header, Connection connection, byte[] incomingObject)
+        private static void IncomingPacketHandler(PacketHeader header, Connection connection, byte[] incomingObject)
         {
-
+            Console.WriteLine($"Got a message from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
     }
 }

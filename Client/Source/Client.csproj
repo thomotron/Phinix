@@ -52,9 +52,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Server\Server.csproj">
-      <Project>{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}</Project>
-      <Name>Server</Name>
+    <ProjectReference Include="..\..\Common\Connections\Connections.csproj">
+      <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
+      <Name>Connections</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
