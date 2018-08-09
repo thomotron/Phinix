@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Source\Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connections", "Common\Connections\Connections.csproj", "{38CB6BED-E751-42FE-A847-C0DDD482AC62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionsTests", "Common\ConnectionsTests\ConnectionsTests.csproj", "{6BBCC7BA-8ACE-4705-A140-CBCBED250115}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91DAC5B9-03E6-45DA-A0FD-AAA805ED131D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38CB6BED-E751-42FE-A847-C0DDD482AC62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38CB6BED-E751-42FE-A847-C0DDD482AC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38CB6BED-E751-42FE-A847-C0DDD482AC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38CB6BED-E751-42FE-A847-C0DDD482AC62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BBCC7BA-8ACE-4705-A140-CBCBED250115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BBCC7BA-8ACE-4705-A140-CBCBED250115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BBCC7BA-8ACE-4705-A140-CBCBED250115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BBCC7BA-8ACE-4705-A140-CBCBED250115}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
