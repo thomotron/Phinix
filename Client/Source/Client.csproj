@@ -70,4 +70,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetDir)\$HugsLibChecker.dll" "$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll"
+copy "$(TargetDir)\NetworkCommsDotNet.dll" "$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll"
+copy "$(TargetDir)\Connections.dll" "$(SolutionDir)\Client\Assemblies\2-Connections.dll"
+copy "$(TargetDir)\PhinixClient.dll" "$(SolutionDir)\Client\Assemblies\3-PhinixClient.dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
