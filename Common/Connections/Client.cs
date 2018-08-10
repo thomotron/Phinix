@@ -8,17 +8,17 @@ using ProtoBuf;
 
 namespace Connections
 {
-    public static class Client
+    public class Client : Common
     {
-        public static bool Connected => connection.ConnectionAlive();
+        public bool Connected => connection != null && connection.ConnectionAlive();
 
-        private static TCPConnection connection;
+        private TCPConnection connection;
 
         /// <summary>
         /// Attempts to connect to the given endpoint. This will close an existing connection.
         /// </summary>
         /// <param name="endpoint">Endpoint to connect to</param>
-        public static void Connect(IPEndPoint endpoint)
+        public void TryConnect(IPEndPoint endpoint)
         {
             // Close the active connection before we make a new one.
             Disconnect();
@@ -30,43 +30,15 @@ namespace Connections
         /// <summary>
         /// Closes the current connection if it is open.
         /// </summary>
-        public static void Disconnect()
+        public void Disconnect()
         {
             // Check if the connection is open
-            if (connection != null && connection.ConnectionAlive())
+            if (connection != null)
             {
                 connection.CloseConnection(false);
-                connection.Dispose();
+                
+                connection = null;
             }
-        }
-
-        /// <summary>
-        /// Placeholder for processing opened connections.
-        /// </summary>
-        /// <param name="connection"></param>
-        private static void ConnectionEstablishedHandler(Connection connection)
-        {
-
-        }
-
-        /// <summary>
-        /// Placeholder for processing closed connecctions.
-        /// </summary>
-        /// <param name="connection"></param>
-        private static void ConnectionClosedHandler(Connection connection)
-        {
-
-        }
-
-        /// <summary>
-        /// Placeholder for processing incoming packets.
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="connection"></param>
-        /// <param name="incomingObject"></param>
-        private static void IncomingPacketHandler(PacketHeader header, Connection connection, byte[] incomingObject)
-        {
-
         }
     }
 }

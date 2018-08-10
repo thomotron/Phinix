@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.ServiceModel;
 using System.Text;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
@@ -11,38 +12,25 @@ using ProtoBuf;
 
 namespace Connections
 {
-    public static class Server
+    public class Server : Common
     {
-        public static bool Listening => Connection.Listening(ConnectionType.TCP);
+        public bool Listening => Connection.Listening(ConnectionType.TCP);
 
-        /// <summary>
-        /// Registers event handlers for NetworkComms.Net for connection established, connection closed, and incoming data.
-        /// </summary>
-        public static void RegisterHandlers()
-        {
-            NetworkComms.AppendGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
-            NetworkComms.AppendGlobalConnectionCloseHandler(ConnectionClosedHandler);
-            NetworkComms.AppendGlobalIncomingPacketHandler<byte[]>("Phinix", IncomingPacketHandler);
-        }
+        private IPEndPoint endpoint;
 
-        /// <summary>
-        /// Unregisters event handlers for NetworkComms.Net. Effectively the opposite of <c>RegisterHandlers()</c>.
-        /// </summary>
-        public static void UnregisterHandlers()
+        public Server(IPEndPoint endpoint)
         {
-            NetworkComms.RemoveGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
-            NetworkComms.RemoveGlobalConnectionCloseHandler(ConnectionClosedHandler);
-            NetworkComms.RemoveGlobalIncomingPacketHandler("Phinix");
+            this.endpoint = endpoint;
         }
 
         /// <summary>
         /// Starts listening for connections on the given endpoint.
         /// </summary>
-        /// <param name="endpoint">Endpoint to bind to</param>
-        public static void Start(IPEndPoint endpoint)
+        public void Start()
         {
             if (!Listening)
             {
+                RegisterConnectionHandlers();
                 Connection.StartListening(ConnectionType.TCP, endpoint);
             }
             else
@@ -54,17 +42,36 @@ namespace Connections
         /// <summary>
         /// Stops listening for new connections and terminates any active ones.
         /// </summary>
-        public static void Stop()
+        public void Stop()
         {
             Connection.StopListening();
             NetworkComms.CloseAllConnections(ConnectionType.TCP);
+            UnregisterConnectionHandlers();
+        }
+
+        /// <summary>
+        /// Registers NetworkComms.Net event handlers for connection established and connection closed.
+        /// </summary>
+        private void RegisterConnectionHandlers()
+        {
+            NetworkComms.AppendGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
+            NetworkComms.AppendGlobalConnectionCloseHandler(ConnectionClosedHandler);
+        }
+
+        /// <summary>
+        /// Unregisters NetworkComms.Net event handlers. Effectively the opposite of <c>RegisterHandlers()</c>.
+        /// </summary>
+        private void UnregisterConnectionHandlers()
+        {
+            NetworkComms.RemoveGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
+            NetworkComms.RemoveGlobalConnectionCloseHandler(ConnectionClosedHandler);
         }
 
         /// <summary>
         /// Placeholder for processing opened connections.
         /// </summary>
         /// <param name="connection"></param>
-        private static void ConnectionEstablishedHandler(Connection connection)
+        private void ConnectionEstablishedHandler(Connection connection)
         {
             Console.WriteLine($"Got a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
@@ -73,20 +80,9 @@ namespace Connections
         /// Placeholder for processing closed connecctions.
         /// </summary>
         /// <param name="connection"></param>
-        private static void ConnectionClosedHandler(Connection connection)
+        private void ConnectionClosedHandler(Connection connection)
         {
             Console.WriteLine($"Lost a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
-        }
-
-        /// <summary>
-        /// Placeholder for processing incoming packets.
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="connection"></param>
-        /// <param name="incomingObject"></param>
-        private static void IncomingPacketHandler(PacketHeader header, Connection connection, byte[] incomingObject)
-        {
-            Console.WriteLine($"Got a message from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
     }
 }
