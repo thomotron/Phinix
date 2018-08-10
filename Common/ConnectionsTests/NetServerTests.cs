@@ -12,37 +12,37 @@ using NetworkCommsDotNet.Connections;
 namespace Connections.Tests
 {
     [TestFixture()]
-    public class ServerTests
+    public class NetServerTests
     {
         [Test()]
         public void Server_NewlyInitialisedWithEndpoint_DoesNotImplode()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
 
-            Assert.That(server != null);
+            Assert.That(netServer != null);
         }
 
         [Test()]
         public void Listening_ServerNewlyInitialised_ReturnsFalse()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
 
-            Assert.That(server.Listening == false);
+            Assert.That(netServer.Listening == false);
         }
 
         [Test()]
         public void Listening_ServerStartedAndStopped_CorrectlyReturnsState()
         {
-            Server server = new Server(new IPEndPoint(IPAddress.Any, 16180));
+            NetServer netServer = new NetServer(new IPEndPoint(IPAddress.Any, 16180));
             Connection.StartListening(ConnectionType.TCP, new IPEndPoint(IPAddress.Any, 16180));
 
-            Assert.That(server.Listening == true);
+            Assert.That(netServer.Listening == true);
 
             Connection.StopListening();
 
-            Assert.That(server.Listening == false);
+            Assert.That(netServer.Listening == false);
 
             NetworkComms.Shutdown(0);
         }
@@ -51,10 +51,10 @@ namespace Connections.Tests
         public void Start_ZeroPort_StartsSuccessfully()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
 
             Assert.DoesNotThrow(
-                () => server.Start()
+                () => netServer.Start()
             );
             Assert.That(Connection.Listening(ConnectionType.TCP) == true);
 
@@ -66,10 +66,10 @@ namespace Connections.Tests
         public void Start_LegacyPhiPort_StartsSuccessfully()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
 
             Assert.DoesNotThrow(
-                () => server.Start()
+                () => netServer.Start()
             );
             Assert.That(Connection.Listening(ConnectionType.TCP) == true);
 
@@ -81,12 +81,12 @@ namespace Connections.Tests
         public void Start_AlreadyRunning_ThrowsException()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
             Connection.StartListening(ConnectionType.TCP, endpoint);
 
             Assert.That(Connection.Listening(ConnectionType.TCP) == true);
             Assert.Throws<Exception>(
-                () => server.Start()
+                () => netServer.Start()
             );
 
             Connection.StopListening();
@@ -97,10 +97,10 @@ namespace Connections.Tests
         public void Stop_ServerNotRunning_DoesNotThrow()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
             
             Assert.DoesNotThrow(
-                () => server.Stop()
+                () => netServer.Stop()
             );
         }
 
@@ -108,10 +108,10 @@ namespace Connections.Tests
         public void Stop_ServerRunning_StopsSuccessfully()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
-            Server server = new Server(endpoint);
+            NetServer netServer = new NetServer(endpoint);
             Connection.StartListening(ConnectionType.TCP, endpoint);
 
-            server.Stop();
+            netServer.Stop();
 
             Assert.That(Connection.Listening(ConnectionType.TCP) == false);
 

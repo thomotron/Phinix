@@ -12,10 +12,8 @@ namespace PhinixServer
     {
         static void Main()
         {
-            Connections.Server connections = new Connections.Server(new IPEndPoint(IPAddress.Any, 16180));
+            Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(IPAddress.Any, 16180));
             connections.Start();
-
-            PhinixClient.Client.Main();
 
             Console.Read();
         }

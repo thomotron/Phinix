@@ -12,16 +12,16 @@ using NetworkCommsDotNet.Connections;
 namespace Connections.Tests
 {
     [TestFixture()]
-    public class ClientTests
+    public class NetClientTests
     {
         [Test()]
         public void TryConnect_ServerNotRunning_ThrowsException()
         {
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
-            Client client = new Client();
+            NetClient netClient = new NetClient();
 
             Assert.Throws<ConnectionSetupException>(
-                () => client.TryConnect(clientEndpoint)
+                () => netClient.TryConnect(clientEndpoint)
             );
 
             Connection.StopListening(ConnectionType.TCP);
@@ -33,14 +33,14 @@ namespace Connections.Tests
         {
             IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
-            Client client = new Client();
+            NetClient netClient = new NetClient();
             Connection.StartListening(ConnectionType.TCP, serverEndpoint);
 
             Assert.That(NetworkComms.TotalNumConnections() == 0);
 
-            client.TryConnect(clientEndpoint);
+            netClient.TryConnect(clientEndpoint);
 
-            Assert.That(client.Connected == true);
+            Assert.That(netClient.Connected == true);
             Assert.That(NetworkComms.TotalNumConnections() > 0);
 
             Connection.StopListening(ConnectionType.TCP);
@@ -50,10 +50,10 @@ namespace Connections.Tests
         [Test()]
         public void Disconnect_NotConnected_DoesNotThrow()
         {
-            Client client = new Client();
+            NetClient netClient = new NetClient();
 
             Assert.DoesNotThrow(
-                () => client.Disconnect()
+                () => netClient.Disconnect()
             );
         }
 
@@ -62,16 +62,16 @@ namespace Connections.Tests
         {
             IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
-            Client client = new Client();
+            NetClient netClient = new NetClient();
             Connection.StartListening(ConnectionType.TCP, serverEndpoint);
-            client.TryConnect(clientEndpoint);
+            netClient.TryConnect(clientEndpoint);
 
-            Assert.That(client.Connected == true);
+            Assert.That(netClient.Connected == true);
             Assert.That(NetworkComms.TotalNumConnections(ConnectionType.TCP) > 0);
             Assert.DoesNotThrow(
-                () => client.Disconnect()
+                () => netClient.Disconnect()
             );
-            Assert.That(client.Connected == false);
+            Assert.That(netClient.Connected == false);
             Assert.That(NetworkComms.TotalNumConnections() == 0);
 
             Connection.StopListening(ConnectionType.TCP);

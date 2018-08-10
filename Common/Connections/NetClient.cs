@@ -7,7 +7,7 @@ using ProtoBuf;
 
 namespace Connections
 {
-    public class Client : Common
+    public class NetClient : NetCommon
     {
         public bool Connected => connection != null && connection.ConnectionAlive();
 

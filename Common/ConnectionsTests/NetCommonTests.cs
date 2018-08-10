@@ -11,15 +11,15 @@ using NUnit.Framework.Internal;
 namespace Connections.Tests
 {
     [TestFixture()]
-    public class CommonTests
+    public class NetCommonTests
     {
         [Test()]
         public void RegisterPacketHandler_UniquePacketType_RegisteredSuccessfully()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
 
             // Remove global packet handler to avoid interference with other tests
@@ -29,16 +29,16 @@ namespace Connections.Tests
         [Test()]
         public void RegisterPacketHandler_MultipleUniquePacketTypes_AllRegisteredSuccessfully()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
             );
 
             // Remove global packet handler to avoid interference with other tests
@@ -50,16 +50,16 @@ namespace Connections.Tests
         [Test()]
         public void RegisterPacketHandler_DuplicatePacketType_ThrowsException()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(() =>
-                common.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
             );
             Assert.Throws<PacketHandlerAlreadyRegisteredException>(() =>
-                common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
 
             // Remove global packet handler to avoid interference with other tests
@@ -70,10 +70,10 @@ namespace Connections.Tests
         [Test()]
         public void UnregisterPacketHandler_RegisteredPacketType_UnregisteredSuccessfully()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
             NetworkComms.AppendGlobalIncomingPacketHandler<byte[]>("BaloneyPacketType", (header, connection, incomingObject) => { });
 
-            common.UnregisterPacketHandler("BaloneyPacketType");
+            netCommon.UnregisterPacketHandler("BaloneyPacketType");
 
             Assert.DoesNotThrow(() =>
                 NetworkComms.AppendGlobalIncomingPacketHandler<byte[]>("BaloneyPacketType", (header, connection, incomingObject) => { })
@@ -86,34 +86,34 @@ namespace Connections.Tests
         [Test()]
         public void UnregisterPacketHandler_UnregisteredPacketType_DoesNotThrow()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
             Assert.DoesNotThrow(
-                () => common.UnregisterPacketHandler("BaloneyPacketType")
+                () => netCommon.UnregisterPacketHandler("BaloneyPacketType")
             );
         }
 
         [Test()]
         public void UnregisterAllPacketHandlers_NoRegisteredHandlers_DoesNotThrow()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
             Assert.DoesNotThrow(
-                () => common.UnregisterAllPacketHandlers()
+                () => netCommon.UnregisterAllPacketHandlers()
             );
         }
 
         [Test()]
         public void UnregisterAllPacketHandlers_OneRegisteredHandler_UnregisteredSuccessfully()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
-            common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { });
 
-            common.UnregisterAllPacketHandlers();
+            netCommon.UnregisterAllPacketHandlers();
 
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
 
             // Remove global packet handler to avoid interference with other tests
@@ -123,30 +123,30 @@ namespace Connections.Tests
         [Test()]
         public void UnregisterAllPacketHandlers_SeveralRegisteredHandlers_UnregisteredAllSuccessfully()
         {
-            Common common = new Common();
+            NetCommon netCommon = new NetCommon();
 
-            common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { });
-            common.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { });
-            common.RegisterPacketHandler("Trading", (header, connection, incomingObject) => { });
-            common.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { });
-            common.RegisterPacketHandler("SuperSecretPacketType", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("Trading", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { });
+            netCommon.RegisterPacketHandler("SuperSecretPacketType", (header, connection, incomingObject) => { });
 
-            common.UnregisterAllPacketHandlers();
+            netCommon.UnregisterAllPacketHandlers();
 
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("BaloneyPacketType", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("Chat", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("Trading", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("Trading", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("Authentication", (header, connection, incomingObject) => { })
             );
             Assert.DoesNotThrow(
-                () => common.RegisterPacketHandler("SuperSecretPacketType", (header, connection, incomingObject) => { })
+                () => netCommon.RegisterPacketHandler("SuperSecretPacketType", (header, connection, incomingObject) => { })
             );
 
             // Remove global packet handler to avoid interference with other tests

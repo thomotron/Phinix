@@ -3,7 +3,7 @@ using NetworkCommsDotNet;
 
 namespace Connections
 {
-    public class Common
+    public class NetCommon
     {
         private List<string> registeredPacketTypes = new List<string>();
 

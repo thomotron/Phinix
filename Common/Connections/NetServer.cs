@@ -12,13 +12,13 @@ using ProtoBuf;
 
 namespace Connections
 {
-    public class Server : Common
+    public class NetServer : NetCommon
     {
         public bool Listening => Connection.Listening(ConnectionType.TCP);
 
         private IPEndPoint endpoint;
 
-        public Server(IPEndPoint endpoint)
+        public NetServer(IPEndPoint endpoint)
         {
             this.endpoint = endpoint;
         }

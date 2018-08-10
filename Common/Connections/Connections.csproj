@@ -47,10 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
-    <Compile Include="Common.cs" />
+    <Compile Include="NetClient.cs" />
+    <Compile Include="NetCommon.cs" />
     <Compile Include="PacketHandlerAlreadyRegisteredException.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="NetServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
