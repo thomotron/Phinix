@@ -4,17 +4,34 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Connections;
+using HugsLib;
 
 namespace PhinixClient
 {
-    public class Client
+    public class Client : ModBase
     {
-        public static void Main()
-        {
-            Connections.Client client = new Connections.Client();
-            client.TryConnect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 16180));
+        public static Client Instance;
 
-            Console.Read();
+        public override string ModIdentifier => "Phinix";
+
+        /// <summary>
+        /// Called by HugsLib shortly after the mod is loaded.
+        /// Used for initial setup only.
+        /// </summary>
+        public override void Initialize()
+        {
+            base.Initialize();
+            Client.Instance = this;
+        }
+
+        /// <summary>
+        /// Called by Unity on every physics update.
+        /// Used for synchronisation.
+        /// </summary>
+        public override void FixedUpdate()
+        {
+            base.FixedUpdate();
+
         }
     }
 }
