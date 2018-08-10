@@ -1,2 +1,10 @@
 language: csharp
 solution: Phinix.sln
+
+install:
+  - sudo apt-get install nunit-console
+  - nuget restore ./Phinix.sln
+ 
+script:
+  - xbuild ./Phinix.sln
+  - nunit-console ./Common/ConnectionsTests/bin/Debug/ConnectionsTests.dll
