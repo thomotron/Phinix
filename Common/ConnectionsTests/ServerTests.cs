@@ -1,92 +1,122 @@
-﻿using System;
+﻿using NUnit.Framework;
+using Connections;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
-using NUnit.Framework;
 
 namespace Connections.Tests
 {
-    [TestFixture]
+    [TestFixture()]
     public class ServerTests
     {
-        [Test]
-        public void RegisterHandlersTest()
+        [Test()]
+        public void Server_NewlyInitialisedWithEndpoint_DoesNotImplode()
         {
-            // It doesn't seem possible to verify whether the connection established and closing handlers have been registered or not so this'll have to do.
-            // This test is pretty much 1/3rd pointless because of that.
-            NetworkComms.RemoveGlobalIncomingPacketHandler("Phinix");
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
 
-            Assert.IsFalse(NetworkComms.GlobalIncomingPacketHandlerExists("Phinix"));
-
-            Server.RegisterHandlers();
-
-            Assert.IsTrue(NetworkComms.GlobalIncomingPacketHandlerExists("Phinix"));
-
-            NetworkComms.RemoveGlobalIncomingPacketHandler("Phinix");
+            Assert.That(server != null);
         }
 
-        [Test]
-        public void UnregisterHandlers()
+        [Test()]
+        public void Listening_ServerNewlyInitialised_ReturnsFalse()
         {
-            NetworkComms.AppendGlobalIncomingPacketHandler<byte[]>("Phinix", (header, connection, incomingObject) => { });
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
 
-            Assert.IsTrue(NetworkComms.GlobalIncomingPacketHandlerExists("Phinix"));
-
-            Server.UnregisterHandlers();
-
-            Assert.IsFalse(NetworkComms.GlobalIncomingPacketHandlerExists("Phinix"));
-
-            NetworkComms.RemoveGlobalIncomingPacketHandler("Phinix");
+            Assert.That(server.Listening == false);
         }
-        
-        [Test]
-        public void ListeningTest()
+
+        [Test()]
+        public void Listening_ServerStartedAndStopped_CorrectlyReturnsState()
+        {
+            Server server = new Server(new IPEndPoint(IPAddress.Any, 16180));
+            Connection.StartListening(ConnectionType.TCP, new IPEndPoint(IPAddress.Any, 16180));
+
+            Assert.That(server.Listening == true);
+
+            Connection.StopListening();
+
+            Assert.That(server.Listening == false);
+
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Start_ZeroPort_StartsSuccessfully()
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
+            Server server = new Server(endpoint);
 
-            Connection.StartListening(ConnectionType.TCP, endpoint);
-            
-            Assert.AreEqual(Connection.Listening(ConnectionType.TCP), Server.Listening);
-            Assert.IsTrue(Server.Listening);
+            Assert.DoesNotThrow(
+                () => server.Start()
+            );
+            Assert.That(Connection.Listening(ConnectionType.TCP) == true);
 
-            Connection.StopListening(ConnectionType.TCP);
-            
-            Assert.AreEqual(Connection.Listening(ConnectionType.TCP), Server.Listening);
-            Assert.IsFalse(Server.Listening);
+            Connection.StopListening();
+            NetworkComms.Shutdown(0);
         }
 
-        [Test]
-        public void StartTest()
+        [Test()]
+        public void Start_LegacyPhiPort_StartsSuccessfully()
         {
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
 
-            Assert.IsFalse(Connection.Listening(ConnectionType.TCP));
+            Assert.DoesNotThrow(
+                () => server.Start()
+            );
+            Assert.That(Connection.Listening(ConnectionType.TCP) == true);
 
-            Server.Start(endpoint);
-
-            Assert.IsTrue(Connection.Listening(ConnectionType.TCP));
-
-            Assert.Catch(() =>
-            {
-                Server.Start(endpoint);
-            });
-
-            Connection.StopListening(ConnectionType.TCP);
-
-            Assert.IsFalse(Connection.Listening(ConnectionType.TCP));
+            Connection.StopListening();
+            NetworkComms.Shutdown(0);
         }
 
-        [Test]
-        public void StopTest()
+        [Test()]
+        public void Start_AlreadyRunning_ThrowsException()
         {
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
             Connection.StartListening(ConnectionType.TCP, endpoint);
 
-            Assert.IsTrue(Connection.Listening(ConnectionType.TCP));
+            Assert.That(Connection.Listening(ConnectionType.TCP) == true);
+            Assert.Throws<Exception>(
+                () => server.Start()
+            );
 
-            Server.Stop();
+            Connection.StopListening();
+            NetworkComms.Shutdown(0);
+        }
 
-            Assert.IsFalse(Connection.Listening(ConnectionType.TCP));
+        [Test()]
+        public void Stop_ServerNotRunning_DoesNotThrow()
+        {
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
+            
+            Assert.DoesNotThrow(
+                () => server.Stop()
+            );
+        }
+
+        [Test()]
+        public void Stop_ServerRunning_StopsSuccessfully()
+        {
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 16180);
+            Server server = new Server(endpoint);
+            Connection.StartListening(ConnectionType.TCP, endpoint);
+
+            server.Stop();
+
+            Assert.That(Connection.Listening(ConnectionType.TCP) == false);
+
+            Connection.StopListening();
+            NetworkComms.Shutdown(0);
         }
     }
 }

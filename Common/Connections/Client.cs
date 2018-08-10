@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using NetworkCommsDotNet;
-using NetworkCommsDotNet.Connections;
 using NetworkCommsDotNet.Connections.TCP;
 using ProtoBuf;
 

@@ -55,6 +55,9 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="ClientTests.cs" />
+    <Compile Include="CommonTests.cs" />
+    <Compile Include="PacketHandlerAlreadyRegisteredExceptionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTests.cs" />
   </ItemGroup>
