@@ -70,10 +70,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)\$HugsLibChecker.dll" "$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll"
-copy "$(TargetDir)\NetworkCommsDotNet.dll" "$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll"
-copy "$(TargetDir)\Connections.dll" "$(SolutionDir)\Client\Assemblies\2-Connections.dll"
-copy "$(TargetDir)\PhinixClient.dll" "$(SolutionDir)\Client\Assemblies\3-PhinixClient.dll"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="AfterBuild">
+    <Copy SourceFiles="$(TargetDir)\$HugsLibChecker.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll" />
+    <Copy SourceFiles="$(TargetDir)\NetworkCommsDotNet.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll" />
+    <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Connections.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-PhinixClient.dll" />
+  </Target>
 </Project>
