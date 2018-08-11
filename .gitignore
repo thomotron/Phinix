@@ -263,6 +263,3 @@ __pycache__/
 
 # Phinix Client Binaries
 Client/Assemblies/*.dll
-
-# RimWorld Game Binaries
-GameDlls/*
