@@ -2,4 +2,7 @@
 <LanguageData>
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
+    <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
+    <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
+    <Phinix_settings_connectedToLabel>Connected to {0}</Phinix_settings_connectedToLabel>
 </LanguageData>

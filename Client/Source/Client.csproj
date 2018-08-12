@@ -66,6 +66,7 @@
     <Compile Include="Client.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
+    <Compile Include="SettingsWindow.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>

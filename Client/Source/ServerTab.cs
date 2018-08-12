@@ -80,6 +80,7 @@ namespace PhinixClient
             {
                 // TODO: Build settings dialog
                 Log.Message("Settings button was clicked!");
+                Find.WindowStack.Add(new SettingsWindow());
             }
 
             // User search box
