@@ -11,10 +11,8 @@ namespace PhinixClient
 {
     public class ServerTab : MainTabWindow
     {
-        private const float WINDOW_PADDING = 0f;
         private const float DEFAULT_SPACING = 10f;
-        
-        private const float CHAT_WIDTH = 730f;
+        private const float COLUMN_SPACING = 20f;
 
         private const float CHAT_MESSAGE_HEIGHT = 30f;
 
@@ -36,7 +34,8 @@ namespace PhinixClient
 
         private const float RIGHT_COLUMN_CONTAINER_WIDTH = 210f;
 
-        public override Vector2 InitialSize => new Vector2(1000f, 650f);
+        // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
+        public override Vector2 InitialSize => new Vector2(1500f, 1000f);
 
         private static string message = "";
         private static string userSearch = "";
@@ -47,19 +46,19 @@ namespace PhinixClient
 
             // Chat container
             Rect chatContainer = new Rect(
-                x: WINDOW_PADDING,
-                y: WINDOW_PADDING,
-                width: inRect.width - (RIGHT_COLUMN_CONTAINER_WIDTH + DEFAULT_SPACING),
-                height: inRect.height - WINDOW_PADDING * 2
+                x: inRect.xMin,
+                y: inRect.yMin,
+                width: inRect.width - (RIGHT_COLUMN_CONTAINER_WIDTH + COLUMN_SPACING),
+                height: inRect.height
             );
             DrawChat(chatContainer);
 
             // Right column (settings and user list) container
             Rect rightColumnContainer = new Rect(
-                x: inRect.xMax - (RIGHT_COLUMN_CONTAINER_WIDTH + WINDOW_PADDING),
-                y: inRect.yMin + WINDOW_PADDING,
+                x: inRect.xMax - RIGHT_COLUMN_CONTAINER_WIDTH,
+                y: inRect.yMin,
                 width: RIGHT_COLUMN_CONTAINER_WIDTH,
-                height: inRect.height - WINDOW_PADDING * 2
+                height: inRect.height
             );
             DrawRightColumn(rightColumnContainer);
         }
@@ -113,7 +112,7 @@ namespace PhinixClient
             Rect chatAreaRect = new Rect(
                 x: container.xMin,
                 y: container.yMin,
-                width: CHAT_WIDTH,
+                width: container.width,
                 height: container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING)
             );
             Widgets.DrawMenuSection(chatAreaRect);
@@ -121,7 +120,7 @@ namespace PhinixClient
             // Message entry box
             Rect messageEntryRect = new Rect(
                 x: container.xMin,
-                y: container.yMax - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING),
+                y: container.yMax - CHAT_TEXTBOX_HEIGHT,
                 width: container.width - (CHAT_SEND_BUTTON_WIDTH + DEFAULT_SPACING),
                 height: CHAT_TEXTBOX_HEIGHT
             );
