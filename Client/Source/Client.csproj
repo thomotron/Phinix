@@ -65,6 +65,16 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerTab.cs" />
+    <Content Include="..\About\**">
+      <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="..\Defs\**">
+      <Link>Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="..\Languages\**">
+      <Link>Languages\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Connections\Connections.csproj">
