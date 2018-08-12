@@ -43,6 +43,9 @@
     <Reference Include="0Harmony, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.5.0.0\lib\net35\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\GameDlls\Assembly-CSharp.dll</HintPath>
+    </Reference>
     <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.5.0.0\lib\net35\HugsLib.dll</HintPath>
     </Reference>
@@ -55,6 +58,9 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\GameDlls\UnityEngine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />

@@ -4,7 +4,7 @@
     <defName>Chat</defName>
     <label>chat</label>
     <description>Open the Phinix chat</description>
-    <!--<tabWindowClass>PhinixClient.ServerTab</tabWindowClass>-->
+    <tabWindowClass>PhinixClient.ServerTab</tabWindowClass>
     <order>100</order>
     <defaultHotKey>F12</defaultHotKey>
   </MainButtonDef>
