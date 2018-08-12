@@ -6,5 +6,5 @@ install:
   - nuget restore ./Phinix.sln
  
 script:
-  - xbuild ./Phinix.sln
+  - xbuild /property:Configuration=TravisCI ./Phinix.sln
   - nunit-console ./Common/ConnectionsTests/bin/Debug/ConnectionsTests.dll
