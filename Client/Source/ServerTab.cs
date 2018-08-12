@@ -35,7 +35,7 @@ namespace PhinixClient
         private const float RIGHT_COLUMN_CONTAINER_WIDTH = 210f;
 
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
-        public override Vector2 InitialSize => new Vector2(1500f, 1000f);
+        public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
         private static string message = "";
         private static string userSearch = "";
