@@ -74,7 +74,7 @@ namespace Connections
         private bool TryParseHostnameOrAddress(string hostname, out IPAddress address)
         {
             if (IPAddress.TryParse(hostname, out address)) return true;
-            if (TryQueryHostname(hostname, out address)) return true;
+            if (TryResolveHostname(hostname, out address)) return true;
             return false;
         }
 
@@ -84,7 +84,7 @@ namespace Connections
         /// <param name="hostname">Hostname to resolve</param>
         /// <param name="address">Resolved address</param>
         /// <returns>Resolved successfully</returns>
-        private bool TryQueryHostname(string hostname, out IPAddress address)
+        private bool TryResolveHostname(string hostname, out IPAddress address)
         {
             IPAddress[] addresses;
             try
