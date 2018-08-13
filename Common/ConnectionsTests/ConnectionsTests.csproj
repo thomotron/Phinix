@@ -55,6 +55,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="InvalidAddressExceptionTests.cs" />
     <Compile Include="NetCommonTests.cs" />
     <Compile Include="NetClientTests.cs" />
     <Compile Include="PacketHandlerAlreadyRegisteredExceptionTests.cs" />

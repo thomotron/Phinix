@@ -14,6 +14,11 @@ namespace PhinixClient
 
         public override string ModIdentifier => "Phinix";
 
+        private NetClient netClient;
+        public bool Connected => netClient.Connected;
+        public void Disconnect() => netClient.Disconnect();
+        public void Connect(string address, int port) => netClient.Connect(address, port);
+
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
         /// Used for initial setup only.
@@ -22,6 +27,9 @@ namespace PhinixClient
         {
             base.Initialize();
             Client.Instance = this;
+
+            // Set up our module instances
+            this.netClient = new NetClient();
         }
 
         /// <summary>

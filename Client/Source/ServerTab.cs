@@ -78,7 +78,6 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(settingsButtonRect, "Phinix_chat_settingsButton".Translate()))
             {
-                // TODO: Build settings dialog
                 Log.Message("Settings button was clicked!");
                 Find.WindowStack.Add(new SettingsWindow());
             }
