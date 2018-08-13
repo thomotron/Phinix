@@ -66,13 +66,13 @@ namespace PhinixClient
             Widgets.Label(serverAddressLabelRect, "Phinix_settings_connectedToLabel".Translate(serverAddress));
 
             // Disconnect button
-            Rect connectButtonRect = new Rect(
+            Rect disconnectButtonRect = new Rect(
                 x: container.xMax - CONNECT_BUTTON_WIDTH,
                 y: container.yMin,
                 width: CONNECT_BUTTON_WIDTH,
                 height: CONNECT_BUTTON_HEIGHT
             );
-            if (Widgets.ButtonText(connectButtonRect, "Phinix_settings_disconnectButton".Translate()))
+            if (Widgets.ButtonText(disconnectButtonRect, "Phinix_settings_disconnectButton".Translate()))
             {
                 // TODO: Disconnect from server
                 conn = !conn;
