@@ -17,7 +17,7 @@ namespace PhinixClient
         private NetClient netClient;
         public bool Connected => netClient.Connected;
         public void Disconnect() => netClient.Disconnect();
-        public void TryConnect(IPEndPoint ep) => netClient.TryConnect(ep);
+        public void Connect(IPEndPoint ep) => netClient.Connect(ep);
 
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.

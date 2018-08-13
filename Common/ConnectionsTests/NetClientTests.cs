@@ -15,13 +15,13 @@ namespace Connections.Tests
     public class NetClientTests
     {
         [Test()]
-        public void TryConnect_ServerNotRunning_ThrowsException()
+        public void Connect_ServerNotRunning_ThrowsException()
         {
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
             NetClient netClient = new NetClient();
 
             Assert.Throws<ConnectionSetupException>(
-                () => netClient.TryConnect(clientEndpoint)
+                () => netClient.Connect(clientEndpoint)
             );
 
             Connection.StopListening(ConnectionType.TCP);
@@ -29,7 +29,7 @@ namespace Connections.Tests
         }
 
         [Test()]
-        public void TryConnect_LocalServerRunning_ConnectionSuccessful()
+        public void ConnectEndpoint_LocalServerRunning_ConnectionSuccessful()
         {
             IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
@@ -38,7 +38,7 @@ namespace Connections.Tests
 
             Assert.That(NetworkComms.TotalNumConnections() == 0);
 
-            netClient.TryConnect(clientEndpoint);
+            netClient.Connect(clientEndpoint);
 
             Assert.That(netClient.Connected == true);
             Assert.That(NetworkComms.TotalNumConnections() > 0);
@@ -64,7 +64,7 @@ namespace Connections.Tests
             IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
             NetClient netClient = new NetClient();
             Connection.StartListening(ConnectionType.TCP, serverEndpoint);
-            netClient.TryConnect(clientEndpoint);
+            netClient.Connect(clientEndpoint);
 
             Assert.That(netClient.Connected == true);
             Assert.That(NetworkComms.TotalNumConnections(ConnectionType.TCP) > 0);
