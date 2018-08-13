@@ -30,24 +30,35 @@ namespace Connections
         }
 
         /// <summary>
-        /// Attempts to parse the given 
+        /// Attempts to connect to the given address and port. This will close an existing connection.
         /// </summary>
-        /// <param name="hostname"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public bool TryConnect(string hostname, int port)
+        /// <param name="address">Address to connect to</param>
+        /// <param name="port">Port the server is listening on</param>
+        public void Connect(string address, int port)
         {
-            IPAddress address;
-            if (!IPAddress.TryParse(hostname, out address))
+            // Ensure the port is within the valid range
+            if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
             {
-                if (!TryQueryHostname(hostname, out address))
-                {
-                    return false;
-                }
+                throw new ArgumentOutOfRangeException(
+                    nameof(port),
+                    port,
+                    $"Cannot assign a port below {IPEndPoint.MinPort} or above {IPEndPoint.MaxPort}."
+                );
             }
-            
-            Connect(new IPEndPoint(address, port));
-            return true;
+
+            // Close the active connection before we make a new one.
+            Disconnect();
+
+            // Parse the given hostname
+            IPAddress resolvedAddress;
+            if (TryParseHostnameOrAddress(address, out resolvedAddress))
+            {
+                Connect(new IPEndPoint(resolvedAddress, port));
+            }
+            else
+            {
+                throw new InvalidAddressException(address);
+            }
         }
 
         /// <summary>
