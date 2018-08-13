@@ -18,6 +18,7 @@ namespace PhinixClient
         public bool Connected => netClient.Connected;
         public void Disconnect() => netClient.Disconnect();
         public void Connect(string address, int port) => netClient.Connect(address, port);
+        public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.

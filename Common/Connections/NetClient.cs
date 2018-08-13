@@ -116,5 +116,18 @@ namespace Connections
                 connection = null;
             }
         }
+
+        /// <summary>
+        /// Sends a message to a module through the current connection.
+        /// </summary>
+        /// <param name="module">Target module</param>
+        /// <param name="serialisedMessage">Serialised message</param>
+        /// <exception cref="NotConnectedException"></exception>
+        public void Send(string module, byte[] serialisedMessage)
+        {
+            if (!Connected) throw new NotConnectedException(connection);
+
+            connection.SendObject(module, serialisedMessage);
+        }
     }
 }

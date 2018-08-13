@@ -84,5 +84,24 @@ namespace Connections
         {
             Console.WriteLine($"Lost a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
         }
+
+        /// <summary>
+        /// Sends a message to a module through the given connection.
+        /// </summary>
+        /// <param name="connection">Connection to recipient</param>
+        /// <param name="module">Target module</param>
+        /// <param name="serialisedMessage">Serialised message</param>
+        /// <exception cref="NotConnectedException"></exception>
+        public void Send(Connection connection, string module, byte[] serialisedMessage)
+        {
+            if (connection.ConnectionAlive())
+            {
+                connection.SendObject(module, serialisedMessage);
+            }
+            else
+            {
+                throw new NotConnectedException(connection);
+            }
+        }
     }
 }
