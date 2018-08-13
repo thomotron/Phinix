@@ -50,9 +50,37 @@ namespace Connections
             return true;
         }
 
+        /// <summary>
+        /// Attempts to parse or resolve the given string to an <c>IPAddress</c>. Returns true if parsing or resolution was successful.
+        /// </summary>
+        /// <param name="hostname">Hostname or IP address to parse</param>
+        /// <param name="address">Parsed address</param>
+        /// <returns>Parsed successfully</returns>
+        private bool TryParseHostnameOrAddress(string hostname, out IPAddress address)
+        {
+            if (IPAddress.TryParse(hostname, out address)) return true;
+            if (TryQueryHostname(hostname, out address)) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to resolve the given string to an <c>IPAddress</c>. Returns true if resolution was successful.
+        /// </summary>
+        /// <param name="hostname">Hostname to resolve</param>
+        /// <param name="address">Resolved address</param>
+        /// <returns>Resolved successfully</returns>
         private bool TryQueryHostname(string hostname, out IPAddress address)
         {
-            IPAddress[] addresses = Dns.GetHostAddresses(hostname);
+            IPAddress[] addresses;
+            try
+            {
+                addresses = Dns.GetHostAddresses(hostname);
+            }
+            catch (SocketException e)
+            {
+                address = IPAddress.None;
+                return false;
+            }
 
             // TODO: Get some creamy IPv6 support up in here
             address = addresses.First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
