@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using UnityEngine;
 using Verse;
 
@@ -139,8 +140,10 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(connectButtonRect, "Phinix_settings_connectButton".Translate()))
             {
-                // TODO: Run this on another thread otherwise the UI will lock up.
-                Client.Instance.Connect(serverAddress, int.Parse(serverPortString)); // Assume the port was safely validated by the regex
+                // Run this on another thread otherwise the UI will lock up.
+                new Thread(() => {
+                    Client.Instance.Connect(serverAddress, int.Parse(serverPortString)); // Assume the port was safely validated by the regex
+                }).Start();
             }
         }
     }
