@@ -20,6 +20,7 @@ namespace Connections
         /// Attempts to connect to the given endpoint. This will close an existing connection.
         /// </summary>
         /// <param name="endpoint">Endpoint to connect to</param>
+        /// <exception cref="ConnectionSetupException"></exception>
         public void Connect(IPEndPoint endpoint)
         {
             // Close the active connection before we make a new one.
@@ -34,6 +35,9 @@ namespace Connections
         /// </summary>
         /// <param name="address">Address to connect to</param>
         /// <param name="port">Port the server is listening on</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="InvalidAddressException"></exception>
+        /// <exception cref="ConnectionSetupException"></exception>
         public void Connect(string address, int port)
         {
             // Ensure the port is within the valid range
