@@ -320,5 +320,106 @@ namespace Connections.Tests
             Connection.StopListening(ConnectionType.TCP);
             NetworkComms.Shutdown(0);
         }
+
+        [Test()]
+        public void Send_ConnectedToServerValidParams_DoesNotThrow()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Assert.DoesNotThrow(() =>
+            {
+                netClient.Send("SomeModule", new byte[1000]);
+            });
+
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToServerBlankModule_ThrowsArgumentNullException()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netClient.Send("", new byte[1000]);
+            });
+
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToServerNullModule_ThrowsArgumentNullException()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netClient.Send(null, new byte[1000]);
+            });
+
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToServerZeroLengthMessage_DoesNotThrow()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Assert.DoesNotThrow(() =>
+            {
+                netClient.Send("ThatModuleOverThere", new byte[0]);
+            });
+
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToServerNullMessage_ThrowsArgumentNullException()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netClient.Send("YetAnotherModuleLanguage", null);
+            });
+
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_NotConnected_ThrowsNotConnectedException()
+        {
+            NetClient netClient = new NetClient();
+
+            Assert.Throws<NotConnectedException>(() =>
+            {
+                netClient.Send("SomeModule", new byte[1337]);
+            });
+        }
     }
 }
