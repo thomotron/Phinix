@@ -120,11 +120,16 @@ namespace Connections
         /// <summary>
         /// Sends a message to a module through the current connection.
         /// </summary>
-        /// <param name="module">Target module</param>
-        /// <param name="serialisedMessage">Serialised message</param>
+        /// <param name="module">Target module. Cannot be null or empty.</param>
+        /// <param name="serialisedMessage">Serialised message. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="NotConnectedException"></exception>
         public void Send(string module, byte[] serialisedMessage)
         {
+            // Disallow null parameters
+            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+
             if (!Connected) throw new NotConnectedException(connection);
 
             connection.SendObject(module, serialisedMessage);

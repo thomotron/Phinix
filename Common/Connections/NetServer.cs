@@ -91,17 +91,18 @@ namespace Connections
         /// <param name="connection">Connection to recipient</param>
         /// <param name="module">Target module</param>
         /// <param name="serialisedMessage">Serialised message</param>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="NotConnectedException"></exception>
         public void Send(Connection connection, string module, byte[] serialisedMessage)
         {
-            if (connection.ConnectionAlive())
-            {
-                connection.SendObject(module, serialisedMessage);
-            }
-            else
-            {
-                throw new NotConnectedException(connection);
-            }
+            // Disallow null parameters
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+
+            if (!connection.ConnectionAlive()) throw new NotConnectedException(connection);
+
+            connection.SendObject(module, serialisedMessage);
         }
     }
 }
