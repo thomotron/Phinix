@@ -1,13 +1,16 @@
 ﻿using NUnit.Framework;
 using Connections;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
+using NetworkCommsDotNet.Connections.TCP;
 
 namespace Connections.Tests
 {
@@ -116,6 +119,120 @@ namespace Connections.Tests
             Assert.That(Connection.Listening(ConnectionType.TCP) == false);
 
             Connection.StopListening();
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToClientValidParams_DoesNotThrow()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            NetServer netServer = new NetServer(serverEndpoint);
+            string module = "SomeModule";
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Connection c = TCPConnection.GetConnection(new ConnectionInfo(clientEndpoint));
+            Assert.DoesNotThrow(() =>
+            {
+                netServer.Send(c, module, new byte[1000]);
+            });
+            
+            c.CloseConnection(false);
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToClientNullConnection_ThrowsNullArgumentException()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            NetServer netServer = new NetServer(serverEndpoint);
+            string module = "SomeModule";
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Connection c = TCPConnection.GetConnection(new ConnectionInfo(clientEndpoint));
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netServer.Send(null, module, new byte[1000]);
+            });
+
+            c.CloseConnection(false);
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToClientNullModule_ThrowsNullArgumentException() // Copy-paste testing, wheeeeeeeeeee!
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            NetServer netServer = new NetServer(serverEndpoint);
+            string module = "SomeModule";
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Connection c = TCPConnection.GetConnection(new ConnectionInfo(clientEndpoint));
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netServer.Send(c, null, new byte[1000]);
+            });
+            
+            c.CloseConnection(false);
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_ConnectedToClientNullMessage_ThrowsNullArgumentException() // Copy-paste testing, wheeeeeeeeeee!
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            NetServer netServer = new NetServer(serverEndpoint);
+            string module = "SomeModule";
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            Connection c = TCPConnection.GetConnection(new ConnectionInfo(clientEndpoint));
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                netServer.Send(c, module, null);
+            });
+            
+            c.CloseConnection(false);
+            Connection.StopListening(ConnectionType.TCP);
+            NetworkComms.Shutdown(0);
+        }
+
+        [Test()]
+        public void Send_NotConnected_ThrowsNotConnectedException()
+        {
+            IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Any, 16180);
+            IPEndPoint clientEndpoint = new IPEndPoint(IPAddress.Loopback, 16180);
+            NetClient netClient = new NetClient();
+            NetServer netServer = new NetServer(serverEndpoint);
+            string module = "SomeModule";
+            Connection.StartListening(ConnectionType.TCP, serverEndpoint);
+            netClient.Connect(clientEndpoint);
+
+            ConnectionInfo clientConnectionInfo = new ConnectionInfo(clientEndpoint);
+            Connection clientConnection = TCPConnection.GetConnection(clientConnectionInfo);
+            clientConnection.CloseConnection(false);
+            while (NetworkComms.ConnectionExists(clientConnectionInfo)) Thread.Sleep(10);
+
+            Assert.Throws<NotConnectedException>(() =>
+            {
+                netServer.Send(clientConnection, module, new byte[1000]);
+            });
+            
+            clientConnection.CloseConnection(false);
+            Connection.StopListening(ConnectionType.TCP);
             NetworkComms.Shutdown(0);
         }
     }

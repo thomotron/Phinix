@@ -58,6 +58,7 @@
     <Compile Include="InvalidAddressExceptionTests.cs" />
     <Compile Include="NetCommonTests.cs" />
     <Compile Include="NetClientTests.cs" />
+    <Compile Include="NotConnectedExceptionTests.cs" />
     <Compile Include="PacketHandlerAlreadyRegisteredExceptionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NetServerTests.cs" />
