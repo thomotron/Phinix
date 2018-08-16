@@ -100,7 +100,7 @@ namespace Connections
             if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
 
-            if (!connection.ConnectionAlive()) throw new NotConnectedException(connection);
+            if (connection.ConnectionInfo.ConnectionState != ConnectionState.Established || !connection.ConnectionAlive()) throw new NotConnectedException(connection);
 
             connection.SendObject(module, serialisedMessage);
         }

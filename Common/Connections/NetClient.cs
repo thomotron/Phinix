@@ -12,7 +12,7 @@ namespace Connections
 {
     public class NetClient : NetCommon
     {
-        public bool Connected => connection != null && connection.ConnectionAlive();
+        public bool Connected => connection != null && connection.ConnectionInfo.ConnectionState == ConnectionState.Established && connection.ConnectionAlive();
 
         private TCPConnection connection;
 
