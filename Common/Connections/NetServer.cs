@@ -16,11 +16,11 @@ namespace Connections
     {
         public bool Listening => Connection.Listening(ConnectionType.TCP);
 
-        private IPEndPoint endpoint;
+        public readonly IPEndPoint Endpoint;
 
         public NetServer(IPEndPoint endpoint)
         {
-            this.endpoint = endpoint;
+            this.Endpoint = endpoint;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Connections
             if (!Listening)
             {
                 RegisterConnectionHandlers();
-                Connection.StartListening(ConnectionType.TCP, endpoint);
+                Connection.StartListening(ConnectionType.TCP, Endpoint);
             }
             else
             {
