@@ -13,6 +13,7 @@ namespace PhinixServer
         private static readonly Dictionary<string, Command> commands = new Dictionary<string, Command>
         {
             { "help", new HelpCommand() },
+            { "version", new VersionCommand()},
             { "exit", new ExitCommand() }
         };
 
