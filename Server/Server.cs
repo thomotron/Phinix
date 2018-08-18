@@ -12,7 +12,7 @@ namespace PhinixServer
 {
     class Server
     {
-        public static Logger Logger = new Logger("");
+        public static Logger Logger = new Logger("", Severity.INFO);
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()

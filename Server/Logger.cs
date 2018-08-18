@@ -7,16 +7,20 @@ namespace PhinixServer
 {
     public class Logger
     {
+        public Severity MinimumDisplaySeverity;
+
         private string logPath;
 
-        public Logger(string logPath)
+        public Logger(string logPath, Severity minimumDisplaySeverity)
         {
             this.logPath = logPath;
+            this.MinimumDisplaySeverity = minimumDisplaySeverity;
         }
 
         public void Log(Severity severity, string message)
         {
-            Console.WriteLine("[{0:u}][{1}] {2}", DateTime.UtcNow, severity.ToString(), message);
+            // Only write to the console if the severity meets the minimum
+            if (severity >= MinimumDisplaySeverity) Console.WriteLine("[{0:u}][{1}] {2}", DateTime.UtcNow, severity.ToString(), message);
         }
     }
 
