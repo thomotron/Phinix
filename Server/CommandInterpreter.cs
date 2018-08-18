@@ -8,10 +8,11 @@ namespace PhinixServer
     public class CommandInterpreter
     {
         /// <summary>
-        /// The 
+        /// The command dictionary. All valid commands and their handlers are contained in here.
         /// </summary>
         private static readonly Dictionary<string, Command> commands = new Dictionary<string, Command>
         {
+            { "help", new HelpCommand() },
             { "exit", new ExitCommand() }
         };
 
@@ -57,10 +58,9 @@ namespace PhinixServer
             }
             else // List all commands
             {
-                // Write out help for special commands (i.e. help and exit)
                 foreach (Command command in commands.Values)
                 {
-                    Console.WriteLine($"{command.CommandName} {command.GetHelp()}");
+                    // Iterate through all the help entries
                 }
             }
         }

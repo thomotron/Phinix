@@ -15,6 +15,12 @@ namespace PhinixServer
         public abstract string CommandName { get; }
 
         /// <summary>
+        /// A list of help entries to be displayed when the help command is invoked.
+        /// Should contain an entry for each argument combination.
+        /// </summary>
+        public abstract HelpEntry[] HelpEntries { get; }
+
+        /// <summary>
         /// Run when the command is executed.
         /// </summary>
         /// <param name="args">Arguments entered by the user</param>
@@ -22,20 +28,13 @@ namespace PhinixServer
         public abstract bool Execute(List<string> args);
 
         /// <summary>
-        /// Constructs a help entry when the help command is invoked.
-        /// Should be kept to a single line.
-        /// </summary>
-        /// <returns>Constructed help entry</returns>
-        public abstract string GetHelp();
-
-        /// <summary>
         /// Constructs a help entry when the help command is invoked targetting this command specifically.
-        /// Gives the command free reign over writing to the console.
+        /// Gives the command free reign over writing to the console to allow for more advanced formatting capability.
         /// </summary>
         /// <param name="args">Arguments entered by the user</param>
         public virtual void GetSpecificHelp(List<string> args)
         {
-            Console.WriteLine(CommandName + " " + GetHelp());
+            Console.WriteLine("No specific help is available for '{0}'", CommandName);
         }
     }
 }
