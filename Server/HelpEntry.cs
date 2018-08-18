@@ -1,4 +1,6 @@
-﻿namespace PhinixServer
+﻿using System.Text;
+
+namespace PhinixServer
 {
     /// <summary>
     /// A help entry read by the <c>CommandInterpreter</c> to help with consistent formatting.
@@ -43,6 +45,18 @@
             this.CommandName = commandName;
             this.Arguments = arguments;
             this.Text = text;
+        }
+
+        public string ConstructCommand()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(CommandName);
+            foreach (string argument in Arguments)
+            {
+                sb.Append($" <{argument}>");
+            }
+
+            return sb.ToString();
         }
     }
 }

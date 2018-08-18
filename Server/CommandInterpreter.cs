@@ -58,9 +58,17 @@ namespace PhinixServer
             }
             else // List all commands
             {
+                // Determine how wide the command column should be by finding the longest command string
+                int columnWidth = commands.Values.Max(command => command.HelpEntries.Max(entry => entry.ConstructCommand().Length));
                 foreach (Command command in commands.Values)
                 {
-                    // Iterate through all the help entries
+                    foreach (HelpEntry entry in command.HelpEntries)
+                    {
+                        // Print out the command and arguments padded to the column width, then the description
+                        // The padding size does not need to be compile-time constant, so using columnWidth will work nicely
+                        // A negative column width is also used to align everything to the left rather than the right
+                        Console.WriteLine("{0,-" + columnWidth + "} {1}", entry.ConstructCommand(), entry.Text);
+                    }
                 }
             }
         }
