@@ -27,6 +27,8 @@ namespace PhinixServer
             {
                 string line = Console.ReadLine();
 
+                if (line == null) continue;
+
                 List<string> arguments = new List<string>(line.Split(' '));
                 string command = arguments.First();
                 arguments.RemoveAt(0); // Remove the command from the argument list
