@@ -40,7 +40,7 @@ namespace PhinixServer
         /// <summary>
         /// Prints out a list of commands or specific help text if a command is specified.
         /// </summary>
-        /// <param name="args">Command </param>
+        /// <param name="args">Command arguments</param>
         private void PrintHelp(List<string> args)
         {
             if (args.Count > 0) // Specific command and argument(s)

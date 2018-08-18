@@ -4,6 +4,7 @@ using System.Reflection;
 
 namespace PhinixServer
 {
+    /// <inheritdoc />
     public class VersionCommand : Command
     {
         public override string CommandName => "version";
