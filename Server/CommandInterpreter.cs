@@ -23,7 +23,7 @@ namespace PhinixServer
         /// </summary>
         /// <param name="command">Command to run</param>
         /// <param name="args">Command arguments</param>
-        public void Run(string command, List<string> args = null)
+        public void Run(string command, List<string> args)
         {
             if (command == "help") // Help needs some special access to the command list so we run it here
             {
@@ -31,7 +31,10 @@ namespace PhinixServer
             }
             else if (commands.ContainsKey(command)) // Is this a valid command?
             {
-                commands[command].Execute(args);
+                if (!commands[command].Execute(args)) // Try to execute the command and report if it failed
+                {
+                    Console.WriteLine("Failed to run command '{0}' with arguments '{1}'", command, string.Join(" ", args.ToArray()));
+                };
             }
             else // Spit out an unknown command warning
             {
