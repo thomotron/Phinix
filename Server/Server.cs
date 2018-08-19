@@ -12,7 +12,7 @@ namespace PhinixServer
 {
     class Server
     {
-        public static Logger Logger = new Logger("", Severity.INFO);
+        public static Logger Logger = new Logger("", Verbosity.INFO);
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()
@@ -20,7 +20,7 @@ namespace PhinixServer
             Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(IPAddress.Any, 16180));
             connections.Start();
 
-            Logger.Log(Severity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));
+            Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));
 
             CommandInterpreter interpreter = new CommandInterpreter();
             while (true)
@@ -35,7 +35,7 @@ namespace PhinixServer
 
                 if (command == "exit") // Check this here to avoid other weird workarounds
                 {
-                    Logger.Log(Severity.INFO, "Server shutting down");
+                    Logger.Log(Verbosity.INFO, "Server shutting down");
                     break;
                 }
 

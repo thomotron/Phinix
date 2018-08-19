@@ -18,12 +18,12 @@ namespace PhinixServer
         {
             if (args.Count < 1) return false;
 
-            if (int.TryParse(args.ElementAt(0), out int severityInt)) // Parse the first argument
+            if (int.TryParse(args.ElementAt(0), out int verbosityInt)) // Parse the first argument
             {
-                if (Enum.IsDefined(typeof(Severity), severityInt)) // Ensure that it is a valid severity level
+                if (Enum.IsDefined(typeof(Verbosity), verbosityInt)) // Ensure that it is a valid verbosity level
                 {
-                    Server.Logger.MinimumDisplaySeverity = (Severity) severityInt;
-                    Console.WriteLine("Set log verbosity to {0} ({1})", severityInt, (Severity) severityInt);
+                    Server.Logger.DisplayVerbosity = (Verbosity) verbosityInt;
+                    Console.WriteLine("Set log verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
                     return true;
                 }
             }
