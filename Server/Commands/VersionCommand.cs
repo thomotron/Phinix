@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Connections;
 
 namespace PhinixServer
 {
@@ -16,8 +17,8 @@ namespace PhinixServer
 
         public override bool Execute(List<string> args)
         {
-            Console.WriteLine("Server: " + Assembly.GetExecutingAssembly().GetName().Version);
-            Console.WriteLine("Connections: " + Assembly.GetAssembly(typeof(Connections.NetServer)).GetName().Version);
+            Console.WriteLine("Server: " + Server.Version);
+            Console.WriteLine("Connections: " + NetCommon.Version);
 
             return true;
         }

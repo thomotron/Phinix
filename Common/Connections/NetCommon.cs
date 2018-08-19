@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using NetworkCommsDotNet;
 
 namespace Connections
 {
     public class NetCommon
     {
+        public static readonly Version Version = Assembly.GetAssembly(typeof(NetCommon)).GetName().Version;
+
         private List<string> registeredPacketTypes = new List<string>();
 
         /// <summary>

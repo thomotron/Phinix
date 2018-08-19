@@ -1,4 +1,6 @@
-﻿using Connections;
+﻿using System;
+using System.Reflection;
+using Connections;
 using HugsLib;
 
 namespace PhinixClient
@@ -6,6 +8,7 @@ namespace PhinixClient
     public class Client : ModBase
     {
         public static Client Instance;
+        public static readonly Version Version = Assembly.GetAssembly(typeof(Client)).GetName().Version;
 
         public override string ModIdentifier => "Phinix";
 
