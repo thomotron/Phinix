@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.ServiceModel;
-using System.Text;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
-using NetworkCommsDotNet.Connections.TCP;
-using ProtoBuf;
 
 namespace Connections
 {
