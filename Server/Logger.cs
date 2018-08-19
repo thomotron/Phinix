@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -16,6 +17,11 @@ namespace PhinixServer
         public Verbosity DisplayVerbosity;
 
         /// <summary>
+        /// The minimum verbosity level for a message to be recorded in the log file.
+        /// </summary>
+        public Verbosity LogVerbosity;
+
+        /// <summary>
         /// Path to the log file.
         /// </summary>
         private string logPath;
@@ -25,10 +31,14 @@ namespace PhinixServer
         /// </summary>
         /// <param name="logPath">Log file path including extension</param>
         /// <param name="displayVerbosity">Minimum verbosity level for a message to be displayed in console</param>
-        public Logger(string logPath, Verbosity displayVerbosity)
+        public Logger(string logPath, Verbosity displayVerbosity, Verbosity logVerbosity = Verbosity.INFO)
         {
+            // Make sure that the log path isn't empty
+            if (string.IsNullOrEmpty(logPath)) throw new ArgumentException("Must specify a non-empty log path!", nameof(logPath));
+
             this.logPath = logPath;
             this.DisplayVerbosity = displayVerbosity;
+            this.LogVerbosity = logVerbosity;
         }
 
         /// <summary>
@@ -38,8 +48,13 @@ namespace PhinixServer
         /// <param name="message">Message</param>
         public void Log(Verbosity verbosity, string message)
         {
+            string formattedEntry = string.Format("[{0:u}][{1}] {2}\n", DateTime.UtcNow, verbosity.ToString(), message);
+
             // Only write to the console if the verbosity meets the minimum
-            if (verbosity >= DisplayVerbosity) Console.WriteLine("[{0:u}][{1}] {2}", DateTime.UtcNow, verbosity.ToString(), message);
+            if (verbosity >= DisplayVerbosity) Console.Write(formattedEntry);
+            
+            // Only write to disk if the verbosity meets the minimum
+            if (verbosity >= LogVerbosity) File.AppendAllText(logPath, formattedEntry);
         }
     }
 

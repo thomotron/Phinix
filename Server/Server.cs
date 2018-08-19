@@ -12,7 +12,7 @@ namespace PhinixServer
 {
     class Server
     {
-        public static Logger Logger = new Logger("", Verbosity.INFO);
+        public static Logger Logger = new Logger("server.log", Verbosity.INFO);
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()
@@ -43,6 +43,4 @@ namespace PhinixServer
             }
         }
     }
-
-    
 }
