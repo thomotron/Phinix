@@ -25,31 +25,31 @@ namespace PhinixServer
         /// Textual representation of Address.
         /// This is reserved for (de)serialisation purposes.
         /// </summary>
-        [DataMember(Name = "IPAddress")]
+        [DataMember(Name = "IPAddress", Order = 0)]
         private string addressString = "";
 
         /// <summary>
         /// Port to listen on.
         /// </summary>
-        [DataMember(Name = "Port")]
+        [DataMember(Name = "Port", Order = 1)]
         public int Port = 16180;
 
         /// <summary>
         /// Path to the log file.
         /// </summary>
-        [DataMember(Name = "LogFile")]
+        [DataMember(Name = "LogFile", Order = 2)]
         public string LogPath = "server.log";
 
         /// <summary>
         /// The minimum verbosity level for a message to be displayed in the console.
         /// </summary>
-        [DataMember(Name = "DisplayVerbosity")]
+        [DataMember(Name = "DisplayVerbosity", Order = 3)]
         public Verbosity DisplayVerbosity = Verbosity.INFO;
 
         /// <summary>
         /// The minimum verbosity level for a message to be recorded in the log file.
         /// </summary>
-        [DataMember(Name = "LogVerbosity")]
+        [DataMember(Name = "LogVerbosity", Order = 4)]
         public Verbosity LogVerbosity = Verbosity.INFO;
 
         /// <summary>
