@@ -60,7 +60,12 @@ namespace PhinixServer
         public static Config Load(string filePath)
         {
             // Give a fresh new config if the given file doesn't exist
-            if (!File.Exists(filePath)) return new Config();
+            if (!File.Exists(filePath))
+            {
+                Config config = new Config();
+                config.Save(filePath); // Save it first to make sure it's present next time
+                return config;
+            }
 
             Config result;
 
