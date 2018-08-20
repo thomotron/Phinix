@@ -8,12 +8,16 @@ namespace PhinixServer
 {
     class Server
     {
-        public static Logger Logger = new Logger("server.log", Verbosity.INFO);
+        public static Config Config;
+        public static Logger Logger;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()
         {
-            Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(IPAddress.Any, 16180));
+            Config = Config.Load("server.conf");
+            Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
+
+            Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(Config.Address, Config.Port));
             connections.Start();
 
             Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));

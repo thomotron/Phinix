@@ -55,6 +55,7 @@ namespace PhinixServer
         }
     }
 
+    [Serializable]
     public enum Verbosity
     {
         DEBUG,
