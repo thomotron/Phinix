@@ -13,7 +13,8 @@ namespace PhinixServer
     {
         [XmlIgnore]
         public IPAddress Address = IPAddress.Any;
-        public string AddressString = ""; // TODO: Have this field renamed to 'IP' or something
+        [XmlElement("IPAddress")]
+        public string AddressString = "";
         public int Port = 16180;
 
         public string LogPath = "server.log";
