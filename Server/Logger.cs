@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace PhinixServer
 {
@@ -55,13 +56,18 @@ namespace PhinixServer
         }
     }
 
-    [Serializable]
+    [DataContract]
     public enum Verbosity
     {
+        [EnumMember]
         DEBUG,
+        [EnumMember]
         INFO,
+        [EnumMember]
         WARN,
+        [EnumMember]
         ERROR,
+        [EnumMember]
         FATAL
     }
 }
