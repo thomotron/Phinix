@@ -1,24 +1,35 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
-using System.Xml.Serialization;
+using System.Runtime.Serialization;
+using System.Xml;
 
 namespace PhinixServer
 {
     /// <summary>
     /// Server configuration class able to read from and write to a configuration file.
     /// </summary>
-    [Serializable]
-    public class Config
+    [DataContract]
+    public class Config : IExtensibleDataObject
     {
-        [XmlIgnore]
+        // This will hold any excess data that doesn't fit in the current version of this class
+        public ExtensionDataObject ExtensionData { get; set; }
+
+        [IgnoreDataMember]
         public IPAddress Address = IPAddress.Any;
-        [XmlElement("IPAddress")]
-        public string AddressString = "";
+
+        [DataMember(Name = "IPAddress")]
+        private string addressString = "";
+
+        [DataMember(Name = "Port")]
         public int Port = 16180;
 
+        [DataMember(Name = "LogFile")]
         public string LogPath = "server.log";
+
+        [DataMember(Name = "DisplayVerbosity")]
         public Verbosity DisplayVerbosity = Verbosity.INFO;
+
+        [DataMember(Name = "LogVerbosity")]
         public Verbosity LogVerbosity = Verbosity.INFO;
 
         public static Config Load(string filePath)
@@ -28,36 +39,35 @@ namespace PhinixServer
 
             Config result;
 
-            using (FileStream stream = File.OpenRead(filePath))
+            using (XmlReader reader = XmlReader.Create(filePath))
             {
-                result = new XmlSerializer(typeof(Config)).Deserialize(stream) as Config;
+                result = new DataContractSerializer(typeof(Config)).ReadObject(reader) as Config;
             }
-
-            result.PostDeserialisation();
 
             return result;
         }
 
         public void Save(string filePath)
         {
-            PreSerialisation();
-
-            using (FileStream stream = new FileStream(filePath, FileMode.Create))
+            XmlWriterSettings settings = new XmlWriterSettings { Indent = true };
+            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
             {
-                new XmlSerializer(typeof(Config)).Serialize(stream, this);
+                new DataContractSerializer(typeof(Config)).WriteObject(writer, this);
             }
         }
         
-        private void PreSerialisation()
+        [OnSerializing]
+        private void OnSerializing(StreamingContext context)
         {
-            this.AddressString = Address.ToString();
+            this.addressString = Address.ToString();
         }
         
-        private void PostDeserialisation()
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext context)
         {
-            if (!IPAddress.TryParse(AddressString, out Address))
+            if (!IPAddress.TryParse(addressString, out Address))
             {
-                throw new ConfigItemDeserialisationException(typeof(string), typeof(IPAddress), nameof(AddressString));
+                throw new ConfigItemDeserialisationException(typeof(string), typeof(IPAddress), nameof(addressString));
             }
         }
     }
