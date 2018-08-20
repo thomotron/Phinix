@@ -45,7 +45,7 @@ namespace PhinixServer
         /// <param name="message">Message</param>
         public void Log(Verbosity verbosity, string message)
         {
-            string formattedEntry = string.Format("[{0:u}][{1}] {2}\n", DateTime.UtcNow, verbosity.ToString(), message);
+            string formattedEntry = string.Format("[{0:u}][{1}] {2}{3}", DateTime.UtcNow, verbosity.ToString(), message, Environment.NewLine);
 
             // Only write to the console if the verbosity meets the minimum
             if (verbosity >= DisplayVerbosity) Console.Write(formattedEntry);
