@@ -11,24 +11,35 @@ namespace PhinixServer
         
         public override HelpEntry[] HelpEntries => new HelpEntry[]
         {
-            new HelpEntry("log", new string[]{"verbosity"}, "Sets the log verbosity for printing to the console. Valid levels are 0 (DEBUG) to 4 (FATAL).")
+            new HelpEntry("log console", new string[]{"verbosity"}, "Sets the verbosity for printing to the console. Valid levels are 0 (DEBUG) to 4 (FATAL)."),
+            new HelpEntry("log file",    new string[]{"verbosity"}, "Sets the verbosity for writing to the log. Valid levels are 0 (DEBUG) to 4 (FATAL).")
         };
 
         public override bool Execute(List<string> args)
         {
-            if (args.Count < 1) return false;
+            if (args.Count < 2) return false;
 
-            if (int.TryParse(args.ElementAt(0), out int verbosityInt)) // Parse the first argument
+            if (!int.TryParse(args.ElementAt(1), out int verbosityInt)) return false;
+
+            if (!Enum.IsDefined(typeof(Verbosity), verbosityInt)) return false;
+
+            if (args.ElementAt(0) == "console") // Set the console verbosity
             {
-                if (Enum.IsDefined(typeof(Verbosity), verbosityInt)) // Ensure that it is a valid verbosity level
-                {
-                    Server.Logger.DisplayVerbosity = (Verbosity) verbosityInt;
-                    Console.WriteLine("Set log verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
-                    return true;
-                }
+                Server.Config.DisplayVerbosity = (Verbosity) verbosityInt;
+                Console.WriteLine("Set console verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
+            }
+            else if (args.ElementAt(0) == "file") // Set the log file verbosity
+            {
+                Server.Config.LogVerbosity = (Verbosity) verbosityInt;
+                Console.WriteLine("Set log verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
+            }
+            else
+            {
+                // We don't know which verbosity to set so fail here
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         public override void GetSpecificHelp(List<string> args)
@@ -39,9 +50,7 @@ namespace PhinixServer
                               " 1: INFO  (Default, events worth noting in normal use)\n" +
                               " 2: WARN  (Warnings of unusual activity or minor problems that do not need immediate attention)\n" +
                               " 3: ERROR (Problems that require immediate attention or could lead to instability)\n" +
-                              " 4: FATAL (Major errors that will cause the server to break)\n" +
-                              "\n" +
-                              "All messages are still recorded in the log file regardless of this setting.");
+                              " 4: FATAL (Major errors that will cause the server to break)");
         }
     }
 }
