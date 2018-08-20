@@ -8,13 +8,15 @@ namespace PhinixServer
 {
     class Server
     {
+        private const string CONFIG_FILE = "server.conf";
+
         public static Config Config;
         public static Logger Logger;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()
         {
-            Config = Config.Load("server.conf");
+            Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
 
             Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(Config.Address, Config.Port));
@@ -36,6 +38,7 @@ namespace PhinixServer
                 if (command == "exit") // Check this here to avoid other weird workarounds
                 {
                     Logger.Log(Verbosity.INFO, "Server shutting down");
+                    Config.Save(CONFIG_FILE);
                     break;
                 }
 
