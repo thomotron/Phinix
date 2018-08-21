@@ -58,6 +58,16 @@ namespace PhinixClient
 
             // Set up our module instances
             this.netClient = new NetClient();
+
+            // Connect to the server set in the config
+            try
+            {
+                this.netClient.Connect(ServerAddress, ServerPort);
+            }
+            catch (Exception)
+            {
+                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
+            }
         }
 
         /// <summary>
