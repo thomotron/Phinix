@@ -30,8 +30,8 @@ namespace PhinixClient
 
         public override Vector2 InitialSize => new Vector2(600f, 100f);
 
-        private static string serverAddress = "";
-        private static string serverPortString = "";
+        private static string serverAddress = Client.Instance.ServerAddress;
+        private static string serverPortString = Client.Instance.ServerPort.ToString();
 
         public override void DoWindowContents(Rect inRect)
         {
@@ -135,6 +135,10 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(connectButtonRect, "Phinix_settings_connectButton".Translate()))
             {
+                // Save the connection details to the client settings
+                Client.Instance.ServerAddress = serverAddress;
+                Client.Instance.ServerPort = int.Parse(serverPortString);
+
                 // Run this on another thread otherwise the UI will lock up.
                 new Thread(() => {
                     Client.Instance.Connect(serverAddress, int.Parse(serverPortString)); // Assume the port was safely validated by the regex
