@@ -7,4 +7,4 @@ install:
  
 script:
   - xbuild /property:Configuration=TravisCI ./Phinix.sln
-  - nunit-console ./Common/ConnectionsTests/bin/Debug/ConnectionsTests.dll
+  - nunit-console ./Common/ConnectionsTests/bin/Debug/ConnectionsTests.dll ./Common/UserManagementTests/bin/Debug/UserManagementTests.dll
