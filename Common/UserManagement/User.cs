@@ -22,8 +22,11 @@ namespace UserManagement
         /// Instantiates a new <c>User</c> with the given username and a random UUID.
         /// </summary>
         /// <param name="username">Username</param>
+        /// <exception cref="ArgumentNullException">Username cannot be null or empty</exception>
         public User(string username)
         {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
+
             this.Uuid = generateUuid();
             this.Username = username;
         }
@@ -33,8 +36,13 @@ namespace UserManagement
         /// </summary>
         /// <param name="uuid">UUID</param>
         /// <param name="username">Username</param>
+        /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException">Username cannot be null or empty</exception>
         public User(string uuid, string username)
         {
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentNullException(nameof(uuid), "UUID cannot be null or empty.");
+            if (string.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
+
             this.Uuid = uuid;
             this.Username = username;
         }
