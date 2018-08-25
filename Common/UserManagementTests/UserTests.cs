@@ -61,27 +61,27 @@ namespace UserManagement.Tests
         }
 
         [Test()]
-        public void User_UuidConstructor_NullUuid_ThrowsArgumentNullException()
+        public void User_UuidConstructor_NullUuid_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User(null, "SirTerryWrist");
             });
         }
 
         [Test()]
-        public void User_UuidConstructor_EmptyUsernameAndUuid_ThrowsArgumentNullException()
+        public void User_UuidConstructor_EmptyUsernameAndUuid_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User("", "");
             });
         }
 
         [Test()]
-        public void User_UuidConstructor_NullUsernameAndUuid_ThrowsArgumentNullException()
+        public void User_UuidConstructor_NullUsernameAndUuid_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User(null, null);
             });

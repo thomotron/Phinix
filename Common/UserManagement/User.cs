@@ -40,11 +40,11 @@ namespace UserManagement
         /// </summary>
         /// <param name="uuid">UUID</param>
         /// <param name="username">Username</param>
-        /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
         /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
         public User(string uuid, string username)
         {
-            if (string.IsNullOrEmpty(uuid)) throw new ArgumentNullException(nameof(uuid), "UUID cannot be null or empty.");
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
             this.Uuid = uuid;
             this.Username = username;
@@ -92,7 +92,7 @@ namespace UserManagement
         {
             if (string.IsNullOrEmpty(value))
             {
-                throw new ArgumentException(nameof(value), "Username cannot be null or empty.");
+                throw new ArgumentException("Username cannot be null or empty.", nameof(value));
             }
 
             return value;
