@@ -12,21 +12,25 @@ namespace UserManagement
         /// The user's Universally Unique IDentifier.
         /// </summary>
         public readonly string Uuid;
-        
+
         /// <summary>
         /// The user's username.
         /// </summary>
-        public string Username;
+        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
+        public string Username
+        {
+            get => username;
+            set => username = validateUsername(value);
+        }
+        private string username;
 
         /// <summary>
         /// Instantiates a new <c>User</c> with the given username and a random UUID.
         /// </summary>
         /// <param name="username">Username</param>
-        /// <exception cref="ArgumentNullException">Username cannot be null or empty</exception>
+        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
         public User(string username)
         {
-            if (string.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
-
             this.Uuid = generateUuid();
             this.Username = username;
         }
@@ -37,11 +41,10 @@ namespace UserManagement
         /// <param name="uuid">UUID</param>
         /// <param name="username">Username</param>
         /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
-        /// <exception cref="ArgumentNullException">Username cannot be null or empty</exception>
+        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
         public User(string uuid, string username)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentNullException(nameof(uuid), "UUID cannot be null or empty.");
-            if (string.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
 
             this.Uuid = uuid;
             this.Username = username;
@@ -77,6 +80,22 @@ namespace UserManagement
             return new Guid(time,time_mid,time_hi_and_ver,
                 bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],
                 bytes[14],bytes[15]).ToString();
+        }
+
+        /// <summary>
+        /// Validates the given string as if it were a username.
+        /// </summary>
+        /// <param name="value">String to validate</param>
+        /// <returns>Validated string</returns>
+        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
+        private string validateUsername(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(nameof(value), "Username cannot be null or empty.");
+            }
+
+            return value;
         }
     }
 }

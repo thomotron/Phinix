@@ -23,18 +23,18 @@ namespace UserManagement.Tests
         }
 
         [Test()]
-        public void User_UsernameConstructor_NullUsername_ThrowsArgumentNullException()
+        public void User_UsernameConstructor_NullUsername_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User(null);
             });
         }
 
         [Test()]
-        public void User_UsernameConstructor_EmptyUsername_ThrowsArgumentNullException()
+        public void User_UsernameConstructor_EmptyUsername_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User("");
             });
@@ -52,9 +52,9 @@ namespace UserManagement.Tests
         }
 
         [Test()]
-        public void User_UuidConstructor_NullUsername_ThrowsArgumentNullException()
+        public void User_UuidConstructor_NullUsername_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 User user = new User("37dcdba4-e722-4f76-93d5-0b8b1a6c050c", null);
             });
