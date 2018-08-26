@@ -12,12 +12,14 @@ namespace PhinixServer
 
         public static Config Config;
         public static Logger Logger;
+        public static UserManagement.UserManager UserManager;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         static void Main()
         {
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
+            UserManager = UserManagement.UserManager.Load(Config.UserDatabasePath);
 
             Connections.NetServer connections = new Connections.NetServer(new IPEndPoint(Config.Address, Config.Port));
             connections.Start();
@@ -38,6 +40,7 @@ namespace PhinixServer
                 if (command == "exit") // Check this here to avoid other weird workarounds
                 {
                     Logger.Log(Verbosity.INFO, "Server shutting down");
+                    UserManager.Save(Config.UserDatabasePath);
                     Config.Save(CONFIG_FILE);
                     break;
                 }
