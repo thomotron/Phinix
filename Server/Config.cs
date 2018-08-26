@@ -53,6 +53,12 @@ namespace PhinixServer
         public Verbosity LogVerbosity = Verbosity.INFO;
 
         /// <summary>
+        /// Path to the user database file.
+        /// </summary>
+        [DataMember(Name = "UserDatabaseFile", Order = 5)]
+        public string UserDatabasePath = "users";
+
+        /// <summary>
         /// Loads a <c>Config</c> object from the given file path. Will return a default <c>Config</c> if the file does not exist.
         /// </summary>
         /// <param name="filePath">Config file path</param>
