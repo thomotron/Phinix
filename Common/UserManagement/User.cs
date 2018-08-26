@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 
 namespace UserManagement
@@ -6,22 +7,26 @@ namespace UserManagement
     /// <summary>
     /// Represents a user with a unique ID.
     /// </summary>
+    [DataContract]
     public class User
     {
         /// <summary>
         /// The user's Universally Unique IDentifier.
         /// </summary>
+        [DataMember]
         public readonly string Uuid;
 
         /// <summary>
         /// The user's username.
         /// </summary>
         /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
+        [IgnoreDataMember]
         public string Username
         {
             get => username;
             set => username = validateUsername(value);
         }
+        [DataMember(Name = "Username")]
         private string username;
 
         /// <summary>
