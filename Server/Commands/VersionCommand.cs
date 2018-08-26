@@ -19,6 +19,7 @@ namespace PhinixServer
         {
             Console.WriteLine("Server: " + Server.Version);
             Console.WriteLine("Connections: " + NetCommon.Version);
+            Console.WriteLine("UserManagement: " + UserManagement.UserManager.Version);
 
             return true;
         }
