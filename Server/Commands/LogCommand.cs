@@ -44,7 +44,24 @@ namespace PhinixServer
 
         public override void GetSpecificHelp(List<string> args)
         {
-            Console.WriteLine("Sets the minimum verbosity required before a log message is printed to the console.\n" +
+            string printDestination = "either the console or the log file";
+            if (args.Count > 0)
+            {
+                switch (args.First())
+                {
+                    case "console":
+                        printDestination = "the console";
+                        break;
+                    case "file":
+                        printDestination = "the log file";
+                        break;
+                    default:
+                        Console.WriteLine("Unknown argument '{0}'", args.First());
+                        return;
+                }
+            }
+
+            Console.WriteLine("Sets the minimum verbosity required before a log message is printed to " + printDestination + ".\n" +
                               "Valid levels are:\n" +
                               " 0: DEBUG (Useful for developers, highly-verbose output)\n" +
                               " 1: INFO  (Default, events worth noting in normal use)\n" +
