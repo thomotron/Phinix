@@ -73,7 +73,6 @@ namespace UserManagement
 
         /// <summary>
         /// Tries to get a user from the user list by their UUID and returns whether the user was retrieved successfully.
-        /// <c>User</c>s returned by this method should not be modified as the changes will not be saved. Please use <see cref="UpdateUser"/> instead.
         /// </summary>
         /// <param name="uuid">UUID of the user</param>
         /// <param name="user">User output</param>
