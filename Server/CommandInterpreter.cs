@@ -50,7 +50,7 @@ namespace PhinixServer
             if (args.Count > 0) // Specific command and argument(s)
             {
                 string subcommand = args.First();
-                List<string> subargs = args.Count > 1 ? args.GetRange(1, args.Count - 2) : null; // Include additional arguments if provided
+                List<string> subargs = args.Count > 1 ? args.GetRange(1, args.Count - 1) : new List<string>(); // Include additional arguments if provided
                 if (commands.ContainsKey(subcommand))
                 {
                     commands[subcommand].GetSpecificHelp(subargs);
