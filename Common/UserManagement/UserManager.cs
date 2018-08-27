@@ -7,6 +7,10 @@ using System.Xml;
 
 namespace UserManagement
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Organises users and oversees saving them to- and loading them from a file.
+    /// </summary>
     [DataContract]
     public class UserManager : IExtensibleDataObject
     {
