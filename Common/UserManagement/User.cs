@@ -4,12 +4,16 @@ using System.Security.Cryptography;
 
 namespace UserManagement
 {
+    /// <inheritdoc />
     /// <summary>
     /// Represents a user with a unique ID.
     /// </summary>
     [DataContract]
-    public class User
+    public class User : IExtensibleDataObject
     {
+        // This will hold any excess data that doesn't fit in the current version of this class
+        public ExtensionDataObject ExtensionData { get; set; }
+
         /// <summary>
         /// The user's Universally Unique IDentifier.
         /// </summary>

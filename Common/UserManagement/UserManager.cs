@@ -8,9 +8,12 @@ using System.Xml;
 namespace UserManagement
 {
     [DataContract]
-    public class UserManager
+    public class UserManager : IExtensibleDataObject
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(UserManager)).GetName().Version;
+
+        // This will hold any excess data that doesn't fit in the current version of this class
+        public ExtensionDataObject ExtensionData { get; set; }
 
         /// <summary>
         /// A dictionary containing every user's UUID and <c>User</c> object.
