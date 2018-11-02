@@ -23,7 +23,6 @@ namespace Connections
         {
             if (!Listening)
             {
-                RegisterConnectionHandlers();
                 Connection.StartListening(ConnectionType.TCP, Endpoint);
             }
             else
@@ -39,43 +38,42 @@ namespace Connections
         {
             Connection.StopListening();
             NetworkComms.CloseAllConnections(ConnectionType.TCP);
-            UnregisterConnectionHandlers();
         }
 
         /// <summary>
-        /// Registers NetworkComms.Net event handlers for connection established and connection closed.
+        /// Registers a delegate to be called when a new connection is established.
         /// </summary>
-        private void RegisterConnectionHandlers()
+        /// <param name="d">Handler delegate</param>
+        public void RegisterConnectionEstablishedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
         {
-            NetworkComms.AppendGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
-            NetworkComms.AppendGlobalConnectionCloseHandler(ConnectionClosedHandler);
+            NetworkComms.AppendGlobalConnectionEstablishHandler(d);
         }
 
         /// <summary>
-        /// Unregisters NetworkComms.Net event handlers. Effectively the opposite of <c>RegisterHandlers()</c>.
+        /// Unregisters an existing connection established handler delegate.
         /// </summary>
-        private void UnregisterConnectionHandlers()
+        /// <param name="d">Handler delegate</param>
+        public void UnregisterConnectionEstablishedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
         {
-            NetworkComms.RemoveGlobalConnectionEstablishHandler(ConnectionEstablishedHandler);
-            NetworkComms.RemoveGlobalConnectionCloseHandler(ConnectionClosedHandler);
+            NetworkComms.RemoveGlobalConnectionEstablishHandler(d);
         }
 
         /// <summary>
-        /// Placeholder for processing opened connections.
+        /// Registers a delegate to be called when an existing connection is closed.
         /// </summary>
-        /// <param name="connection"></param>
-        private void ConnectionEstablishedHandler(Connection connection)
+        /// <param name="d">Handler delegate</param>
+        public void RegisterConnectionClosedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
         {
-            Console.WriteLine($"Got a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
+            NetworkComms.AppendGlobalConnectionCloseHandler(d);
         }
 
         /// <summary>
-        /// Placeholder for processing closed connecctions.
+        /// Unregisters an existing connection closed handler delegate.
         /// </summary>
-        /// <param name="connection"></param>
-        private void ConnectionClosedHandler(Connection connection)
+        /// <param name="d">Handler delegate</param>
+        public void UnregisterConnectionClosedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
         {
-            Console.WriteLine($"Lost a connection from {connection.ConnectionInfo.NetworkIdentifier}!");
+            NetworkComms.RemoveGlobalConnectionCloseHandler(d);
         }
 
         /// <summary>
