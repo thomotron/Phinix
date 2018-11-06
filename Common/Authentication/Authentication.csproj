@@ -43,7 +43,7 @@
     <Compile Include="Credentials.cs" />
     <Compile Include="Credentials\PhiKeyCredentials.cs" />
     <Compile Include="Packets\AuthenticatePacket.cs" />
-    <Compile Include="Packets\AuthResponse.cs" />
+    <Compile Include="Packets\AuthResponsePacket.cs" />
     <Compile Include="Packets\HelloPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
