@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -39,7 +40,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Authenticator.cs" />
+    <Compile Include="Credentials.cs" />
+    <Compile Include="Credentials\PhiKeyCredentials.cs" />
+    <Compile Include="Packets\AuthenticatePacket.cs" />
+    <Compile Include="Packets\AuthResponse.cs" />
+    <Compile Include="Packets\HelloPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Connections\Connections.csproj">
+      <Project>{38CB6BED-E751-42FE-A847-C0DDD482AC62}</Project>
+      <Name>Connections</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

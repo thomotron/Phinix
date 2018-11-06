@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Authentication;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
@@ -15,8 +16,6 @@ namespace PhinixClient
 
         private NetClient netClient;
         public bool Connected => netClient.Connected;
-        public void Disconnect() => netClient.Disconnect();
-        public void Connect(string address, int port) => netClient.Connect(address, port);
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
         private SettingHandle<string> serverAddressHandle;
@@ -78,6 +77,40 @@ namespace PhinixClient
         {
             base.FixedUpdate();
 
+        }
+
+        /// <summary>
+        /// Attempts to connect and then authenticate with the server at the given address and port.
+        /// This will disconnect from the current server, if any.
+        /// </summary>
+        /// <param name="address">Server address</param>
+        /// <param name="port">Server port</param>
+        public void Connect(string address, int port)
+        {
+            if (Connected)
+            {
+                Disconnect();
+            }
+
+            try
+            {
+                netClient.Connect(address, port);
+            }
+            catch
+            {
+                // We shouldn't try to authenticate if we hit an error
+                return;
+            }
+
+            Packet hello = Authenticator.GetHelloPacket();
+        }
+
+        /// <summary>
+        /// If connected, disconnects from the current server.
+        /// </summary>
+        public void Disconnect()
+        {
+            netClient.Disconnect();
         }
     }
 }

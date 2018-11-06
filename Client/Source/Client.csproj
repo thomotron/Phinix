@@ -78,6 +78,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Authentication\Authentication.csproj">
+      <Project>{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}</Project>
+      <Name>Authentication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Connections\Connections.csproj">
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>
