@@ -33,7 +33,7 @@ namespace PhinixServer
                 if (!commands[command].Execute(args)) // Try to execute the command and report if it failed
                 {
                     Console.WriteLine("Failed to run command '{0}' with arguments '{1}'", command, string.Join(" ", args.ToArray()));
-                };
+                }
             }
             else // Spit out an unknown command warning
             {

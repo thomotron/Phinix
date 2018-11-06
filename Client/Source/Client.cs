@@ -31,6 +31,7 @@ namespace PhinixClient
             set => serverPortHandle.Value = value;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
         /// Used for initial setup only.

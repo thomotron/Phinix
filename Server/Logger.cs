@@ -29,6 +29,7 @@ namespace PhinixServer
         /// </summary>
         /// <param name="logPath">Log file path including extension</param>
         /// <param name="displayVerbosity">Minimum verbosity level for a message to be displayed in console</param>
+        /// <param name="logVerbosity">Minimum verbosity for a message to be displayed in the log</param>
         public Logger(string logPath, Verbosity displayVerbosity, Verbosity logVerbosity = Verbosity.INFO)
         {
             // Make sure that the log path isn't empty
