@@ -101,8 +101,6 @@ namespace PhinixClient
                 // We shouldn't try to authenticate if we hit an error
                 return;
             }
-
-            Packet hello = Authenticator.GetHelloPacket();
         }
 
         /// <summary>
