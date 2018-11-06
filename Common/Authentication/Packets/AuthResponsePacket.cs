@@ -9,7 +9,7 @@ namespace Authentication
     /// Contains whether the authentication attempt was successful and relevant details.
     /// </summary>
     [DataContract]
-    public class AuthResponse : Packet
+    public class AuthResponsePacket : Packet
     {
         /// <summary>
         /// Whether the authentication attempt was successful.
