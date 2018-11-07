@@ -10,11 +10,8 @@ namespace PhinixServer
     /// Server configuration class able to read from and write to a configuration file.
     /// </summary>
     [DataContract]
-    public class Config : IExtensibleDataObject
+    public class Config
     {
-        // This will hold any excess data that doesn't fit in the current version of this class
-        public ExtensionDataObject ExtensionData { get; set; }
-
         /// <summary>
         /// IP address to listen on.
         /// </summary>

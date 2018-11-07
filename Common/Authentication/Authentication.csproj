@@ -30,6 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="protobuf-net, Version=2.3.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67">
+      <HintPath>..\..\.nuget\protobuf-net.2.3.17\lib\net35\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ab50b488852587ac">
+      <HintPath>..\..\.nuget\protobuf3.3.1.0\lib\net35\protobuf3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -40,18 +47,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Authenticator.cs" />
+    <Compile Include="ClientAuthenticator.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="Credentials\PhiKeyCredentials.cs" />
     <Compile Include="Packets\AuthenticatePacket.cs" />
-    <Compile Include="Packets\AuthResponse.cs" />
+    <Compile Include="Packets\AuthResponsePacket.cs" />
     <Compile Include="Packets\HelloPacket.cs" />
+    <Compile Include="Packets\protoc\AuthType.cs" />
+    <Compile Include="Packets\protoc\HelloPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerAuthenticator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Connections\Connections.csproj">
       <Project>{38CB6BED-E751-42FE-A847-C0DDD482AC62}</Project>
       <Name>Connections</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Packets\AuthType.proto" />
+    <Content Include="Packets\HelloPacket.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

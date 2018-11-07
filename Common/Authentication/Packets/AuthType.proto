@@ -1,0 +1,7 @@
+syntax = "proto3";
+package Authentication;
+
+enum AuthType
+{
+    PhiKey = 0;
+}

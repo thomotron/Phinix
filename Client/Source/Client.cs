@@ -18,6 +18,8 @@ namespace PhinixClient
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
+        private Authenticator authenticator;
+
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
         {
@@ -58,16 +60,10 @@ namespace PhinixClient
 
             // Set up our module instances
             this.netClient = new NetClient();
-
+            this.authenticator = new ClientAuthenticator(netClient);
+            
             // Connect to the server set in the config
-            try
-            {
-                this.netClient.Connect(ServerAddress, ServerPort);
-            }
-            catch (Exception)
-            {
-                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
-            }
+            Connect(ServerAddress, ServerPort);
         }
 
         /// <summary>
@@ -81,7 +77,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Attempts to connect and then authenticate with the server at the given address and port.
+        /// Attempts to connect to the server at the given address and port.
         /// This will disconnect from the current server, if any.
         /// </summary>
         /// <param name="address">Server address</param>
@@ -99,8 +95,7 @@ namespace PhinixClient
             }
             catch
             {
-                // We shouldn't try to authenticate if we hit an error
-                return;
+                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
             }
         }
 

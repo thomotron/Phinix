@@ -1,0 +1,15 @@
+syntax = "proto3";
+package Authentication;
+
+import "AuthType.proto";
+
+message HelloPacket
+{
+    string ServerName = 1;
+    
+    string ServerDescription = 2;
+    
+    AuthType AuthType = 3;
+    
+    string SessionId = 4;
+};
