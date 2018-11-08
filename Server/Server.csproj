@@ -60,6 +60,10 @@
       <Project>{ee778185-fdc1-401f-80ed-5fca6166dd4d}</Project>
       <Name>Client</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Common\Authentication\Authentication.csproj">
+      <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
+      <Name>Authentication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Connections\Connections.csproj">
       <Project>{38CB6BED-E751-42FE-A847-C0DDD482AC62}</Project>
       <Name>Connections</Name>
@@ -67,6 +71,10 @@
     <ProjectReference Include="..\Common\UserManagement\UserManagement.csproj">
       <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
       <Name>UserManagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Utils\Utils.csproj">
+      <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
+      <Name>Utils</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
