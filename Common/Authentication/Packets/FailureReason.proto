@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Authentication;
+
+enum FailureReason
+{
+    AuthType = 0;
+    Credentials = 1;
+    SessionId = 2;
+};

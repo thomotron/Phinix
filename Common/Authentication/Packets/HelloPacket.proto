@@ -1,7 +1,7 @@
 syntax = "proto3";
 package Authentication;
 
-import "AuthType.proto";
+import "Packets/AuthTypes.proto";
 
 message HelloPacket
 {
@@ -9,7 +9,7 @@ message HelloPacket
     
     string ServerDescription = 2;
     
-    AuthType AuthType = 3;
+    AuthTypes AuthType = 3;
     
     string SessionId = 4;
 };
