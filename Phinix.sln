@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagementTests", "Comm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authentication", "Common\Authentication\Authentication.csproj", "{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Common\Utils\Utils.csproj", "{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,12 @@ Global
 		{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}.TravisCI|Any CPU.ActiveCfg = Release|Any CPU
 		{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}.TravisCI|Any CPU.Build.0 = Release|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.TravisCI|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6FF1583-C75A-42C1-9B75-2B16215A0CF7}.TravisCI|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
