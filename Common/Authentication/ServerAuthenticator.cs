@@ -12,6 +12,9 @@ namespace Authentication
     /// </summary>
     public class ServerAuthenticator : Authenticator
     {
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+        
         private NetServer netServer;
         
         public ServerAuthenticator(NetServer netServer)
@@ -27,6 +30,7 @@ namespace Authentication
         {
             if (!packetType.Equals(MODULE_NAME))
             {
+                RaiseLogEntry(new LogEventArgs("Got a packet destined for a different module (" + packetType + ")", LogLevel.WARNING));
                 return;
             }
 
@@ -35,15 +39,18 @@ namespace Authentication
 
             if (typeUrl.Namespace != "Authentication")
             {
+                RaiseLogEntry(new LogEventArgs("Got a packet type from a different namespace than we're expecting (" + typeUrl.Namespace + ")", LogLevel.WARNING));
             }
             
             switch (typeUrl.Type)
             {
                 case "AuthenticatePacket":
                     // TODO: AuthenticatPacket handling
+                    RaiseLogEntry(new LogEventArgs("Got an AuthenticatePacket"));
                     break;
                 default:
                     // TODO: Discard packet
+                    RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + ")", LogLevel.WARNING));
                     break;
             }
         }
