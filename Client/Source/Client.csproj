@@ -92,9 +92,9 @@
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(TargetDir)\$HugsLibChecker.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll" />
     <Copy SourceFiles="$(TargetDir)\NetworkCommsDotNet.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll" />
-    <Copy SourceFiles="$(TargetDir)\protobuf-net.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf-net.dll" />
     <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Connections.dll" />
     <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Authentication.dll" />
     <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\protobuf3.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
   </Target>
 </Project>

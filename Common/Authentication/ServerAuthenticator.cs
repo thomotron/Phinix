@@ -1,5 +1,7 @@
 ﻿using System;
 using Connections;
+using Google.Protobuf.WellKnownTypes;
+using Utils;
 
 namespace Authentication
 {
@@ -21,20 +23,28 @@ namespace Authentication
             Console.WriteLine("Authentication module initialised");
         }
 
-        public override void packetHandler(string packetType, string connectionId, byte[] data)
+        protected override void packetHandler(string packetType, string connectionId, byte[] data)
         {
-            if (!packetType.Equals(MODULE_NAME)) throw new Exception();
-
-            Packet packet = Packet.Deserialise(data);
-            if (packet is AuthenticatePacket)
+            if (!packetType.Equals(MODULE_NAME))
             {
-                // TODO: AuthenticatePacket handling
-                Console.WriteLine("Got an AuthenticatePacket");
+                return;
             }
-            else
+
+            Any message = Any.Parser.ParseFrom(data);
+            TypeUrl typeUrl = new TypeUrl(message.TypeUrl);
+
+            if (typeUrl.Namespace != "Authentication")
             {
-                // TODO: Discard packet
-                Console.WriteLine("Got some other packet");
+            }
+            
+            switch (typeUrl.Type)
+            {
+                case "AuthenticatePacket":
+                    // TODO: AuthenticatPacket handling
+                    break;
+                default:
+                    // TODO: Discard packet
+                    break;
             }
         }
     }

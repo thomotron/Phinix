@@ -1,8 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Reflection;
-using System.Runtime.Serialization;
-using ProtoBuf.Meta;
+using Google.Protobuf.Reflection;
 
 namespace Authentication
 {
@@ -14,27 +13,7 @@ namespace Authentication
         public const string MODULE_NAME = "auth";
         
         public static readonly Version Version = Assembly.GetAssembly(typeof(Authenticator)).GetName().Version;
-
-        public Authenticator()
-        {
-            RuntimeTypeModel model = RuntimeTypeModel.Default;
-            model.Add(typeof(HelloPacket), true);
-            model[typeof(HelloPacket)]
-                .Add(1, "ServerName")
-                .Add(2, "ServerDescription")
-                .Add(3, "AuthType")
-                .Add(4, "SessionId");
-        }
         
-        public abstract void packetHandler(string packetType, string connectionId, byte[] data);
-    }
-
-    /// <summary>
-    /// An authentication type.
-    /// </summary>
-    [DataContract]
-    public enum AuthType
-    {
-        [EnumMember] PhiKey
+        protected abstract void packetHandler(string packetType, string connectionId, byte[] data);
     }
 }
