@@ -4,6 +4,7 @@ using Authentication;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
+using Utils;
 
 namespace PhinixClient
 {
@@ -18,7 +19,7 @@ namespace PhinixClient
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
-        private Authenticator authenticator;
+        private ClientAuthenticator authenticator;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -61,6 +62,9 @@ namespace PhinixClient
             // Set up our module instances
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient);
+            
+            // Subscribe to log events
+            authenticator.OnLogEntry += ILoggableHandler;
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
@@ -105,6 +109,33 @@ namespace PhinixClient
         public void Disconnect()
         {
             netClient.Disconnect();
+        }
+        
+        /// <summary>
+        /// Handler for <c>ILoggable</c> <c>OnLogEvent</c> events.
+        /// Raised by modules as a way to hook into the HugsLib log.
+        /// </summary>
+        /// <param name="sender">Object that raised the event</param>
+        /// <param name="args">Event arguments</param>
+        void ILoggableHandler(object sender, LogEventArgs args)
+        {
+            switch (args.LogLevel)
+            {
+                case LogLevel.DEBUG:
+                    Logger.Trace(args.Message);
+                    break;
+                case LogLevel.WARNING:
+                    Logger.Warning(args.Message);
+                    break;
+                case LogLevel.ERROR:
+                case LogLevel.FATAL:
+                    Logger.Error(args.Message);
+                    break;
+                case LogLevel.INFO:
+                default:
+                    Logger.Message(args.Message);
+                    break;
+            }
         }
     }
 }
