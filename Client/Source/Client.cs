@@ -77,7 +77,6 @@ namespace PhinixClient
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-
         }
 
         /// <summary>
