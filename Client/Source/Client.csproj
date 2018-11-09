@@ -37,26 +37,24 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="%24HugsLibChecker, Version=0.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="$HugsLibChecker, Version=0.5.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLibChecker.5.0.0\lib\net35\$HugsLibChecker.dll</HintPath>
     </Reference>
-    <Reference Include="0Harmony, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.5.0.0\lib\net35\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.6.1.1\lib\net35\0Harmony.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\GameDlls\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.5.0.0\lib\net35\HugsLib.dll</HintPath>
+    <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.6.1.1\lib\net35\HugsLib.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\..\GameDlls\UnityEngine.dll</HintPath>
@@ -86,6 +84,10 @@
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\Utils\Utils.csproj">
+      <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -94,7 +96,10 @@
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(TargetDir)\$HugsLibChecker.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll" />
     <Copy SourceFiles="$(TargetDir)\NetworkCommsDotNet.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll" />
-    <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Connections.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\protobuf3.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
+    <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Utils.dll" />
+    <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Connections.dll" />
+    <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-PhinixClient.dll" />
   </Target>
 </Project>

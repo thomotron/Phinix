@@ -1,0 +1,17 @@
+syntax = "proto3";
+package Authentication;
+
+import "Packets/AuthTypes.proto";
+
+message AuthenticatePacket
+{
+    AuthTypes AuthType = 1;
+    
+    string SessionId = 2;
+    
+    bool UseServerUsername = 3;
+    
+    string Username = 4;
+    
+    string Password = 5;
+}

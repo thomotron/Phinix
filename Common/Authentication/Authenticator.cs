@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
+using System.Reflection;
+using Google.Protobuf.Reflection;
+using Utils;
 
 namespace Authentication
 {
-    public class Authenticator
-    {
-        
-    }
-
     /// <summary>
-    /// An authentication type.
+    /// Provides some common properties for <c>ClientAuthenticator</c> and <c>ServerAuthenticator</c> classes.
     /// </summary>
-    [DataContract]
-    public enum AuthType
+    public abstract class Authenticator : ILoggable
     {
-        [EnumMember] PhiKey
+        public const string MODULE_NAME = "auth";
+        
+        public abstract event EventHandler<LogEventArgs> OnLogEntry;
+        public abstract void RaiseLogEntry(LogEventArgs e);
+        
+        public static readonly Version Version = Assembly.GetAssembly(typeof(Authenticator)).GetName().Version;
+        
+        protected abstract void packetHandler(string packetType, string connectionId, byte[] data);
     }
 }

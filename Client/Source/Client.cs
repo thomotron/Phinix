@@ -4,6 +4,7 @@ using Authentication;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
+using Utils;
 
 namespace PhinixClient
 {
@@ -17,6 +18,8 @@ namespace PhinixClient
         private NetClient netClient;
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
+
+        private ClientAuthenticator authenticator;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -58,16 +61,13 @@ namespace PhinixClient
 
             // Set up our module instances
             this.netClient = new NetClient();
-
+            this.authenticator = new ClientAuthenticator(netClient);
+            
+            // Subscribe to log events
+            authenticator.OnLogEntry += ILoggableHandler;
+            
             // Connect to the server set in the config
-            try
-            {
-                this.netClient.Connect(ServerAddress, ServerPort);
-            }
-            catch (Exception)
-            {
-                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
-            }
+            Connect(ServerAddress, ServerPort);
         }
 
         /// <summary>
@@ -77,21 +77,17 @@ namespace PhinixClient
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-
         }
 
         /// <summary>
-        /// Attempts to connect and then authenticate with the server at the given address and port.
+        /// Attempts to connect to the server at the given address and port.
         /// This will disconnect from the current server, if any.
         /// </summary>
         /// <param name="address">Server address</param>
         /// <param name="port">Server port</param>
         public void Connect(string address, int port)
         {
-            if (Connected)
-            {
-                Disconnect();
-            }
+            if (Connected) Disconnect();
 
             try
             {
@@ -99,8 +95,7 @@ namespace PhinixClient
             }
             catch
             {
-                // We shouldn't try to authenticate if we hit an error
-                return;
+                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
             }
         }
 
@@ -110,6 +105,33 @@ namespace PhinixClient
         public void Disconnect()
         {
             netClient.Disconnect();
+        }
+        
+        /// <summary>
+        /// Handler for <c>ILoggable</c> <c>OnLogEvent</c> events.
+        /// Raised by modules as a way to hook into the HugsLib log.
+        /// </summary>
+        /// <param name="sender">Object that raised the event</param>
+        /// <param name="args">Event arguments</param>
+        void ILoggableHandler(object sender, LogEventArgs args)
+        {
+            switch (args.LogLevel)
+            {
+                case LogLevel.DEBUG:
+                    Logger.Trace(args.Message);
+                    break;
+                case LogLevel.WARNING:
+                    Logger.Warning(args.Message);
+                    break;
+                case LogLevel.ERROR:
+                case LogLevel.FATAL:
+                    Logger.Error(args.Message);
+                    break;
+                case LogLevel.INFO:
+                default:
+                    Logger.Message(args.Message);
+                    break;
+            }
         }
     }
 }

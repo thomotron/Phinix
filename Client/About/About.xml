@@ -3,10 +3,10 @@
     <name>Phinix</name>
     <author>Thomotron and The Phinix Team</author>
     <url>https://github.com/PhinixTeam/Phinix</url>
-    <targetVersion>0.19.0</targetVersion>
+    <targetVersion>1.0.0</targetVersion>
     <description>
-        A total rewrite of Longwelwind's Phi multiplayer mod for RimWorld.
-        
-        Phinix is still in its early stages so please report any issues you have through the GitHub page.
+A total rewrite of Longwelwind's Phi multiplayer mod for RimWorld.
+
+Phinix is still in its early stages so please report any issues you have through the GitHub page.
     </description>
 </ModMetaData>
