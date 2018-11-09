@@ -62,7 +62,7 @@ namespace Authentication
             {
                 case "AuthenticatePacket":
                     // TODO: HelloPacket handling
-                    RaiseLogEntry(new LogEventArgs("Got an AuthenticatePacket"));
+                    RaiseLogEntry(new LogEventArgs("Got an AuthenticatePacket", LogLevel.DEBUG));
                     break;
                 default:
                     // TODO: Discard packet

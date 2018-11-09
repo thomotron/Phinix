@@ -40,11 +40,11 @@ namespace Authentication
             {
                 case "HelloPacket":
                     // TODO: HelloPacket handling
-                    RaiseLogEntry(new LogEventArgs("Got a HelloPacket"));
+                    RaiseLogEntry(new LogEventArgs("Got a HelloPacket", LogLevel.DEBUG));
                     break;
                 case "AuthResponsePacket":
                     // TODO: AuthResponsePacket handling
-                    RaiseLogEntry(new LogEventArgs("Got an AuthResponsePacket"));
+                    RaiseLogEntry(new LogEventArgs("Got an AuthResponsePacket", LogLevel.DEBUG));
                     break;
                 default:
                     // TODO: Discard packet
