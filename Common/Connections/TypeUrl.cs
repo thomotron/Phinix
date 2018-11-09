@@ -1,4 +1,5 @@
-using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 namespace Connections
 {
@@ -7,16 +8,31 @@ namespace Connections
         public string Prefix;
         public string Namespace;
         public string Type;
-
+        
+        /// <summary>
+        /// Creates a <c>TypeUrl</c> object from a valid TypeUrl string.
+        /// For example, given 'Phinix/Namespace.SubNamespace.ClassName' it would yield:
+        ///   1. Phinix - The prefix
+        ///   2. Namespace.SubNamespace - The namespace
+        ///   3. ClassName - The class name
+        /// </summary>
+        /// <param name="typeUrl">TypeUrl string</param>
+        /// <exception cref="ArgumentException">Given string is not a properly-formatted TypeUrl string</exception>
         public TypeUrl(string typeUrl)
         {
-            string[] typeUrlComponents = typeUrl.Split('/', '.');
-            
-            this.Prefix = typeUrlComponents[0];
-            string[] suffix = typeUrlComponents[1].Split('.');
-            
-            this.Namespace = string.Join(".", suffix.Take(suffix.Length - 1).ToArray());
-            this.Type = suffix.Last();
+            Regex pattern = new Regex("([\\w.]+)\\/([\\w.]+?)\\.(\\w+)");
+            GroupCollection groups = pattern.Match(typeUrl).Groups;
+
+            if (groups.Count == 4) // Group 0 is always present and contains the whole match
+            {
+                this.Prefix = groups[1].Value;
+                this.Namespace = groups[2].Value;
+                this.Type = groups[3].Value;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid TypeUrl string", nameof(typeUrl));
+            }
         }
 
         public TypeUrl(string prefix, string namespace_, string type)
