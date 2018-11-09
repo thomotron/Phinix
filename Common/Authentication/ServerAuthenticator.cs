@@ -52,10 +52,10 @@ namespace Authentication
         }
 
         /// <inheritdoc />
-        protected override void packetHandler(string packetType, string connectionId, byte[] data)
+        protected override void packetHandler(string module, string connectionId, byte[] data)
         {
             // Validate the incoming packet and discard it if validation fails
-            if (!validatePacket(packetType, data, out Any message, out TypeUrl typeUrl)) return;
+            if (!validatePacket(module, data, out Any message, out TypeUrl typeUrl)) return;
             
             // Determine what to do with this packet type
             switch (typeUrl.Type)

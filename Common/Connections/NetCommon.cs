@@ -15,10 +15,10 @@ namespace Connections
         /// Packet handler callback delegate. Used when registering packet handlers as the callback method.
         /// Exposes basic information about the incoming packet.
         /// </summary>
-        /// <param name="packetType">Packet type</param>
+        /// <param name="packetType">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="incomingObject">Data payload</param>
-        public delegate void PacketHandlerDelegate(string packetType, string connectionId, byte[] incomingObject);
+        public delegate void PacketHandlerDelegate(string module, string connectionId, byte[] incomingObject);
 
         /// <summary>
         /// Dictionary containing packet types and the handlers registered to them.

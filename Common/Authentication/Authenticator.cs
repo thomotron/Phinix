@@ -25,30 +25,30 @@ namespace Authentication
         /// <summary>
         /// Handles incoming packets for this Authenticator.
         /// </summary>
-        /// <param name="packetType">Packet type</param>
+        /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="data">Data payload</param>
-        protected abstract void packetHandler(string packetType, string connectionId, byte[] data);
+        protected abstract void packetHandler(string module, string connectionId, byte[] data);
         
         /// <summary>
         /// Attempts to validate a serialised packet.
         /// If this method succeeds it can be assumed safe to process the packet further.
         /// </summary>
-        /// <param name="packetType">Packet type</param>
+        /// <param name="module">Target module</param>
         /// <param name="data">Serialised packet</param>
         /// <param name="parsedMessage">Parsed packet as an <c>Any</c> message</param>
         /// <param name="typeUrl">Parsed TypeUrl</param>
         /// <returns>The packet was validated successfully</returns>
-        protected bool validatePacket(string packetType, byte[] data, out Any parsedMessage, out TypeUrl typeUrl)
+        protected bool validatePacket(string module, byte[] data, out Any parsedMessage, out TypeUrl typeUrl)
         {
             // Initialise out variables
             parsedMessage = null;
             typeUrl = null;
             
             // Make sure the packet is destined for this module, just in case
-            if (!packetType.Equals(MODULE_NAME))
+            if (!module.Equals(MODULE_NAME))
             {
-                RaiseLogEntry(new LogEventArgs("Got a packet destined for a different module (" + packetType + "), discarding...", LogLevel.DEBUG));
+                RaiseLogEntry(new LogEventArgs("Got a packet destined for a different module (" + module + "), discarding...", LogLevel.DEBUG));
                 return false;
             }
             
