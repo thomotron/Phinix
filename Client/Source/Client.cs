@@ -6,6 +6,7 @@ using Connections;
 using HugsLib;
 using HugsLib.Settings;
 using Utils;
+using Verse;
 
 namespace PhinixClient
 {
@@ -35,6 +36,13 @@ namespace PhinixClient
             set => serverPortHandle.Value = value;
         }
 
+        private SettingHandle<string> usernameHandle;
+        public string Username
+        {
+            get => usernameHandle.Value;
+            set => usernameHandle.Value = value;
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -58,6 +66,12 @@ namespace PhinixClient
                 description: null,
                 defaultValue: 16180,
                 validator: value => int.TryParse(value, out _)
+            );
+            usernameHandle = Settings.GetHandle(
+                settingName: "username",
+                title: "Phinix_hugslibsettings_usernameTitle".Translate(),
+                description: null,
+                defaultValue: SteamUtility.SteamPersonaName
             );
 
             // Set up our module instances
