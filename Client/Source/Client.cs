@@ -88,10 +88,7 @@ namespace PhinixClient
         /// <param name="port">Server port</param>
         public void Connect(string address, int port)
         {
-            if (Connected)
-            {
-                Disconnect();
-            }
+            if (Connected) Disconnect();
 
             try
             {
