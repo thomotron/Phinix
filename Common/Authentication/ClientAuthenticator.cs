@@ -8,7 +8,7 @@ namespace Authentication
     /// <inheritdoc />
     /// <summary>
     /// Client authentication module.
-    /// Handles incoming greetings and attempts to authenticate a server.
+    /// Handles incoming greetings and attempts to authenticate with a server.
     /// </summary>
     public class ClientAuthenticator : Authenticator
     {
