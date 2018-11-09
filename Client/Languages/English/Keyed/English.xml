@@ -7,4 +7,6 @@
     <Phinix_settings_connectedToLabel>Connected to {0}</Phinix_settings_connectedToLabel>
     <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
+    <Phinix_hugslibsettings_serverAddressTitle>Server Address</Phinix_hugslibsettings_serverAddressTitle>
+    <Phinix_hugslibsettings_serverPortTitle>Server Port</Phinix_hugslibsettings_serverPortTitle>
 </LanguageData>

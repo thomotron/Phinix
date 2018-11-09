@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Reflection;
 using Authentication;
 using Connections;
@@ -47,13 +48,13 @@ namespace PhinixClient
             // Load in Settings
             serverAddressHandle = Settings.GetHandle(
                 settingName: "serverAddress",
-                title: "Server Address",
+                title: "Phinix_hugslibsettings_serverAddressTitle".Translate(),
                 description: null,
                 defaultValue: "localhost"
             );
             serverPortHandle = Settings.GetHandle(
                 settingName: "serverPort",
-                title: "Server Port",
+                title: "Phinix_hugslibsettings_serverPortTitle".Translate(),
                 description: null,
                 defaultValue: 16180,
                 validator: value => int.TryParse(value, out _)
