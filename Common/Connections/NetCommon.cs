@@ -20,6 +20,9 @@ namespace Connections
         /// <param name="incomingObject">Data payload</param>
         public delegate void PacketHandlerDelegate(string packetType, string connectionId, byte[] incomingObject);
 
+        /// <summary>
+        /// Dictionary containing packet types and the handlers registered to them.
+        /// </summary>
         private Dictionary<string, PacketHandlerDelegate> registeredPacketHandlers = new Dictionary<string, PacketHandlerDelegate>();
 
         /// <summary>

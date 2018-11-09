@@ -10,9 +10,16 @@ namespace Connections
 {
     public class NetServer : NetCommon
     {
+        /// <summary>
+        /// Whether the server is currently listening for connections.
+        /// </summary>
         public bool Listening => Connection.Listening(ConnectionType.TCP);
 
+        /// <summary>
+        /// <c>IPEndpoint</c> the server is listening on.
+        /// </summary>
         public readonly IPEndPoint Endpoint;
+        
         /// <summary>
         /// Raised when a new connection is established.
         /// </summary>
