@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
+using NetworkCommsDotNet.Tools;
 
 namespace Connections
 {
@@ -10,6 +13,15 @@ namespace Connections
         public bool Listening => Connection.Listening(ConnectionType.TCP);
 
         public readonly IPEndPoint Endpoint;
+        /// <summary>
+        /// Raised when a new connection is established.
+        /// </summary>
+        public event EventHandler<ConnectionEventArgs> OnConnectionEstablished;
+        
+        /// <summary>
+        /// Raised when an existing connection is closed.
+        /// </summary>
+        public event EventHandler<ConnectionEventArgs> OnConnectionClosed;
 
         public NetServer(IPEndPoint endpoint)
         {
@@ -23,6 +35,7 @@ namespace Connections
         {
             if (!Listening)
             {
+                registerConnectionEvents();
                 Connection.StartListening(ConnectionType.TCP, Endpoint);
             }
             else
@@ -38,62 +51,81 @@ namespace Connections
         {
             Connection.StopListening();
             NetworkComms.CloseAllConnections(ConnectionType.TCP);
-        }
-
-        /// <summary>
-        /// Registers a delegate to be called when a new connection is established.
-        /// </summary>
-        /// <param name="d">Handler delegate</param>
-        public void RegisterConnectionEstablishedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
-        {
-            NetworkComms.AppendGlobalConnectionEstablishHandler(d);
-        }
-
-        /// <summary>
-        /// Unregisters an existing connection established handler delegate.
-        /// </summary>
-        /// <param name="d">Handler delegate</param>
-        public void UnregisterConnectionEstablishedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
-        {
-            NetworkComms.RemoveGlobalConnectionEstablishHandler(d);
-        }
-
-        /// <summary>
-        /// Registers a delegate to be called when an existing connection is closed.
-        /// </summary>
-        /// <param name="d">Handler delegate</param>
-        public void RegisterConnectionClosedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
-        {
-            NetworkComms.AppendGlobalConnectionCloseHandler(d);
-        }
-
-        /// <summary>
-        /// Unregisters an existing connection closed handler delegate.
-        /// </summary>
-        /// <param name="d">Handler delegate</param>
-        public void UnregisterConnectionClosedHandler(NetworkComms.ConnectionEstablishShutdownDelegate d)
-        {
-            NetworkComms.RemoveGlobalConnectionCloseHandler(d);
+            unregisterConnectionEvents();
         }
 
         /// <summary>
         /// Sends a message to a module through the given connection.
         /// </summary>
-        /// <param name="connection">Connection to recipient</param>
+        /// <param name="connectionId">Connection ID of recipient</param>
         /// <param name="module">Target module</param>
         /// <param name="serialisedMessage">Serialised message</param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="NotConnectedException"></exception>
-        public void Send(Connection connection, string module, byte[] serialisedMessage)
+        public void Send(string connectionId, string module, byte[] serialisedMessage)
         {
             // Disallow null parameters
-            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            if (connectionId == null) throw new ArgumentNullException(nameof(connectionId));
             if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
-
-            if (connection.ConnectionInfo.ConnectionState != ConnectionState.Established || !connection.ConnectionAlive()) throw new NotConnectedException(connection);
-
+            
+            // Check the connection exists
+            ShortGuid connectionGuid = new ShortGuid(connectionId);
+            if (!NetworkComms.ConnectionExists(connectionGuid, ConnectionType.TCP))
+            {
+                throw new NotConnectedException();
+            }
+            
+            // Get the connection by it's ID
+            Connection connection = NetworkComms.GetExistingConnection(new ShortGuid(connectionId), ConnectionType.TCP).First();
+            
+            // Make sure the connection is open
+            if (connection.ConnectionInfo.ConnectionState != ConnectionState.Established || !connection.ConnectionAlive())
+            {
+                throw new NotConnectedException(connection);
+            }
+            
+            // Send the message
             connection.SendObject(module, serialisedMessage);
+        }
+
+        /// <summary>
+        /// Registers event handler wrappers for connection established and closed into NetworkComms.Net.
+        /// Used to event-ify the callbacks.
+        /// </summary>
+        private void registerConnectionEvents()
+        {
+            NetworkComms.AppendGlobalConnectionEstablishHandler(connectionEstablishWrapperDelegate);
+            NetworkComms.AppendGlobalConnectionCloseHandler(connectionCloseWrapperDelegate);
+        }
+        
+        /// <summary>
+        /// Unregisters the event handler wrappers for connection established and closed.
+        /// </summary>
+        private void unregisterConnectionEvents()
+        {
+            NetworkComms.RemoveGlobalConnectionEstablishHandler(connectionEstablishWrapperDelegate);
+            NetworkComms.RemoveGlobalConnectionCloseHandler(connectionCloseWrapperDelegate);
+        }
+        
+        /// <summary>
+        /// Wraps NetworkComms.Net's <c>ConnectionEstablishShutdownDelegate</c> to something more generic and raises the
+        /// <c>OnConnectionEstablished</c> event.
+        /// </summary>
+        /// <param name="connection">Establishing connection</param>
+        private void connectionEstablishWrapperDelegate(Connection connection)
+        {
+            OnConnectionEstablished?.Invoke(this, new ConnectionEventArgs(connection.ConnectionInfo.NetworkIdentifier));
+        }
+        
+        /// <summary>
+        /// Wraps NetworkComms.Net's <c>ConnectionEstablishShutdownDelegate</c> to something more generic and raises the
+        /// <c>OnConnectionClosed</c> event.
+        /// </summary>
+        /// <param name="connection">Closing connection</param>
+        private void connectionCloseWrapperDelegate(Connection connection)
+        {
+            OnConnectionClosed?.Invoke(this, new ConnectionEventArgs(connection.ConnectionInfo.NetworkIdentifier));
         }
     }
 }

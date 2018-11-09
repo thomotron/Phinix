@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionEventArgs.cs" />
     <Compile Include="InvalidAddressException.cs" />
     <Compile Include="NetClient.cs" />
     <Compile Include="NetCommon.cs" />
