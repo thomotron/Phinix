@@ -12,9 +12,14 @@ namespace Authentication
     /// </summary>
     public class ClientAuthenticator : Authenticator
     {
+        /// <inheritdoc />
         public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
+        /// <summary>
+        /// <c>NetClient</c> to send packets and bind events to.
+        /// </summary>
         private NetClient netClient;
         
         public ClientAuthenticator(NetClient netClient)
@@ -24,22 +29,13 @@ namespace Authentication
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
 
+        /// <inheritdoc />
         protected override void packetHandler(string packetType, string connectionId, byte[] data)
         {
-            if (!packetType.Equals(MODULE_NAME))
-            {
-                RaiseLogEntry(new LogEventArgs("Got a packet destined for a different module (" + packetType + ")", LogLevel.WARNING));
-                return;
-            }
-
-            Any message = Any.Parser.ParseFrom(data);
-            TypeUrl typeUrl = new TypeUrl(message.TypeUrl);
-
-            if (typeUrl.Namespace != "Authentication")
-            {
-                RaiseLogEntry(new LogEventArgs("Got a packet type from a different namespace than we're expecting (" + typeUrl.Namespace + ")", LogLevel.WARNING));
-            }
+            // Validate the incoming packet and discard it if validation fails
+            if (!validatePacket(packetType, data, out Any message, out TypeUrl typeUrl)) return;
             
+            // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
                 case "HelloPacket":
@@ -52,7 +48,7 @@ namespace Authentication
                     break;
                 default:
                     // TODO: Discard packet
-                    RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + ")", LogLevel.WARNING));
+                    RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
         }
