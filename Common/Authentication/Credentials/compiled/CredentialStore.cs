@@ -23,15 +23,16 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiFDcmVkZW50aWFscy9DcmVkZW50aWFsU3RvcmUucHJvdG8SDkF1dGhlbnRp",
-            "Y2F0aW9uGhxDcmVkZW50aWFscy9DcmVkZW50aWFsLnByb3RvIqgBCg9DcmVk",
+            "Y2F0aW9uGhxDcmVkZW50aWFscy9DcmVkZW50aWFsLnByb3RvIrgBCg9DcmVk",
             "ZW50aWFsU3RvcmUSRQoLQ3JlZGVudGlhbHMYASADKAsyMC5BdXRoZW50aWNh",
-            "dGlvbi5DcmVkZW50aWFsU3RvcmUuQ3JlZGVudGlhbHNFbnRyeRpOChBDcmVk",
-            "ZW50aWFsc0VudHJ5EgsKA2tleRgBIAEoCRIpCgV2YWx1ZRgCIAEoCzIaLkF1",
-            "dGhlbnRpY2F0aW9uLkNyZWRlbnRpYWw6AjgBYgZwcm90bzM="));
+            "dGlvbi5DcmVkZW50aWFsU3RvcmUuQ3JlZGVudGlhbHNFbnRyeRIOCgZQaGlL",
+            "ZXkYAiABKAkaTgoQQ3JlZGVudGlhbHNFbnRyeRILCgNrZXkYASABKAkSKQoF",
+            "dmFsdWUYAiABKAsyGi5BdXRoZW50aWNhdGlvbi5DcmVkZW50aWFsOgI4AWIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.CredentialReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.CredentialStore), global::Authentication.CredentialStore.Parser, new[]{ "Credentials" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.CredentialStore), global::Authentication.CredentialStore.Parser, new[]{ "Credentials", "PhiKey" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
           }));
     }
     #endregion
@@ -63,6 +64,7 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public CredentialStore(CredentialStore other) : this() {
       credentials_ = other.credentials_.Clone();
+      phiKey_ = other.phiKey_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -80,6 +82,17 @@ namespace Authentication {
       get { return credentials_; }
     }
 
+    /// <summary>Field number for the "PhiKey" field.</summary>
+    public const int PhiKeyFieldNumber = 2;
+    private string phiKey_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string PhiKey {
+      get { return phiKey_; }
+      set {
+        phiKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as CredentialStore);
@@ -94,6 +107,7 @@ namespace Authentication {
         return true;
       }
       if (!Credentials.Equals(other.Credentials)) return false;
+      if (PhiKey != other.PhiKey) return false;
       return true;
     }
 
@@ -101,6 +115,7 @@ namespace Authentication {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= Credentials.GetHashCode();
+      if (PhiKey.Length != 0) hash ^= PhiKey.GetHashCode();
       return hash;
     }
 
@@ -112,12 +127,19 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       credentials_.WriteTo(output, _map_credentials_codec);
+      if (PhiKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(PhiKey);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
       size += credentials_.CalculateSize(_map_credentials_codec);
+      if (PhiKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PhiKey);
+      }
       return size;
     }
 
@@ -127,6 +149,9 @@ namespace Authentication {
         return;
       }
       credentials_.Add(other.credentials_);
+      if (other.PhiKey.Length != 0) {
+        PhiKey = other.PhiKey;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -139,6 +164,10 @@ namespace Authentication {
             break;
           case 10: {
             credentials_.AddEntriesFrom(input, _map_credentials_codec);
+            break;
+          }
+          case 18: {
+            PhiKey = input.ReadString();
             break;
           }
         }
