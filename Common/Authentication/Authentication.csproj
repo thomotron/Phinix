@@ -46,6 +46,8 @@
     <Compile Include="AuthenticationEventArgs.cs" />
     <Compile Include="Authenticator.cs" />
     <Compile Include="ClientAuthenticator.cs" />
+    <Compile Include="Credentials\compiled\Credential.cs" />
+    <Compile Include="Credentials\compiled\CredentialStore.cs" />
     <Compile Include="Packets\compiled\AuthenticatePacket.cs" />
     <Compile Include="Packets\compiled\AuthResponsePacket.cs" />
     <Compile Include="Packets\compiled\AuthTypes.cs" />
@@ -65,6 +67,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Credentials\Credential.proto" />
+    <Content Include="Credentials\CredentialStore.proto" />
     <Content Include="Packets\AuthenticatePacket.proto" />
     <Content Include="Packets\AuthResponsePacket.proto" />
     <Content Include="Packets\AuthTypes.proto" />
