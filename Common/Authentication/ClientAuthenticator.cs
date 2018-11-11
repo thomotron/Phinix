@@ -248,8 +248,18 @@ namespace Authentication
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
             {
+                // Exception for PhiKey authentication, it should be a 'zero-configuration' solution
+                if (packet.AuthType == AuthTypes.PhiKey)
+                {
+                    credential = new Credential
+                    {
+                        AuthType = AuthTypes.PhiKey,
+                        Username = credentialStore.PhiKey,
+                        Password = credentialStore.PhiKey
+                    };
+                }
                 // Request new credentials
-                if (getCredentials(packet.ServerName, packet.ServerDescription, packet.AuthType, out credential))
+                else if (getCredentials(packet.ServerName, packet.ServerDescription, packet.AuthType, out credential))
                 {
                     // Store them in the credential store before doing anything else
                     AddOrUpdateCredential(packet.ServerName, credential);
