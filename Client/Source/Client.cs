@@ -38,11 +38,11 @@ namespace PhinixClient
             set => serverPortHandle.Value = value;
         }
 
-        private SettingHandle<string> usernameHandle;
-        public string Username
+        private SettingHandle<string> displayNameHandle;
+        public string DisplayName
         {
-            get => usernameHandle.Value;
-            set => usernameHandle.Value = value;
+            get => displayNameHandle.Value;
+            set => displayNameHandle.Value = value;
         }
 
         /// <inheritdoc />
@@ -69,9 +69,9 @@ namespace PhinixClient
                 defaultValue: 16180,
                 validator: value => int.TryParse(value, out _)
             );
-            usernameHandle = Settings.GetHandle(
-                settingName: "username",
-                title: "Phinix_hugslibsettings_usernameTitle".Translate(),
+            displayNameHandle = Settings.GetHandle(
+                settingName: "displayName",
+                title: "Phinix_hugslibsettings_displayNameTitle".Translate(),
                 description: null,
                 defaultValue: SteamUtility.SteamPersonaName
             );
