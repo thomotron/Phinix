@@ -83,6 +83,16 @@ namespace PhinixClient
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
             
+            // Subscribe to authentication events
+            authenticator.OnAuthenticationSuccess += (sender, args) =>
+            {
+                Logger.Message("Successfully authenticated with server.");
+            };
+            authenticator.OnAuthenticationFailure += (sender, args) =>
+            {
+                Logger.Message("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+            };
+            
             // Forward authentication events so the UI can handle them
             authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
