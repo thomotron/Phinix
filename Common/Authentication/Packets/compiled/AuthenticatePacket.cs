@@ -23,15 +23,15 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhlbnRpY2F0ZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aF1BhY2tldHMvQXV0aFR5cGVzLnByb3RvIpMBChJBdXRoZW50aWNh",
+            "YXRpb24aF1BhY2tldHMvQXV0aFR5cGVzLnByb3RvIqsBChJBdXRoZW50aWNh",
             "dGVQYWNrZXQSKwoIQXV0aFR5cGUYASABKA4yGS5BdXRoZW50aWNhdGlvbi5B",
-            "dXRoVHlwZXMSEQoJU2Vzc2lvbklkGAIgASgJEhkKEVVzZVNlcnZlclVzZXJu",
-            "YW1lGAMgASgIEhAKCFVzZXJuYW1lGAQgASgJEhAKCFBhc3N3b3JkGAUgASgJ",
-            "YgZwcm90bzM="));
+            "dXRoVHlwZXMSEQoJU2Vzc2lvbklkGAIgASgJEhwKFFVzZVNlcnZlckRpc3Bs",
+            "YXlOYW1lGAMgASgIEhAKCFVzZXJuYW1lGAQgASgJEhAKCFBhc3N3b3JkGAUg",
+            "ASgJEhMKC0Rpc3BsYXlOYW1lGAYgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.AuthTypesReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthenticatePacket), global::Authentication.AuthenticatePacket.Parser, new[]{ "AuthType", "SessionId", "UseServerUsername", "Username", "Password" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthenticatePacket), global::Authentication.AuthenticatePacket.Parser, new[]{ "AuthType", "SessionId", "UseServerDisplayName", "Username", "Password", "DisplayName" }, null, null, null)
           }));
     }
     #endregion
@@ -64,9 +64,10 @@ namespace Authentication {
     public AuthenticatePacket(AuthenticatePacket other) : this() {
       authType_ = other.authType_;
       sessionId_ = other.sessionId_;
-      useServerUsername_ = other.useServerUsername_;
+      useServerDisplayName_ = other.useServerDisplayName_;
       username_ = other.username_;
       password_ = other.password_;
+      displayName_ = other.displayName_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -96,14 +97,14 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "UseServerUsername" field.</summary>
-    public const int UseServerUsernameFieldNumber = 3;
-    private bool useServerUsername_;
+    /// <summary>Field number for the "UseServerDisplayName" field.</summary>
+    public const int UseServerDisplayNameFieldNumber = 3;
+    private bool useServerDisplayName_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool UseServerUsername {
-      get { return useServerUsername_; }
+    public bool UseServerDisplayName {
+      get { return useServerDisplayName_; }
       set {
-        useServerUsername_ = value;
+        useServerDisplayName_ = value;
       }
     }
 
@@ -129,6 +130,17 @@ namespace Authentication {
       }
     }
 
+    /// <summary>Field number for the "DisplayName" field.</summary>
+    public const int DisplayNameFieldNumber = 6;
+    private string displayName_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DisplayName {
+      get { return displayName_; }
+      set {
+        displayName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as AuthenticatePacket);
@@ -144,9 +156,10 @@ namespace Authentication {
       }
       if (AuthType != other.AuthType) return false;
       if (SessionId != other.SessionId) return false;
-      if (UseServerUsername != other.UseServerUsername) return false;
+      if (UseServerDisplayName != other.UseServerDisplayName) return false;
       if (Username != other.Username) return false;
       if (Password != other.Password) return false;
+      if (DisplayName != other.DisplayName) return false;
       return true;
     }
 
@@ -155,9 +168,10 @@ namespace Authentication {
       int hash = 1;
       if (AuthType != 0) hash ^= AuthType.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (UseServerUsername != false) hash ^= UseServerUsername.GetHashCode();
+      if (UseServerDisplayName != false) hash ^= UseServerDisplayName.GetHashCode();
       if (Username.Length != 0) hash ^= Username.GetHashCode();
       if (Password.Length != 0) hash ^= Password.GetHashCode();
+      if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       return hash;
     }
 
@@ -176,9 +190,9 @@ namespace Authentication {
         output.WriteRawTag(18);
         output.WriteString(SessionId);
       }
-      if (UseServerUsername != false) {
+      if (UseServerDisplayName != false) {
         output.WriteRawTag(24);
-        output.WriteBool(UseServerUsername);
+        output.WriteBool(UseServerDisplayName);
       }
       if (Username.Length != 0) {
         output.WriteRawTag(34);
@@ -187,6 +201,10 @@ namespace Authentication {
       if (Password.Length != 0) {
         output.WriteRawTag(42);
         output.WriteString(Password);
+      }
+      if (DisplayName.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(DisplayName);
       }
     }
 
@@ -199,7 +217,7 @@ namespace Authentication {
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
       }
-      if (UseServerUsername != false) {
+      if (UseServerDisplayName != false) {
         size += 1 + 1;
       }
       if (Username.Length != 0) {
@@ -207,6 +225,9 @@ namespace Authentication {
       }
       if (Password.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Password);
+      }
+      if (DisplayName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
       }
       return size;
     }
@@ -222,14 +243,17 @@ namespace Authentication {
       if (other.SessionId.Length != 0) {
         SessionId = other.SessionId;
       }
-      if (other.UseServerUsername != false) {
-        UseServerUsername = other.UseServerUsername;
+      if (other.UseServerDisplayName != false) {
+        UseServerDisplayName = other.UseServerDisplayName;
       }
       if (other.Username.Length != 0) {
         Username = other.Username;
       }
       if (other.Password.Length != 0) {
         Password = other.Password;
+      }
+      if (other.DisplayName.Length != 0) {
+        DisplayName = other.DisplayName;
       }
     }
 
@@ -250,7 +274,7 @@ namespace Authentication {
             break;
           }
           case 24: {
-            UseServerUsername = input.ReadBool();
+            UseServerDisplayName = input.ReadBool();
             break;
           }
           case 34: {
@@ -259,6 +283,10 @@ namespace Authentication {
           }
           case 42: {
             Password = input.ReadString();
+            break;
+          }
+          case 50: {
+            DisplayName = input.ReadString();
             break;
           }
         }
