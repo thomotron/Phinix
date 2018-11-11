@@ -27,7 +27,27 @@ namespace Authentication
         /// <summary>
         /// Raised on a failed authentication attempt.
         /// </summary>
-        public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure; 
+        public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
+
+        /// <summary>
+        /// Delegate for requesting credentials.
+        /// Used to collect login information when authentication fails or there are no existing credentials for the server.
+        /// </summary>
+        /// <param name="serverName">Server name</param>
+        /// <param name="serverDescription">Server description</param>
+        /// <param name="authType">Authentication type server accepts</param>
+        /// <param name="credential">Output credential</param>
+        /// <returns>Credentials supplied</returns>
+        public delegate bool GetCredentialsDelegate(
+            string serverName,
+            string serverDescription,
+            AuthTypes authType,
+            out Credential credential
+        );
+        /// <summary>
+        /// Delegate called when new credentials are required for authentication.
+        /// </summary>
+        private GetCredentialsDelegate getCredentials;
         
         /// <summary>
         /// Path to the credential store file.
@@ -46,10 +66,22 @@ namespace Authentication
         /// <c>NetClient</c> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;
+
+        /// <summary>
+        /// Display name used during authentication
+        /// </summary>
+        public string DisplayName;
+        /// <summary>
+        /// Whether the server should use our display name or send us the one it has.
+        /// </summary>
+        public bool UseServerDisplayName;
         
-        public ClientAuthenticator(NetClient netClient)
+        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string displayName, bool useServerDisplayName)
         {
             this.netClient = netClient;
+            this.getCredentials = getCredentialsDelegate;
+            this.DisplayName = displayName;
+            this.UseServerDisplayName = useServerDisplayName;
             
             // Prevent other threads from modifying the credential store while it is read in
             lock (credentialStoreLock) this.credentialStore = getCredentialStore();
@@ -123,6 +155,7 @@ namespace Authentication
                 case "HelloPacket":
                     // TODO: HelloPacket handling
                     RaiseLogEntry(new LogEventArgs("Got a HelloPacket", LogLevel.DEBUG));
+                    helloPacketHandler(connectionId, message.Unpack<HelloPacket>());
                     break;
                 case "AuthResponsePacket":
                     // TODO: AuthResponsePacket handling
@@ -201,6 +234,50 @@ namespace Authentication
             rng.GetBytes(randomBytes);
 
             return Convert.ToBase64String(randomBytes);
+        }
+        
+        /// <summary>
+        /// Handler for incoming <c>HelloPacket</c>s.
+        /// Responds with an <c>AuthenticatePacket</c>, requesting new credentials if necessary.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>HelloPacket</c></param>
+        private void helloPacketHandler(string connectionId, HelloPacket packet)
+        {
+            // Try to get an existing credential for this server and ensure it corresponds to the server's accepted authentication type
+            // TODO: Use something better than server name that is unique to each (username problems all over again)
+            if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
+            {
+                // Request new credentials
+                if (getCredentials(packet.ServerName, packet.ServerDescription, packet.AuthType, out credential))
+                {
+                    // Store them in the credential store before doing anything else
+                    AddOrUpdateCredential(packet.ServerName, credential);
+                }
+                else
+                {
+                    // No credentials were supplied, stop here and disconnect
+                    netClient.Disconnect();
+                    return;
+                }
+            }
+            
+            // Create and populate an authentication packet as a response
+            AuthenticatePacket authPacket = new AuthenticatePacket
+            {
+                AuthType = credential.AuthType,
+                SessionId = packet.SessionId,
+                Username = credential.Username,
+                Password = credential.Password,
+                DisplayName = DisplayName,
+                UseServerDisplayName = UseServerDisplayName
+            };
+
+            // Pack it into an Any for transmission
+            Any packedAuthPacket = Any.Pack(authPacket, "Phinix");
+            
+            // Send it on its way
+            netClient.Send(connectionId, packedAuthPacket.ToByteArray());
         }
     }
 }
