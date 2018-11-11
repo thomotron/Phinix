@@ -159,14 +159,17 @@ namespace Authentication
             }
             
             // Pull the store from disk as a pre-packed Any.
-            Any packedCredentialStore;
+            CredentialStore credentialStore;
             using (FileStream fs = new FileStream(CREDENTIAL_STORE_PATH, FileMode.Open))
             {
-                packedCredentialStore = Any.Parser.ParseFrom(fs);
+                using (CodedInputStream cis = new CodedInputStream(fs))
+                {
+                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                }
             }
 
-            // Return the unpacked credential store
-            return packedCredentialStore.Unpack<CredentialStore>();
+            // Return the credential store
+            return credentialStore;
         }
 
         /// <summary>
