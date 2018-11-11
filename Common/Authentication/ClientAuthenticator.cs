@@ -18,6 +18,15 @@ namespace Authentication
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
         /// <summary>
+        /// Raised on a successful authentication attempt.
+        /// </summary>
+        public event EventHandler<AuthenticationEventArgs> OnAuthenticationSuccess;
+        /// <summary>
+        /// Raised on a failed authentication attempt.
+        /// </summary>
+        public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure; 
+        
+        /// <summary>
         /// <c>NetClient</c> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;

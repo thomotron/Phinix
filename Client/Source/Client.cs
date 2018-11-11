@@ -22,6 +22,8 @@ namespace PhinixClient
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
         private ClientAuthenticator authenticator;
+        public event EventHandler<AuthenticationEventArgs> OnAuthenticationSuccess;
+        public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -80,6 +82,10 @@ namespace PhinixClient
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
+            
+            // Forward authentication events so the UI can handle them
+            authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
+            authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

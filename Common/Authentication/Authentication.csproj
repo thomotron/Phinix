@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthenticationEventArgs.cs" />
     <Compile Include="Authenticator.cs" />
     <Compile Include="ClientAuthenticator.cs" />
     <Compile Include="Packets\compiled\AuthenticatePacket.cs" />
