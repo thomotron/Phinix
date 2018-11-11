@@ -90,7 +90,7 @@ namespace Authentication
         /// </summary>
         /// <param name="serverAddress">Server address</param>
         /// <param name="credential">Credential output</param>
-        /// <returns></returns>
+        /// <returns>Credential was retrieved successfully</returns>
         public bool TryGetCredential(string serverAddress, out Credential credential)
         {
             // Initialise the credential to something arbitrary
