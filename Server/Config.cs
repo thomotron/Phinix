@@ -2,6 +2,7 @@
 using System.Net;
 using System.Runtime.Serialization;
 using System.Xml;
+using Authentication;
 
 namespace PhinixServer
 {
@@ -54,6 +55,24 @@ namespace PhinixServer
         /// </summary>
         [DataMember(Name = "UserDatabaseFile", Order = 5)]
         public string UserDatabasePath = "users";
+
+        /// <summary>
+        /// Name of the server as shown to clients.
+        /// </summary>
+        [DataMember(Name = "ServerName", Order = 6)]
+        public string ServerName = "Phinix Server";
+        
+        /// <summary>
+        /// Description of the server as shown to clients.
+        /// </summary>
+        [DataMember(Name = "ServerDescription", Order = 7)]
+        public string ServerDescription = "A Phinix server.";
+        
+        /// <summary>
+        /// Authentication type clients must use when connecting.
+        /// </summary>
+        [DataMember(Name = "AuthType", Order = 8)]
+        public AuthTypes AuthType = AuthTypes.PhiKey;
 
         /// <summary>
         /// Loads a <c>Config</c> object from the given file path. Will return a default <c>Config</c> if the file does not exist.

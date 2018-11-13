@@ -22,10 +22,26 @@ namespace Authentication
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
+
+        /// <summary>
+        /// Name of the server displayed to connecting clients.
+        /// </summary>
+        private string serverName;
+        /// <summary>
+        /// Description of the server displayed to connecting clients.
+        /// </summary>
+        private string serverDescription;
+        /// <summary>
+        /// Accepted authentication method for incoming connection attempts.
+        /// </summary>
+        private AuthTypes authType;
         
-        public ServerAuthenticator(NetServer netServer)
+        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType)
         {
             this.netServer = netServer;
+            this.serverName = serverName;
+            this.serverDescription = serverDescription;
+            this.authType = authType;
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionEstablished += ConnectionEstablishedHandler;    
@@ -38,10 +54,10 @@ namespace Authentication
             // Construct a HelloPacket
             HelloPacket hello = new HelloPacket
             {
-                AuthType = AuthTypes.PhiKey,
-                ServerName = "",
-                ServerDescription = "",
-                SessionId = Guid.NewGuid().ToString()
+                AuthType = authType,
+                ServerName = serverName,
+                ServerDescription = serverDescription,
+                SessionId = Guid.NewGuid().ToString() // TODO: Manage session ID distribution
             };
             
             // Pack it into an Any message

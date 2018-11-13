@@ -26,13 +26,14 @@ namespace PhinixServer
             
             // Set up module instances
             NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
-            ServerAuthenticator authenticator = new ServerAuthenticator(connections);
+            ServerAuthenticator authenticator = new ServerAuthenticator(connections, Config.ServerName, Config.ServerDescription, Config.AuthType);
             
             // Add handler for ILoggable modules
             authenticator.OnLogEntry += ILoggableHandler;
             
             connections.Start();
 
+            Logger.Log(Verbosity.INFO, string.Format("Accepting auth type \"{0}\"", Config.AuthType.ToString()));
             Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));
 
             CommandInterpreter interpreter = new CommandInterpreter();
