@@ -28,27 +28,38 @@ namespace Authentication
         /// Raised on a failed authentication attempt.
         /// </summary>
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
-
+        
         /// <summary>
         /// Delegate for requesting credentials.
         /// Used to collect login information when authentication fails or there are no existing credentials for the server.
         /// </summary>
+        /// <param name="sessionId">Session ID</param>
         /// <param name="serverName">Server name</param>
         /// <param name="serverDescription">Server description</param>
         /// <param name="authType">Authentication type server accepts</param>
-        /// <param name="credential">Output credential</param>
-        /// <returns>Credentials supplied</returns>
-        public delegate bool GetCredentialsDelegate(
+        /// <param name="callback">Callback for asynchronicity</param>
+        public delegate void GetCredentialsDelegate(
+            string sessionId,
             string serverName,
             string serverDescription,
             AuthTypes authType,
-            out Credential credential
+            ReturnCredentialsDelegate callback
         );
+        /// <summary>
+        /// Delegate for consuming returned credentials.
+        /// Used as a callback for credentials requests.
+        /// </summary>
+        /// <param name="credentialsProvided">Whether credentials have been provided or the callback should be ignored</param>
+        /// <param name="sessionId">Session ID</param>
+        /// <param name="authType">Authentication type</param>
+        /// <param name="username">Username</param>
+        /// <param name="password">Password</param>
+        public delegate void ReturnCredentialsDelegate(bool credentialsProvided, string sessionId, AuthTypes authType, string username, string password);
         /// <summary>
         /// Delegate called when new credentials are required for authentication.
         /// </summary>
         private GetCredentialsDelegate getCredentials;
-        
+
         /// <summary>
         /// Path to the credential store file.
         /// </summary>
@@ -258,25 +269,63 @@ namespace Authentication
                         Password = credentialStore.PhiKey
                     };
                 }
-                // Request new credentials
-                else if (getCredentials(packet.ServerName, packet.ServerDescription, packet.AuthType, out credential))
-                {
-                    // Store them in the credential store before doing anything else
-                    AddOrUpdateCredential(packet.ServerName, credential);
-                }
                 else
                 {
-                    // No credentials were supplied, stop here and disconnect
-                    netClient.Disconnect();
+                    // Request for credentials
+                    getCredentials(
+                        packet.SessionId,
+                        packet.ServerName,
+                        packet.ServerDescription,
+                        packet.AuthType,
+                        (credentialsProvided, sessionId, authType, username, password) =>
+                        {
+                            if (credentialsProvided)
+                            {
+                                // Create a new credential and save it
+                                credential = new Credential
+                                {
+                                    AuthType = authType,
+                                    Username = username,
+                                    Password = password
+                                };
+                                AddOrUpdateCredential(packet.ServerName, credential);
+
+                                // Send an AuthenticatePacket as a response
+                                sendAuthenticatePacket(connectionId, sessionId, credential);
+                            }
+                            else
+                            {
+                                // Close the connection
+                                netClient.Disconnect();
+                            }
+                        }
+                    );
+                    
+                    // Stop here as we don't have any credentials to send yet.
+                    // The connection can remain open so that the callback can send credentials when it gets them.
                     return;
                 }
             }
             
-            // Create and populate an authentication packet as a response
+            // Send an AuthenticatePacket as a response
+            sendAuthenticatePacket(connectionId, packet.SessionId, credential);
+        }
+
+        /// <summary>
+        /// Creates and sends an <c>AuthenticatePacket</c>.
+        /// </summary>
+        /// <param name="connectionId">Connection ID of recipient</param>
+        /// <param name="sessionId">Session ID</param>
+        /// <param name="credential">Credentials</param>
+        private void sendAuthenticatePacket(string connectionId, string sessionId, Credential credential)
+        {
+            RaiseLogEntry(new LogEventArgs("Sending AuthenticatePacket", LogLevel.DEBUG));
+            
+            // Create and populate an authentication packet
             AuthenticatePacket authPacket = new AuthenticatePacket
             {
                 AuthType = credential.AuthType,
-                SessionId = packet.SessionId,
+                SessionId = sessionId,
                 Username = credential.Username,
                 Password = credential.Password,
                 DisplayName = DisplayName,
@@ -287,7 +336,7 @@ namespace Authentication
             Any packedAuthPacket = Any.Pack(authPacket, "Phinix");
             
             // Send it on its way
-            netClient.Send(connectionId, packedAuthPacket.ToByteArray());
+            netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());
         }
     }
 }
