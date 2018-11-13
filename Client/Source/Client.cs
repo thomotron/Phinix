@@ -144,7 +144,7 @@ namespace PhinixClient
         /// </summary>
         /// <param name="sender">Object that raised the event</param>
         /// <param name="args">Event arguments</param>
-        void ILoggableHandler(object sender, LogEventArgs args)
+        private void ILoggableHandler(object sender, LogEventArgs args)
         {
             switch (args.LogLevel)
             {
