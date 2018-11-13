@@ -61,8 +61,8 @@ namespace Authentication
             switch (typeUrl.Type)
             {
                 case "AuthenticatePacket":
-                    // TODO: HelloPacket handling
-                    RaiseLogEntry(new LogEventArgs("Got an AuthenticatePacket", LogLevel.DEBUG));
+                    // TODO: AuthenticatePacket handling
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AuthenticatePacket for session \"{0}\"", message.Unpack<AuthenticatePacket>().SessionId), LogLevel.DEBUG));
                     break;
                 default:
                     // TODO: Discard packet
