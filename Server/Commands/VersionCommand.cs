@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Authentication;
 using Connections;
+using UserManagement;
 
 namespace PhinixServer
 {
@@ -18,7 +20,8 @@ namespace PhinixServer
         {
             Console.WriteLine("Server: " + Server.Version);
             Console.WriteLine("Connections: " + NetCommon.Version);
-            Console.WriteLine("UserManagement: " + UserManagement.UserManager.Version);
+            Console.WriteLine("Authentication: " + Authenticator.Version);
+            Console.WriteLine("UserManagement: " + UserManager.Version);
 
             return true;
         }
