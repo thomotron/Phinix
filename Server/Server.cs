@@ -18,6 +18,8 @@ namespace PhinixServer
         public static UserManagement.UserManager UserManager;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
+        private static bool exiting = false;
+
         static void Main()
         {
             Config = Config.Load(CONFIG_FILE);
@@ -36,8 +38,11 @@ namespace PhinixServer
             Logger.Log(Verbosity.INFO, string.Format("Accepting auth type \"{0}\"", Config.AuthType.ToString()));
             Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));
 
+            // Set up an exit condition
+            Console.CancelKeyPress += shutdownHandler;
+            
             CommandInterpreter interpreter = new CommandInterpreter();
-            while (true)
+            while (!exiting)
             {
                 string line = Console.ReadLine();
 
@@ -49,14 +54,21 @@ namespace PhinixServer
 
                 if (command == "exit") // Check this here to avoid other weird workarounds
                 {
-                    Logger.Log(Verbosity.INFO, "Server shutting down");
-                    UserManager.Save(Config.UserDatabasePath);
-                    Config.Save(CONFIG_FILE);
-                    break;
+                    shutdownHandler();
                 }
-
-                interpreter.Run(command, arguments);
+                else
+                {
+                    interpreter.Run(command, arguments);
+                }
             }
+        }
+
+        private static void shutdownHandler(object sender = null, EventArgs e = null)
+        {
+            Logger.Log(Verbosity.INFO, "Server shutting down");
+            UserManager.Save(Config.UserDatabasePath);
+            Config.Save(CONFIG_FILE);
+            exiting = true;
         }
 
         /// <summary>
