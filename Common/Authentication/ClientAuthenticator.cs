@@ -164,7 +164,6 @@ namespace Authentication
             switch (typeUrl.Type)
             {
                 case "HelloPacket":
-                    // TODO: HelloPacket handling
                     RaiseLogEntry(new LogEventArgs("Got a HelloPacket", LogLevel.DEBUG));
                     helloPacketHandler(connectionId, message.Unpack<HelloPacket>());
                     break;
