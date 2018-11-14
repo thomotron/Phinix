@@ -46,7 +46,7 @@ namespace PhinixServer
             {
                 string line = Console.ReadLine();
 
-                if (line == null) continue;
+                if (string.IsNullOrEmpty(line)) continue;
 
                 List<string> arguments = new List<string>(line.Split(' '));
                 string command = arguments.First();
