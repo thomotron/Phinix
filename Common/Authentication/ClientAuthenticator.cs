@@ -291,7 +291,7 @@ namespace Authentication
                                 AddOrUpdateCredential(packet.ServerName, credential);
 
                                 // Send an AuthenticatePacket as a response
-                                sendAuthenticatePacket(connectionId, sessionId, credential);
+                                sendAuthenticatePacket(sessionId, credential);
                             }
                             else
                             {
@@ -308,16 +308,15 @@ namespace Authentication
             }
             
             // Send an AuthenticatePacket as a response
-            sendAuthenticatePacket(connectionId, packet.SessionId, credential);
+            sendAuthenticatePacket(packet.SessionId, credential);
         }
 
         /// <summary>
         /// Creates and sends an <c>AuthenticatePacket</c>.
         /// </summary>
-        /// <param name="connectionId">Connection ID of recipient</param>
         /// <param name="sessionId">Session ID</param>
         /// <param name="credential">Credentials</param>
-        private void sendAuthenticatePacket(string connectionId, string sessionId, Credential credential)
+        private void sendAuthenticatePacket(string sessionId, Credential credential)
         {
             RaiseLogEntry(new LogEventArgs("Sending AuthenticatePacket", LogLevel.DEBUG));
             
