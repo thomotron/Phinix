@@ -26,11 +26,13 @@ namespace PhinixServer
             if (args.ElementAt(0) == "console") // Set the console verbosity
             {
                 Server.Config.DisplayVerbosity = (Verbosity) verbosityInt;
+                Server.Logger.DisplayVerbosity = (Verbosity) verbosityInt;
                 Console.WriteLine("Set console verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
             }
             else if (args.ElementAt(0) == "file") // Set the log file verbosity
             {
                 Server.Config.LogVerbosity = (Verbosity) verbosityInt;
+                Server.Logger.LogVerbosity = (Verbosity) verbosityInt;
                 Console.WriteLine("Set log verbosity to {0} ({1})", verbosityInt, (Verbosity) verbosityInt);
             }
             else
