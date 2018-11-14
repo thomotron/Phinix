@@ -78,7 +78,7 @@ namespace PhinixClient
 
             // Set up our module instances
             this.netClient = new NetClient();
-            this.authenticator = new ClientAuthenticator(netClient);
+            this.authenticator = new ClientAuthenticator(netClient, getCredentials, DisplayName, true);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
@@ -163,6 +163,29 @@ namespace PhinixClient
                     Logger.Message(args.Message);
                     break;
             }
+        }
+        
+        /// <summary>
+        /// Handles credential requests from the <c>ClientAuthenticator</c> module.
+        /// This forwards the server details and a callback to the GUI for user input.
+        /// </summary>
+        /// <param name="sessionId">Session ID</param>
+        /// <param name="serverName">Server name</param>
+        /// <param name="serverDescription">Server description</param>
+        /// <param name="authType">Authentication type</param>
+        /// <param name="callback">Callback delegate to pass entered credentials to</param>
+        private void getCredentials(string sessionId, string serverName, string serverDescription, AuthTypes authType, ClientAuthenticator.ReturnCredentialsDelegate callback)
+        {
+            Logger.Trace("Authentication needs more credentials for the server \"{0}\" with authentication type \"{1}\"", serverName, authType.ToString());
+            
+            Find.WindowStack.Add(new CredentialsWindow
+            {
+                SessionId = sessionId,
+                ServerName = serverName,
+                ServerDescription = serverDescription,
+                AuthType = authType,
+                CredentialsCallback = callback
+            });
         }
     }
 }

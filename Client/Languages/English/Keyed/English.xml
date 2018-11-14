@@ -2,12 +2,17 @@
 <LanguageData>
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
+    
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
     <Phinix_settings_connectedToLabel>Connected to {0}</Phinix_settings_connectedToLabel>
     <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
+    
     <Phinix_hugslibsettings_serverAddressTitle>Server Address</Phinix_hugslibsettings_serverAddressTitle>
     <Phinix_hugslibsettings_serverPortTitle>Server Port</Phinix_hugslibsettings_serverPortTitle>
     <Phinix_hugslibsettings_displayNameTitle>Display Name</Phinix_hugslibsettings_displayNameTitle>
+    
+    <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
+    <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
 </LanguageData>
