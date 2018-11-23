@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Timers;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -35,6 +37,19 @@ namespace Authentication
         /// Accepted authentication method for incoming connection attempts.
         /// </summary>
         private AuthTypes authType;
+
+        /// <summary>
+        /// Sessions organised by their connection ID.
+        /// </summary>
+        private Dictionary<string, Session> sessions;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>sessions</c>.
+        /// </summary>
+        private object sessionsLock = new object();
+        /// <summary>
+        /// Timer for clearing out old or invalidated sessions.
+        /// </summary>
+        private Timer sessionCleanupTimer;
         
         public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType)
         {
@@ -42,6 +57,15 @@ namespace Authentication
             this.serverName = serverName;
             this.serverDescription = serverDescription;
             this.authType = authType;
+            
+            this.sessions = new Dictionary<string, Session>();
+            this.sessionCleanupTimer = new Timer
+            {
+                Interval = 10000.00, // 10 seconds
+                AutoReset = true
+            };
+            this.sessionCleanupTimer.Elapsed += onSessionCleanup;
+            this.sessionCleanupTimer.Start();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionEstablished += ConnectionEstablishedHandler;    
@@ -51,13 +75,24 @@ namespace Authentication
         {
             RaiseLogEntry(new LogEventArgs("Sending HelloPacket to incoming connection " + e.ConnectionId, LogLevel.DEBUG));
             
+            // Create a new session for this connection
+            Session session = new Session
+            {
+                SessionId = Guid.NewGuid().ToString(),
+                ConnectionId = e.ConnectionId,
+                Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(5)
+            };
+            
+            // Add it to the session dictionary
+            sessions.Add(e.ConnectionId, session);
+            
             // Construct a HelloPacket
             HelloPacket hello = new HelloPacket
             {
                 AuthType = authType,
                 ServerName = serverName,
                 ServerDescription = serverDescription,
-                SessionId = Guid.NewGuid().ToString() // TODO: Manage session ID distribution
+                SessionId = session.SessionId
             };
             
             // Pack it into an Any message
@@ -84,6 +119,39 @@ namespace Authentication
                     // TODO: Discard packet
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
+            }
+        }
+        /// <summary>
+        /// Callback for the session cleanup timer. Cleans out expired sessions.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void onSessionCleanup(object sender, EventArgs e)
+        {
+            // Lock the sessions dictionary to prevent other threads from messing with it
+            lock (sessionsLock)
+            {
+                List<string> keysToRemove = new List<string>();
+
+                // Iterate over each session
+                foreach (KeyValuePair<string, Session> sessionPair in sessions)
+                {
+                    string key = sessionPair.Key;
+                    Session session = sessionPair.Value;
+
+                    // Check if the expiry has passed
+                    if (session.Expiry.CompareTo(DateTime.UtcNow) <= 0)
+                    {
+                        // Queue the session for removal
+                        keysToRemove.Add(key);
+                    }
+                }
+
+                // Remove sessions in the removal list 
+                foreach (string key in keysToRemove)
+                {
+                    sessions.Remove(key);
+                }
             }
         }
     }

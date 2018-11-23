@@ -55,6 +55,7 @@
     <Compile Include="Packets\compiled\HelloPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerAuthenticator.cs" />
+    <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Connections\Connections.csproj">
