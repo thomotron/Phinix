@@ -1,5 +1,4 @@
-﻿using System;
-using Authentication;
+﻿using Authentication;
 using UnityEngine;
 using Verse;
 
