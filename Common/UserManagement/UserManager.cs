@@ -1,36 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
+using Utils;
 
 namespace UserManagement
 {
     /// <inheritdoc />
     /// <summary>
-    /// Organises users and oversees saving them to- and loading them from a file.
+    /// Server-side module that organises users, their credentials, and their login states.
+    /// Anything and everything pertaining to a particular user's state can be accessed through this.
     /// </summary>
-    [DataContract]
-    public class UserManager : IExtensibleDataObject
+    public class UserManager
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(UserManager)).GetName().Version;
 
-        // This will hold any excess data that doesn't fit in the current version of this class
-        public ExtensionDataObject ExtensionData { get; set; }
-
         /// <summary>
-        /// A dictionary containing every user's UUID and <c>User</c> object.
+        /// Stores each user in an easily-serialisable format.
         /// </summary>
-        [DataMember]
-        private Dictionary<string, User> userDictionary;
-
+        private UserStore userStore;
         /// <summary>
-        /// Instantiates a new <c>UserManager</c> class.
+        /// Lock for user store operations.
         /// </summary>
+        private object userStoreLock = new object();
+
         public UserManager()
         {
-            this.userDictionary = new Dictionary<string, User>();
+            this.userStore = new UserStore();
         }
 
         /// <summary>
@@ -79,54 +78,88 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Tries to get a user from the user list by their UUID and returns whether the user was retrieved successfully.
+        /// Tries to get a user's UUID by their username and returns whether it was retrieved successfully.
         /// </summary>
+        /// <param name="username">Username of the user</param>
         /// <param name="uuid">UUID of the user</param>
-        /// <param name="user">User output</param>
         /// <returns>Successfully retrieved user</returns>
         /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
-        public bool TryGetUser(string uuid, out User user)
+        public bool TryGetUserUuid(string username, out string uuid)
+        {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException("Username cannot be null or empty.", nameof(uuid));
+
+            // Initialise UUID to something arbitrary
+            uuid = null;
+
+            lock (userStoreLock)
+            {
+                User matchingUser;
+                try
+                {
+                    matchingUser = userStore.Users.Values.Single(user => user.Username == username);
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+                
+                uuid = matchingUser.Uuid;
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Creates a new user with the given display name, optionally logged-in, and adds them to the user list.
+        /// Returns the UUID of the newly-created user.
+        /// </summary>
+        /// <param name="username">Username of the user</param>
+        /// <param name="displayName">Display name of the user</param>
+        /// <param name="loggedIn">Whether the user should be logged in</param>
+        /// <returns>UUID of created user</returns>
+        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
+        /// <exception cref="ArgumentException">Display name cannot be null or empty</exception>
+        public string CreateUser(string username, string displayName, bool loggedIn = false)
+        {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+            if (string.IsNullOrEmpty(displayName)) throw new ArgumentException("Display name cannot be null or empty.", nameof(displayName));
+
+            User user = new User
+            {
+                Uuid = Guid.NewGuid().ToString(),
+                Username = username,
+                DisplayName = displayName,
+                LoggedIn = loggedIn
+            };
+
+            lock (userStoreLock)
+            {
+                userStore.Users.Add(user.Uuid, user);
+            }
+
+            return user.Uuid;
+        }
+
+        /// <summary>
+        /// Updates an existing user's properties.
+        /// Returns true if the update was successful, otherwise false.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="displayName">Display name of the user</param>
+        /// <returns>User updated successfully</returns>
+        /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
+        public bool UpdateUser(string uuid, string displayName = null)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
-            return userDictionary.TryGetValue(uuid, out user);
-        }
-
-        /// <summary>
-        /// Registers a new user.
-        /// Returns true if the user was added successfully, otherwise false.
-        /// </summary>
-        /// <param name="user">User</param>
-        /// <returns>User added successfully</returns>
-        /// <exception cref="ArgumentNullException">User cannot be null</exception>
-        public bool AddUser(User user)
-        {
-            if (user is null) throw new ArgumentNullException(nameof(user), "User cannot be null.");
-
-            if (userDictionary.ContainsKey(user.Uuid)) return false;
-
-            userDictionary.Add(user.Uuid, user);
-            return true;
-        }
-
-        /// <summary>
-        /// Replaces an existing user.
-        /// Returns true if the update was successful, otherwise false.
-        /// </summary>
-        /// <param name="user">User</param>
-        /// <returns>User updated successfully</returns>
-        /// <exception cref="ArgumentNullException">User cannot be null</exception>
-        public bool UpdateUser(User user)
-        {
-            if (user is null) throw new ArgumentNullException(nameof(user), "User cannot be null.");
-
-            if (userDictionary.ContainsKey(user.Uuid))
+            lock (userStoreLock)
             {
-                userDictionary[user.Uuid] = user;
-                return true;
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                if (displayName != null) userStore.Users[uuid].DisplayName = displayName;
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -140,7 +173,79 @@ namespace UserManagement
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
-            return userDictionary.Remove(uuid);
+            lock (userStoreLock)
+            {
+                return userStore.Users.Remove(uuid);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to log in a user with the given UUID.
+        /// Returns whether the user was successfully logged in.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <returns>Whether the user was successfully logged in</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryLogIn(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                userStore.Users[uuid].LoggedIn = true;
+            }
+
+            // TODO: Broadcast the state change
+            return true;
+        }
+        
+        /// <summary>
+        /// Attempts to log out a user with the given UUID.
+        /// Returns whether the user was successfully logged out.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <returns>Whether the user was successfully logged out</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryLogOut(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                userStore.Users[uuid].LoggedIn = false;
+            }
+
+            // TODO: Broadcast the state change
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to get the display name of a user with the given UUID.
+        /// Returns whether the display name was retrieved successfully.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="displayName">Output display name</param>
+        /// <returns>Display name was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryGetDisplayName(string uuid, out string displayName)
+        {
+            // Initialise display name to something arbitrary
+            displayName = null;
+            
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                displayName = userStore.Users[uuid].DisplayName;
+            }
+
+            return true;
         }
     }
 }

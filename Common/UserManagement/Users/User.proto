@@ -1,0 +1,13 @@
+syntax = "proto3";
+package UserManagement;
+
+message User
+{
+    string Uuid = 1;
+    
+    string Username = 4;
+    
+    string DisplayName = 2;
+    
+    bool LoggedIn = 3;
+}
