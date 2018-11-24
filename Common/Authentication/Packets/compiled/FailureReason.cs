@@ -23,8 +23,9 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChtQYWNrZXRzL0ZhaWx1cmVSZWFzb24ucHJvdG8SDkF1dGhlbnRpY2F0aW9u",
-            "Kj0KDUZhaWx1cmVSZWFzb24SDAoIQXV0aFR5cGUQABIPCgtDcmVkZW50aWFs",
-            "cxABEg0KCVNlc3Npb25JZBACYgZwcm90bzM="));
+            "KlYKDUZhaWx1cmVSZWFzb24SDAoIQXV0aFR5cGUQABIPCgtDcmVkZW50aWFs",
+            "cxABEg0KCVNlc3Npb25JZBACEhcKE0ludGVybmFsU2VydmVyRXJyb3IQA2IG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.FailureReason), }, null));
@@ -37,6 +38,7 @@ namespace Authentication {
     [pbr::OriginalName("AuthType")] AuthType = 0,
     [pbr::OriginalName("Credentials")] Credentials = 1,
     [pbr::OriginalName("SessionId")] SessionId = 2,
+    [pbr::OriginalName("InternalServerError")] InternalServerError = 3,
   }
 
   #endregion

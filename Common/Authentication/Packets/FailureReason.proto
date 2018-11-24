@@ -6,4 +6,5 @@ enum FailureReason
     AuthType = 0;
     Credentials = 1;
     SessionId = 2;
+    InternalServerError = 3;
 };

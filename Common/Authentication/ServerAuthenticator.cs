@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Timers;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using UserManagement;
 using Utils;
 
 namespace Authentication
@@ -24,6 +27,11 @@ namespace Authentication
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
+
+        /// <summary>
+        /// <c>UserManager</c> to send login requests and credentials to.
+        /// </summary>
+        private UserManager userManager;
 
         /// <summary>
         /// Name of the server displayed to connecting clients.
@@ -50,14 +58,32 @@ namespace Authentication
         /// Timer for clearing out old or invalidated sessions.
         /// </summary>
         private Timer sessionCleanupTimer;
+
+        /// <summary>
+        /// Path to the credential store file.
+        /// </summary>
+        private string credentialStorePath;
+        /// <summary>
+        /// Stores credentials for each client.
+        /// </summary>
+        private CredentialStore credentialStore;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>credentialStore</c>.
+        /// </summary>
+        private object credentialStoreLock = new object();
         
-        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType)
+        public ServerAuthenticator(NetServer netServer, UserManager userManager, string serverName, string serverDescription, AuthTypes authType, string credentialStorePath)
         {
             this.netServer = netServer;
+            this.userManager = userManager;
             this.serverName = serverName;
             this.serverDescription = serverDescription;
             this.authType = authType;
-            
+            this.credentialStorePath = credentialStorePath;
+
+            // Prevent other threads from modifying the credential store while it is read in
+            lock (credentialStoreLock) this.credentialStore = getCredentialStore();
+
             this.sessions = new Dictionary<string, Session>();
             this.sessionCleanupTimer = new Timer
             {
@@ -68,7 +94,8 @@ namespace Authentication
             this.sessionCleanupTimer.Start();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
-            netServer.OnConnectionEstablished += ConnectionEstablishedHandler;    
+            netServer.OnConnectionEstablished += ConnectionEstablishedHandler;
+            netServer.OnConnectionClosed += ConnectionClosedHandler;
         }
 
         private void ConnectionEstablishedHandler(object sender, ConnectionEventArgs e)
@@ -83,8 +110,14 @@ namespace Authentication
                 Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(5)
             };
             
-            // Add it to the session dictionary
-            sessions.Add(e.ConnectionId, session);
+            lock (sessionsLock)
+            {
+                // Remove any existing sessions for this connection
+                if (sessions.ContainsKey(e.ConnectionId)) sessions.Remove(e.ConnectionId);
+                
+                // Add it to the session dictionary
+                sessions.Add(e.ConnectionId, session);
+            }
             
             // Construct a HelloPacket
             HelloPacket hello = new HelloPacket
@@ -102,6 +135,29 @@ namespace Authentication
             netServer.Send(e.ConnectionId, MODULE_NAME, packedHello.ToByteArray());
         }
 
+        private void ConnectionClosedHandler(object sender, ConnectionEventArgs e)
+        {
+            RaiseLogEntry(new LogEventArgs("Closing connection from " + e.ConnectionId, LogLevel.DEBUG));
+
+            lock (sessionsLock)
+            {
+                // Check if a session exists for the connection
+                if (sessions.ContainsKey(e.ConnectionId))
+                {
+                    Session session = sessions[e.ConnectionId];
+
+                    // Try to log them out
+                    if (session.Uuid != null && userManager.TryLogOut(session.Uuid))
+                    {
+                        RaiseLogEntry(new LogEventArgs(string.Format("Logged out user \"{0}\" (UUID: {1})", session.Username, session.Uuid)));
+                    }
+                    
+                    // Remove the session
+                    sessions.Remove(session.SessionId);
+                }
+            }
+        }
+
         /// <inheritdoc />
         protected override void packetHandler(string module, string connectionId, byte[] data)
         {
@@ -112,15 +168,210 @@ namespace Authentication
             switch (typeUrl.Type)
             {
                 case "AuthenticatePacket":
-                    // TODO: AuthenticatePacket handling
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AuthenticatePacket for session \"{0}\"", message.Unpack<AuthenticatePacket>().SessionId), LogLevel.DEBUG));
+                    AuthenticatePacket packet = message.Unpack<AuthenticatePacket>();
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AuthenticatePacket for session {0}", packet.SessionId), LogLevel.DEBUG));
+                    authenticatePacketHandler(connectionId, packet);
                     break;
                 default:
-                    // TODO: Discard packet
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
         }
+
+        /// <summary>
+        /// Handles incoming <c>AuthenticatePacket</c>s from clients trying to authenticate.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void authenticatePacketHandler(string connectionId, AuthenticatePacket packet)
+        {
+            // Check the supplied credentials are of the appropriate type
+            if (packet.AuthType != authType)
+            {
+                // Fail the authentication attempt due to mismatched credential type
+                sendFailedAuthResponsePacket(connectionId, FailureReason.AuthType, string.Format("Wrong type of credentials supplied. The server only accepts \"{0}\" credentials.", authType.ToString()));
+                
+                RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: Wrong credential type", connectionId), LogLevel.DEBUG));
+                
+                // Stop here
+                return;
+            }
+            
+            lock (sessionsLock)
+            {
+                // Check whether a session exists for this connection or the supplied session ID is assigned to this connection
+                if (!sessions.ContainsKey(connectionId) || sessions[connectionId].SessionId != packet.SessionId)
+                {
+                    // Fail the authentication attempt due to invalid session ID
+                    sendFailedAuthResponsePacket(connectionId, FailureReason.SessionId, "Could not find session for your connection. It may have expired. Try logging in again.");
+                    
+                    RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: No session found for this connection", connectionId), LogLevel.DEBUG));
+
+                    // Stop here
+                    return;
+                }
+
+                // Get an alias of the session for simplicity
+                Session session = sessions[connectionId];
+
+                // Check if the session has expired
+                if (session.Expiry.CompareTo(DateTime.UtcNow) <= 0)
+                {
+                    // Fail the authentication attempt due to expired session
+                    sendFailedAuthResponsePacket(connectionId, FailureReason.SessionId, "Session has expired. Try logging in again.");
+                    
+                    RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Session expired", connectionId, session.SessionId), LogLevel.DEBUG));
+                    
+                    // Stop here
+                    return;
+                }
+
+                lock (credentialStoreLock)
+                {
+                    // Check if user does not have an existing credential
+                    if (!credentialStore.Credentials.ContainsKey(packet.Username))
+                    {
+                        // Exception for PhiKey, it should be a 'zero-configuration' solution
+                        if (authType == AuthTypes.PhiKey)
+                        {
+                            // Create a new credential and add it to the credential store
+                            Credential newCredential = new Credential
+                            {
+                                AuthType = AuthTypes.PhiKey,
+                                Username = packet.Username,
+                                Password = packet.Password
+                            };
+                            credentialStore.Credentials.Add(newCredential.Username, newCredential);
+                        }
+                        else
+                        {
+                            // Fail the authentication attempt due to missing credential
+                            sendFailedAuthResponsePacket(connectionId, FailureReason.Credentials, string.Format("No credential found for the username \"{0}\".", packet.Username));
+                            
+                            RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): No credentials found for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
+                    
+                            // Stop here
+                            return;
+                        }
+                    }
+
+                    // Add username to the session
+                    session.Username = packet.Username;
+
+                    // Get an alias of the user's credential for simplicity
+                    Credential credential = credentialStore.Credentials[session.Username];
+
+                    // Check if the credential is not for our current auth type
+                    if (credential.AuthType != authType)
+                    {
+                        // Delete the offending credential
+                        credentialStore.Credentials.Remove(session.Username);
+                        
+                        // Fail the authentication attempt due to invalid stored credential
+                        sendFailedAuthResponsePacket(connectionId, FailureReason.InternalServerError, "Server's stored credential did not match its accepted authentication type. Try logging in again.");
+                        
+                        RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Stored credentials for {2} are of wrong type ({3})", connectionId, session.SessionId, packet.Username, credential.AuthType.ToString()), LogLevel.DEBUG));
+                        
+                        // Stop here
+                        return;
+                    }
+                    
+                    // Check if the password does not match the stored credential
+                    if (packet.Password != credential.Password)
+                    {
+                        // Fail the authentication attempt due to mismatching password
+                        sendFailedAuthResponsePacket(connectionId, FailureReason.Credentials, "Invalid password provided.");
+                        
+                        RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Wrong password provided for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
+                        
+                        // Stop here
+                        return;
+                    }
+
+                    // Auth attempt made it through the gauntlet, time to accept it as a valid request
+
+                    // Extend their session by 30 minutes
+                    session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
+                    
+                    // Try to get the user by their username
+                    if (userManager.TryGetUserUuid(session.Username, out session.Uuid))
+                    {
+                        // Try to log them in
+                        if (!userManager.TryLogIn(session.Uuid))
+                        {
+                            throw new UserNoLongerExistsException(session.Uuid);
+                        }
+                    }
+                    else
+                    {
+                        // Otherwise create a new user
+                        session.Uuid = userManager.CreateUser(packet.Username, packet.DisplayName, true);
+                    }
+                    
+                    // Check if they want to use the display name stored on the server
+                    string displayName = packet.DisplayName;
+                    if (packet.UseServerDisplayName)
+                    {
+                        // Try to get the display name stored server-side
+                        if (!userManager.TryGetDisplayName(session.Uuid, out displayName))
+                        {
+                            // This should never happen because we just made sure that the user existed no more than 30 lines ago, but just in case...
+                            throw new UserNoLongerExistsException(session.Uuid);
+                        }
+                    }
+                    else
+                    {
+                        // Update the user's display name on the server with the one they've provided
+                        userManager.UpdateUser(session.Uuid, packet.DisplayName);
+                    }
+                    
+                    // Approve the authentication attempt
+                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, displayName);
+                    
+                    // Log this momentous occasion
+                    RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}, UUID: {3}) successfully logged in as \"{4}\"", session.Username, session.ConnectionId, session.SessionId, session.Uuid, displayName)));
+                }
+            }
+        }
+
+        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, string username)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Construct an AuthResponsePacket in success configuration
+            AuthResponsePacket response = new AuthResponsePacket
+            {
+                Success = true,
+                SessionId = sessionId,
+                Username = username
+            };
+            
+            // Pack it into an Any for transmission
+            Any packedResponse = Any.Pack(response, "Phinix");
+            
+            // Send it
+            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+        }
+
+        private void sendFailedAuthResponsePacket(string connectionId, FailureReason failureReason, string failureMessage)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Construct an AuthResponsePacket in failure configuration
+            AuthResponsePacket response = new AuthResponsePacket
+            {
+                Success = false,
+                FailureReason = failureReason,
+                FailureMessage = failureMessage
+            };
+            
+            // Pack it into an Any for transmission
+            Any packedResponse = Any.Pack(response, "Phinix");
+            
+            // Send it
+            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+        }
+        
         /// <summary>
         /// Callback for the session cleanup timer. Cleans out expired sessions.
         /// </summary>
@@ -151,6 +402,58 @@ namespace Authentication
                 foreach (string key in keysToRemove)
                 {
                     sessions.Remove(key);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the existing credential store from disk or a new one if it doesn't exist.
+        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
+        /// </summary>
+        /// <returns>New or existing credential store</returns>
+        private CredentialStore getCredentialStore()
+        {
+            // Create a new credential store if one doesn't already exist
+            if (!File.Exists(credentialStorePath))
+            {
+                // Create a new credential store
+                CredentialStore newCredentialStore = new CredentialStore();
+                
+                // Save the store to disk
+                saveCredentialStore(newCredentialStore);
+                
+                // Finally return the new store
+                return newCredentialStore;
+            }
+            
+            // Pull the store from disk
+            CredentialStore credentialStore;
+            using (FileStream fs = new FileStream(credentialStorePath, FileMode.Open))
+            {
+                using (CodedInputStream cis = new CodedInputStream(fs))
+                {
+                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                }
+            }
+
+            // Return the credential store
+            return credentialStore;
+        }
+
+        /// <summary>
+        /// Saves the given credential store to disk, overwriting an existing one.
+        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
+        /// </summary>
+        /// <param name="credentialStore">Credential store to save</param>
+        private void saveCredentialStore(CredentialStore credentialStore)
+        {
+            // Create or truncate the credentials file
+            using (FileStream fs = File.Open(credentialStorePath, FileMode.Create, FileAccess.Write))
+            {
+                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                {
+                    // Write the credential store to disk
+                    credentialStore.WriteTo(cos);
                 }
             }
         }
