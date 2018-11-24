@@ -100,7 +100,8 @@
     <Copy SourceFiles="$(TargetDir)\protobuf3.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
     <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Utils.dll" />
     <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Connections.dll" />
-    <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-UserManagement.dll" />
+    <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-Authentication.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-PhinixClient.dll" />
   </Target>
 </Project>
