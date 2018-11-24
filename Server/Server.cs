@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using Authentication;
 using Connections;
+using UserManagement;
 using Utils;
 
 namespace PhinixServer
@@ -15,7 +16,7 @@ namespace PhinixServer
 
         public static Config Config;
         public static Logger Logger;
-        public static UserManagement.UserManager UserManager;
+        public static UserManager UserManager;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         private static bool exiting = false;
@@ -24,11 +25,18 @@ namespace PhinixServer
         {
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
-            UserManager = UserManagement.UserManager.Load(Config.UserDatabasePath);
+            UserManager = UserManager.Load(Config.UserDatabasePath);
             
             // Set up module instances
             NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
-            ServerAuthenticator authenticator = new ServerAuthenticator(connections, Config.ServerName, Config.ServerDescription, Config.AuthType);
+            ServerAuthenticator authenticator = new ServerAuthenticator(
+                netServer: connections,
+                userManager: UserManager,
+                serverName: Config.ServerName,
+                serverDescription: Config.ServerDescription,
+                authType: Config.AuthType,
+                credentialStorePath: Config.CredentialDatabasePath
+            );
             
             // Add handler for ILoggable modules
             authenticator.OnLogEntry += ILoggableHandler;

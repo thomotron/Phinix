@@ -57,21 +57,27 @@ namespace PhinixServer
         public string UserDatabasePath = "users";
 
         /// <summary>
+        /// Path to the credential database file.
+        /// </summary>
+        [DataMember(Name = "CredentialDatabaseFile", Order = 6)]
+        public string CredentialDatabasePath = "credentials";
+
+        /// <summary>
         /// Name of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerName", Order = 6)]
+        [DataMember(Name = "ServerName", Order = 7)]
         public string ServerName = "Phinix Server";
         
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerDescription", Order = 7)]
+        [DataMember(Name = "ServerDescription", Order = 8)]
         public string ServerDescription = "A Phinix server.";
         
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
-        [DataMember(Name = "AuthType", Order = 8)]
+        [DataMember(Name = "AuthType", Order = 9)]
         public AuthTypes AuthType = AuthTypes.PhiKey;
 
         /// <summary>
