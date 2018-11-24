@@ -68,6 +68,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="compile-proto.sh" />
     <Content Include="Credentials\Credential.proto" />
     <Content Include="Credentials\CredentialStore.proto" />
     <Content Include="Packets\AuthenticatePacket.proto" />
