@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
+using Google.Protobuf;
 using Utils;
 
 namespace UserManagement
@@ -32,8 +33,13 @@ namespace UserManagement
             this.userStore = new UserStore();
         }
 
+        private UserManager(UserStore userStore)
+        {
+            this.userStore = userStore;
+        }
+
         /// <summary>
-        /// Saves the <c>UserManager</c> object to an XML document at the given path.
+        /// Saves the <c>UserManager</c> object at the given path.
         /// This will overwrite the file if it already exists.
         /// </summary>
         /// <param name="filePath">Destination file path</param>
@@ -42,10 +48,16 @@ namespace UserManagement
         {
             if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
 
-            XmlWriterSettings settings = new XmlWriterSettings { Indent = true };
-            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
+            // Write the user store
+            using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write))
             {
-                new DataContractSerializer(typeof(UserManager)).WriteObject(writer, this);
+                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                {
+                    lock (userStoreLock)
+                    {
+                        this.userStore.WriteTo(cos);
+                    }
+                }
             }
         }
 
@@ -67,14 +79,14 @@ namespace UserManagement
                 return userManager;
             }
 
-            UserManager result;
-
-            using (XmlReader reader = XmlReader.Create(filePath))
+            // Load the user store
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
-                result = new DataContractSerializer(typeof(UserManager)).ReadObject(reader) as UserManager;
+                using (CodedInputStream cis = new CodedInputStream(fs))
+                {
+                    return new UserManager(UserStore.Parser.ParseFrom(cis));
+                }
             }
-
-            return result;
         }
 
         /// <summary>
