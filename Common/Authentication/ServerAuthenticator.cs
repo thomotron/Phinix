@@ -334,7 +334,7 @@ namespace Authentication
             }
         }
 
-        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, string username)
+        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, string displayName)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
             
@@ -343,7 +343,7 @@ namespace Authentication
             {
                 Success = true,
                 SessionId = sessionId,
-                Username = username
+                DisplayName = displayName
             };
             
             // Pack it into an Any for transmission

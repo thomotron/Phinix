@@ -13,5 +13,5 @@ message AuthResponsePacket
     
     string SessionId = 4;
     
-    string Username = 5;
+    string DisplayName = 5;
 }

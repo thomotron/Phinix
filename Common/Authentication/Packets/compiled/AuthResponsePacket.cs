@@ -23,15 +23,15 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhSZXNwb25zZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aG1BhY2tldHMvRmFpbHVyZVJlYXNvbi5wcm90byKYAQoSQXV0aFJl",
+            "YXRpb24aG1BhY2tldHMvRmFpbHVyZVJlYXNvbi5wcm90byKbAQoSQXV0aFJl",
             "c3BvbnNlUGFja2V0Eg8KB1N1Y2Nlc3MYASABKAgSNAoNRmFpbHVyZVJlYXNv",
             "bhgCIAEoDjIdLkF1dGhlbnRpY2F0aW9uLkZhaWx1cmVSZWFzb24SFgoORmFp",
-            "bHVyZU1lc3NhZ2UYAyABKAkSEQoJU2Vzc2lvbklkGAQgASgJEhAKCFVzZXJu",
-            "YW1lGAUgASgJYgZwcm90bzM="));
+            "bHVyZU1lc3NhZ2UYAyABKAkSEQoJU2Vzc2lvbklkGAQgASgJEhMKC0Rpc3Bs",
+            "YXlOYW1lGAUgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.FailureReasonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId", "Username" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId", "DisplayName" }, null, null, null)
           }));
     }
     #endregion
@@ -66,7 +66,7 @@ namespace Authentication {
       failureReason_ = other.failureReason_;
       failureMessage_ = other.failureMessage_;
       sessionId_ = other.sessionId_;
-      username_ = other.username_;
+      displayName_ = other.displayName_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -118,14 +118,14 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "Username" field.</summary>
-    public const int UsernameFieldNumber = 5;
-    private string username_ = "";
+    /// <summary>Field number for the "DisplayName" field.</summary>
+    public const int DisplayNameFieldNumber = 5;
+    private string displayName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Username {
-      get { return username_; }
+    public string DisplayName {
+      get { return displayName_; }
       set {
-        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        displayName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -146,7 +146,7 @@ namespace Authentication {
       if (FailureReason != other.FailureReason) return false;
       if (FailureMessage != other.FailureMessage) return false;
       if (SessionId != other.SessionId) return false;
-      if (Username != other.Username) return false;
+      if (DisplayName != other.DisplayName) return false;
       return true;
     }
 
@@ -157,7 +157,7 @@ namespace Authentication {
       if (FailureReason != 0) hash ^= FailureReason.GetHashCode();
       if (FailureMessage.Length != 0) hash ^= FailureMessage.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       return hash;
     }
 
@@ -184,9 +184,9 @@ namespace Authentication {
         output.WriteRawTag(34);
         output.WriteString(SessionId);
       }
-      if (Username.Length != 0) {
+      if (DisplayName.Length != 0) {
         output.WriteRawTag(42);
-        output.WriteString(Username);
+        output.WriteString(DisplayName);
       }
     }
 
@@ -205,8 +205,8 @@ namespace Authentication {
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
       }
-      if (Username.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      if (DisplayName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
       }
       return size;
     }
@@ -228,8 +228,8 @@ namespace Authentication {
       if (other.SessionId.Length != 0) {
         SessionId = other.SessionId;
       }
-      if (other.Username.Length != 0) {
-        Username = other.Username;
+      if (other.DisplayName.Length != 0) {
+        DisplayName = other.DisplayName;
       }
     }
 
@@ -258,7 +258,7 @@ namespace Authentication {
             break;
           }
           case 42: {
-            Username = input.ReadString();
+            DisplayName = input.ReadString();
             break;
           }
         }
