@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Connections
+namespace Utils
 {
     public class TypeUrl
     {
