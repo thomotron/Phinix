@@ -17,6 +17,11 @@ namespace UserManagement
     /// </summary>
     public class ServerUserManager : UserManager
     {
+        /// <inheritdoc />
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>

@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Xml;
-using Google.Protobuf;
 using Utils;
 
 namespace UserManagement
@@ -15,9 +10,16 @@ namespace UserManagement
     /// Module that organises users, their credentials, and their login states.
     /// Anything and everything pertaining to a particular user's state is accessed through this.
     /// </summary>
-    public abstract class UserManager
+    public abstract class UserManager : ILoggable
     {
+        public const string MODULE_NAME = "usermgmt";
+        
         public static readonly Version Version = Assembly.GetAssembly(typeof(UserManager)).GetName().Version;
+        
+        /// <inheritdoc />
+        public abstract event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public abstract void RaiseLogEntry(LogEventArgs e);
 
         /// <summary>
         /// Stores each user in an easily-serialisable format.
