@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Timers;
 using Connections;
 using Google.Protobuf;
@@ -162,7 +163,7 @@ namespace Authentication
         protected override void packetHandler(string module, string connectionId, byte[] data)
         {
             // Validate the incoming packet and discard it if validation fails
-            if (!validatePacket(module, data, out Any message, out TypeUrl typeUrl)) return;
+            if (!ProtobufPacketHelper.ValidatePacket("Authentication", MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
             
             // Determine what to do with this packet type
             switch (typeUrl.Type)

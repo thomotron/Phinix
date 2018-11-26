@@ -27,52 +27,5 @@ namespace Authentication
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="data">Data payload</param>
         protected abstract void packetHandler(string module, string connectionId, byte[] data);
-        
-        /// <summary>
-        /// Attempts to validate a serialised packet.
-        /// If this method succeeds it can be assumed safe to process the packet further.
-        /// </summary>
-        /// <param name="module">Target module</param>
-        /// <param name="data">Serialised packet</param>
-        /// <param name="parsedMessage">Parsed packet as an <c>Any</c> message</param>
-        /// <param name="typeUrl">Parsed TypeUrl</param>
-        /// <returns>The packet was validated successfully</returns>
-        protected bool validatePacket(string module, byte[] data, out Any parsedMessage, out TypeUrl typeUrl)
-        {
-            // Initialise out variables
-            parsedMessage = null;
-            typeUrl = null;
-            
-            // Make sure the packet is destined for this module, just in case
-            if (!module.Equals(MODULE_NAME))
-            {
-                RaiseLogEntry(new LogEventArgs("Got a packet destined for a different module (" + module + "), discarding...", LogLevel.DEBUG));
-                return false;
-            }
-            
-            // Parse the incoming message
-            parsedMessage= Any.Parser.ParseFrom(data);
-            
-            // Get the TypeUrl from the message to help determine what it actually is
-            try
-            {
-                typeUrl = new TypeUrl(parsedMessage.TypeUrl);
-            }
-            catch (Exception e)
-            {
-                RaiseLogEntry(new LogEventArgs("Got a packet with a malformed TypeUrl, discarding...", LogLevel.DEBUG));
-                return false;
-            }
-            
-            // Check that the message's namespace matches the one we will be using with our packets
-            if (typeUrl.Namespace != "Authentication")
-            {
-                RaiseLogEntry(new LogEventArgs("Got a packet type from a different namespace than we're expecting (" + typeUrl.Namespace + "), discarding...", LogLevel.DEBUG));
-                return false;
-            }
-            
-            // Nothing bad has happened so far, so the packet is clear for further processing
-            return true;
-        }
     }
 }
