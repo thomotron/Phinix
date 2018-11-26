@@ -101,15 +101,6 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Called by Unity on every physics update.
-        /// Used for synchronisation.
-        /// </summary>
-        public override void FixedUpdate()
-        {
-            base.FixedUpdate();
-        }
-
-        /// <summary>
         /// Attempts to connect to the server at the given address and port.
         /// This will disconnect from the current server, if any.
         /// </summary>
