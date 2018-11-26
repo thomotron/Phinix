@@ -16,7 +16,7 @@ namespace PhinixServer
 
         public static Config Config;
         public static Logger Logger;
-        public static UserManager UserManager;
+        public static ServerUserManager UserManager;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         private static bool exiting = false;
@@ -25,7 +25,7 @@ namespace PhinixServer
         {
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
-            UserManager = UserManager.Load(Config.UserDatabasePath);
+            UserManager = ServerUserManager.Load(Config.UserDatabasePath);
             
             // Set up module instances
             NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));

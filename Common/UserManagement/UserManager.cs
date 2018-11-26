@@ -12,10 +12,10 @@ namespace UserManagement
 {
     /// <inheritdoc />
     /// <summary>
-    /// Server-side module that organises users, their credentials, and their login states.
-    /// Anything and everything pertaining to a particular user's state can be accessed through this.
+    /// Module that organises users, their credentials, and their login states.
+    /// Anything and everything pertaining to a particular user's state is accessed through this.
     /// </summary>
-    public class UserManager
+    public abstract class UserManager
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(UserManager)).GetName().Version;
 
@@ -27,67 +27,6 @@ namespace UserManagement
         /// Lock for user store operations.
         /// </summary>
         private object userStoreLock = new object();
-
-        public UserManager()
-        {
-            this.userStore = new UserStore();
-        }
-
-        private UserManager(UserStore userStore)
-        {
-            this.userStore = userStore;
-        }
-
-        /// <summary>
-        /// Saves the <c>UserManager</c> object at the given path.
-        /// This will overwrite the file if it already exists.
-        /// </summary>
-        /// <param name="filePath">Destination file path</param>
-        /// <exception cref="ArgumentException">File path cannot be null or empty</exception>
-        public void Save(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
-
-            // Write the user store
-            using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    lock (userStoreLock)
-                    {
-                        this.userStore.WriteTo(cos);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Loads a <c>UserManager</c> object from the given file path. Will return a default <c>UserManager</c> if the file does not exist.
-        /// </summary>
-        /// <param name="filePath">UserManager file path</param>
-        /// <returns>Loaded <c>UserManager</c> object</returns>
-        /// <exception cref="ArgumentException">File path cannot be null or empty</exception>
-        public static UserManager Load(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
-
-            // Generate a fresh new UserManager class if it doesn't exist
-            if (!File.Exists(filePath))
-            {
-                UserManager userManager = new UserManager();
-                userManager.Save(filePath); // Save it first to make sure it's present next time
-                return userManager;
-            }
-
-            // Load the user store
-            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
-                {
-                    return new UserManager(UserStore.Parser.ParseFrom(cis));
-                }
-            }
-        }
 
         /// <summary>
         /// Tries to get a user's UUID by their username and returns whether it was retrieved successfully.

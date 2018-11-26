@@ -43,7 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientUserManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerUserManager.cs" />
     <Compile Include="UserManager.cs" />
     <Compile Include="Users\compiled\User.cs" />
     <Compile Include="Users\compiled\UserStore.cs" />
