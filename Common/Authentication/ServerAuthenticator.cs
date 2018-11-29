@@ -121,6 +121,36 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Attempts to get the username for the given connection and session.
+        /// Returns whether the username was retrieved successfully.
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="sessionId">Session ID</param>
+        /// <param name="username">Username output</param>
+        /// <returns>Username retrieved successfully</returns>
+        public bool TryGetUsername(string connectionId, string sessionId, out string username)
+        {
+            // Initialise username to something arbitrary
+            username = null;
+
+            lock (sessionsLock)
+            {
+                // Make sure the connection has a session
+                if (!sessions.ContainsKey(connectionId)) return false;
+
+                Session session = sessions[sessionId];
+
+                // Session shouldn't have a username if it hasn't been authenticated
+                if (!session.Authenticated) return false;
+
+                // Set the output
+                username = session.Username;
+
+                return true;
+            }
+        }
+
         private void ConnectionEstablishedHandler(object sender, ConnectionEventArgs e)
         {
             RaiseLogEntry(new LogEventArgs("Sending HelloPacket to incoming connection " + e.ConnectionId, LogLevel.DEBUG));
