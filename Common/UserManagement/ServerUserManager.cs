@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
+using Connections;
 using Google.Protobuf;
 using Utils;
 
@@ -23,6 +24,11 @@ namespace UserManagement
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// <c>NetServer</c> to send packets and bind events to.
+        /// </summary>
+        private NetServer netServer;
+        
+        /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
         private UserStore userStore;
@@ -31,14 +37,27 @@ namespace UserManagement
         /// </summary>
         private object userStoreLock = new object();
 
-        public ServerUserManager()
+        /// <summary>
+        /// Creates a new <c>ServerUserManager</c> instance.
+        /// </summary>
+        /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
+        public ServerUserManager(NetServer netServer)
         {
+            this.netServer = netServer;
+            
             this.userStore = new UserStore();
         }
 
-        private ServerUserManager(UserStore userStore)
+        /// <summary>
+        /// Creates a new <c>ServerUserManager</c> instance and loads in the user store from the given path.
+        /// </summary>
+        /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
+        /// <param name="userStorePath">Path to user store</param>
+        public ServerUserManager(NetServer netServer, string userStorePath)
         {
-            this.userStore = userStore;
+            this.netServer = netServer;
+            
+            Load(userStorePath);
         }
         
         /// <summary>
@@ -65,22 +84,23 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Loads the user store from the given file path into a new <c>ServerUserManager</c> instance.
-        /// Will return a default <c>ServerUserManager</c> if the file does not exist.
+        /// Loads the user store from the given file path.
+        /// Will create a new one if the file does not exist.
         /// </summary>
         /// <param name="filePath">User store file path</param>
-        /// <returns>Loaded <c>ServerUserManager</c> object</returns>
         /// <exception cref="ArgumentException">File path cannot be null or empty</exception>
-        public static ServerUserManager Load(string filePath)
+        public void Load(string filePath)
         {
             if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
 
-            // Generate a fresh new UserManager class if it doesn't exist
+            // Generate a fresh user store if it doesn't exist
             if (!File.Exists(filePath))
             {
-                ServerUserManager newUserManager = new ServerUserManager();
-                newUserManager.Save(filePath);
-                return newUserManager;
+                // Create the user store
+                lock (userStoreLock) this.userStore = new UserStore();
+                
+                // Save it
+                Save(filePath);
             }
 
             // Load the user store
@@ -88,7 +108,7 @@ namespace UserManagement
             {
                 using (CodedInputStream cis = new CodedInputStream(fs))
                 {
-                    return new ServerUserManager(UserStore.Parser.ParseFrom(cis));
+                    lock (userStoreLock) this.userStore = UserStore.Parser.ParseFrom(cis);
                 }
             }
         }

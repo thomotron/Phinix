@@ -59,6 +59,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Connections\Connections.csproj">
+      <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
+      <Name>Connections</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.csproj">
       <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
       <Name>Utils</Name>

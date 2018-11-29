@@ -25,7 +25,6 @@ namespace PhinixServer
         {
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
-            UserManager = ServerUserManager.Load(Config.UserDatabasePath);
             
             // Set up module instances
             NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
@@ -37,6 +36,7 @@ namespace PhinixServer
                 authType: Config.AuthType,
                 credentialStorePath: Config.CredentialDatabasePath
             );
+            UserManager = new ServerUserManager(connections, Config.UserDatabasePath);
             
             // Add handler for ILoggable modules
             authenticator.OnLogEntry += ILoggableHandler;
