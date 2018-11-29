@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Connections;
-using Google.Protobuf.WellKnownTypes;
 using Utils;
 
 namespace Authentication
