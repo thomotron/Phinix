@@ -99,6 +99,28 @@ namespace Authentication
             netServer.OnConnectionClosed += ConnectionClosedHandler;
         }
 
+        /// <summary>
+        /// Checks whether the given session ID is valid and has authenticated successfully
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="sessionId">Session ID</param>
+        /// <returns>Session is valid and authenticated</returns>
+        public bool IsAuthenticated(string connectionId, string sessionId)
+        {
+            lock (sessionsLock)
+            {
+                // Make sure the connection has a session
+                if (!sessions.ContainsKey(connectionId)) return false;
+                
+                Session session = sessions[connectionId];
+                
+                // Return whether the session ID matches, is not expired, and is authenticated
+                return session.SessionId == sessionId &&
+                       session.Expiry.CompareTo(DateTime.UtcNow) > 0 &&
+                       sessions[connectionId].Authenticated;
+            }
+        }
+
         private void ConnectionEstablishedHandler(object sender, ConnectionEventArgs e)
         {
             RaiseLogEntry(new LogEventArgs("Sending HelloPacket to incoming connection " + e.ConnectionId, LogLevel.DEBUG));
@@ -108,7 +130,8 @@ namespace Authentication
             {
                 SessionId = Guid.NewGuid().ToString(),
                 ConnectionId = e.ConnectionId,
-                Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(5)
+                Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(5),
+                Authenticated = false
             };
             
             lock (sessionsLock)
@@ -290,6 +313,9 @@ namespace Authentication
                     }
 
                     // Auth attempt made it through the gauntlet, time to accept it as a valid request
+                    
+                    // Mark the session as authenticated
+                    session.Authenticated = true;
 
                     // Extend their session by 30 minutes
                     session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);

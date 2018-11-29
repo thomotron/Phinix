@@ -33,5 +33,10 @@ namespace Authentication
         /// Set after successful login.
         /// </summary>
         public string Uuid;
+        
+        /// <summary>
+        /// Whether this session is authenticated.
+        /// </summary>
+        public bool Authenticated;
     }
 }
