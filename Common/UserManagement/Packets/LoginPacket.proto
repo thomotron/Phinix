@@ -1,0 +1,11 @@
+syntax = "proto3";
+package UserManagement;
+
+message LoginPacket
+{
+    string SessionId = 1;
+    
+    bool UseServerDisplayName = 2;
+    
+    string DisplayName = 3;
+}

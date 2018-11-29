@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientUserManager.cs" />
+    <Compile Include="Packets\compiled\LoginPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerUserManager.cs" />
     <Compile Include="UserManager.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Users\compiled\UserStore.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Packets\LoginPacket.proto" />
     <Content Include="Users\User.proto" />
     <Content Include="Users\UserStore.proto" />
     <None Include="compile-proto.sh" />
