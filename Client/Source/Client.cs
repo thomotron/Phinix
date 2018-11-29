@@ -77,7 +77,7 @@ namespace PhinixClient
 
             // Set up our module instances
             this.netClient = new NetClient();
-            this.authenticator = new ClientAuthenticator(netClient, getCredentials, DisplayName, true);
+            this.authenticator = new ClientAuthenticator(netClient, getCredentials);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;

@@ -23,15 +23,14 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhSZXNwb25zZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aG1BhY2tldHMvRmFpbHVyZVJlYXNvbi5wcm90byKbAQoSQXV0aFJl",
+            "YXRpb24aG1BhY2tldHMvRmFpbHVyZVJlYXNvbi5wcm90byKGAQoSQXV0aFJl",
             "c3BvbnNlUGFja2V0Eg8KB1N1Y2Nlc3MYASABKAgSNAoNRmFpbHVyZVJlYXNv",
             "bhgCIAEoDjIdLkF1dGhlbnRpY2F0aW9uLkZhaWx1cmVSZWFzb24SFgoORmFp",
-            "bHVyZU1lc3NhZ2UYAyABKAkSEQoJU2Vzc2lvbklkGAQgASgJEhMKC0Rpc3Bs",
-            "YXlOYW1lGAUgASgJYgZwcm90bzM="));
+            "bHVyZU1lc3NhZ2UYAyABKAkSEQoJU2Vzc2lvbklkGAQgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.FailureReasonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId", "DisplayName" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId" }, null, null, null)
           }));
     }
     #endregion
@@ -66,7 +65,6 @@ namespace Authentication {
       failureReason_ = other.failureReason_;
       failureMessage_ = other.failureMessage_;
       sessionId_ = other.sessionId_;
-      displayName_ = other.displayName_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -118,17 +116,6 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "DisplayName" field.</summary>
-    public const int DisplayNameFieldNumber = 5;
-    private string displayName_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DisplayName {
-      get { return displayName_; }
-      set {
-        displayName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as AuthResponsePacket);
@@ -146,7 +133,6 @@ namespace Authentication {
       if (FailureReason != other.FailureReason) return false;
       if (FailureMessage != other.FailureMessage) return false;
       if (SessionId != other.SessionId) return false;
-      if (DisplayName != other.DisplayName) return false;
       return true;
     }
 
@@ -157,7 +143,6 @@ namespace Authentication {
       if (FailureReason != 0) hash ^= FailureReason.GetHashCode();
       if (FailureMessage.Length != 0) hash ^= FailureMessage.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       return hash;
     }
 
@@ -184,10 +169,6 @@ namespace Authentication {
         output.WriteRawTag(34);
         output.WriteString(SessionId);
       }
-      if (DisplayName.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(DisplayName);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -204,9 +185,6 @@ namespace Authentication {
       }
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
-      }
-      if (DisplayName.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
       }
       return size;
     }
@@ -227,9 +205,6 @@ namespace Authentication {
       }
       if (other.SessionId.Length != 0) {
         SessionId = other.SessionId;
-      }
-      if (other.DisplayName.Length != 0) {
-        DisplayName = other.DisplayName;
       }
     }
 
@@ -255,10 +230,6 @@ namespace Authentication {
           }
           case 34: {
             SessionId = input.ReadString();
-            break;
-          }
-          case 42: {
-            DisplayName = input.ReadString();
             break;
           }
         }

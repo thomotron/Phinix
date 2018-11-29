@@ -7,7 +7,6 @@ using System.Timers;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using UserManagement;
 using Utils;
 
 namespace Authentication
@@ -28,11 +27,6 @@ namespace Authentication
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
-
-        /// <summary>
-        /// <c>UserManager</c> to send login requests and credentials to.
-        /// </summary>
-        private UserManager userManager;
 
         /// <summary>
         /// Name of the server displayed to connecting clients.
@@ -73,10 +67,9 @@ namespace Authentication
         /// </summary>
         private object credentialStoreLock = new object();
         
-        public ServerAuthenticator(NetServer netServer, UserManager userManager, string serverName, string serverDescription, AuthTypes authType, string credentialStorePath)
+        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType, string credentialStorePath)
         {
             this.netServer = netServer;
-            this.userManager = userManager;
             this.serverName = serverName;
             this.serverDescription = serverDescription;
             this.authType = authType;
@@ -199,12 +192,6 @@ namespace Authentication
                 if (sessions.ContainsKey(e.ConnectionId))
                 {
                     Session session = sessions[e.ConnectionId];
-
-                    // Try to log them out
-                    if (session.Uuid != null && userManager.TryLogOut(session.Uuid))
-                    {
-                        RaiseLogEntry(new LogEventArgs(string.Format("Logged out user \"{0}\" (UUID: {1})", session.Username, session.Uuid)));
-                    }
                     
                     // Remove the session
                     sessions.Remove(session.SessionId);
@@ -350,48 +337,16 @@ namespace Authentication
                     // Extend their session by 30 minutes
                     session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
                     
-                    // Try to get the user by their username
-                    if (userManager.TryGetUserUuid(session.Username, out session.Uuid))
-                    {
-                        // Try to log them in
-                        if (!userManager.TryLogIn(session.Uuid))
-                        {
-                            throw new UserNoLongerExistsException(session.Uuid);
-                        }
-                    }
-                    else
-                    {
-                        // Otherwise create a new user
-                        session.Uuid = userManager.CreateUser(packet.Username, packet.DisplayName, true);
-                    }
-                    
-                    // Check if they want to use the display name stored on the server
-                    string displayName = packet.DisplayName;
-                    if (packet.UseServerDisplayName)
-                    {
-                        // Try to get the display name stored server-side
-                        if (!userManager.TryGetDisplayName(session.Uuid, out displayName))
-                        {
-                            // This should never happen because we just made sure that the user existed no more than 30 lines ago, but just in case...
-                            throw new UserNoLongerExistsException(session.Uuid);
-                        }
-                    }
-                    else
-                    {
-                        // Update the user's display name on the server with the one they've provided
-                        userManager.UpdateUser(session.Uuid, packet.DisplayName);
-                    }
-                    
                     // Approve the authentication attempt
-                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, displayName);
+                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId);
                     
                     // Log this momentous occasion
-                    RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}, UUID: {3}) successfully logged in as \"{4}\"", session.Username, session.ConnectionId, session.SessionId, session.Uuid, displayName)));
+                    RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}) successfully authenticated", session.Username, session.ConnectionId, session.SessionId)));
                 }
             }
         }
 
-        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, string displayName)
+        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
             
@@ -399,8 +354,7 @@ namespace Authentication
             AuthResponsePacket response = new AuthResponsePacket
             {
                 Success = true,
-                SessionId = sessionId,
-                DisplayName = displayName
+                SessionId = sessionId
             };
             
             // Pack it into an Any for transmission

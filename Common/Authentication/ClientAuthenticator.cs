@@ -77,22 +77,11 @@ namespace Authentication
         /// <c>NetClient</c> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;
-
-        /// <summary>
-        /// Display name used during authentication
-        /// </summary>
-        public string DisplayName;
-        /// <summary>
-        /// Whether the server should use our display name or send us the one it has.
-        /// </summary>
-        public bool UseServerDisplayName;
         
-        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string displayName, bool useServerDisplayName)
+        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate)
         {
             this.netClient = netClient;
             this.getCredentials = getCredentialsDelegate;
-            this.DisplayName = displayName;
-            this.UseServerDisplayName = useServerDisplayName;
             
             // Prevent other threads from modifying the credential store while it is read in
             lock (credentialStoreLock) this.credentialStore = getCredentialStore();
@@ -325,9 +314,7 @@ namespace Authentication
                 AuthType = credential.AuthType,
                 SessionId = sessionId,
                 Username = credential.Username,
-                Password = credential.Password,
-                DisplayName = DisplayName,
-                UseServerDisplayName = UseServerDisplayName
+                Password = credential.Password
             };
 
             // Pack it into an Any for transmission

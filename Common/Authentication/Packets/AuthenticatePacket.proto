@@ -9,11 +9,7 @@ message AuthenticatePacket
     
     string SessionId = 2;
     
-    bool UseServerDisplayName = 3;
-    
     string Username = 4;
     
     string Password = 5;
-    
-    string DisplayName = 6;
 }

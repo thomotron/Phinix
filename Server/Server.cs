@@ -30,7 +30,6 @@ namespace PhinixServer
             NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
             ServerAuthenticator authenticator = new ServerAuthenticator(
                 netServer: connections,
-                userManager: UserManager,
                 serverName: Config.ServerName,
                 serverDescription: Config.ServerDescription,
                 authType: Config.AuthType,

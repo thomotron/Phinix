@@ -12,6 +12,4 @@ message AuthResponsePacket
     string FailureMessage = 3;
     
     string SessionId = 4;
-    
-    string DisplayName = 5;
 }
