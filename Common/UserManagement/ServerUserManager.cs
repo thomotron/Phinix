@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using Connections;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Utils;
 
 namespace UserManagement
@@ -46,6 +47,9 @@ namespace UserManagement
             this.netServer = netServer;
             
             this.userStore = new UserStore();
+            
+            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            netServer.OnConnectionClosed += connectionClosedHandler;
         }
 
         /// <summary>
@@ -58,6 +62,14 @@ namespace UserManagement
             this.netServer = netServer;
             
             Load(userStorePath);
+            
+            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            netServer.OnConnectionClosed += connectionClosedHandler;
+        }
+
+        private void connectionClosedHandler(object sender, ConnectionEventArgs e)
+        {
+            // TODO: Log out user as they disconnect
         }
         
         /// <summary>
@@ -110,6 +122,24 @@ namespace UserManagement
                 {
                     lock (userStoreLock) this.userStore = UserStore.Parser.ParseFrom(cis);
                 }
+            }
+        }
+
+        private void packetHandler(string module, string connectionId, byte[] data)
+        {
+            // Validate the incoming packet and discard it if validation fails
+            if (!ProtobufPacketHelper.ValidatePacket("UserManagement", MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
+
+            // Determine what to do with this packet type
+            switch (typeUrl.Type)
+            {
+                case "LoginPacket":
+                    // TODO: Handle LoginPackets
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a LoginPacket from {0}", connectionId)));
+                    break;
+                default:
+                    RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
+                    break;
             }
         }
     }
