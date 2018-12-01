@@ -1,0 +1,11 @@
+syntax = "proto3";
+package UserManagement;
+
+message LoginResponsePacket
+{
+    bool Success = 1;
+    
+    string Uuid = 2;
+
+    string DisplayName = 3;
+}
