@@ -1,6 +1,8 @@
 syntax = "proto3";
 package UserManagement;
 
+import "Packets/LoginFailureReason.proto";
+
 message LoginResponsePacket
 {
     bool Success = 1;
@@ -8,4 +10,8 @@ message LoginResponsePacket
     string Uuid = 2;
 
     string DisplayName = 3;
+    
+    LoginFailureReason FailureReason = 4;
+    
+    string FailureMessage = 5;
 }

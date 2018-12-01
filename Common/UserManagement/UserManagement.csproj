@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientUserManager.cs" />
+    <Compile Include="Packets\compiled\LoginFailureReason.cs" />
     <Compile Include="Packets\compiled\LoginPacket.cs" />
     <Compile Include="Packets\compiled\LoginResponsePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -54,6 +55,7 @@
     <Compile Include="Users\compiled\UserStore.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Packets\LoginFailureReason.proto" />
     <Content Include="Packets\LoginPacket.proto" />
     <Content Include="Packets\LoginResponsePacket.proto" />
     <Content Include="Users\User.proto" />

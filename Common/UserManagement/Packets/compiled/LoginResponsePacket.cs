@@ -23,12 +23,15 @@ namespace UserManagement {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiFQYWNrZXRzL0xvZ2luUmVzcG9uc2VQYWNrZXQucHJvdG8SDlVzZXJNYW5h",
-            "Z2VtZW50IkkKE0xvZ2luUmVzcG9uc2VQYWNrZXQSDwoHU3VjY2VzcxgBIAEo",
-            "CBIMCgRVdWlkGAIgASgJEhMKC0Rpc3BsYXlOYW1lGAMgASgJYgZwcm90bzM="));
+            "Z2VtZW50GiBQYWNrZXRzL0xvZ2luRmFpbHVyZVJlYXNvbi5wcm90byKcAQoT",
+            "TG9naW5SZXNwb25zZVBhY2tldBIPCgdTdWNjZXNzGAEgASgIEgwKBFV1aWQY",
+            "AiABKAkSEwoLRGlzcGxheU5hbWUYAyABKAkSOQoNRmFpbHVyZVJlYXNvbhgE",
+            "IAEoDjIiLlVzZXJNYW5hZ2VtZW50LkxvZ2luRmFpbHVyZVJlYXNvbhIWCg5G",
+            "YWlsdXJlTWVzc2FnZRgFIAEoCWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::UserManagement.LoginFailureReasonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginResponsePacket), global::UserManagement.LoginResponsePacket.Parser, new[]{ "Success", "Uuid", "DisplayName" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginResponsePacket), global::UserManagement.LoginResponsePacket.Parser, new[]{ "Success", "Uuid", "DisplayName", "FailureReason", "FailureMessage" }, null, null, null)
           }));
     }
     #endregion
@@ -62,6 +65,8 @@ namespace UserManagement {
       success_ = other.success_;
       uuid_ = other.uuid_;
       displayName_ = other.displayName_;
+      failureReason_ = other.failureReason_;
+      failureMessage_ = other.failureMessage_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -102,6 +107,28 @@ namespace UserManagement {
       }
     }
 
+    /// <summary>Field number for the "FailureReason" field.</summary>
+    public const int FailureReasonFieldNumber = 4;
+    private global::UserManagement.LoginFailureReason failureReason_ = 0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::UserManagement.LoginFailureReason FailureReason {
+      get { return failureReason_; }
+      set {
+        failureReason_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "FailureMessage" field.</summary>
+    public const int FailureMessageFieldNumber = 5;
+    private string failureMessage_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string FailureMessage {
+      get { return failureMessage_; }
+      set {
+        failureMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as LoginResponsePacket);
@@ -118,6 +145,8 @@ namespace UserManagement {
       if (Success != other.Success) return false;
       if (Uuid != other.Uuid) return false;
       if (DisplayName != other.DisplayName) return false;
+      if (FailureReason != other.FailureReason) return false;
+      if (FailureMessage != other.FailureMessage) return false;
       return true;
     }
 
@@ -127,6 +156,8 @@ namespace UserManagement {
       if (Success != false) hash ^= Success.GetHashCode();
       if (Uuid.Length != 0) hash ^= Uuid.GetHashCode();
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
+      if (FailureReason != 0) hash ^= FailureReason.GetHashCode();
+      if (FailureMessage.Length != 0) hash ^= FailureMessage.GetHashCode();
       return hash;
     }
 
@@ -149,6 +180,14 @@ namespace UserManagement {
         output.WriteRawTag(26);
         output.WriteString(DisplayName);
       }
+      if (FailureReason != 0) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) FailureReason);
+      }
+      if (FailureMessage.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(FailureMessage);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -162,6 +201,12 @@ namespace UserManagement {
       }
       if (DisplayName.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
+      }
+      if (FailureReason != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) FailureReason);
+      }
+      if (FailureMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FailureMessage);
       }
       return size;
     }
@@ -179,6 +224,12 @@ namespace UserManagement {
       }
       if (other.DisplayName.Length != 0) {
         DisplayName = other.DisplayName;
+      }
+      if (other.FailureReason != 0) {
+        FailureReason = other.FailureReason;
+      }
+      if (other.FailureMessage.Length != 0) {
+        FailureMessage = other.FailureMessage;
       }
     }
 
@@ -200,6 +251,14 @@ namespace UserManagement {
           }
           case 26: {
             DisplayName = input.ReadString();
+            break;
+          }
+          case 32: {
+            failureReason_ = (global::UserManagement.LoginFailureReason) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            FailureMessage = input.ReadString();
             break;
           }
         }

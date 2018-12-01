@@ -1,0 +1,9 @@
+syntax = "proto3";
+package UserManagement;
+
+enum LoginFailureReason
+{
+    SessionId = 0;
+    
+    InternalServerError = 1;
+};
