@@ -23,12 +23,13 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhSZXNwb25zZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aG1BhY2tldHMvRmFpbHVyZVJlYXNvbi5wcm90byKGAQoSQXV0aFJl",
-            "c3BvbnNlUGFja2V0Eg8KB1N1Y2Nlc3MYASABKAgSNAoNRmFpbHVyZVJlYXNv",
-            "bhgCIAEoDjIdLkF1dGhlbnRpY2F0aW9uLkZhaWx1cmVSZWFzb24SFgoORmFp",
-            "bHVyZU1lc3NhZ2UYAyABKAkSEQoJU2Vzc2lvbklkGAQgASgJYgZwcm90bzM="));
+            "YXRpb24aH1BhY2tldHMvQXV0aEZhaWx1cmVSZWFzb24ucHJvdG8iigEKEkF1",
+            "dGhSZXNwb25zZVBhY2tldBIPCgdTdWNjZXNzGAEgASgIEjgKDUZhaWx1cmVS",
+            "ZWFzb24YAiABKA4yIS5BdXRoZW50aWNhdGlvbi5BdXRoRmFpbHVyZVJlYXNv",
+            "bhIWCg5GYWlsdXJlTWVzc2FnZRgDIAEoCRIRCglTZXNzaW9uSWQYBCABKAli",
+            "BnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Authentication.FailureReasonReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Authentication.AuthFailureReasonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId" }, null, null, null)
           }));
@@ -85,9 +86,9 @@ namespace Authentication {
 
     /// <summary>Field number for the "FailureReason" field.</summary>
     public const int FailureReasonFieldNumber = 2;
-    private global::Authentication.FailureReason failureReason_ = 0;
+    private global::Authentication.AuthFailureReason failureReason_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Authentication.FailureReason FailureReason {
+    public global::Authentication.AuthFailureReason FailureReason {
       get { return failureReason_; }
       set {
         failureReason_ = value;
@@ -221,7 +222,7 @@ namespace Authentication {
             break;
           }
           case 16: {
-            failureReason_ = (global::Authentication.FailureReason) input.ReadEnum();
+            failureReason_ = (global::Authentication.AuthFailureReason) input.ReadEnum();
             break;
           }
           case 26: {

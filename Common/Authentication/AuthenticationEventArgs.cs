@@ -12,7 +12,7 @@ namespace Authentication
         /// <summary>
         /// Which input caused the authentication failure.
         /// </summary>
-        public FailureReason FailureReason;
+        public AuthFailureReason FailureReason;
         
         /// <summary>
         /// Failure message from the server.
@@ -32,7 +32,7 @@ namespace Authentication
         /// </summary>
         /// <param name="failureReason">Field that caused failure</param>
         /// <param name="failureMessage">Message provided by server</param>
-        public AuthenticationEventArgs(FailureReason failureReason, string failureMessage)
+        public AuthenticationEventArgs(AuthFailureReason failureReason, string failureMessage)
         {
             this.Success = false;
             this.FailureReason = failureReason;

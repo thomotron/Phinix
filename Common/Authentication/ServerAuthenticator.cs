@@ -228,7 +228,7 @@ namespace Authentication
             if (packet.AuthType != authType)
             {
                 // Fail the authentication attempt due to mismatched credential type
-                sendFailedAuthResponsePacket(connectionId, FailureReason.AuthType, string.Format("Wrong type of credentials supplied. The server only accepts \"{0}\" credentials.", authType.ToString()));
+                sendFailedAuthResponsePacket(connectionId, AuthFailureReason.AuthType, string.Format("Wrong type of credentials supplied. The server only accepts \"{0}\" credentials.", authType.ToString()));
                 
                 RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: Wrong credential type", connectionId), LogLevel.DEBUG));
                 
@@ -242,7 +242,7 @@ namespace Authentication
                 if (!sessions.ContainsKey(connectionId) || sessions[connectionId].SessionId != packet.SessionId)
                 {
                     // Fail the authentication attempt due to invalid session ID
-                    sendFailedAuthResponsePacket(connectionId, FailureReason.SessionId, "Could not find session for your connection. It may have expired. Try logging in again.");
+                    sendFailedAuthResponsePacket(connectionId, AuthFailureReason.SessionId, "Could not find session for your connection. It may have expired. Try logging in again.");
                     
                     RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: No session found for this connection", connectionId), LogLevel.DEBUG));
 
@@ -257,7 +257,7 @@ namespace Authentication
                 if (session.Expiry.CompareTo(DateTime.UtcNow) <= 0)
                 {
                     // Fail the authentication attempt due to expired session
-                    sendFailedAuthResponsePacket(connectionId, FailureReason.SessionId, "Session has expired. Try logging in again.");
+                    sendFailedAuthResponsePacket(connectionId, AuthFailureReason.SessionId, "Session has expired. Try logging in again.");
                     
                     RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Session expired", connectionId, session.SessionId), LogLevel.DEBUG));
                     
@@ -285,7 +285,7 @@ namespace Authentication
                         else
                         {
                             // Fail the authentication attempt due to missing credential
-                            sendFailedAuthResponsePacket(connectionId, FailureReason.Credentials, string.Format("No credential found for the username \"{0}\".", packet.Username));
+                            sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, string.Format("No credential found for the username \"{0}\".", packet.Username));
                             
                             RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): No credentials found for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
                     
@@ -307,7 +307,7 @@ namespace Authentication
                         credentialStore.Credentials.Remove(session.Username);
                         
                         // Fail the authentication attempt due to invalid stored credential
-                        sendFailedAuthResponsePacket(connectionId, FailureReason.InternalServerError, "Server's stored credential did not match its accepted authentication type. Try logging in again.");
+                        sendFailedAuthResponsePacket(connectionId, AuthFailureReason.InternalServerError, "Server's stored credential did not match its accepted authentication type. Try logging in again.");
                         
                         RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Stored credentials for {2} are of wrong type ({3})", connectionId, session.SessionId, packet.Username, credential.AuthType.ToString()), LogLevel.DEBUG));
                         
@@ -319,7 +319,7 @@ namespace Authentication
                     if (packet.Password != credential.Password)
                     {
                         // Fail the authentication attempt due to mismatching password
-                        sendFailedAuthResponsePacket(connectionId, FailureReason.Credentials, "Invalid password provided.");
+                        sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, "Invalid password provided.");
                         
                         RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Wrong password provided for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
                         
@@ -362,7 +362,7 @@ namespace Authentication
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
         }
 
-        private void sendFailedAuthResponsePacket(string connectionId, FailureReason failureReason, string failureMessage)
+        private void sendFailedAuthResponsePacket(string connectionId, AuthFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
             

@@ -1,13 +1,13 @@
 syntax = "proto3";
 package Authentication;
 
-import "Packets/FailureReason.proto";
+import "Packets/AuthFailureReason.proto";
 
 message AuthResponsePacket
 {
     bool Success = 1;
     
-    FailureReason FailureReason = 2;
+    AuthFailureReason FailureReason = 2;
     
     string FailureMessage = 3;
     

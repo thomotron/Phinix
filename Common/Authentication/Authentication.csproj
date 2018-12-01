@@ -51,7 +51,7 @@
     <Compile Include="Packets\compiled\AuthenticatePacket.cs" />
     <Compile Include="Packets\compiled\AuthResponsePacket.cs" />
     <Compile Include="Packets\compiled\AuthTypes.cs" />
-    <Compile Include="Packets\compiled\FailureReason.cs" />
+    <Compile Include="Packets\compiled\AuthFailureReason.cs" />
     <Compile Include="Packets\compiled\HelloPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerAuthenticator.cs" />
@@ -74,7 +74,7 @@
     <Content Include="Packets\AuthenticatePacket.proto" />
     <Content Include="Packets\AuthResponsePacket.proto" />
     <Content Include="Packets\AuthTypes.proto" />
-    <Content Include="Packets\FailureReason.proto" />
+    <Content Include="Packets\AuthFailureReason.proto" />
     <Content Include="Packets\HelloPacket.proto" />
   </ItemGroup>
   <ItemGroup>
