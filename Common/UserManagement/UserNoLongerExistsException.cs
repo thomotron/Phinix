@@ -1,6 +1,6 @@
 using System;
 
-namespace Authentication
+namespace UserManagement
 {
     public class UserNoLongerExistsException : Exception
     {
