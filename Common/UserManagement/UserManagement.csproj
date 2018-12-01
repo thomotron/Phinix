@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Packets\LoginPacket.proto" />
+    <Content Include="Packets\LoginResponsePacket.proto" />
     <Content Include="Users\User.proto" />
     <Content Include="Users\UserStore.proto" />
     <None Include="compile-proto.sh" />
