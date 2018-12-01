@@ -139,13 +139,129 @@ namespace UserManagement
             switch (typeUrl.Type)
             {
                 case "LoginPacket":
-                    // TODO: Handle LoginPackets
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a LoginPacket from {0}", connectionId)));
+                    handleLoginPacket(connectionId, message.Unpack<LoginPacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handles incoming <c>LoginPacket</c>s, attempting to log in users.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        /// <exception cref="UserNoLongerExistsException">User no longer exists for some reason even though we just checked like a second ago</exception>
+        private void handleLoginPacket(string connectionId, LoginPacket packet)
+        {
+            // Make sure the client is authenticated
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
+            {
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Invalid session", packet.SessionId)));
+                
+                // Fail the login attempt due to an invalid session
+                sendFailedLoginResponsePacket(connectionId, LoginFailureReason.SessionId, "Session is not valid, it may have expired. Try reconnecting.");
+                
+                // Stop here
+                return;
+            }
+
+            // Try get the username from their session
+            if (!authenticator.TryGetUsername(connectionId, packet.SessionId, out string username))
+            {
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Couldn't get username", packet.SessionId)));
+                
+                // Fail the login attempt due to an invalid session/username
+                sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Server failed to get the username associated with the session. Try reconnecting.");
+                
+                // Stop here
+                return;
+            }
+            
+            // Passed authentication checks, time to accept the login attempt
+            
+            // Try to get the user by their username
+            if (TryGetUserUuid(username, out string uuid))
+            {
+                // Try to log them in
+                if (!TryLogIn(uuid))
+                {
+                    // This shouldn't happen because we just got their UUID but ok.
+                    throw new UserNoLongerExistsException(uuid);
+                }
+            }
+            else
+            {
+                // Otherwise create a new user
+                uuid = CreateUser(username, packet.DisplayName, true);
+            }
+                    
+            // Check if they want to use the display name stored on the server
+            string displayName = packet.DisplayName;
+            if (packet.UseServerDisplayName)
+            {
+                // Try to get the display name stored server-side
+                if (!TryGetDisplayName(uuid, out displayName))
+                {
+                    // This should never happen because we just made sure that the user existed no more than 30 lines ago, but just in case...
+                    throw new UserNoLongerExistsException(uuid);
+                }
+            }
+            else
+            {
+                // Update the user's display name on the server with the one they've provided
+                UpdateUser(uuid, packet.DisplayName);
+            }
+            
+            // Log the event
+            RaiseLogEntry(new LogEventArgs(string.Format("User {0} successfully logged in as \"{1}\" (SessionID: {2}, UUID: {3})", username, displayName, packet.SessionId, uuid)));
+            
+            // Send a successful login response
+            sendSuccessfulLoginResponsePacket(connectionId, uuid, displayName);
+        }
+
+        /// <summary>
+        /// Sends a successful <c>LoginResponsePacket</c> with the given UUID and display name.
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="displayName">User's display name</param>
+        private void sendSuccessfulLoginResponsePacket(string connectionId, string uuid, string displayName)
+        {
+            // Create and pack a response
+            LoginResponsePacket response = new LoginResponsePacket
+            {
+                Success = true,
+                Uuid = uuid,
+                DisplayName = displayName
+            };
+            Any packedResponse = Any.Pack(response, "Phinix");
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+        }
+
+        /// <summary>
+        /// Sends a failed <c>LoginResponsePacket</c> with the given reason and message.
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="failureReason">Failure reason</param>
+        /// <param name="failureMessage">Failure message</param>
+        private void sendFailedLoginResponsePacket(string connectionId, LoginFailureReason failureReason, string failureMessage)
+        {
+            // Create and pack a response
+            LoginResponsePacket response = new LoginResponsePacket
+            {
+                Success = false,
+                FailureReason = failureReason,
+                FailureMessage = failureMessage
+            };
+            Any packedResponse = Any.Pack(response, "Phinix");
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
         }
     }
 }
