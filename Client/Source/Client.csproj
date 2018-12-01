@@ -85,6 +85,10 @@
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\UserManagement\UserManagement.csproj">
+      <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
+      <Name>UserManagement</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Utils\Utils.csproj">
       <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
       <Name>Utils</Name>

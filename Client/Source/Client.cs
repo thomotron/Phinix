@@ -4,6 +4,7 @@ using Authentication;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
+using UserManagement;
 using Utils;
 using Verse;
 
@@ -23,6 +24,9 @@ namespace PhinixClient
         private ClientAuthenticator authenticator;
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationSuccess;
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
+
+        private ClientUserManager userManager;
+        public bool LoggedIn => userManager.LoggedIn;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -78,9 +82,11 @@ namespace PhinixClient
             // Set up our module instances
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
+            this.userManager = new ClientUserManager(netClient, DisplayName);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
+            userManager.OnLogEntry += ILoggableHandler;
             
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
