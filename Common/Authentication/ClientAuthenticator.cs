@@ -168,8 +168,8 @@ namespace Authentication
                     helloPacketHandler(connectionId, message.Unpack<HelloPacket>());
                     break;
                 case "AuthResponsePacket":
-                    // TODO: AuthResponsePacket handling
                     RaiseLogEntry(new LogEventArgs("Got an AuthResponsePacket", LogLevel.DEBUG));
+                    authResponsePacketHandler(connectionId, message.Unpack<AuthResponsePacket>());
                     break;
                 default:
                     // TODO: Discard packet
@@ -338,6 +338,28 @@ namespace Authentication
             
             // Send it on its way
             netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());
+        }
+        
+        private void authResponsePacketHandler(string connectionId, AuthResponsePacket packet)
+        {
+            // Was authentication successful?
+            if (packet.Success)
+            {
+                // Set authenticated state and session ID
+                Authenticated = true;
+                SessionId = packet.SessionId;
+                
+                // Raise successful auth event
+                OnAuthenticationSuccess?.Invoke(this, new AuthenticationEventArgs());
+            }
+            else
+            {
+                // Set authenticated state
+                Authenticated = false;
+                
+                // Raise failed auth event
+                OnAuthenticationFailure?.Invoke(this, new AuthenticationEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
         }
     }
 }
