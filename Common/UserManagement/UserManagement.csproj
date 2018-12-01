@@ -59,6 +59,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Authentication\Authentication.csproj">
+      <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
+      <Name>Authentication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Connections\Connections.csproj">
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>

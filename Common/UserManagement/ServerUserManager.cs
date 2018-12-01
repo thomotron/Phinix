@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Authentication;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -23,6 +24,11 @@ namespace UserManagement
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
+
+        /// <summary>
+        /// <c>ServerAuthenticator</c> to check session validity with.
+        /// </summary>
+        private ServerAuthenticator authenticator;
         
         /// <summary>
         /// Stores each user in an easily-serialisable format.
@@ -37,9 +43,11 @@ namespace UserManagement
         /// Creates a new <c>ServerUserManager</c> instance.
         /// </summary>
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
-        public ServerUserManager(NetServer netServer)
+        /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
+        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator)
         {
             this.netServer = netServer;
+            this.authenticator = authenticator;
             
             this.userStore = new UserStore();
             
@@ -51,10 +59,12 @@ namespace UserManagement
         /// Creates a new <c>ServerUserManager</c> instance and loads in the user store from the given path.
         /// </summary>
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
+        /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
         /// <param name="userStorePath">Path to user store</param>
-        public ServerUserManager(NetServer netServer, string userStorePath)
+        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, string userStorePath)
         {
             this.netServer = netServer;
+            this.authenticator = authenticator;
             
             Load(userStorePath);
             
