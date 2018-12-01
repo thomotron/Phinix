@@ -254,6 +254,11 @@ namespace Authentication
         /// <param name="packet">Incoming <c>HelloPacket</c></param>
         private void helloPacketHandler(string connectionId, HelloPacket packet)
         {
+            // Nullify authenticated state
+            // TODO: Reset authenticated state on disconnect
+            Authenticated = false;
+            SessionId = null;
+            
             // Try to get an existing credential for this server and ensure it corresponds to the server's accepted authentication type
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
