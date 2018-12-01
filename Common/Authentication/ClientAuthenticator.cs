@@ -59,6 +59,17 @@ namespace Authentication
         /// Delegate called when new credentials are required for authentication.
         /// </summary>
         private GetCredentialsDelegate getCredentials;
+        
+        /// <summary>
+        /// Whether the client has authenticated with the server.
+        /// </summary>
+        public bool Authenticated { get; private set; }
+        
+        /// <summary>
+        /// Session identifier used by the server to confirm we are allowed to speak to it.
+        /// Use only if <c>Authenticated</c> is true.
+        /// </summary>
+        public string SessionId { get; private set; }
 
         /// <summary>
         /// Path to the credential store file.
