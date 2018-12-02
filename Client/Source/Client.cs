@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.Remoting.Channels;
 using Authentication;
 using Connections;
 using HugsLib;
@@ -27,6 +28,8 @@ namespace PhinixClient
 
         private ClientUserManager userManager;
         public bool LoggedIn => userManager.LoggedIn;
+        public event EventHandler<LoginEventArgs> OnLoginSuccess;
+        public event EventHandler<LoginEventArgs> OnLoginFailure;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -99,9 +102,21 @@ namespace PhinixClient
                 Logger.Message("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
             };
             
-            // Forward authentication events so the UI can handle them
+            // Subscribe to user management events
+            userManager.OnLoginSuccess += (sender, args) =>
+            {
+                Logger.Message("Successfully logged in with UUID {0}", userManager.Uuid);
+            };
+            userManager.OnLoginFailure += (sender, args) =>
+            {
+                Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+            };
+            
+            // Forward events so the UI can handle them
             authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
+            userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
+            userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

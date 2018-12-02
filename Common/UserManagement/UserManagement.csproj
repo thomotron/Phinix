@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientUserManager.cs" />
+    <Compile Include="LoginEventArgs.cs" />
     <Compile Include="Packets\compiled\LoginFailureReason.cs" />
     <Compile Include="Packets\compiled\LoginPacket.cs" />
     <Compile Include="Packets\compiled\LoginResponsePacket.cs" />

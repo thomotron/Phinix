@@ -19,6 +19,15 @@ namespace UserManagement
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// Raised on a successful login attempt.
+        /// </summary>
+        public event EventHandler<LoginEventArgs> OnLoginSuccess;
+        /// <summary>
+        /// Raised on a failed login attempt.
+        /// </summary>
+        public event EventHandler<LoginEventArgs> OnLoginFailure;
+
+        /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
@@ -70,6 +79,29 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Attempts to log in to the server.
+        /// <c>SessionId</c> should be the session ID for an existing, valid, authenticated session.
+        /// </summary>
+        /// <param name="sessionId">Existing session ID</param>
+        public void SendLogin(string sessionId)
+        {
+            // Cache the session ID for later
+            this.sessionId = sessionId;
+            
+            // Create and pack a new LoginPacket
+            LoginPacket packet = new LoginPacket
+            {
+                SessionId = sessionId,
+                DisplayName = displayName,
+                UseServerDisplayName = useServerDisplayName
+            };
+            Any packedPacket = Any.Pack(packet, "Phinix");
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
         /// Handles incoming packets.
         /// </summary>
         /// <param name="module">Destination module</param>
@@ -94,26 +126,30 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Attempts to log in to the server.
-        /// <c>SessionId</c> should be the session ID for an existing, valid, authenticated session.
+        /// Handles incoming <c>LoginResponsePacket</c>s.
         /// </summary>
-        /// <param name="sessionId">Existing session ID</param>
-        public void SendLogin(string sessionId)
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>LoginResponsePacket</c></param>
+        private void loginResponsePacketHandler(string connectionId, LoginResponsePacket packet)
         {
-            // Cache the session ID for later
-            this.sessionId = sessionId;
-            
-            // Create and pack a new LoginPacket
-            LoginPacket packet = new LoginPacket
+            if (packet.Success)
             {
-                SessionId = sessionId,
-                DisplayName = displayName,
-                UseServerDisplayName = useServerDisplayName
-            };
-            Any packedPacket = Any.Pack(packet, "Phinix");
-            
-            // Send it on its way
-            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+                // Set module states
+                LoggedIn = true;
+                Uuid = packet.Uuid;
+                
+                // Raise login success event
+                OnLoginSuccess?.Invoke(this, new LoginEventArgs());
+            }
+            else
+            {
+                // Set module states
+                LoggedIn = false;
+                Uuid = null;
+                
+                // Raise login failure event
+                OnLoginFailure?.Invoke(this, new LoginEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
         }
     }
 }
