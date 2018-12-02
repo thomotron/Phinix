@@ -130,7 +130,10 @@ namespace Authentication
                 // Make sure the connection has a session
                 if (!sessions.ContainsKey(connectionId)) return false;
 
-                Session session = sessions[sessionId];
+                Session session = sessions[connectionId];
+
+                // Session ID should match
+                if (session.SessionId != sessionId) return false;
 
                 // Session shouldn't have a username if it hasn't been authenticated
                 if (!session.Authenticated) return false;
