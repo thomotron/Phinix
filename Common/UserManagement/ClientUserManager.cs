@@ -92,6 +92,28 @@ namespace UserManagement
                     break;
             }
         }
+
+        /// <summary>
+        /// Attempts to log in to the server.
+        /// <c>SessionId</c> should be the session ID for an existing, valid, authenticated session.
+        /// </summary>
+        /// <param name="sessionId">Existing session ID</param>
+        public void SendLogin(string sessionId)
+        {
+            // Cache the session ID for later
+            this.sessionId = sessionId;
+            
+            // Create and pack a new LoginPacket
+            LoginPacket packet = new LoginPacket
+            {
+                SessionId = sessionId,
+                DisplayName = displayName,
+                UseServerDisplayName = useServerDisplayName
+            };
+            Any packedPacket = Any.Pack(packet, "Phinix");
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
     }
 }

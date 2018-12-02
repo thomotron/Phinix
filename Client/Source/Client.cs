@@ -92,6 +92,7 @@ namespace PhinixClient
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully authenticated with server.");
+                userManager.SendLogin(authenticator.SessionId);
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
