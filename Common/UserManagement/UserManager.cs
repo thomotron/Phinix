@@ -24,11 +24,12 @@ namespace UserManagement
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
-        private UserStore userStore;
+        protected abstract UserStore userStore { get; set; }
+
         /// <summary>
         /// Lock for user store operations.
         /// </summary>
-        private object userStoreLock = new object();
+        protected abstract object userStoreLock { get; }
 
         /// <summary>
         /// Tries to get a user's UUID by their username and returns whether it was retrieved successfully.

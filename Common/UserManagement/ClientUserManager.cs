@@ -61,11 +61,11 @@ namespace UserManagement
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
-        private UserStore userStore;
+        protected override UserStore userStore { get; set; }
         /// <summary>
         /// Lock for user store operations.
         /// </summary>
-        private object userStoreLock = new object();
+        protected override object userStoreLock => new object();
 
         public ClientUserManager(NetClient netClient, string displayName, bool useServerDisplayName = false)
         {
