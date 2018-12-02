@@ -116,8 +116,8 @@ namespace UserManagement
             switch (typeUrl.Type)
             {
                 case "LoginResponsePacket":
-                    // TODO: LoginResponsePacket handling
                     RaiseLogEntry(new LogEventArgs("Got a LoginResponsePacket", LogLevel.DEBUG));
+                    loginResponsePacketHandler(connectionId, message.Unpack<LoginResponsePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
