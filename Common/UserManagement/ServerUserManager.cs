@@ -236,6 +236,8 @@ namespace UserManagement
         /// <param name="displayName">User's display name</param>
         private void sendSuccessfulLoginResponsePacket(string connectionId, string uuid, string displayName)
         {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
             {
@@ -257,6 +259,8 @@ namespace UserManagement
         /// <param name="failureMessage">Failure message</param>
         private void sendFailedLoginResponsePacket(string connectionId, LoginFailureReason failureReason, string failureMessage)
         {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
             {

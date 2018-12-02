@@ -97,6 +97,8 @@ namespace UserManagement
             };
             Any packedPacket = Any.Pack(packet, "Phinix");
             
+            RaiseLogEntry(new LogEventArgs("Sending LoginPacket", LogLevel.DEBUG));
+            
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
