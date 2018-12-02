@@ -130,6 +130,12 @@ namespace UserManagement
             }
         }
 
+        /// <summary>
+        /// Handles incoming packets.
+        /// </summary>
+        /// <param name="module">Destination module</param>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="data">Data payload</param>
         private void packetHandler(string module, string connectionId, byte[] data)
         {
             // Validate the incoming packet and discard it if validation fails
