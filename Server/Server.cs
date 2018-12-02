@@ -39,6 +39,7 @@ namespace PhinixServer
             
             // Add handler for ILoggable modules
             authenticator.OnLogEntry += ILoggableHandler;
+            UserManager.OnLogEntry += ILoggableHandler;
             
             connections.Start();
 
