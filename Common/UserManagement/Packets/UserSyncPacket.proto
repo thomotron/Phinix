@@ -1,0 +1,9 @@
+syntax = "proto3";
+package UserManagement;
+
+import "Users/User.proto";
+
+message UserSyncPacket
+{
+    repeated User Users = 1;
+}

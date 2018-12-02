@@ -1,0 +1,9 @@
+syntax = "proto3";
+package UserManagement;
+
+import "Users/User.proto";
+
+message UserUpdatePacket
+{
+    User User = 1;
+}
