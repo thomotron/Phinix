@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Timers;
 using Connections;
 using Google.Protobuf;
@@ -142,6 +143,50 @@ namespace Authentication
                 username = session.Username;
 
                 return true;
+            }
+        }
+
+        /// <summary>
+        /// Collects all (optionally authenticated) sessions and returns the session ID for each as a string array.
+        /// </summary>
+        /// <param name="mustBeAuthenticated">Only collect authenticated sessions</param>
+        /// <returns>Array of session IDs</returns>
+        public string[] GetSessions(bool mustBeAuthenticated = false)
+        {
+            lock (sessionsLock)
+            {
+                if (mustBeAuthenticated)
+                {
+                    // Add only session IDs that are authenticated
+                    return sessions.Values.Where(session => session.Authenticated).Select(session => session.SessionId).ToArray();
+                }
+                else
+                {
+                    // Add all session IDs
+                    return sessions.Values.Select(session => session.SessionId).ToArray();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Collects all (optionally authenticated) connections and returns the connection ID for each as a string array.
+        /// </summary>
+        /// <param name="mustBeAuthenticated">Only collect authenticated sessions</param>
+        /// <returns>Array of connection IDs</returns>
+        public string[] GetConnections(bool mustBeAuthenticated = false)
+        {
+            lock (sessionsLock)
+            {
+                if (mustBeAuthenticated)
+                {
+                    // Add only session IDs that are authenticated
+                    return sessions.Values.Where(session => session.Authenticated).Select(session => session.ConnectionId).ToArray();
+                }
+                else
+                {
+                    // Add all session IDs
+                    return sessions.Values.Select(session => session.ConnectionId).ToArray();
+                }
             }
         }
 
