@@ -1,5 +1,7 @@
 ﻿using System;
 using Connections;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Utils;
 
 namespace UserManagement
@@ -63,6 +65,33 @@ namespace UserManagement
             this.useServerDisplayName = useServerDisplayName;
             
             this.userStore = new UserStore();
+            
+            netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
+        }
+
+        /// <summary>
+        /// Handles incoming packets.
+        /// </summary>
+        /// <param name="module">Destination module</param>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="data">Data payload</param>
+        private void packetHandler(string module, string connectionId, byte[] data)
+        {
+            // Validate the packet and discard it if it fails
+            if (!Utils.ProtobufPacketHelper.ValidatePacket("UserManagement", MODULE_NAME, module, data, out Any message,out TypeUrl typeUrl)) return;
+
+            // Determine what to do with this packet type
+            switch (typeUrl.Type)
+            {
+                case "LoginResponsePacket":
+                    // TODO: LoginResponsePacket handling
+                    RaiseLogEntry(new LogEventArgs("Got a LoginResponsePacket", LogLevel.DEBUG));
+                    break;
+                default:
+                    RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
+                    break;
+            }
+        }
         }
     }
 }
