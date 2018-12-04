@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Authentication;
 using Connections;
@@ -29,6 +30,15 @@ namespace UserManagement
         /// <c>ServerAuthenticator</c> to check session validity with.
         /// </summary>
         private ServerAuthenticator authenticator;
+
+        /// <summary>
+        /// Collection of connected UUIDs organised by session ID.
+        /// </summary>
+        private Dictionary<string, string> connectedUsers;
+        /// <summary>
+        /// Lock for connected user dictionary operations.
+        /// </summary>
+        private object connectedUsersLock = new object();
         
         /// <summary>
         /// Stores each user in an easily-serialisable format.
@@ -49,6 +59,7 @@ namespace UserManagement
             this.netServer = netServer;
             this.authenticator = authenticator;
             
+            this.connectedUsers = new Dictionary<string, string>();
             this.userStore = new UserStore();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
@@ -66,6 +77,7 @@ namespace UserManagement
             this.netServer = netServer;
             this.authenticator = authenticator;
             
+            this.connectedUsers = new Dictionary<string, string>();
             Load(userStorePath);
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
@@ -75,7 +87,8 @@ namespace UserManagement
         private void connectionClosedHandler(object sender, ConnectionEventArgs e)
         {
             // TODO: Log out user as they disconnect
-        }
+            // TODO: Remove them from connectedUsers
+        }    
         
         /// <summary>
         /// Saves the user store at the given path.
@@ -219,6 +232,16 @@ namespace UserManagement
             {
                 // Update the user's display name on the server with the one they've provided
                 UpdateUser(uuid, packet.DisplayName);
+            }
+            
+            // Add their UUID/Session ID pair to connectedUsers
+            lock (connectedUsersLock)
+            {
+                // Remove an existing session, if it exists
+                connectedUsers.Remove(packet.SessionId);
+                
+                // Add this session with the freshly-logged in UUID
+                connectedUsers.Add(packet.SessionId, uuid);
             }
             
             // Log the event
