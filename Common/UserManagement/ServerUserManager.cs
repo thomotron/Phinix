@@ -253,6 +253,9 @@ namespace UserManagement
             
             // Send a sync packet with the current user list
             sendSyncPacket(connectionId);
+            
+            // Broadcast a user update
+            lock (userStoreLock) broadcastUserUpdate(userStore.Users[uuid]);
         }
 
         /// <summary>
@@ -299,6 +302,33 @@ namespace UserManagement
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+        }
+
+        /// <summary>
+        /// Packs and sends the given user to all currently-logged in users.
+        /// Used when a user's state changes.
+        /// </summary>
+        /// <param name="user">User to broadcast</param>
+        private void broadcastUserUpdate(User user)
+        {
+            // Create and pack the user update packet
+            UserUpdatePacket packet = new UserUpdatePacket
+            {
+                User = user
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+
+            lock (connectedUsersLock)
+            {
+                // Send it to every logged-in user
+                foreach (string sessionId in connectedUsers.Keys)
+                {
+                    // Skip if we can't get the connection ID of the session
+                    if (!authenticator.TryGetConnectionId(sessionId, out string connectionId)) continue;
+
+                    netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                }
+            }
         }
 
         /// <summary>
