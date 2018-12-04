@@ -88,7 +88,7 @@ namespace Connections
             {
                 addresses = Dns.GetHostAddresses(hostname);
             }
-            catch (SocketException e)
+            catch (SocketException)
             {
                 address = IPAddress.None;
                 return false;
