@@ -121,6 +121,10 @@ namespace UserManagement
                     RaiseLogEntry(new LogEventArgs("Got a UserUpdatePacket", LogLevel.DEBUG));
                     userUpdatePacketHandler(connectionId, message.Unpack<UserUpdatePacket>());
                     break;
+                case "UserSyncPacket":
+                    RaiseLogEntry(new LogEventArgs("Got a UserSyncPacket", LogLevel.DEBUG));
+                    userSyncPacketHandler(connectionId, message.Unpack<UserSyncPacket>());
+                    break;
                 case "LoginResponsePacket":
                     RaiseLogEntry(new LogEventArgs("Got a LoginResponsePacket", LogLevel.DEBUG));
                     loginResponsePacketHandler(connectionId, message.Unpack<LoginResponsePacket>());
@@ -178,6 +182,31 @@ namespace UserManagement
                 {
                     // Add the user
                     userStore.Users.Add(user.Uuid, user);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles incoming <c>UserSyncPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UserSyncPacket</c></param>
+        private void userSyncPacketHandler(string connectionId, UserSyncPacket packet)
+        {
+            lock (userStoreLock)
+            {
+                foreach (User user in packet.Users)
+                {
+                    if (userStore.Users.ContainsKey(user.Uuid))
+                    {
+                        // Update/replace the user
+                        userStore.Users[user.Uuid] = user;
+                    }
+                    else
+                    {
+                        // Add the user
+                        userStore.Users.Add(user.Uuid, user);
+                    }
                 }
             }
         }
