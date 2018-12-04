@@ -117,6 +117,10 @@ namespace UserManagement
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
+                case "UserUpdatePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a UserUpdatePacket", LogLevel.DEBUG));
+                    userUpdatePacketHandler(connectionId, message.Unpack<UserUpdatePacket>());
+                    break;
                 case "LoginResponsePacket":
                     RaiseLogEntry(new LogEventArgs("Got a LoginResponsePacket", LogLevel.DEBUG));
                     loginResponsePacketHandler(connectionId, message.Unpack<LoginResponsePacket>());
@@ -151,6 +155,30 @@ namespace UserManagement
                 
                 // Raise login failure event
                 OnLoginFailure?.Invoke(this, new LoginEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
+        }
+
+        /// <summary>
+        /// Handles incoming <c>UserUpdatePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UserUpdatePacket</c></param>
+        private void userUpdatePacketHandler(string connectionId, UserUpdatePacket packet)
+        {
+            User user = packet.User;
+            
+            lock (userStoreLock)
+            {
+                if (userStore.Users.ContainsKey(user.Uuid))
+                {
+                    // Update/replace the user
+                    userStore.Users[user.Uuid] = user;
+                }
+                else
+                {
+                    // Add the user
+                    userStore.Users.Add(user.Uuid, user);
+                }
             }
         }
     }
