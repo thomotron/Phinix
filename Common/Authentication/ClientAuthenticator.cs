@@ -334,7 +334,7 @@ namespace Authentication
             };
 
             // Pack it into an Any for transmission
-            Any packedAuthPacket = Any.Pack(authPacket, "Phinix");
+            Any packedAuthPacket = ProtobufPacketHelper.Pack(authPacket);
             
             // Send it on its way
             netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());

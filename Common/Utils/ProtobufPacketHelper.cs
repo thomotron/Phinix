@@ -1,10 +1,13 @@
 using System;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Utils
 {
     public class ProtobufPacketHelper
     {
+        public const string PREFIX = "Phinix";
+        
         /// <summary>
         /// Attempts to validate a serialised packet.
         /// If this method succeeds it can be assumed safe to process the packet further.
@@ -37,12 +40,25 @@ namespace Utils
             {
                 return false;
             }
+
+            // Check that the prefix matches
+            if (typeUrl.Prefix != PREFIX) return false;
             
             // Check that the message's namespace matches the one we will be using with our packets
             if (!typeUrl.Namespace.Equals(_namespace)) return false;
             
             // Nothing bad has happened so far, so the packet is clear for further processing
             return true;
+        }
+
+        /// <summary>
+        /// Packs the given packet into an <c>Any</c> with the Phinix prefix.
+        /// </summary>
+        /// <param name="packet">Packet to pack</param>
+        /// <returns>Packed packet</returns>
+        public static Any Pack(IMessage packet)
+        {
+            return Any.Pack(packet, PREFIX);
         }
     }
 }

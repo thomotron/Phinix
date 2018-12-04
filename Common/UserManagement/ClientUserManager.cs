@@ -95,7 +95,7 @@ namespace UserManagement
                 DisplayName = displayName,
                 UseServerDisplayName = useServerDisplayName
             };
-            Any packedPacket = Any.Pack(packet, "Phinix");
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             RaiseLogEntry(new LogEventArgs("Sending LoginPacket", LogLevel.DEBUG));
             

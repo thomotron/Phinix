@@ -245,7 +245,7 @@ namespace UserManagement
                 Uuid = uuid,
                 DisplayName = displayName
             };
-            Any packedResponse = Any.Pack(response, "Phinix");
+            Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
@@ -268,7 +268,7 @@ namespace UserManagement
                 FailureReason = failureReason,
                 FailureMessage = failureMessage
             };
-            Any packedResponse = Any.Pack(response, "Phinix");
+            Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());

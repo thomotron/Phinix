@@ -222,7 +222,7 @@ namespace Authentication
             };
             
             // Pack it into an Any message
-            Any packedHello = Any.Pack(hello, "Phinix");
+            Any packedHello = ProtobufPacketHelper.Pack(hello);
             
             // Send it
             netServer.Send(e.ConnectionId, MODULE_NAME, packedHello.ToByteArray());
@@ -404,7 +404,7 @@ namespace Authentication
             };
             
             // Pack it into an Any for transmission
-            Any packedResponse = Any.Pack(response, "Phinix");
+            Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
@@ -423,7 +423,7 @@ namespace Authentication
             };
             
             // Pack it into an Any for transmission
-            Any packedResponse = Any.Pack(response, "Phinix");
+            Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
