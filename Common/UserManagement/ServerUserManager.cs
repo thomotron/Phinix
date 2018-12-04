@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -249,6 +250,9 @@ namespace UserManagement
             
             // Send a successful login response
             sendSuccessfulLoginResponsePacket(connectionId, uuid, displayName);
+            
+            // Send a sync packet with the current user list
+            sendSyncPacket(connectionId);
         }
 
         /// <summary>
@@ -295,6 +299,34 @@ namespace UserManagement
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+        }
+
+        /// <summary>
+        /// Sends a <c>UserSyncPacket</c> containing all users to the given connection.
+        /// Usernames are stripped from users for security.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        private void sendSyncPacket(string connectionId)
+        {
+            // Create a blank sync packet
+            UserSyncPacket packet = new UserSyncPacket();
+            
+            // Get a local non-reference copy of each user
+            User[] users;
+            lock (userStoreLock) users = userStore.Users.Values.ToArray();
+            
+            // Add users to the sync packet
+            foreach (User user in users)
+            {
+                user.Username = null;
+                packet.Users.Add(user);
+            }
+
+            // Pack it
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
         }
     }
 }
