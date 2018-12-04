@@ -178,6 +178,31 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Attempts to get the logged-in state of a user with the given UUID.
+        /// Returns whether the logged-in state was retrieved successfully.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="loggedIn">Output logged-in state</param>
+        /// <returns>Logged-in state was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryGetLoggedIn(string uuid, out bool loggedIn)
+        {
+            // Initialise logged in to something arbitrary
+            loggedIn = false;
+            
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+                
+                loggedIn = userStore.Users[uuid].LoggedIn;
+            }
+            
+            return true;
+        }
+
+        /// <summary>
         /// Attempts to get the display name of a user with the given UUID.
         /// Returns whether the display name was retrieved successfully.
         /// </summary>
