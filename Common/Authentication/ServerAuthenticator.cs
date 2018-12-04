@@ -114,6 +114,34 @@ namespace Authentication
         }
 
         /// <summary>
+        /// Attempts to get the connection ID from the session with the given session ID.
+        /// Returns whether the connection ID was retrieved successfully.
+        /// </summary>
+        /// <param name="sessionId">Session ID</param>
+        /// <param name="connectionId">Output connection ID</param>
+        /// <returns>Connection ID was retrieved successfully</returns>
+        public bool TryGetConnectionId(string sessionId, out string connectionId)
+        {
+            // Initialise connection ID to something arbitrary
+            connectionId = null;
+            
+            lock (sessionsLock)
+            {
+                try
+                {
+                    // Try to get the connection ID (key) from the entry containing the given session ID (value)
+                    connectionId = sessions.Single(pair => pair.Value.SessionId == sessionId).Key;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Attempts to get the username for the given connection and session.
         /// Returns whether the username was retrieved successfully.
         /// </summary>
