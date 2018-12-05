@@ -1,6 +1,7 @@
 ﻿using System;
 using Authentication;
 using Connections;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using UserManagement;
 using Utils;
@@ -53,11 +54,43 @@ namespace Chat
             switch (typeUrl.Type)
             {
                 case "ChatMessagePacket":
-                    RaiseLogEntry(new LogEventArgs("Got a ChatMessagePacket", LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessagePacket from {0}", connectionId), LogLevel.DEBUG));
+                    chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
+            }
+        }
+
+        private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
+        {
+            // Ignore packets from non-authenticated sessions
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+
+            // Ignore packets from non-logged in users
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
+            
+            // Clear the session ID for security
+            packet.SessionId = "";
+                    
+            // Broadcast the chat packet to everyone
+            broadcastChatMessage(packet);
+        }
+
+        /// <summary>
+        /// Broadcasts the given <c>ChatMessagePacket</c> to all currently logged-in users.
+        /// </summary>
+        /// <param name="packet"><c>ChatMessagePacket</c> to broadcast</param>
+        private void broadcastChatMessage(ChatMessagePacket packet)
+        {
+            // Pack the packet
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it to each logged in user
+            foreach (string connectionId in userManager.GetConnections())
+            {
+                netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
             }
         }
     }
