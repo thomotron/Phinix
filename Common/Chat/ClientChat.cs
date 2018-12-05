@@ -8,7 +8,7 @@ using Utils;
 
 namespace Chat
 {
-    class ClientChat : Chat
+    public class ClientChat : Chat
     {
         /// <inheritdoc/>
         public override event EventHandler<LogEventArgs> OnLogEntry;
