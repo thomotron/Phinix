@@ -13,11 +13,6 @@ namespace Chat
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc/>
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-
-        /// <summary>
-        /// Raised when a chat message is received.
-        /// </summary>
-        public event EventHandler<ChatMessageEvent> OnChatMessageReceived;
         
         /// <summary>
         /// <c>NetServer</c> instance to bind the packet handler to.
