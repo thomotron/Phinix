@@ -173,6 +173,15 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Returns an array of connection IDs that are currently logged in.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetConnections()
+        {
+            lock (connectedUsersLock) return connectedUsers.Keys.ToArray();
+        }
+
+        /// <summary>
         /// Handles incoming packets.
         /// </summary>
         /// <param name="module">Destination module</param>
