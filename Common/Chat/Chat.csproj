@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chat.cs" />
+    <Compile Include="ChatMessageEvent.cs" />
     <Compile Include="ClientChat.cs" />
     <Compile Include="Packets\compiled\ChatMessagePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -16,6 +16,11 @@ namespace Chat
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// Raised when a chat message is received.
+        /// </summary>
+        public event EventHandler<ChatMessageEvent> OnChatMessageReceived;
+        
+        /// <summary>
         /// <c>NetClient</c> instance to bind the packet handler to.
         /// </summary>
         private NetClient netClient;
@@ -60,6 +65,44 @@ namespace Chat
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
+        }
+
+        /// <summary>
+        /// Sends a message to the chat.
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <exception cref="ArgumentException">Message cannot be null or empty</exception>
+        public void Send(string message)
+        {
+            if (string.IsNullOrEmpty(message)) throw new ArgumentException("Message cannot be null or empty", nameof(message));
+
+            // Check if we aren't authenticated
+            if (!authenticator.Authenticated)
+            {
+                RaiseLogEntry(new LogEventArgs("Cannot send chat message: Not authenticated"));
+                
+                return;
+            }
+
+            // Check if we aren't logged in
+            if (!userManager.LoggedIn)
+            {
+                RaiseLogEntry(new LogEventArgs("Cannot send chat message: Not logged in"));
+
+                return;
+            }
+
+            // Create and pack the chat message packet
+            ChatMessagePacket packet = new ChatMessagePacket
+            {
+                SessionId = authenticator.SessionId,
+                Uuid = userManager.Uuid,
+                Message = message,
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+                
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
     }
 }
