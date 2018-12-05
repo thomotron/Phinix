@@ -340,16 +340,18 @@ namespace UserManagement
         {
             // Create a blank sync packet
             UserSyncPacket packet = new UserSyncPacket();
-            
-            // Get a local non-reference copy of each user
-            User[] users;
-            lock (userStoreLock) users = userStore.Users.Values.ToArray();
-            
-            // Add users to the sync packet
-            foreach (User user in users)
+
+            lock (userStoreLock)
             {
-                user.Username = null;
-                packet.Users.Add(user);
+                // Add users to the sync packet
+                foreach (User userRef in userStore.Users.Values)
+                {
+                    // Get a non-reference copy of the user so we can blank out the username without affecting the original
+                    User user = userRef.Clone();
+                    
+                    user.Username = "";
+                    packet.Users.Add(user);
+                }
             }
 
             // Pack it
