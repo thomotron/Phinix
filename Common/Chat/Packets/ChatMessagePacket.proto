@@ -1,0 +1,11 @@
+syntax = "proto3";
+package Chat;
+
+message ChatMessagePacket
+{
+    string SessionId = 1;
+    
+    string Uuid = 2;
+    
+    string Message = 3;
+};
