@@ -1,7 +1,18 @@
-﻿namespace Chat
+﻿using System;
+using System.Reflection;
+using Utils;
+
+namespace Chat
 {
-    public class Chat
+    public abstract class Chat : ILoggable
     {
+        public const string MODULE_NAME = "chat";
         
+        public static readonly Version Version = Assembly.GetAssembly(typeof(Chat)).GetName().Version;
+        
+        /// <inheritdoc />
+        public abstract event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public abstract void RaiseLogEntry(LogEventArgs e);
     }
 }
