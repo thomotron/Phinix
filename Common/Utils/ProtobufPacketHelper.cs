@@ -4,7 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace Utils
 {
-    public class ProtobufPacketHelper
+    public static class ProtobufPacketHelper
     {
         public const string PREFIX = "Phinix";
         
