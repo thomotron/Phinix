@@ -152,6 +152,25 @@ namespace UserManagement
                 }
             }
         }
+        
+        /// <summary>
+        /// Checks whether the user with the given UUID is logged in from the given connection ID.
+        /// </summary>
+        /// <param name="connectionId">User's connection ID</param>
+        /// <param name="uuid">User's UUID</param>
+        /// <returns>User with the given UUID is logged in from the given connection ID</returns>
+        public bool IsLoggedIn(string connectionId, string uuid)
+        {
+            if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty", nameof(uuid));
+
+            lock (connectedUsersLock)
+            {
+                if (!connectedUsers.ContainsKey(connectionId)) return false;
+
+                return connectedUsers[connectionId].Equals(uuid);
+            }
+        }
 
         /// <summary>
         /// Handles incoming packets.
