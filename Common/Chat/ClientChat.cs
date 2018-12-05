@@ -60,6 +60,7 @@ namespace Chat
             {
                 case "ChatMessagePacket":
                     RaiseLogEntry(new LogEventArgs("Got a ChatMessagePacket", LogLevel.DEBUG));
+                    chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -103,6 +104,16 @@ namespace Chat
                 
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
+        {
+            OnChatMessageReceived?.Invoke(this, new ChatMessageEvent(packet.Message, packet.Uuid));
         }
     }
 }
