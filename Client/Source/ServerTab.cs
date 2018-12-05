@@ -1,4 +1,8 @@
-﻿using RimWorld;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
+using Chat;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -32,9 +36,38 @@ namespace PhinixClient
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
+        private static Vector2 chatScroll = new Vector2(0, 0);
+        private static List<ChatMessage> messages = new List<ChatMessage>();
+        private static readonly object messagesLock = new object();
+
         private static string message = "";
         private static string userSearch = "";
 
+        public ServerTab()
+        {
+            // Subscribe to new chat messages
+            Client.Instance.OnChatMessageReceived += messageHandler;
+        }
+        
+        ///<inheritdoc/>
+        /// <summary>
+        /// Overrides the default accept key behaviour and instead sends a message.
+        /// </summary>
+        public override void OnAcceptKeyPressed()
+        {
+            // Send the message
+            if (!string.IsNullOrEmpty(message))
+            {
+                Client.Instance.SendMessage(message);
+
+                message = "";
+            }
+        }
+
+        /// <summary>
+        /// Extends the default window drawing behaviour by drawing the Phinix chat interface.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
         public override void DoWindowContents(Rect inRect)
         {
             base.DoWindowContents(inRect);
@@ -57,6 +90,16 @@ namespace PhinixClient
             );
             DrawRightColumn(rightColumnContainer);
         }
+        
+        /// <summary>
+        /// Handles chat message events raised by the client and adds them to the message list.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private static void messageHandler(object sender, ChatMessageEventArgs args)
+        {
+            lock (messagesLock) messages.Add(new ChatMessage(args.OriginUuid, args.Message));
+        }
 
         /// <summary>
         /// Draws the right column - consisting of a settings button, user search box, and a user list - within the given <c>Rect</c>.
@@ -73,7 +116,6 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(settingsButtonRect, "Phinix_chat_settingsButton".Translate()))
             {
-                Log.Message("Settings button was clicked!");
                 Find.WindowStack.Add(new SettingsWindow());
             }
 
@@ -103,14 +145,13 @@ namespace PhinixClient
         private void DrawChat(Rect container)
         {
             // Chat message area
-            // TODO: Replace chat area with actual messages (i.e. DrawMessages() or something)
             Rect chatAreaRect = new Rect(
                 x: container.xMin,
                 y: container.yMin,
                 width: container.width,
                 height: container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING)
             );
-            Widgets.DrawMenuSection(chatAreaRect);
+            DrawMessages(chatAreaRect);
 
             // Message entry box
             Rect messageEntryRect = new Rect(
@@ -128,16 +169,55 @@ namespace PhinixClient
                 width: CHAT_SEND_BUTTON_WIDTH,
                 height: CHAT_SEND_BUTTON_HEIGHT
             );
-            if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate())) // This is a bit weird, but since this will be called every frame it 'just works'
+            if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate()))
             {
-                Log.Message("Send button was clicked!\n" +
-                            $"The text field contained \'{message}\'");
-                
                 // Send the message
-                Client.Instance.SendMessage(message);
+                if (!string.IsNullOrEmpty(message))
+                {
+                    // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
+                    Client.Instance.SendMessage(message);
 
-                // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                message = "";
+                    message = "";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draws each chat message within a scrollable container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawMessages(Rect container)
+        {
+            lock (messagesLock)
+            {
+                // Set up the scrollable container
+                Rect innerContainer = new Rect(
+                    x: container.xMin,
+                    y: container.yMin,
+                    width: container.width - 16f,
+                    height: CHAT_MESSAGE_HEIGHT * messages.Count
+                );
+                
+                // Start scrolling
+                Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
+            
+                // Add each message to the scrollable container
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    // Try to get the display name of the sender
+                    if (!Client.Instance.TryGetDisplayName(messages[i].SenderUuid, out string displayName)) displayName = "???";
+                    
+                    Rect chatMessageRect = new Rect(
+                        x: innerContainer.xMin,
+                        y: innerContainer.yMin + (CHAT_MESSAGE_HEIGHT * i),
+                        width: innerContainer.width,
+                        height: CHAT_MESSAGE_HEIGHT
+                    );
+                    Widgets.Label(chatMessageRect, string.Format("[{0:HH:mm}] {1}: {2}", messages[i].ReceivedTime.ToLocalTime(), displayName, messages[i].Message));
+                }
+                
+                // Stop scrolling and render
+                Widgets.EndScrollView();
             }
         }
     }
