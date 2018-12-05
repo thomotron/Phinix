@@ -2,13 +2,13 @@
 
 namespace Chat
 {
-    public class ChatMessageEvent : EventArgs
+    public class ChatMessageEventArgs : EventArgs
     {
         public string Message;
 
         public string OriginUuid;
 
-        public ChatMessageEvent(string message, string originUuid)
+        public ChatMessageEventArgs(string message, string originUuid)
         {
             this.Message = message;
             this.OriginUuid = originUuid;
