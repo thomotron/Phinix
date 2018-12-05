@@ -33,7 +33,7 @@ namespace UserManagement
         private ServerAuthenticator authenticator;
 
         /// <summary>
-        /// Collection of connected UUIDs organised by session ID.
+        /// Collection of connected UUIDs organised by connection ID.
         /// </summary>
         private Dictionary<string, string> connectedUsers;
         /// <summary>
@@ -87,8 +87,17 @@ namespace UserManagement
 
         private void connectionClosedHandler(object sender, ConnectionEventArgs e)
         {
-            // TODO: Log out user as they disconnect
-            // TODO: Remove them from connectedUsers
+            lock (connectedUsersLock)
+            {
+                // Try to log them out
+                if (connectedUsers.ContainsKey(e.ConnectionId))
+                {
+                    TryLogOut(connectedUsers[e.ConnectionId]);
+                }
+
+                // Drop them from the connected user dictionary
+                connectedUsers.Remove(e.ConnectionId);
+            }
         }    
         
         /// <summary>
@@ -239,10 +248,10 @@ namespace UserManagement
             lock (connectedUsersLock)
             {
                 // Remove an existing session, if it exists
-                connectedUsers.Remove(packet.SessionId);
+                connectedUsers.Remove(connectionId);
                 
                 // Add this session with the freshly-logged in UUID
-                connectedUsers.Add(packet.SessionId, uuid);
+                connectedUsers.Add(connectionId, uuid);
             }
             
             // Log the event
@@ -321,11 +330,8 @@ namespace UserManagement
             lock (connectedUsersLock)
             {
                 // Send it to every logged-in user
-                foreach (string sessionId in connectedUsers.Keys)
+                foreach (string connectionId in connectedUsers.Keys)
                 {
-                    // Skip if we can't get the connection ID of the session
-                    if (!authenticator.TryGetConnectionId(sessionId, out string connectionId)) continue;
-
                     netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
                 }
             }
