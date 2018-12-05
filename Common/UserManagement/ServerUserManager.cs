@@ -98,7 +98,53 @@ namespace UserManagement
                 // Drop them from the connected user dictionary
                 connectedUsers.Remove(e.ConnectionId);
             }
-        }    
+        }
+        
+        /// <summary>
+        /// Attempts to log in a user with the given UUID.
+        /// Returns whether the user was successfully logged in.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <returns>Whether the user was successfully logged in</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public override bool TryLogIn(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                userStore.Users[uuid].LoggedIn = true;
+                
+                broadcastUserUpdate(userStore.Users[uuid]);
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Attempts to log out a user with the given UUID.
+        /// Returns whether the user was successfully logged out.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <returns>Whether the user was successfully logged out</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public override bool TryLogOut(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                userStore.Users[uuid].LoggedIn = false;
+                
+                broadcastUserUpdate(userStore.Users[uuid]);
+            }
+            
+            return true;
+        }
         
         /// <summary>
         /// Saves the user store at the given path.
@@ -290,9 +336,6 @@ namespace UserManagement
             
             // Send a sync packet with the current user list
             sendSyncPacket(connectionId);
-            
-            // Broadcast a user update
-            lock (userStoreLock) broadcastUserUpdate(userStore.Users[uuid]);
         }
 
         /// <summary>

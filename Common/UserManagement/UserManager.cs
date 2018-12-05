@@ -140,7 +140,7 @@ namespace UserManagement
         /// <param name="uuid">UUID of the user</param>
         /// <returns>Whether the user was successfully logged in</returns>
         /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
-        public bool TryLogIn(string uuid)
+        public virtual bool TryLogIn(string uuid)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
@@ -162,7 +162,7 @@ namespace UserManagement
         /// <param name="uuid">UUID of the user</param>
         /// <returns>Whether the user was successfully logged out</returns>
         /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
-        public bool TryLogOut(string uuid)
+        public virtual bool TryLogOut(string uuid)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
