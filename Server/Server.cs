@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using Authentication;
+using Chat;
 using Connections;
 using UserManagement;
 using Utils;
@@ -36,10 +37,12 @@ namespace PhinixServer
                 credentialStorePath: Config.CredentialDatabasePath
             );
             UserManager = new ServerUserManager(connections, authenticator, Config.UserDatabasePath);
+            ServerChat chat = new ServerChat(connections, authenticator, UserManager);
             
             // Add handler for ILoggable modules
             authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
+            chat.OnLogEntry += ILoggableHandler;
             
             connections.Start();
 

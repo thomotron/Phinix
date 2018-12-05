@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using Authentication;
+using Chat;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
@@ -30,6 +31,10 @@ namespace PhinixClient
         public bool LoggedIn => userManager.LoggedIn;
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
+
+        private ClientChat chat;
+        public void SendMessage(string message) => chat.Send(message);
+        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -86,10 +91,12 @@ namespace PhinixClient
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
             this.userManager = new ClientUserManager(netClient, DisplayName);
+            this.chat = new ClientChat(netClient, authenticator, userManager);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
             userManager.OnLogEntry += ILoggableHandler;
+            chat.OnLogEntry += ILoggableHandler;
             
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
@@ -112,11 +119,18 @@ namespace PhinixClient
                 Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
             };
             
+            // Subscribe to chat events
+            chat.OnChatMessageReceived += (sender, args) =>
+            {
+                Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+            };
+            
             // Forward events so the UI can handle them
             authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
             userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
+            chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

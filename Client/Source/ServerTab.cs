@@ -132,6 +132,9 @@ namespace PhinixClient
             {
                 Log.Message("Send button was clicked!\n" +
                             $"The text field contained \'{message}\'");
+                
+                // Send the message
+                Client.Instance.SendMessage(message);
 
                 // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
                 message = "";

@@ -81,6 +81,10 @@
       <Project>{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}</Project>
       <Name>Authentication</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\Chat\Chat.csproj">
+      <Project>{c6b36f14-16e8-4eeb-b1b3-5e8e96fa8dec}</Project>
+      <Name>Chat</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Connections\Connections.csproj">
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>
@@ -106,6 +110,7 @@
     <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Connections.dll" />
     <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
     <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-UserManagement.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-Chat.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-PhinixClient.dll" />
   </Target>
 </Project>

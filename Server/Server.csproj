@@ -60,6 +60,10 @@
       <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
       <Name>Authentication</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Common\Chat\Chat.csproj">
+      <Project>{c6b36f14-16e8-4eeb-b1b3-5e8e96fa8dec}</Project>
+      <Name>Chat</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Connections\Connections.csproj">
       <Project>{38CB6BED-E751-42FE-A847-C0DDD482AC62}</Project>
       <Name>Connections</Name>
