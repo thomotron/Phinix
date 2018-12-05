@@ -61,6 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChatMessage.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
