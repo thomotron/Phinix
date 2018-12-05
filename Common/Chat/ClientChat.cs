@@ -31,7 +31,7 @@ namespace Chat
         private ClientAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ClientUserManager</c> used for user lookup and display name rendering
+        /// <c>ClientUserManager</c> used for user lookup and display name rendering.
         /// </summary>
         private ClientUserManager userManager;
         

@@ -25,12 +25,12 @@ namespace Chat
         private NetServer netServer;
 
         /// <summary>
-        /// <c>ServerAuthenticator</c> to get the session ID from.
+        /// <c>ServerAuthenticator</c> instance used to check session validity.
         /// </summary>
         private ServerAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ServerUserManager</c> used for user lookup and display name rendering
+        /// <c>ServerUserManager</c> instance used to check login state and source UUID validity.
         /// </summary>
         private ServerUserManager userManager;
         
