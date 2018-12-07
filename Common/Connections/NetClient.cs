@@ -9,9 +9,18 @@ namespace Connections
 {
     public class NetClient : NetCommon
     {
-        public bool Connected => connection != null && connection.ConnectionInfo.ConnectionState == ConnectionState.Established && connection.ConnectionAlive();
+        public bool Connected => connection != null && connection.ConnectionInfo.ConnectionState == ConnectionState.Established;
 
         private TCPConnection connection;
+
+        /// <summary>
+        /// Creates a new <c>NetClient</c> instance.
+        /// </summary>
+        /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
+        public NetClient(int checkInterval = 5)
+        {
+            TCPConnection.ConnectionKeepAlivePollIntervalSecs = checkInterval;
+        }
 
         /// <summary>
         /// Attempts to connect to the given endpoint. This will close an existing connection.
