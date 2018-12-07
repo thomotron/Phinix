@@ -42,7 +42,7 @@ namespace PhinixClient
             // Server details (address and [dis]connect button) container
             Rect serverDetailRect = new Rect(
                 x: inRect.xMin,
-                y: inRect.yMin,
+                y: inRect.yMin + 5f, // 5f offset to avoid overlapping close button
                 width: inRect.width,
                 height: SERVER_ADDRESS_BOX_HEIGHT
             );
