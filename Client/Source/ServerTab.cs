@@ -37,6 +37,10 @@ namespace PhinixClient
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
         private static Vector2 chatScroll = new Vector2(0, 0);
+        private static float oldHeight = 0f;
+        private static bool scrollToBottom = false;
+        private static bool stickyScroll = true;
+        
         private static List<ChatMessage> messages = new List<ChatMessage>();
         private static readonly object messagesLock = new object();
 
@@ -98,7 +102,15 @@ namespace PhinixClient
         /// <param name="args"></param>
         private static void messageHandler(object sender, ChatMessageEventArgs args)
         {
+            // Add the message
             lock (messagesLock) messages.Add(new ChatMessage(args.OriginUuid, args.Message));
+
+            // Was this our message?
+            if (args.OriginUuid == Client.Instance.Uuid)
+            {
+                // Scroll to the bottom on next update
+                scrollToBottom = true;
+            }
         }
 
         /// <summary>
@@ -178,6 +190,7 @@ namespace PhinixClient
                     Client.Instance.SendMessage(message);
 
                     message = "";
+                    scrollToBottom = true;
                 }
             }
         }
@@ -198,6 +211,9 @@ namespace PhinixClient
                     height: CHAT_MESSAGE_HEIGHT * messages.Count
                 );
                 
+                // Get a copy of the old scroll position
+                Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
+                
                 // Start scrolling
                 Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
             
@@ -216,8 +232,44 @@ namespace PhinixClient
                     Widgets.Label(chatMessageRect, string.Format("[{0:HH:mm}] {1}: {2}", messages[i].ReceivedTime.ToLocalTime(), displayName, messages[i].Message));
                 }
                 
-                // Stop scrolling and render
+                // Stop scrolling
                 Widgets.EndScrollView();
+
+                // Enter the logic to get sticky scrolling to work
+                #region Sticky scroll logic
+
+                // Credit to Aze for figuring out how to get the bottom scroll pos
+                bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
+                bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
+                float heightDifference = oldHeight - innerContainer.height;
+
+                if (scrollChanged)
+                {
+                    if (scrolledToBottom)
+                    {
+                        // Enable sticky scroll
+                        stickyScroll = true;
+                    }
+                    else
+                    {
+                        // Not at bottom, disable sticky scroll
+                        stickyScroll = false;
+                    }
+                }
+                else if (!heightDifference.Equals(0f))
+                {
+                    if (stickyScroll || scrollToBottom)
+                    {
+                        // Scroll to bottom
+                        chatScroll.y = innerContainer.height - container.height;
+                        scrollToBottom = false;
+                    }
+                }
+                
+                // Update old height for the next pass
+                oldHeight = innerContainer.height;
+                
+                #endregion
             }
         }
     }
