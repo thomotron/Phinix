@@ -33,6 +33,7 @@ namespace PhinixClient
         public bool LoggedIn => userManager.LoggedIn;
         public string Uuid => userManager.Uuid;
         public bool TryGetDisplayName(string uuid, out string displayName) => userManager.TryGetDisplayName(uuid, out displayName);
+        public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn); 
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 

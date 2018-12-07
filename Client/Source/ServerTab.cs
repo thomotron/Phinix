@@ -12,6 +12,7 @@ namespace PhinixClient
     {
         private const float DEFAULT_SPACING = 10f;
         private const float COLUMN_SPACING = 20f;
+        private const float SCROLLBAR_WIDTH = 16f;
 
         private const float CHAT_MESSAGE_HEIGHT = 30f;
 
@@ -29,7 +30,6 @@ namespace PhinixClient
         private const float USER_LIST_WIDTH = 210f;
 
         private const float USER_HEIGHT = 30f;
-        private const float USER_WIDTH = USER_LIST_WIDTH;
 
         private const float RIGHT_COLUMN_CONTAINER_WIDTH = 210f;
 
@@ -43,6 +43,8 @@ namespace PhinixClient
         
         private static List<ChatMessage> messages = new List<ChatMessage>();
         private static readonly object messagesLock = new object();
+        
+        private static Vector2 userListScroll = new Vector2(0, 0);
 
         private static string message = "";
         private static string userSearch = "";
@@ -147,7 +149,7 @@ namespace PhinixClient
                 width: USER_LIST_WIDTH,
                 height: container.height - (SETTINGS_BUTTON_HEIGHT + USER_SEARCH_HEIGHT + DEFAULT_SPACING * 2)
             );
-            Widgets.DrawMenuSection(userListRect);
+            DrawUserList(userListRect);
         }
 
         /// <summary>
@@ -207,7 +209,7 @@ namespace PhinixClient
                 Rect innerContainer = new Rect(
                     x: container.xMin,
                     y: container.yMin,
-                    width: container.width - 16f,
+                    width: container.width - SCROLLBAR_WIDTH,
                     height: CHAT_MESSAGE_HEIGHT * messages.Count
                 );
                 
@@ -271,6 +273,45 @@ namespace PhinixClient
                 
                 #endregion
             }
+        }
+        
+        /// <summary>
+        /// Draws each logged in user within a scrollable container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawUserList(Rect container)
+        {
+            // Get a list of logged in user UUIDs
+            string[] uuids = Client.Instance.GetUserUuids(true);
+            
+            // Set up scrollable container
+            Rect innerContainer = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width - SCROLLBAR_WIDTH,
+                height: USER_HEIGHT * uuids.Length 
+            );
+            
+            // Start scrolling
+            Widgets.BeginScrollView(container, ref userListScroll, innerContainer);
+            
+            // Add each user to the scrollable container
+            for (int i = 0; i < uuids.Length; i++)
+            {
+                // Try to get the display name of the user
+                if (!Client.Instance.TryGetDisplayName(uuids[i], out string displayName)) displayName = "???";
+                
+                Rect userRect = new Rect(
+                    x: innerContainer.xMin,
+                    y: innerContainer.yMin + (USER_HEIGHT * i),
+                    width: innerContainer.width,
+                    height: USER_HEIGHT
+                );
+                Widgets.Label(userRect, displayName);
+            }
+
+            // Stop scrolling
+            Widgets.EndScrollView();
         }
     }
 }
