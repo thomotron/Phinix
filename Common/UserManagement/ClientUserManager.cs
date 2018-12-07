@@ -123,6 +123,35 @@ namespace UserManagement
                 }
             }
         }
+
+        /// <summary>
+        /// Updates the currently-logged in user locally and on the server.
+        /// </summary>
+        /// <param name="displayName">New display name</param>
+        public void UpdateSelf(string displayName = null)
+        {
+            // Don't do anything unless we are logged in
+            if (!LoggedIn) return;
+
+            // Update locally
+            if (!UpdateUser(Uuid, displayName)) return; // This should never return as the server ensures you exist on login
+
+            lock (userStoreLock)
+            {
+                // Make sure we are in the user store
+                if (!userStore.Users.ContainsKey(Uuid)) return; // This should never return for the same reason above
+                
+                // Create and pack a user update packet
+                UserUpdatePacket packet = new UserUpdatePacket
+                {
+                    SessionId = authenticator.SessionId,
+                    Uuid = Uuid,
+                    User = userStore.Users[Uuid]
+                };
+                Any packedPacket = ProtobufPacketHelper.Pack(packet);
+                
+                // Send it on its way
+                netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
             }
         }
         
