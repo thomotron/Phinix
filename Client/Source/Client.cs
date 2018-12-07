@@ -37,6 +37,8 @@ namespace PhinixClient
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 
+        public bool Online => Connected && Authenticated && LoggedIn;
+
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
