@@ -102,7 +102,7 @@ namespace UserManagement
         /// <param name="displayName">Display name of the user</param>
         /// <returns>User updated successfully</returns>
         /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
-        public bool UpdateUser(string uuid, string displayName = null)
+        public virtual bool UpdateUser(string uuid, string displayName = null)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 

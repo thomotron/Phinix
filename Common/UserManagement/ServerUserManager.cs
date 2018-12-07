@@ -145,6 +145,31 @@ namespace UserManagement
             
             return true;
         }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Updates an existing user's properties and broadcasts the update to all connected users.
+        /// Returns true if the update was successful, otherwise false.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="displayName">Display name of the user</param>
+        /// <returns>User updated successfully</returns>
+        public override bool UpdateUser(string uuid, string displayName = null)
+        {
+            if (!base.UpdateUser(uuid, displayName)) return false;
+
+            User user;
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                user = userStore.Users[uuid];
+            }
+            
+            broadcastUserUpdate(user);
+
+            return true;
+        }
         
         /// <summary>
         /// Saves the user store at the given path.
