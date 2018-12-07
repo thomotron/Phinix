@@ -168,6 +168,17 @@ namespace PhinixClient
         {
             netClient.Disconnect();
         }
+
+        /// <summary>
+        /// Updates the user's display name locally and on the server.
+        /// </summary>
+        /// <param name="displayName">Display name</param>
+        public void UpdateDisplayName(string displayName)
+        {
+            DisplayName = displayName;
+
+            userManager.UpdateSelf(displayName);
+        }
         
         /// <summary>
         /// Handler for <c>ILoggable</c> <c>OnLogEvent</c> events.
