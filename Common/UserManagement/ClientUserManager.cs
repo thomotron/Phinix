@@ -113,9 +113,16 @@ namespace UserManagement
         {
             lock (userStoreLock)
             {
-                return loggedIn
-                    ? userStore.Users.Values.Where(u => u.LoggedIn).Select(u => u.Uuid).ToArray()
-                    : userStore.Users.Values.Select(u => u.Uuid).ToArray();
+                if (loggedIn)
+                {
+                    return userStore.Users.Values.Where(u => u.LoggedIn).Select(u => u.Uuid).ToArray();
+                }
+                else
+                {
+                    return userStore.Users.Values.Select(u => u.Uuid).ToArray();
+                }
+            }
+        }
             }
         }
         
