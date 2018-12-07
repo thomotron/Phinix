@@ -23,12 +23,13 @@ namespace UserManagement {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Ch5QYWNrZXRzL1VzZXJVcGRhdGVQYWNrZXQucHJvdG8SDlVzZXJNYW5hZ2Vt",
-            "ZW50GhBVc2Vycy9Vc2VyLnByb3RvIjYKEFVzZXJVcGRhdGVQYWNrZXQSIgoE",
-            "VXNlchgBIAEoCzIULlVzZXJNYW5hZ2VtZW50LlVzZXJiBnByb3RvMw=="));
+            "ZW50GhBVc2Vycy9Vc2VyLnByb3RvIlcKEFVzZXJVcGRhdGVQYWNrZXQSEQoJ",
+            "U2Vzc2lvbklkGAIgASgJEgwKBFV1aWQYAyABKAkSIgoEVXNlchgBIAEoCzIU",
+            "LlVzZXJNYW5hZ2VtZW50LlVzZXJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::UserManagement.UserReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.UserUpdatePacket), global::UserManagement.UserUpdatePacket.Parser, new[]{ "User" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.UserUpdatePacket), global::UserManagement.UserUpdatePacket.Parser, new[]{ "SessionId", "Uuid", "User" }, null, null, null)
           }));
     }
     #endregion
@@ -59,12 +60,36 @@ namespace UserManagement {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public UserUpdatePacket(UserUpdatePacket other) : this() {
+      sessionId_ = other.sessionId_;
+      uuid_ = other.uuid_;
       User = other.user_ != null ? other.User.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public UserUpdatePacket Clone() {
       return new UserUpdatePacket(this);
+    }
+
+    /// <summary>Field number for the "SessionId" field.</summary>
+    public const int SessionIdFieldNumber = 2;
+    private string sessionId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string SessionId {
+      get { return sessionId_; }
+      set {
+        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Uuid" field.</summary>
+    public const int UuidFieldNumber = 3;
+    private string uuid_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Uuid {
+      get { return uuid_; }
+      set {
+        uuid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     /// <summary>Field number for the "User" field.</summary>
@@ -91,6 +116,8 @@ namespace UserManagement {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (SessionId != other.SessionId) return false;
+      if (Uuid != other.Uuid) return false;
       if (!object.Equals(User, other.User)) return false;
       return true;
     }
@@ -98,6 +125,8 @@ namespace UserManagement {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
+      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (Uuid.Length != 0) hash ^= Uuid.GetHashCode();
       if (user_ != null) hash ^= User.GetHashCode();
       return hash;
     }
@@ -113,11 +142,25 @@ namespace UserManagement {
         output.WriteRawTag(10);
         output.WriteMessage(User);
       }
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(SessionId);
+      }
+      if (Uuid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Uuid);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
+      if (SessionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (Uuid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Uuid);
+      }
       if (user_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(User);
       }
@@ -128,6 +171,12 @@ namespace UserManagement {
     public void MergeFrom(UserUpdatePacket other) {
       if (other == null) {
         return;
+      }
+      if (other.SessionId.Length != 0) {
+        SessionId = other.SessionId;
+      }
+      if (other.Uuid.Length != 0) {
+        Uuid = other.Uuid;
       }
       if (other.user_ != null) {
         if (user_ == null) {
@@ -150,6 +199,14 @@ namespace UserManagement {
               user_ = new global::UserManagement.User();
             }
             input.ReadMessage(user_);
+            break;
+          }
+          case 18: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 26: {
+            Uuid = input.ReadString();
             break;
           }
         }

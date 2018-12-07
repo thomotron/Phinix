@@ -5,5 +5,9 @@ import "Users/User.proto";
 
 message UserUpdatePacket
 {
+    string SessionId = 2;
+    
+    string Uuid = 3;
+    
     User User = 1;
 }
