@@ -33,6 +33,8 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
+        private static string displayName = Client.Instance.DisplayName;
+
         public override void DoWindowContents(Rect inRect)
         {
             doCloseX = true;
@@ -54,6 +56,15 @@ namespace PhinixClient
             {
                 DrawDisconnectedServerDetails(serverDetailRect);
             }
+            
+            // Display name container
+            Rect displayNameRect = new Rect(
+                x: inRect.xMin,
+                y: serverDetailRect.yMax + DEFAULT_SPACING,
+                width: inRect.width,
+                height: USERNAME_BOX_HEIGHT
+            );
+            if (Client.Instance.Online) DrawDisplayName(displayNameRect);
         }
 
         /// <summary>
@@ -143,6 +154,30 @@ namespace PhinixClient
                 new Thread(() => {
                     Client.Instance.Connect(serverAddress, int.Parse(serverPortString)); // Assume the port was safely validated by the regex
                 }).Start();
+            }
+        }
+        
+        private void DrawDisplayName(Rect container)
+        {
+            // Editable display name text box
+            Rect displayNameRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width - (USERNAME_SET_BUTTON_WIDTH + DEFAULT_SPACING),
+                height: USERNAME_BOX_HEIGHT
+            );
+            displayName = Widgets.TextField(displayNameRect, displayName);
+            
+            // Set display name button
+            Rect setDisplayNameButtonRect = new Rect(
+                x: container.xMax - USERNAME_SET_BUTTON_WIDTH,
+                y: container.yMin,
+                width: USERNAME_SET_BUTTON_WIDTH,
+                height: USERNAME_SET_BUTTON_HEIGHT
+            );
+            if (Widgets.ButtonText(setDisplayNameButtonRect, "Phinix_settings_setDisplayNameButton".Translate()))
+            {
+                Client.Instance.UpdateDisplayName(displayName);
             }
         }
     }
