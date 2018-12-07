@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Authentication;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -44,6 +45,11 @@ namespace UserManagement
         private NetClient netClient;
 
         /// <summary>
+        /// <c>ClientAuthenticator</c> to retrieve session ID from.
+        /// </summary>
+        private ClientAuthenticator authenticator;
+
+        /// <summary>
         /// Display name of the user.
         /// </summary>
         private string displayName;
@@ -52,12 +58,6 @@ namespace UserManagement
         /// Whether the server should update it's copy of the user's display name with the one provided on login.
         /// </summary>
         private bool useServerDisplayName;
-
-        /// <summary>
-        /// Session identifier to use when sending packets to the server.
-        /// Set through <c>SendLoginPacket</c>.
-        /// </summary>
-        private string sessionId;
         
         /// <summary>
         /// Stores each user in an easily-serialisable format.
@@ -68,9 +68,10 @@ namespace UserManagement
         /// </summary>
         protected override object userStoreLock => new object();
 
-        public ClientUserManager(NetClient netClient, string displayName, bool useServerDisplayName = false)
+        public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator, string displayName, bool useServerDisplayName = false)
         {
             this.netClient = netClient;
+            this.authenticator = authenticator;
             this.displayName = displayName;
             this.useServerDisplayName = useServerDisplayName;
             
@@ -81,18 +82,17 @@ namespace UserManagement
 
         /// <summary>
         /// Attempts to log in to the server.
-        /// <c>SessionId</c> should be the session ID for an existing, valid, authenticated session.
+        /// Must be authenticated.
         /// </summary>
         /// <param name="sessionId">Existing session ID</param>
-        public void SendLogin(string sessionId)
+        public void SendLogin()
         {
-            // Cache the session ID for later
-            this.sessionId = sessionId;
+            if (!authenticator.Authenticated) return;
             
             // Create and pack a new LoginPacket
             LoginPacket packet = new LoginPacket
             {
-                SessionId = sessionId,
+                SessionId = authenticator.SessionId,
                 DisplayName = displayName,
                 UseServerDisplayName = useServerDisplayName
             };

@@ -95,7 +95,7 @@ namespace PhinixClient
             // Set up our module instances
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
-            this.userManager = new ClientUserManager(netClient, DisplayName);
+            this.userManager = new ClientUserManager(netClient, authenticator, DisplayName);
             this.chat = new ClientChat(netClient, authenticator, userManager);
             
             // Subscribe to log events
@@ -107,7 +107,7 @@ namespace PhinixClient
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully authenticated with server.");
-                userManager.SendLogin(authenticator.SessionId);
+                userManager.SendLogin();
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
