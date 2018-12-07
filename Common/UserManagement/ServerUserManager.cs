@@ -270,6 +270,10 @@ namespace UserManagement
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a LoginPacket from {0}", connectionId)));
                     handleLoginPacket(connectionId, message.Unpack<LoginPacket>());
                     break;
+                case "UserUpdatePacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a UserUpdatePacket from {0}", connectionId)));
+                    handleUserUpdatePacket(connectionId, message.Unpack<UserUpdatePacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -465,6 +469,31 @@ namespace UserManagement
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UserUpdatePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void handleUserUpdatePacket(string connectionId, UserUpdatePacket packet)
+        {
+            // Discard packets from non-authenticated sessions
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+
+            // Discard packets from non-logged in sessions
+            if (!IsLoggedIn(connectionId, packet.Uuid)) return;
+
+            User user = packet.User;
+
+            lock (connectedUsersLock)
+            {
+                // Discard packets trying to update users other than themselves
+                if (user.Uuid != connectedUsers[connectionId]) return;
+            }
+
+            // Update the user
+            UpdateUser(user.Uuid, user.DisplayName);
         }
     }
 }
