@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -101,6 +102,21 @@ namespace UserManagement
             
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Returns an array of all (optionally only logged in) user UUIDs.
+        /// </summary>
+        /// <param name="loggedIn">Only return logged in user UUIDs</param>
+        /// <returns>All user UUIDs</returns>
+        public string[] GetUuids(bool loggedIn = false)
+        {
+            lock (userStoreLock)
+            {
+                return loggedIn
+                    ? userStore.Users.Values.Where(u => u.LoggedIn).Select(u => u.Uuid).ToArray()
+                    : userStore.Users.Values.Select(u => u.Uuid).ToArray();
+            }
         }
         
         /// <summary>
