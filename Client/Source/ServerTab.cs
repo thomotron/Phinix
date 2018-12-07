@@ -5,6 +5,7 @@ using Chat;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using static PhinixClient.Client;
 
 namespace PhinixClient
 {
@@ -52,7 +53,7 @@ namespace PhinixClient
         public ServerTab()
         {
             // Subscribe to new chat messages
-            Client.Instance.OnChatMessageReceived += messageHandler;
+            Instance.OnChatMessageReceived += messageHandler;
         }
         
         ///<inheritdoc/>
@@ -64,7 +65,7 @@ namespace PhinixClient
             // Send the message
             if (!string.IsNullOrEmpty(message))
             {
-                Client.Instance.SendMessage(message);
+                Instance.SendMessage(message);
 
                 message = "";
             }
@@ -108,7 +109,7 @@ namespace PhinixClient
             lock (messagesLock) messages.Add(new ChatMessage(args.OriginUuid, args.Message));
 
             // Was this our message?
-            if (args.OriginUuid == Client.Instance.Uuid)
+            if (args.OriginUuid == Instance.Uuid)
             {
                 // Scroll to the bottom on next update
                 scrollToBottom = true;
@@ -189,7 +190,7 @@ namespace PhinixClient
                 if (!string.IsNullOrEmpty(message))
                 {
                     // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                    Client.Instance.SendMessage(message);
+                    Instance.SendMessage(message);
 
                     message = "";
                     scrollToBottom = true;
@@ -223,7 +224,7 @@ namespace PhinixClient
                 for (int i = 0; i < messages.Count; i++)
                 {
                     // Try to get the display name of the sender
-                    if (!Client.Instance.TryGetDisplayName(messages[i].SenderUuid, out string displayName)) displayName = "???";
+                    if (!Instance.TryGetDisplayName(messages[i].SenderUuid, out string displayName)) displayName = "???";
                     
                     Rect chatMessageRect = new Rect(
                         x: innerContainer.xMin,
@@ -282,7 +283,7 @@ namespace PhinixClient
         private void DrawUserList(Rect container)
         {
             // Get a list of logged in user UUIDs
-            string[] uuids = Client.Instance.GetUserUuids(true);
+            string[] uuids = Instance.GetUserUuids(true);
             
             // Set up scrollable container
             Rect innerContainer = new Rect(
@@ -299,7 +300,7 @@ namespace PhinixClient
             for (int i = 0; i < uuids.Length; i++)
             {
                 // Try to get the display name of the user
-                if (!Client.Instance.TryGetDisplayName(uuids[i], out string displayName)) displayName = "???";
+                if (!Instance.TryGetDisplayName(uuids[i], out string displayName)) displayName = "???";
                 
                 Rect userRect = new Rect(
                     x: innerContainer.xMin,
