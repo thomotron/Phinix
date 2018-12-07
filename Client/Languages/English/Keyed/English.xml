@@ -2,6 +2,7 @@
 <LanguageData>
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
+    <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right).</Phinix_chat_pleaseLogInPlaceholder>
     
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
