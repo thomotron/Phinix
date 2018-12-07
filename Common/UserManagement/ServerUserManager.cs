@@ -403,7 +403,11 @@ namespace UserManagement
                 // Send it to every logged-in user
                 foreach (string connectionId in connectedUsers.Keys)
                 {
-                    netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                    try
+                    {
+                        netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                    }
+                    catch (NotConnectedException) {}
                 }
             }
         }
