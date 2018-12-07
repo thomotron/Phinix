@@ -24,11 +24,14 @@ namespace PhinixClient
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
 
         private ClientAuthenticator authenticator;
+        public bool Authenticated => authenticator.Authenticated;
+        public string SessionId => authenticator.SessionId;
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationSuccess;
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
 
         private ClientUserManager userManager;
         public bool LoggedIn => userManager.LoggedIn;
+        public string Uuid => userManager.Uuid;
         public bool TryGetDisplayName(string uuid, out string displayName) => userManager.TryGetDisplayName(uuid, out displayName);
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
