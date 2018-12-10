@@ -15,8 +15,6 @@ namespace PhinixClient
         private const float COLUMN_SPACING = 20f;
         private const float SCROLLBAR_WIDTH = 16f;
 
-        private const float CHAT_MESSAGE_HEIGHT = 30f;
-
         private const float CHAT_TEXTBOX_HEIGHT = 30f;
 
         private const float CHAT_SEND_BUTTON_HEIGHT = 30f;
@@ -220,12 +218,15 @@ namespace PhinixClient
         {
             lock (messagesLock)
             {
+                // Create a new flex container from our message list
+                ChatMessageFlexContainer chatFlexContainer = new ChatMessageFlexContainer(messages);
+                
                 // Set up the scrollable container
                 Rect innerContainer = new Rect(
                     x: container.xMin,
                     y: container.yMin,
                     width: container.width - SCROLLBAR_WIDTH,
-                    height: CHAT_MESSAGE_HEIGHT * messages.Count
+                    height: chatFlexContainer.GetHeight(container.width - SCROLLBAR_WIDTH)
                 );
                 
                 // Get a copy of the old scroll position
@@ -234,20 +235,8 @@ namespace PhinixClient
                 // Start scrolling
                 Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
             
-                // Add each message to the scrollable container
-                for (int i = 0; i < messages.Count; i++)
-                {
-                    // Try to get the display name of the sender
-                    if (!Instance.TryGetDisplayName(messages[i].SenderUuid, out string displayName)) displayName = "???";
-                    
-                    Rect chatMessageRect = new Rect(
-                        x: innerContainer.xMin,
-                        y: innerContainer.yMin + (CHAT_MESSAGE_HEIGHT * i),
-                        width: innerContainer.width,
-                        height: CHAT_MESSAGE_HEIGHT
-                    );
-                    Widgets.Label(chatMessageRect, string.Format("[{0:HH:mm}] {1}: {2}", messages[i].ReceivedTime.ToLocalTime(), displayName, messages[i].Message));
-                }
+                // Draw the flex container
+                chatFlexContainer.Draw(innerContainer);
                 
                 // Stop scrolling
                 Widgets.EndScrollView();
