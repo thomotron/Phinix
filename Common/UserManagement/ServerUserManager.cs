@@ -251,6 +251,22 @@ namespace UserManagement
         {
             lock (connectedUsersLock) return connectedUsers.Keys.ToArray();
         }
+        
+        /// <summary>
+        /// Logs out all users.
+        /// Used when shutting down.
+        /// </summary>
+        public void LogOutAll()
+        {
+            lock (userStoreLock)
+            {
+                // Try to log out each user in the user store, regardless of login state
+                foreach (string uuid in userStore.Users.Keys)
+                {
+                    TryLogOut(uuid);
+                }
+            }
+        }
 
         /// <summary>
         /// Handles incoming packets.
