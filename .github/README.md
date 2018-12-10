@@ -22,7 +22,7 @@ FAQ
 Due to the way the codebase was laid out, we decided it was easier to start from scratch rather than try to add our own features and fixes in
 
 **What stage is Phinix currently in?**  
-We are starting to build the foundation and core functionality of the mod
+We are building the foundation and core functionality of the mod
 
 **How long until there is a functional alpha?**  
-Currently we do not have an ETA, we will update this when we have more of an idea
+We should have the very first alpha build ready sometime during December
