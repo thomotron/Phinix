@@ -36,8 +36,6 @@ namespace PhinixClient
 
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
-        
-        private static bool Online => Instance.Connected && Instance.Authenticated && Instance.LoggedIn;
 
         private static Vector2 chatScroll = new Vector2(0, 0);
         private static float oldHeight = 0f;
@@ -152,7 +150,7 @@ namespace PhinixClient
                 width: USER_LIST_WIDTH,
                 height: container.height - (SETTINGS_BUTTON_HEIGHT + USER_SEARCH_HEIGHT + DEFAULT_SPACING * 2)
             );
-            if (Online)
+            if (Instance.Online)
             {
                 DrawUserList(userListRect);
             }
@@ -175,7 +173,7 @@ namespace PhinixClient
                 width: container.width,
                 height: container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING)
             );
-            if (Online)
+            if (Instance.Online)
             {
                 DrawMessages(chatAreaRect);
             }
@@ -203,7 +201,7 @@ namespace PhinixClient
             if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate()))
             {
                 // Send the message
-                if (!string.IsNullOrEmpty(message) && Online)
+                if (!string.IsNullOrEmpty(message) && Instance.Online)
                 {
                     // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
                     Instance.SendMessage(message);
