@@ -17,7 +17,10 @@ namespace PhinixServer
 
         public static Config Config;
         public static Logger Logger;
+        public static NetServer Connections;
+        public static ServerAuthenticator Authenticator;
         public static ServerUserManager UserManager;
+        public static ServerChat Chat;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         private static bool exiting = false;
@@ -28,26 +31,26 @@ namespace PhinixServer
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
             
             // Set up module instances
-            NetServer connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
-            ServerAuthenticator authenticator = new ServerAuthenticator(
-                netServer: connections,
+            Connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
+            Authenticator = new ServerAuthenticator(
+                netServer: Connections,
                 serverName: Config.ServerName,
                 serverDescription: Config.ServerDescription,
                 authType: Config.AuthType,
                 credentialStorePath: Config.CredentialDatabasePath
             );
-            UserManager = new ServerUserManager(connections, authenticator, Config.UserDatabasePath);
-            ServerChat chat = new ServerChat(connections, authenticator, UserManager);
+            UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath);
+            Chat = new ServerChat(Connections, Authenticator, UserManager);
             
             // Add handler for ILoggable modules
-            authenticator.OnLogEntry += ILoggableHandler;
+            Authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
-            chat.OnLogEntry += ILoggableHandler;
+            Chat.OnLogEntry += ILoggableHandler;
             
-            connections.Start();
+            Connections.Start();
 
             Logger.Log(Verbosity.INFO, string.Format("Accepting auth type \"{0}\"", Config.AuthType.ToString()));
-            Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, connections.Endpoint.Port));
+            Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, Connections.Endpoint.Port));
 
             // Set up an exit condition
             Console.CancelKeyPress += shutdownHandler;
