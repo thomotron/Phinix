@@ -135,7 +135,7 @@ namespace PhinixClient
             // User search box
             Rect searchBoxRect = new Rect(
                 x: container.xMin,
-                y: container.yMin + SETTINGS_BUTTON_HEIGHT + DEFAULT_SPACING,
+                y: container.yMin + settingsButtonRect.yMax + DEFAULT_SPACING,
                 width: USER_SEARCH_WIDTH,
                 height: USER_SEARCH_HEIGHT
             );
@@ -144,9 +144,9 @@ namespace PhinixClient
             // User list
             Rect userListRect = new Rect(
                 x: container.xMin,
-                y: container.yMin + SETTINGS_BUTTON_HEIGHT + USER_SEARCH_HEIGHT + DEFAULT_SPACING * 2,
+                y: container.yMin + searchBoxRect.yMax + DEFAULT_SPACING,
                 width: USER_LIST_WIDTH,
-                height: container.height - (SETTINGS_BUTTON_HEIGHT + USER_SEARCH_HEIGHT + DEFAULT_SPACING * 2)
+                height: container.height - (searchBoxRect.yMax + DEFAULT_SPACING)
             );
             if (Instance.Online)
             {
