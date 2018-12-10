@@ -77,11 +77,27 @@ namespace PhinixServer
             }
         }
 
+        /// <summary>
+        /// Handles server shutdown events.
+        /// Used to safely save and shut down modules before closing.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void shutdownHandler(object sender = null, EventArgs e = null)
         {
             Logger.Log(Verbosity.INFO, "Server shutting down");
+            
+            // Close all connections
+            Connections.Stop();
+            
+            // Log everyone out and save user data
+            UserManager.LogOutAll();
             UserManager.Save(Config.UserDatabasePath);
+            
+            // Save the config
             Config.Save(CONFIG_FILE);
+            
+            // Exit the main run loop
             exiting = true;
         }
 
