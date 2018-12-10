@@ -28,7 +28,7 @@ namespace PhinixClient
         private const float USERNAME_SET_BUTTON_HEIGHT = 30f;
         private const float USERNAME_SET_BUTTON_WIDTH = 120f;
 
-        public override Vector2 InitialSize => new Vector2(600f, 100f);
+        public override Vector2 InitialSize => new Vector2(600f, 120f);
 
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
