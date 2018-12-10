@@ -177,9 +177,12 @@ namespace PhinixClient
         /// <param name="displayName">Display name</param>
         public void UpdateDisplayName(string displayName)
         {
-            DisplayName = displayName;
-
-            userManager.UpdateSelf(displayName);
+            // Try to update within the user manager
+            if (userManager.UpdateSelf(displayName))
+            {
+                // Update the setting
+                DisplayName = displayName;
+            }
         }
         
         /// <summary>

@@ -126,20 +126,22 @@ namespace UserManagement
 
         /// <summary>
         /// Updates the currently-logged in user locally and on the server.
+        /// Returns whether the update was successful locally and was sent to server.
         /// </summary>
         /// <param name="displayName">New display name</param>
-        public void UpdateSelf(string displayName = null)
+        /// <returns>User update was successful and sent to server</returns>
+        public bool UpdateSelf(string displayName = null)
         {
             // Don't do anything unless we are logged in
-            if (!LoggedIn) return;
+            if (!LoggedIn) return false;
 
             // Update locally
-            if (!UpdateUser(Uuid, displayName)) return; // This should never return as the server ensures you exist on login
+            if (!UpdateUser(Uuid, displayName)) return false; // This should never return as the server ensures you exist on login
 
             lock (userStoreLock)
             {
                 // Make sure we are in the user store
-                if (!userStore.Users.ContainsKey(Uuid)) return; // This should never return for the same reason above
+                if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return for the same reason above
                 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
@@ -153,6 +155,8 @@ namespace UserManagement
                 // Send it on its way
                 netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
             }
+
+            return true;
         }
         
         /// <summary>
