@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Chat;
 using RimWorld;
@@ -219,7 +220,7 @@ namespace PhinixClient
             lock (messagesLock)
             {
                 // Create a new flex container from our message list
-                ChatMessageFlexContainer chatFlexContainer = new ChatMessageFlexContainer(messages);
+                VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(container.width - SCROLLBAR_WIDTH, messages.Cast<IDrawable>());
                 
                 // Set up the scrollable container
                 Rect innerContainer = new Rect(

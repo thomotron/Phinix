@@ -64,7 +64,6 @@
     <Compile Include="ChatMessage.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
-    <Compile Include="GUI\ChatMessageFlexContainer.cs" />
     <Compile Include="GUI\IDrawable.cs" />
     <Compile Include="GUI\VerticalFlexContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
