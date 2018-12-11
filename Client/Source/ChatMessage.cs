@@ -1,8 +1,10 @@
 ﻿using System;
+using UnityEngine;
+using Verse;
 
 namespace PhinixClient
 {
-    public class ChatMessage
+    public class ChatMessage : IDrawable
     {
         /// <summary>
         /// Time message was received.
@@ -42,6 +44,27 @@ namespace PhinixClient
             
             // Return the formatted message
             return string.Format("[{0:HH:mm}] {1}: {2}", ReceivedTime.ToLocalTime(), displayName, Message);
+        }
+
+        /// <inheritdoc />
+        public void Draw(Rect container)
+        {
+            // Draw a label with the formatted text
+            Widgets.Label(container, Format());
+        }
+
+        /// <inheritdoc />
+        public float GetHeight(float width)
+        {
+            // Return the calculated the height of the formatted text
+            return Text.CalcHeight(Format(), width);
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="NotSupportedException"><c>ChatMessage</c>s are always drawn at full width</exception>
+        public float GetWidth(float height)
+        {
+            throw new NotSupportedException("ChatMessages are always drawn at full width.");
         }
     }
 }
