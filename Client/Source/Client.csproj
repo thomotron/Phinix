@@ -64,10 +64,10 @@
     <Compile Include="ChatMessage.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
+    <Compile Include="GUI\ChatMessageFlexContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
     <Compile Include="SettingsWindow.cs" />
-    <Compile Include="ChatMessageFlexContainer.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
