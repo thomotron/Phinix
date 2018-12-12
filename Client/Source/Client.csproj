@@ -63,9 +63,21 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
+    <Compile Include="GUI\ButtonWidget.cs" />
     <Compile Include="GUI\ChatMessage.cs" />
+    <Compile Include="GUI\CheckboxLabeledWidget.cs" />
+    <Compile Include="GUI\Container.cs" />
+    <Compile Include="GUI\Displayable.cs" />
+    <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\IDrawable.cs" />
+    <Compile Include="GUI\ListContainer.cs" />
+    <Compile Include="GUI\ScrollContainer.cs" />
+    <Compile Include="GUI\TabsContainer.cs" />
+    <Compile Include="GUI\TextFieldWidget.cs" />
+    <Compile Include="GUI\TextWidget.cs" />
+    <Compile Include="GUI\ThingIconWidget.cs" />
     <Compile Include="GUI\VerticalFlexContainer.cs" />
+    <Compile Include="GUI\WidthContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
     <Compile Include="SettingsWindow.cs" />
