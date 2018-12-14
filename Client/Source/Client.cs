@@ -22,6 +22,8 @@ namespace PhinixClient
         private NetClient netClient;
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
+        public event EventHandler OnConnecting;
+        public event EventHandler OnDisconnect;
 
         private ClientAuthenticator authenticator;
         public bool Authenticated => authenticator.Authenticated;
@@ -146,6 +148,8 @@ namespace PhinixClient
             };
             
             // Forward events so the UI can handle them
+            netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
+            netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
             authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
