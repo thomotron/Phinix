@@ -47,20 +47,33 @@ namespace PhinixClient
         public string ServerAddress
         {
             get => serverAddressHandle.Value;
-            set => serverAddressHandle.Value = value;
+            set
+            {
+                serverAddressHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
+
         private SettingHandle<int> serverPortHandle;
         public int ServerPort
         {
             get => serverPortHandle.Value;
-            set => serverPortHandle.Value = value;
+            set
+            {
+                serverPortHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
 
         private SettingHandle<string> displayNameHandle;
         public string DisplayName
         {
             get => displayNameHandle.Value;
-            set => displayNameHandle.Value = value;
+            set
+            {
+                displayNameHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
 
         /// <inheritdoc />
