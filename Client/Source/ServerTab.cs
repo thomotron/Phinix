@@ -301,18 +301,26 @@ namespace PhinixClient
             Widgets.BeginScrollView(container, ref userListScroll, innerContainer);
             
             // Add each user to the scrollable container
-            for (int i = 0; i < uuids.Length; i++)
+            int userCount = 0;
+            foreach (string uuid in uuids)
             {
                 // Try to get the display name of the user
-                if (!Instance.TryGetDisplayName(uuids[i], out string displayName)) displayName = "???";
+                if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
+
+                // Skip the user if they don't contain the search text
+                if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
                 
+                // Draw the user
                 Rect userRect = new Rect(
                     x: innerContainer.xMin,
-                    y: innerContainer.yMin + (USER_HEIGHT * i),
+                    y: innerContainer.yMin + (USER_HEIGHT * userCount),
                     width: innerContainer.width,
                     height: USER_HEIGHT
                 );
                 Widgets.Label(userRect, displayName);
+                
+                // Increment the user count
+                userCount++;
             }
 
             // Stop scrolling
