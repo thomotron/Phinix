@@ -51,6 +51,9 @@ namespace PhinixClient
 
         public ServerTab()
         {
+            // Subscribe to disconnection events
+            Instance.OnDisconnect += disconnectHandler;
+            
             // Subscribe to new chat messages
             Instance.OnChatMessageReceived += messageHandler;
         }
@@ -112,6 +115,19 @@ namespace PhinixClient
             {
                 // Scroll to the bottom on next update
                 scrollToBottom = true;
+            }
+        }
+        
+        /// <summary>
+        /// Handles the OnDisconnect event from the client instance and invalidates any connection-specific data.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            lock (messagesLock)
+            {
+                messages.Clear();
             }
         }
 

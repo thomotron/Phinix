@@ -77,6 +77,7 @@ namespace UserManagement
             
             this.userStore = new UserStore();
             
+            netClient.OnDisconnect += disconnectHandler;
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
 
@@ -265,6 +266,17 @@ namespace UserManagement
                     }
                 }
             }
+        }
+        
+        /// <summary>
+        /// Handles the OnDisconnect event from <c>NetClient</c> and invalidates any connection-specific fields.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            LoggedIn = false;
+            Uuid = null;
         }
     }
 }
