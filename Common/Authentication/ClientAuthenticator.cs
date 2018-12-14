@@ -97,6 +97,7 @@ namespace Authentication
             // Prevent other threads from modifying the credential store while it is read in
             lock (credentialStoreLock) this.credentialStore = getCredentialStore();
 
+            netClient.OnDisconnect += disconnectHandler;
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
 
@@ -360,6 +361,17 @@ namespace Authentication
                 // Raise failed auth event
                 OnAuthenticationFailure?.Invoke(this, new AuthenticationEventArgs(packet.FailureReason, packet.FailureMessage));
             }
+        }
+        
+        /// <summary>
+        /// Handles the OnDisconnect event from <c>NetClient</c> and invalidates any connection-specific fields.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            Authenticated = false;
+            SessionId = null;
         }
     }
 }
