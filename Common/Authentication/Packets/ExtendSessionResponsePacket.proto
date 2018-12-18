@@ -1,0 +1,11 @@
+syntax = "proto3";
+package Authentication;
+
+import "google/protobuf/timestamp.proto";
+
+message ExtendSessionResponsePacket
+{
+    bool Success = 1;
+    
+    google.protobuf.Timestamp NewExpiry = 2;
+}
