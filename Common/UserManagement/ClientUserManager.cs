@@ -30,6 +30,11 @@ namespace UserManagement
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 
         /// <summary>
+        /// Raised on a user update.
+        /// </summary>
+        public event EventHandler<UserChangedEventArgs> OnUserChanged; 
+
+        /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
@@ -241,6 +246,8 @@ namespace UserManagement
                     userStore.Users.Add(user.Uuid, user);
                 }
             }
+
+            OnUserChanged?.Invoke(this, new UserChangedEventArgs(user.Uuid, user.LoggedIn, user.DisplayName));
         }
 
         /// <summary>
