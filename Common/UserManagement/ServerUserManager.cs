@@ -51,14 +51,20 @@ namespace UserManagement
         protected override object userStoreLock => new object();
 
         /// <summary>
+        /// Maximum display name length for new logins.
+        /// </summary>
+        private int maxDisplayNameLength;
+
+        /// <summary>
         /// Creates a new <c>ServerUserManager</c> instance.
         /// </summary>
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
         /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
-        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator)
+        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, int maxDisplayNameLength = 100)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
+            this.maxDisplayNameLength = maxDisplayNameLength;
             
             this.connectedUsers = new Dictionary<string, string>();
             this.userStore = new UserStore();
@@ -73,10 +79,11 @@ namespace UserManagement
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
         /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
         /// <param name="userStorePath">Path to user store</param>
-        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, string userStorePath)
+        public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, string userStorePath, int maxDisplayNameLength = 100)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
+            this.maxDisplayNameLength = maxDisplayNameLength;
             
             this.connectedUsers = new Dictionary<string, string>();
             Load(userStorePath);
@@ -359,8 +366,18 @@ namespace UserManagement
             }
             else
             {
+                // Check the length of their username without markup
+                if (TextHelper.StripRichText(packet.DisplayName).Length > maxDisplayNameLength)
+                {
+                    // Fail the login attempt due to display name length
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is too long.");
+                    
+                    // Stop here
+                    return;
+                }
+                
                 // Update the user's display name on the server with the one they've provided
-                UpdateUser(uuid, packet.DisplayName);
+                UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
             
             // Add their UUID/Session ID pair to connectedUsers
@@ -507,6 +524,9 @@ namespace UserManagement
                 // Discard packets trying to update users other than themselves
                 if (user.Uuid != connectedUsers[connectionId]) return;
             }
+
+            // Discard packets with display names longer than the limit
+            if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
 
             // Update the user
             UpdateUser(user.Uuid, user.DisplayName);

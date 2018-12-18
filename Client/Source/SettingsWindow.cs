@@ -33,8 +33,6 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
-        private static string displayName = Client.Instance.DisplayName;
-
         public override void DoWindowContents(Rect inRect)
         {
             doCloseX = true;
@@ -166,7 +164,7 @@ namespace PhinixClient
                 width: container.width - (USERNAME_SET_BUTTON_WIDTH + DEFAULT_SPACING),
                 height: USERNAME_BOX_HEIGHT
             );
-            displayName = Widgets.TextField(displayNameRect, displayName);
+            Client.Instance.DisplayName = Widgets.TextField(displayNameRect, Client.Instance.DisplayName);
             
             // Set display name button
             Rect setDisplayNameButtonRect = new Rect(
@@ -177,7 +175,7 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(setDisplayNameButtonRect, "Phinix_settings_setDisplayNameButton".Translate()))
             {
-                Client.Instance.UpdateDisplayName(displayName);
+                Client.Instance.UpdateDisplayName(Client.Instance.DisplayName);
             }
         }
     }

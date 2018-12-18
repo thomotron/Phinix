@@ -39,7 +39,7 @@ namespace PhinixServer
                 authType: Config.AuthType,
                 credentialStorePath: Config.CredentialDatabasePath
             );
-            UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath);
+            UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
             Chat = new ServerChat(Connections, Authenticator, UserManager);
             
             // Add handler for ILoggable modules

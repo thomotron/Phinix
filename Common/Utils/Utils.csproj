@@ -46,6 +46,7 @@
     <Compile Include="LogLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtobufPacketHelper.cs" />
+    <Compile Include="TextHelper.cs" />
     <Compile Include="TypeUrl.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

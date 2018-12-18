@@ -30,6 +30,11 @@ namespace UserManagement
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 
         /// <summary>
+        /// Raised on a user update.
+        /// </summary>
+        public event EventHandler<UserChangedEventArgs> OnUserChanged; 
+
+        /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
@@ -48,16 +53,6 @@ namespace UserManagement
         /// <c>ClientAuthenticator</c> to retrieve session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
-
-        /// <summary>
-        /// Display name of the user.
-        /// </summary>
-        private string displayName;
-
-        /// <summary>
-        /// Whether the server should update it's copy of the user's display name with the one provided on login.
-        /// </summary>
-        private bool useServerDisplayName;
         
         /// <summary>
         /// Stores each user in an easily-serialisable format.
@@ -68,12 +63,10 @@ namespace UserManagement
         /// </summary>
         protected override object userStoreLock => new object();
 
-        public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator, string displayName, bool useServerDisplayName = false)
+        public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator)
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
-            this.displayName = displayName;
-            this.useServerDisplayName = useServerDisplayName;
             
             this.userStore = new UserStore();
             
@@ -85,8 +78,9 @@ namespace UserManagement
         /// Attempts to log in to the server.
         /// Must be authenticated.
         /// </summary>
-        /// <param name="sessionId">Existing session ID</param>
-        public void SendLogin()
+        /// <param name="displayName">Display name to log in with</param>
+        /// <param name="useServerDisplayName">Use the server's copy of the user's display name if it has one</param>
+        public void SendLogin(string displayName, bool useServerDisplayName = false)
         {
             if (!authenticator.Authenticated) return;
             
@@ -136,20 +130,23 @@ namespace UserManagement
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
 
-            // Update locally
-            if (!UpdateUser(Uuid, displayName)) return false; // This should never return as the server ensures you exist on login
-
             lock (userStoreLock)
             {
                 // Make sure we are in the user store
-                if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return for the same reason above
+                if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return as the server ensures you exist on login
+
+                // Close the user to avoid editing properties by reference
+                User user = userStore.Users[Uuid].Clone();
+
+                // Update the user's display name
+                user.DisplayName = displayName;
                 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
                 {
                     SessionId = authenticator.SessionId,
                     Uuid = Uuid,
-                    User = userStore.Users[Uuid]
+                    User = user
                 };
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
@@ -241,6 +238,8 @@ namespace UserManagement
                     userStore.Users.Add(user.Uuid, user);
                 }
             }
+
+            OnUserChanged?.Invoke(this, new UserChangedEventArgs(user.Uuid, user.LoggedIn, user.DisplayName));
         }
 
         /// <summary>

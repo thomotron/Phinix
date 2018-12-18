@@ -81,6 +81,12 @@ namespace PhinixServer
         public AuthTypes AuthType = AuthTypes.PhiKey;
 
         /// <summary>
+        /// Maximum display name length for users.
+        /// </summary>
+        [DataMember(Name = "MaxDisplayNameLength", Order = 10)]
+        public int MaxDisplayNameLength = 100;
+
+        /// <summary>
         /// Loads a <c>Config</c> object from the given file path. Will return a default <c>Config</c> if the file does not exist.
         /// </summary>
         /// <param name="filePath">Config file path</param>
