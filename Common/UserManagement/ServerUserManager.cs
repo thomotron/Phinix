@@ -370,7 +370,7 @@ namespace UserManagement
                 }
                 
                 // Update the user's display name on the server with the one they've provided
-                UpdateUser(uuid, packet.DisplayName);
+                UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
             
             // Add their UUID/Session ID pair to connectedUsers
