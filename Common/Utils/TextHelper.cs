@@ -31,21 +31,6 @@ namespace Utils
 			return stripRichText(input, strippableTags);
 		}
 
-        public static string Clamp(string input, int min, int max, char filler = '-')
-        {
-            int strippedLength = StripRichText(input).Length;
-
-            if (strippedLength < min)
-            {
-                input += new string(filler, min);
-            }
-            else if (strippedLength > max)
-            {
-                input = input.Substring(0, max);
-            }
-
-            return input;
-        }
 	}
 }
 
