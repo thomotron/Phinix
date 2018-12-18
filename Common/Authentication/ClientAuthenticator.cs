@@ -70,6 +70,12 @@ namespace Authentication
         /// Use only if <c>Authenticated</c> is true.
         /// </summary>
         public string SessionId { get; private set; }
+        
+        /// <summary>
+        /// When the session ID will expire.
+        /// Used by an internal timer to refresh the session periodically.
+        /// </summary>
+        private DateTime sessionExpiry;
 
         /// <summary>
         /// Path to the credential store file.
@@ -346,9 +352,10 @@ namespace Authentication
             // Was authentication successful?
             if (packet.Success)
             {
-                // Set authenticated state and session ID
+                // Set authenticated state, session ID, and expiry
                 Authenticated = true;
                 SessionId = packet.SessionId;
+                sessionExpiry = packet.Expiry.ToDateTime();
                 
                 // Raise successful auth event
                 OnAuthenticationSuccess?.Invoke(this, new AuthenticationEventArgs());
