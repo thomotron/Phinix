@@ -130,20 +130,23 @@ namespace UserManagement
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
 
-            // Update locally
-            if (!UpdateUser(Uuid, displayName)) return false; // This should never return as the server ensures you exist on login
-
             lock (userStoreLock)
             {
                 // Make sure we are in the user store
-                if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return for the same reason above
+                if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return as the server ensures you exist on login
+
+                // Close the user to avoid editing properties by reference
+                User user = userStore.Users[Uuid].Clone();
+
+                // Update the user's display name
+                user.DisplayName = displayName;
                 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
                 {
                     SessionId = authenticator.SessionId,
                     Uuid = Uuid,
-                    User = userStore.Users[Uuid]
+                    User = user
                 };
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
