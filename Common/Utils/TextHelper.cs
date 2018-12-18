@@ -13,7 +13,7 @@ namespace Utils
 		public const string I = "i";
 		public const string COLOR = "color";
 
-		public static string StripRichText(string input, params string[] strippedTags)
+		private static string stripRichText(string input, params string[] strippedTags)
 		{
 			foreach (string tag in strippedTags) {
 				// Maybe a better way than a Regex to parse RichText ?
