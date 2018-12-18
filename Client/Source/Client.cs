@@ -140,6 +140,15 @@ namespace PhinixClient
             {
                 Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
             };
+            userManager.OnUserChanged += (sender, args) =>
+            {
+                // Check if we have been updated
+                if (userManager.LoggedIn && args.Uuid == userManager.Uuid)
+                {
+                    // Update our display name
+                    DisplayName = args.DisplayName;
+                }
+            };
             
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
@@ -195,11 +204,7 @@ namespace PhinixClient
         public void UpdateDisplayName(string displayName)
         {
             // Try to update within the user manager
-            if (userManager.UpdateSelf(displayName))
-            {
-                // Update the setting
-                DisplayName = displayName;
-            }
+            userManager.UpdateSelf(displayName);
         }
         
         /// <summary>
