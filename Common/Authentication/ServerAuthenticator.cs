@@ -475,10 +475,10 @@ namespace Authentication
                 if (IsAuthenticated(connectionId, packet.SessionId))
                 {
                     // Extend the session expiry to 30 minutes from now
-                    sessions[packet.SessionId].Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
+                    sessions[connectionId].Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
                     
                     // Send a successful response
-                    sendSuccessfulExtendSessionResponsePacket(connectionId, sessions[packet.SessionId].Expiry);
+                    sendSuccessfulExtendSessionResponsePacket(connectionId, sessions[connectionId].Expiry);
                 }
                 else
                 {
