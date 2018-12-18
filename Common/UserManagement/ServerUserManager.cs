@@ -359,6 +359,16 @@ namespace UserManagement
             }
             else
             {
+                // Check the length of their username without markup
+                if (TextHelper.StripRichText(packet.DisplayName).Length > 100)
+                {
+                    // Fail the login attempt due to display name length
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is too long.");
+                    
+                    // Stop here
+                    return;
+                }
+                
                 // Update the user's display name on the server with the one they've provided
                 UpdateUser(uuid, packet.DisplayName);
             }
