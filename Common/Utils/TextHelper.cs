@@ -4,7 +4,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace PhiClient
+namespace Utils
 {
 	public static class TextHelper
 	{
