@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Timers;
 using Connections;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -70,6 +71,16 @@ namespace Authentication
         /// Use only if <c>Authenticated</c> is true.
         /// </summary>
         public string SessionId { get; private set; }
+        
+        /// <summary>
+        /// When the session ID will expire.
+        /// Used by an internal timer to refresh the session periodically.
+        /// </summary>
+        private DateTime sessionExpiry;
+        /// <summary>
+        /// Timer to extend the current session.
+        /// </summary>
+        private Timer sessionExtendTimer;
 
         /// <summary>
         /// Path to the credential store file.
@@ -96,6 +107,21 @@ namespace Authentication
             
             // Prevent other threads from modifying the credential store while it is read in
             lock (credentialStoreLock) this.credentialStore = getCredentialStore();
+            
+            // Set up the session extension timer
+            sessionExtendTimer = new Timer
+            {
+                Enabled = false,
+                AutoReset = false
+            };
+            sessionExtendTimer.Elapsed += (sender, args) =>
+            {
+                // Only attempt to extend the session if we have one
+                if (Authenticated) sendExtendSessionPacket(SessionId);
+                
+                // Stop the timer from firing again
+                sessionExtendTimer.Stop();
+            };
 
             netClient.OnDisconnect += disconnectHandler;
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
@@ -171,6 +197,10 @@ namespace Authentication
                 case "AuthResponsePacket":
                     RaiseLogEntry(new LogEventArgs("Got an AuthResponsePacket", LogLevel.DEBUG));
                     authResponsePacketHandler(connectionId, message.Unpack<AuthResponsePacket>());
+                    break;
+                case "ExtendSessionResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got an ExtendSessionResponsePacket", LogLevel.DEBUG));
+                    extendSessionResponsePacketHandler(connectionId, message.Unpack<ExtendSessionResponsePacket>());
                     break;
                 default:
                     // TODO: Discard packet
@@ -346,9 +376,15 @@ namespace Authentication
             // Was authentication successful?
             if (packet.Success)
             {
-                // Set authenticated state and session ID
+                // Set authenticated state, session ID, and expiry
                 Authenticated = true;
                 SessionId = packet.SessionId;
+                sessionExpiry = packet.Expiry.ToDateTime();
+                
+                // Reset the session extension timer for halfway between now and the expiry
+                sessionExtendTimer.Stop();
+                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Start();
                 
                 // Raise successful auth event
                 OnAuthenticationSuccess?.Invoke(this, new AuthenticationEventArgs());
@@ -360,6 +396,44 @@ namespace Authentication
                 
                 // Raise failed auth event
                 OnAuthenticationFailure?.Invoke(this, new AuthenticationEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
+        }
+
+        /// <summary>
+        /// Sends an <c>ExtentSessionPacket</c> to the server to extend the current session.
+        /// </summary>
+        /// <param name="sessionId">Session ID</param>
+        private void sendExtendSessionPacket(string sessionId)
+        {
+            RaiseLogEntry(new LogEventArgs("Sending ExtendSessionPacket", LogLevel.DEBUG));
+            
+            // Create and pack a session extension packet
+            ExtendSessionPacket packet = new ExtendSessionPacket
+            {
+                SessionId = sessionId
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>ExtendSessionResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>ExtendSessionResponsePacket</c></param>
+        private void extendSessionResponsePacketHandler(string connectionId, ExtendSessionResponsePacket packet)
+        {
+            if (packet.Success)
+            {
+                // Update the expiry with the newly-extended one
+                sessionExpiry = packet.NewExpiry.ToDateTime();
+                
+                // Reset the session extension timer for halfway between now and the expiry
+                sessionExtendTimer.Stop();
+                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Start();
             }
         }
         
