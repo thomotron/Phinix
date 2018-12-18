@@ -12,6 +12,10 @@ namespace Utils
 		/// Array containing all tags provided by Unity's Rich Text API.
 		/// </summary>
 		private static readonly string[] strippableTags = {"size", "b", "i", "color"};
+		/// <summary>
+		/// Array containing undesirable tags that should be filtered out.
+		/// </summary>
+		private static readonly string[] unsafeTags = {"size"};
 
 		/// <summary>
 		/// Strips the given set of tags from the input string.
@@ -43,6 +47,16 @@ namespace Utils
 			return stripRichText(input, strippableTags);
 		}
 
+		/// <summary>
+		/// Returns the given string with all undesirable tags removed.
+		/// At the moment this only removes the size tag.
+		/// </summary>
+		/// <param name="input">String to sanitise</param>
+		/// <returns>Sanitised input</returns>
+		public static string SanitiseRichText(string input)
+		{
+			return stripRichText(input, unsafeTags);
+		}
 	}
 }
 
