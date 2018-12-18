@@ -23,8 +23,9 @@ namespace UserManagement {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0xvZ2luRmFpbHVyZVJlYXNvbi5wcm90bxIOVXNlck1hbmFn",
-            "ZW1lbnQqPAoSTG9naW5GYWlsdXJlUmVhc29uEg0KCVNlc3Npb25JZBAAEhcK",
-            "E0ludGVybmFsU2VydmVyRXJyb3IQAWIGcHJvdG8z"));
+            "ZW1lbnQqTQoSTG9naW5GYWlsdXJlUmVhc29uEg0KCVNlc3Npb25JZBAAEg8K",
+            "C0Rpc3BsYXlOYW1lEAISFwoTSW50ZXJuYWxTZXJ2ZXJFcnJvchABYgZwcm90",
+            "bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::UserManagement.LoginFailureReason), }, null));
@@ -35,6 +36,7 @@ namespace UserManagement {
   #region Enums
   public enum LoginFailureReason {
     [pbr::OriginalName("SessionId")] SessionId = 0,
+    [pbr::OriginalName("DisplayName")] DisplayName = 2,
     [pbr::OriginalName("InternalServerError")] InternalServerError = 1,
   }
 
