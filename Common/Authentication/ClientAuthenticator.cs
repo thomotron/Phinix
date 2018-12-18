@@ -198,6 +198,10 @@ namespace Authentication
                     RaiseLogEntry(new LogEventArgs("Got an AuthResponsePacket", LogLevel.DEBUG));
                     authResponsePacketHandler(connectionId, message.Unpack<AuthResponsePacket>());
                     break;
+                case "ExtendSessionResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got an ExtendSessionResponsePacket", LogLevel.DEBUG));
+                    extendSessionResponsePacketHandler(connectionId, message.Unpack<ExtendSessionResponsePacket>());
+                    break;
                 default:
                     // TODO: Discard packet
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -412,6 +416,20 @@ namespace Authentication
             
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>ExtendSessionResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>ExtendSessionResponsePacket</c></param>
+        private void extendSessionResponsePacketHandler(string connectionId, ExtendSessionResponsePacket packet)
+        {
+            if (packet.Success)
+            {
+                // Update the expiry with the newly-extended one
+                sessionExpiry = packet.NewExpiry.ToDateTime();
+            }
         }
         
         /// <summary>
