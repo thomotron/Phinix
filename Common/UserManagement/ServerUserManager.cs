@@ -525,6 +525,9 @@ namespace UserManagement
                 if (user.Uuid != connectedUsers[connectionId]) return;
             }
 
+            // Discard packets with display names longer than the limit
+            if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
+
             // Update the user
             UpdateUser(user.Uuid, user.DisplayName);
         }
