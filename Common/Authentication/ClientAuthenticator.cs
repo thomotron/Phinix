@@ -429,6 +429,11 @@ namespace Authentication
             {
                 // Update the expiry with the newly-extended one
                 sessionExpiry = packet.NewExpiry.ToDateTime();
+                
+                // Reset the session extension timer for halfway between now and the expiry
+                sessionExtendTimer.Stop();
+                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Start();
             }
         }
         
