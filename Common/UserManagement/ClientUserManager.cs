@@ -53,16 +53,6 @@ namespace UserManagement
         /// <c>ClientAuthenticator</c> to retrieve session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
-
-        /// <summary>
-        /// Display name of the user.
-        /// </summary>
-        private string displayName;
-
-        /// <summary>
-        /// Whether the server should update it's copy of the user's display name with the one provided on login.
-        /// </summary>
-        private bool useServerDisplayName;
         
         /// <summary>
         /// Stores each user in an easily-serialisable format.
@@ -73,12 +63,10 @@ namespace UserManagement
         /// </summary>
         protected override object userStoreLock => new object();
 
-        public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator, string displayName, bool useServerDisplayName = false)
+        public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator)
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
-            this.displayName = displayName;
-            this.useServerDisplayName = useServerDisplayName;
             
             this.userStore = new UserStore();
             
@@ -90,8 +78,9 @@ namespace UserManagement
         /// Attempts to log in to the server.
         /// Must be authenticated.
         /// </summary>
-        /// <param name="sessionId">Existing session ID</param>
-        public void SendLogin()
+        /// <param name="displayName">Display name to log in with</param>
+        /// <param name="useServerDisplayName">Use the server's copy of the user's display name if it has one</param>
+        public void SendLogin(string displayName, bool useServerDisplayName = false)
         {
             if (!authenticator.Authenticated) return;
             
