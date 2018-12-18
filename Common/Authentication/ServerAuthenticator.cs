@@ -474,8 +474,8 @@ namespace Authentication
                 // Make sure the session is still valid
                 if (IsAuthenticated(connectionId, packet.SessionId))
                 {
-                    // Extend the session expiry by 30 minutes
-                    sessions[packet.SessionId].Expiry += TimeSpan.FromMinutes(30);
+                    // Extend the session expiry to 30 minutes from now
+                    sessions[packet.SessionId].Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
                     
                     // Send a successful response
                     sendSuccessfulExtendSessionResponsePacket(connectionId, sessions[packet.SessionId].Expiry);
