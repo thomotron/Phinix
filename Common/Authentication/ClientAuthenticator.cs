@@ -185,7 +185,7 @@ namespace Authentication
         protected override void packetHandler(string module, string connectionId, byte[] data)
         {
             // Validate the incoming packet and discard it if validation fails
-            if (!ProtobufPacketHelper.ValidatePacket("Authentication", MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
+            if (!ProtobufPacketHelper.ValidatePacket(typeof(ClientAuthenticator).Namespace, MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
             
             // Determine what to do with this packet type
             switch (typeUrl.Type)

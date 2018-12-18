@@ -166,7 +166,7 @@ namespace UserManagement
         private void packetHandler(string module, string connectionId, byte[] data)
         {
             // Validate the packet and discard it if it fails
-            if (!ProtobufPacketHelper.ValidatePacket("UserManagement", MODULE_NAME, module, data, out Any message,out TypeUrl typeUrl)) return;
+            if (!ProtobufPacketHelper.ValidatePacket(typeof(ClientUserManager).Namespace, MODULE_NAME, module, data, out Any message,out TypeUrl typeUrl)) return;
 
             // Determine what to do with this packet type
             switch (typeUrl.Type)
