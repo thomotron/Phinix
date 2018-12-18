@@ -73,6 +73,9 @@ namespace Chat
             
             // Clear the session ID for security
             packet.SessionId = "";
+            
+            // Sanitise the message content
+            packet.Message = TextHelper.SanitiseRichText(packet.Message);
                     
             // Broadcast the chat packet to everyone
             broadcastChatMessage(packet);
