@@ -283,9 +283,12 @@ namespace Authentication
             switch (typeUrl.Type)
             {
                 case "AuthenticatePacket":
-                    AuthenticatePacket packet = message.Unpack<AuthenticatePacket>();
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AuthenticatePacket for session {0}", packet.SessionId), LogLevel.DEBUG));
-                    authenticatePacketHandler(connectionId, packet);
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AuthenticatePacket for session {0}", message.Unpack<AuthenticatePacket>().SessionId), LogLevel.DEBUG));
+                    authenticatePacketHandler(connectionId, message.Unpack<AuthenticatePacket>());
+                    break;
+                case "ExtendSessionPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an ExtendSessionPacket for session {0}", message.Unpack<ExtendSessionPacket>().SessionId), LogLevel.DEBUG));
+                    extendSessionPacketHandler(connectionId, message.Unpack<ExtendSessionPacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -456,7 +459,74 @@ namespace Authentication
             // Send it
             netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
         }
+
+        /// <summary>
+        /// Handles incoming <c>ExtendSessionPacket</c>s from clients trying to extend their session expiry.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>ExtendSessionPacket</c></param>
+        private void extendSessionPacketHandler(string connectionId, ExtendSessionPacket packet)
+        {
+            // Lock the sessions dictionary to prevent other threads from messing with it
+            lock (sessionsLock)
+            {
+                // Make sure the session is still valid
+                if (IsAuthenticated(connectionId, packet.SessionId))
+                {
+                    // Extend the session expiry by 30 minutes
+                    sessions[packet.SessionId].Expiry += TimeSpan.FromMinutes(30);
+                    
+                    // Send a successful response
+                    sendSuccessfulExtendSessionResponsePacket(connectionId, sessions[packet.SessionId].Expiry);
+                }
+                else
+                {
+                    // Send a failed response
+                    sendFailedExtendSessionResponsePacket(connectionId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends a successful <c>ExtendSessionResponsePacket</c> to a connection with the given expiry.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        /// <param name="expiry">New session expiry</param>
+        private void sendSuccessfulExtendSessionResponsePacket(string connectionId, DateTime expiry)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful ExtendSessionResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Create and pack a response
+            ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
+            {
+                Success = true,
+                NewExpiry = expiry.ToTimestamp()
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
         
+        /// <summary>
+        /// Sends a failed <c>ExtendSessionResponsePacket</c> to a connection.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        private void sendFailedExtendSessionResponsePacket(string connectionId)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed ExtendSessionResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Create and pack a response
+            ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
+            {
+                Success = false
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+
         /// <summary>
         /// Callback for the session cleanup timer. Cleans out expired sessions.
         /// </summary>
