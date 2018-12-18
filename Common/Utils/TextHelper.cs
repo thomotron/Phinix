@@ -8,10 +8,10 @@ namespace Utils
 {
 	public static class TextHelper
 	{
-		public const string SIZE = "size";
-		public const string B = "b";
-		public const string I = "i";
-		public const string COLOR = "color";
+		/// <summary>
+		/// Array containing all tags provided by Unity's Rich Text API.
+		/// </summary>
+		private static readonly string[] strippableTags = {"size", "b", "i", "color"};
 
 		private static string stripRichText(string input, params string[] strippedTags)
 		{
@@ -28,7 +28,7 @@ namespace Utils
 
 		public static string StripRichText(string input)
 		{
-			return StripRichText(input, SIZE, B, I, COLOR);
+			return stripRichText(input, strippableTags);
 		}
 
         public static string Clamp(string input, int min, int max, char filler = '-')
