@@ -23,15 +23,16 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhSZXNwb25zZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aH1BhY2tldHMvQXV0aEZhaWx1cmVSZWFzb24ucHJvdG8iigEKEkF1",
-            "dGhSZXNwb25zZVBhY2tldBIPCgdTdWNjZXNzGAEgASgIEjgKDUZhaWx1cmVS",
-            "ZWFzb24YAiABKA4yIS5BdXRoZW50aWNhdGlvbi5BdXRoRmFpbHVyZVJlYXNv",
-            "bhIWCg5GYWlsdXJlTWVzc2FnZRgDIAEoCRIRCglTZXNzaW9uSWQYBCABKAli",
-            "BnByb3RvMw=="));
+            "YXRpb24aH1BhY2tldHMvQXV0aEZhaWx1cmVSZWFzb24ucHJvdG8aH2dvb2ds",
+            "ZS9wcm90b2J1Zi90aW1lc3RhbXAucHJvdG8itgEKEkF1dGhSZXNwb25zZVBh",
+            "Y2tldBIPCgdTdWNjZXNzGAEgASgIEjgKDUZhaWx1cmVSZWFzb24YAiABKA4y",
+            "IS5BdXRoZW50aWNhdGlvbi5BdXRoRmFpbHVyZVJlYXNvbhIWCg5GYWlsdXJl",
+            "TWVzc2FnZRgDIAEoCRIRCglTZXNzaW9uSWQYBCABKAkSKgoGRXhwaXJ5GAUg",
+            "ASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Authentication.AuthFailureReasonReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Authentication.AuthFailureReasonReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthResponsePacket), global::Authentication.AuthResponsePacket.Parser, new[]{ "Success", "FailureReason", "FailureMessage", "SessionId", "Expiry" }, null, null, null)
           }));
     }
     #endregion
@@ -66,6 +67,7 @@ namespace Authentication {
       failureReason_ = other.failureReason_;
       failureMessage_ = other.failureMessage_;
       sessionId_ = other.sessionId_;
+      Expiry = other.expiry_ != null ? other.Expiry.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -117,6 +119,17 @@ namespace Authentication {
       }
     }
 
+    /// <summary>Field number for the "Expiry" field.</summary>
+    public const int ExpiryFieldNumber = 5;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp expiry_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp Expiry {
+      get { return expiry_; }
+      set {
+        expiry_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as AuthResponsePacket);
@@ -134,6 +147,7 @@ namespace Authentication {
       if (FailureReason != other.FailureReason) return false;
       if (FailureMessage != other.FailureMessage) return false;
       if (SessionId != other.SessionId) return false;
+      if (!object.Equals(Expiry, other.Expiry)) return false;
       return true;
     }
 
@@ -144,6 +158,7 @@ namespace Authentication {
       if (FailureReason != 0) hash ^= FailureReason.GetHashCode();
       if (FailureMessage.Length != 0) hash ^= FailureMessage.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (expiry_ != null) hash ^= Expiry.GetHashCode();
       return hash;
     }
 
@@ -170,6 +185,10 @@ namespace Authentication {
         output.WriteRawTag(34);
         output.WriteString(SessionId);
       }
+      if (expiry_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Expiry);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -186,6 +205,9 @@ namespace Authentication {
       }
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (expiry_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Expiry);
       }
       return size;
     }
@@ -206,6 +228,12 @@ namespace Authentication {
       }
       if (other.SessionId.Length != 0) {
         SessionId = other.SessionId;
+      }
+      if (other.expiry_ != null) {
+        if (expiry_ == null) {
+          expiry_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        Expiry.MergeFrom(other.Expiry);
       }
     }
 
@@ -231,6 +259,13 @@ namespace Authentication {
           }
           case 34: {
             SessionId = input.ReadString();
+            break;
+          }
+          case 42: {
+            if (expiry_ == null) {
+              expiry_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(expiry_);
             break;
           }
         }

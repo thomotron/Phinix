@@ -415,7 +415,7 @@ namespace Authentication
                     session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
                     
                     // Approve the authentication attempt
-                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId);
+                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, session.Expiry);
                     
                     // Log this momentous occasion
                     RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}) successfully authenticated", session.Username, session.ConnectionId, session.SessionId)));
@@ -423,7 +423,7 @@ namespace Authentication
             }
         }
 
-        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId)
+        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, DateTime expiry)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
             
@@ -431,7 +431,8 @@ namespace Authentication
             AuthResponsePacket response = new AuthResponsePacket
             {
                 Success = true,
-                SessionId = sessionId
+                SessionId = sessionId,
+                Expiry = expiry.ToTimestamp()
             };
             
             // Pack it into an Any for transmission
