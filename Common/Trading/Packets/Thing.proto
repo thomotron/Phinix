@@ -1,0 +1,17 @@
+syntax = "proto3";
+package Trading;
+
+message Thing
+{
+    string DefName = 1;
+    
+    int32 StackCount = 2;
+    
+    string StuffDefName = 3;
+    
+    int32 Quality = 4;
+    
+    int32 HitPoints = 5;
+    
+    Thing InnerThing = 6;
+};
