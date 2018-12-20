@@ -1,0 +1,14 @@
+syntax = "proto3";
+package Trading;
+
+enum Quality
+{
+    Awful = 0;
+    Poor = 1;
+    Normal = 2;
+    Good = 3;
+    Excellent = 4;
+    Masterwork = 5;
+    Legendary = 6;
+    None = 7;
+}

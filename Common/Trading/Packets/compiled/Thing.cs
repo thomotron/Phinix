@@ -22,12 +22,13 @@ namespace Trading {
     static ThingReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChNQYWNrZXRzL1RoaW5nLnByb3RvEgdUcmFkaW5nIooBCgVUaGluZxIPCgdE",
-            "ZWZOYW1lGAEgASgJEhIKClN0YWNrQ291bnQYAiABKAUSFAoMU3R1ZmZEZWZO",
-            "YW1lGAMgASgJEg8KB1F1YWxpdHkYBCABKAUSEQoJSGl0UG9pbnRzGAUgASgF",
-            "EiIKCklubmVyVGhpbmcYBiABKAsyDi5UcmFkaW5nLlRoaW5nYgZwcm90bzM="));
+            "ChNQYWNrZXRzL1RoaW5nLnByb3RvEgdUcmFkaW5nGhVQYWNrZXRzL1F1YWxp",
+            "dHkucHJvdG8inAEKBVRoaW5nEg8KB0RlZk5hbWUYASABKAkSEgoKU3RhY2tD",
+            "b3VudBgCIAEoBRIUCgxTdHVmZkRlZk5hbWUYAyABKAkSIQoHUXVhbGl0eRgE",
+            "IAEoDjIQLlRyYWRpbmcuUXVhbGl0eRIRCglIaXRQb2ludHMYBSABKAUSIgoK",
+            "SW5uZXJUaGluZxgGIAEoCzIOLlRyYWRpbmcuVGhpbmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::Trading.QualityReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.Thing), global::Trading.Thing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerThing" }, null, null, null)
           }));
@@ -108,9 +109,9 @@ namespace Trading {
 
     /// <summary>Field number for the "Quality" field.</summary>
     public const int QualityFieldNumber = 4;
-    private int quality_;
+    private global::Trading.Quality quality_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Quality {
+    public global::Trading.Quality Quality {
       get { return quality_; }
       set {
         quality_ = value;
@@ -194,7 +195,7 @@ namespace Trading {
       }
       if (Quality != 0) {
         output.WriteRawTag(32);
-        output.WriteInt32(Quality);
+        output.WriteEnum((int) Quality);
       }
       if (HitPoints != 0) {
         output.WriteRawTag(40);
@@ -219,7 +220,7 @@ namespace Trading {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(StuffDefName);
       }
       if (Quality != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Quality);
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Quality);
       }
       if (HitPoints != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(HitPoints);
@@ -279,7 +280,7 @@ namespace Trading {
             break;
           }
           case 32: {
-            Quality = input.ReadInt32();
+            quality_ = (global::Trading.Quality) input.ReadEnum();
             break;
           }
           case 40: {

@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientTrading.cs" />
+    <Compile Include="Packets\compiled\Quality.cs" />
     <Compile Include="Packets\compiled\Thing.cs" />
     <Compile Include="ServerTrading.cs" />
     <Compile Include="Trading.cs" />
@@ -71,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="compile-proto.sh" />
+    <Content Include="Packets\Quality.proto" />
     <Content Include="Packets\Thing.proto" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
