@@ -6,6 +6,7 @@ using System.Reflection;
 using Authentication;
 using Chat;
 using Connections;
+using Trading;
 using UserManagement;
 using Utils;
 
@@ -21,6 +22,7 @@ namespace PhinixServer
         public static ServerAuthenticator Authenticator;
         public static ServerUserManager UserManager;
         public static ServerChat Chat;
+        public static ServerTrading Trading;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
 
         private static bool exiting = false;
@@ -41,11 +43,13 @@ namespace PhinixServer
             );
             UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
             Chat = new ServerChat(Connections, Authenticator, UserManager);
+            Trading = new ServerTrading(Connections, Authenticator, UserManager);
             
             // Add handler for ILoggable modules
             Authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
             Chat.OnLogEntry += ILoggableHandler;
+            Trading.OnLogEntry += ILoggableHandler;
             
             Connections.Start();
 

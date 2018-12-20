@@ -68,6 +68,10 @@
       <Project>{38CB6BED-E751-42FE-A847-C0DDD482AC62}</Project>
       <Name>Connections</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Common\Trading\Trading.csproj">
+      <Project>{b63ede99-90e5-47b5-8411-0d1d3eb97adb}</Project>
+      <Name>Trading</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\UserManagement\UserManagement.csproj">
       <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
       <Name>UserManagement</Name>
