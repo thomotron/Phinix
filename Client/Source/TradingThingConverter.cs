@@ -17,18 +17,32 @@ namespace PhinixClient
         public static Trading.Thing ConvertThingFromVerse(Verse.Thing verseThing)
         {
             // Try get the quality of the thing, failure defaulting to none
-            Quality quality = verseThing.TryGetQuality(out QualityCategory gottenQuality) ? (Quality) gottenQuality : Quality.None; 
+            Quality quality = verseThing.TryGetQuality(out QualityCategory gottenQuality) ? (Quality) gottenQuality : Quality.None;
             
+            // Create a Trading.Thing with attributes from verseThing
             Trading.Thing protoThing = new Trading.Thing
             {
                 DefName = verseThing.def.defName,
                 StackCount = verseThing.stackCount,
                 HitPoints = verseThing.HitPoints,
-                Quality = quality,
-                StuffDefName = verseThing.Stuff?.defName,
-                InnerThing = verseThing is MinifiedThing minifiedThing ? ConvertThingFromVerse(minifiedThing.InnerThing) : null
+                Quality = quality
             };
+            
+            // Check if verseThing has stuff
+            if (verseThing.Stuff?.defName != null)
+            {
+                // Set protoThing's stuff def
+                protoThing.StuffDefName = verseThing.Stuff.defName;
+            }
 
+            // Check if verseThing is minified
+            if (verseThing is MinifiedThing minifiedVerseThing)
+            {
+                // Set protoThing's inner thing
+                protoThing.InnerThing = ConvertThingFromVerse(minifiedVerseThing.InnerThing);
+            }
+            
+            // Return constructed protoThing
             return protoThing;
         }
         
