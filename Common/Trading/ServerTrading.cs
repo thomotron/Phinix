@@ -2,6 +2,7 @@
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Authentication;
 using Connections;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using UserManagement;
 using Utils;
@@ -53,9 +54,23 @@ namespace Trading
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
+                case "Thing":
+                    thingHandler(connectionId, message.Unpack<Thing>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
+            }
+        }
+
+        private void thingHandler(string cId, Thing packet)
+        {
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it to each logged in user
+            foreach (string connectionId in userManager.GetConnections())
+            {
+                netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
             }
         }
     }

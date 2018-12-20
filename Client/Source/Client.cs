@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using Authentication;
@@ -6,9 +7,12 @@ using Chat;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
+using RimWorld;
+using Trading;
 using UserManagement;
 using Utils;
 using Verse;
+using Thing = Verse.Thing;
 
 namespace PhinixClient
 {
@@ -44,6 +48,8 @@ namespace PhinixClient
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
+
+        private ClientTrading trading;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -114,11 +120,13 @@ namespace PhinixClient
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
             this.userManager = new ClientUserManager(netClient, authenticator);
             this.chat = new ClientChat(netClient, authenticator, userManager);
+            this.trading = new ClientTrading(netClient, authenticator, userManager);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
             userManager.OnLogEntry += ILoggableHandler;
             chat.OnLogEntry += ILoggableHandler;
+            trading.OnLogEntry += ILoggableHandler;
             
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
@@ -135,6 +143,8 @@ namespace PhinixClient
             userManager.OnLoginSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully logged in with UUID {0}", userManager.Uuid);
+                Trading.Thing thing = TradingThingConverter.ConvertThingFromVerse(Find.CurrentMap.zoneManager.AllZones.Where(z => z is Zone_Stockpile).Select(z => z.AllContainedThings).RandomElement().RandomElement());
+                trading.SendThing(thing);
             };
             userManager.OnLoginFailure += (sender, args) =>
             {
@@ -145,6 +155,22 @@ namespace PhinixClient
             chat.OnChatMessageReceived += (sender, args) =>
             {
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+            };
+            
+            // Subscribe to trading events
+            trading.OnThingReceived += (sender, args) =>
+            {
+                Logger.Trace("Received a thing");
+                
+                Thing thing = TradingThingConverter.ConvertThingFromProto(args.Thing);
+                IntVec3 position = DropCellFinder.TradeDropSpot(Find.CurrentMap);
+                DropPodUtility.DropThingsNear(position, Find.CurrentMap, new[] {thing});
+                Find.LetterStack.ReceiveLetter(
+                    "Ship pod",
+                    "A pod was sent containing items",
+                    LetterDefOf.PositiveEvent,
+                    new RimWorld.Planet.GlobalTargetInfo(position, Find.CurrentMap)
+                );
             };
             
             // Forward events so the UI can handle them
