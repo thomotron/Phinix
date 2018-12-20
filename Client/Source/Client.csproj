@@ -119,6 +119,7 @@
     <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
     <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-UserManagement.dll" />
     <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-Chat.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-Trading.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\9-PhinixClient.dll" />
   </Target>
 </Project>
