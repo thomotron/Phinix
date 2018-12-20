@@ -50,6 +50,7 @@ namespace PhinixClient
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
+        public void SendThing(Trading.Thing thing) => trading.SendThing(thing);
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
