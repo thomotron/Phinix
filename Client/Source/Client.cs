@@ -167,10 +167,10 @@ namespace PhinixClient
                 IntVec3 position = DropCellFinder.TradeDropSpot(Find.CurrentMap);
                 DropPodUtility.DropThingsNear(position, Find.CurrentMap, new[] {thing}, canRoofPunch: false);
                 Find.LetterStack.ReceiveLetter(
-                    "Ship pod",
-                    "A pod was sent containing items",
-                    LetterDefOf.PositiveEvent,
-                    new RimWorld.Planet.GlobalTargetInfo(position, Find.CurrentMap)
+                    label: "Ship pod",
+                    text: "A pod was sent containing items",
+                    textLetterDef: LetterDefOf.PositiveEvent,
+                    lookTargets: new RimWorld.Planet.GlobalTargetInfo(position, Find.CurrentMap)
                 );
             };
             
