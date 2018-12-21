@@ -49,6 +49,7 @@
     <Compile Include="Packets\compiled\Thing.cs" />
     <Compile Include="Packets\compiled\UpdateTradePacket.cs" />
     <Compile Include="ServerTrading.cs" />
+    <Compile Include="Trade.cs" />
     <Compile Include="Trading.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
