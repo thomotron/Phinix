@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Authentication;
 using Connections;
@@ -31,11 +32,22 @@ namespace Trading
         /// </summary>
         private ServerUserManager userManager;
 
+        /// <summary>
+        /// Collection of active trades organised by trade ID.
+        /// </summary>
+        private Dictionary<string, Trade> activeTrades;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>activeTrades</c>.
+        /// </summary>
+        private object activeTradesLock = new object();
+
         public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            
+            this.activeTrades = new Dictionary<string, Trade>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
