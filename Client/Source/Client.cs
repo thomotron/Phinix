@@ -144,8 +144,6 @@ namespace PhinixClient
             userManager.OnLoginSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully logged in with UUID {0}", userManager.Uuid);
-                Trading.Thing thing = TradingThingConverter.ConvertThingFromVerse(Find.CurrentMap.zoneManager.AllZones.Where(z => z is Zone_Stockpile).Select(z => z.AllContainedThings).RandomElement().RandomElement());
-                trading.SendThing(thing);
             };
             userManager.OnLoginFailure += (sender, args) =>
             {
