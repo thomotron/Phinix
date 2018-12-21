@@ -1,0 +1,13 @@
+syntax = "proto3";
+package Trading;
+
+message CreateTradePacket
+{
+    string SessionId = 1;
+    
+    string Uuid = 2;
+    
+    string OtherPartyUuid = 3;
+    
+    string TradeId = 4;
+};

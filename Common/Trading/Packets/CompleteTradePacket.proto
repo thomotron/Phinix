@@ -1,0 +1,15 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Thing.proto";
+
+message CompleteTradePacket
+{
+    string TradeId = 1;
+
+    string OtherPartyUuid = 2;
+
+    bool Success = 3;
+    
+    repeated Thing Items = 4;
+};
