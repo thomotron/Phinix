@@ -259,6 +259,40 @@ namespace UserManagement
         {
             lock (connectedUsersLock) return connectedUsers.Keys.ToArray();
         }
+
+        /// <summary>
+        /// Attempts to get the connection ID associated with the given UUID.
+        /// Returns whether the connection ID was gathered successfully.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="connectionId">Output connection ID</param>
+        /// <returns>Whether the connection ID was gathered successfully</returns>
+        public bool TryGetConnection(string uuid, out string connectionId)
+        {
+            // Initialise connection ID to something arbitrary
+            connectionId = null;
+            
+            // It's a surprise tool that will help us later
+            KeyValuePair<string, string> pair;
+            
+            lock (connectedUsersLock)
+            {
+                try
+                {
+                    // Try to get a single key-value pair
+                    pair = connectedUsers.Single(p => p.Value == uuid);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Couldn't get a single result, bail out
+                    return false;
+                }
+            }
+            
+            // Output the connection ID and return successfully
+            connectionId = pair.Key;
+            return true;
+        }
         
         /// <summary>
         /// Logs out all users.
