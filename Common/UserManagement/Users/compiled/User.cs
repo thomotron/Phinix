@@ -22,13 +22,14 @@ namespace UserManagement {
     static UserReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChBVc2Vycy9Vc2VyLnByb3RvEg5Vc2VyTWFuYWdlbWVudCJNCgRVc2VyEgwK",
+            "ChBVc2Vycy9Vc2VyLnByb3RvEg5Vc2VyTWFuYWdlbWVudCJmCgRVc2VyEgwK",
             "BFV1aWQYASABKAkSEAoIVXNlcm5hbWUYBCABKAkSEwoLRGlzcGxheU5hbWUY",
-            "AiABKAkSEAoITG9nZ2VkSW4YAyABKAhiBnByb3RvMw=="));
+            "AiABKAkSEAoITG9nZ2VkSW4YAyABKAgSFwoPQWNjZXB0aW5nVHJhZGVzGAUg",
+            "ASgIYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.User), global::UserManagement.User.Parser, new[]{ "Uuid", "Username", "DisplayName", "LoggedIn" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.User), global::UserManagement.User.Parser, new[]{ "Uuid", "Username", "DisplayName", "LoggedIn", "AcceptingTrades" }, null, null, null)
           }));
     }
     #endregion
@@ -63,6 +64,7 @@ namespace UserManagement {
       username_ = other.username_;
       displayName_ = other.displayName_;
       loggedIn_ = other.loggedIn_;
+      acceptingTrades_ = other.acceptingTrades_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -114,6 +116,17 @@ namespace UserManagement {
       }
     }
 
+    /// <summary>Field number for the "AcceptingTrades" field.</summary>
+    public const int AcceptingTradesFieldNumber = 5;
+    private bool acceptingTrades_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool AcceptingTrades {
+      get { return acceptingTrades_; }
+      set {
+        acceptingTrades_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as User);
@@ -131,6 +144,7 @@ namespace UserManagement {
       if (Username != other.Username) return false;
       if (DisplayName != other.DisplayName) return false;
       if (LoggedIn != other.LoggedIn) return false;
+      if (AcceptingTrades != other.AcceptingTrades) return false;
       return true;
     }
 
@@ -141,6 +155,7 @@ namespace UserManagement {
       if (Username.Length != 0) hash ^= Username.GetHashCode();
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (LoggedIn != false) hash ^= LoggedIn.GetHashCode();
+      if (AcceptingTrades != false) hash ^= AcceptingTrades.GetHashCode();
       return hash;
     }
 
@@ -167,6 +182,10 @@ namespace UserManagement {
         output.WriteRawTag(34);
         output.WriteString(Username);
       }
+      if (AcceptingTrades != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(AcceptingTrades);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -182,6 +201,9 @@ namespace UserManagement {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
       }
       if (LoggedIn != false) {
+        size += 1 + 1;
+      }
+      if (AcceptingTrades != false) {
         size += 1 + 1;
       }
       return size;
@@ -203,6 +225,9 @@ namespace UserManagement {
       }
       if (other.LoggedIn != false) {
         LoggedIn = other.LoggedIn;
+      }
+      if (other.AcceptingTrades != false) {
+        AcceptingTrades = other.AcceptingTrades;
       }
     }
 
@@ -228,6 +253,10 @@ namespace UserManagement {
           }
           case 34: {
             Username = input.ReadString();
+            break;
+          }
+          case 40: {
+            AcceptingTrades = input.ReadBool();
             break;
           }
         }

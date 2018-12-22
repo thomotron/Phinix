@@ -10,4 +10,6 @@ message User
     string DisplayName = 2;
     
     bool LoggedIn = 3;
+    
+    bool AcceptingTrades = 5;
 }
