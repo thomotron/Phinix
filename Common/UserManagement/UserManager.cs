@@ -229,5 +229,30 @@ namespace UserManagement
 
             return true;
         }
+
+        /// <summary>
+        /// Attempts to get the accepting trades state of a user with the given UUID.
+        /// Returns whether the accepting trades state was retrieved successfully.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="acceptingTrades">Output accepting trades state</param>
+        /// <returns>accepting trades state was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryGetAcceptingTrades(string uuid, out bool acceptingTrades)
+        {
+            // Initialise accepting trades to something arbitrary
+            acceptingTrades = false;
+            
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                acceptingTrades = userStore.Users[uuid].AcceptingTrades;
+            }
+
+            return true;
+        }
     }
 }
