@@ -158,6 +158,12 @@ namespace Trading
             }
         }
 
+        /// <summary>
+        /// Sends a successful <c>CreateTradeResponsePacket</c> with the given trade ID and UUID of the other party.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="otherPartyUuid">Other party's UUID</param>
         private void sendSuccessfulCreateTradeResponsePacket(string connectionId, string tradeId, string otherPartyUuid)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
@@ -175,6 +181,12 @@ namespace Trading
             netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
         }
 
+        /// <summary>
+        /// Sends a failed <c>CreateTradeResponsePacket</c> with the given failure reason and message.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="failureReason">Failure reason</param>
+        /// <param name="failureMessage">Failure message</param>
         private void sendFailedCreateTradeResponsePacket(string connectionId, TradeFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
