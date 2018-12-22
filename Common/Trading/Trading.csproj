@@ -45,8 +45,10 @@
     <Compile Include="ClientTrading.cs" />
     <Compile Include="Packets\compiled\CompleteTradePacket.cs" />
     <Compile Include="Packets\compiled\CreateTradePacket.cs" />
+    <Compile Include="Packets\compiled\CreateTradeResponsePacket.cs" />
     <Compile Include="Packets\compiled\Quality.cs" />
     <Compile Include="Packets\compiled\Thing.cs" />
+    <Compile Include="Packets\compiled\TradeFailureReason.cs" />
     <Compile Include="Packets\compiled\UpdateTradePacket.cs" />
     <Compile Include="ServerTrading.cs" />
     <Compile Include="Trade.cs" />
@@ -78,8 +80,10 @@
     <Content Include="compile-proto.sh" />
     <Content Include="Packets\CompleteTradePacket.proto" />
     <Content Include="Packets\CreateTradePacket.proto" />
+    <Content Include="Packets\CreateTradeResponsePacket.proto" />
     <Content Include="Packets\Quality.proto" />
     <Content Include="Packets\Thing.proto" />
+    <Content Include="Packets\TradeFailureReason.proto" />
     <Content Include="Packets\UpdateTradePacket.proto" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
