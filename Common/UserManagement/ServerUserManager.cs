@@ -381,6 +381,9 @@ namespace UserManagement
                 UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
             
+            // Set whether they are accepting trades
+            UpdateUser(uuid, acceptingTrades: packet.AcceptingTrades);
+            
             // Add their UUID/Session ID pair to connectedUsers
             lock (connectedUsersLock)
             {
