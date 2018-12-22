@@ -100,9 +100,10 @@ namespace UserManagement
         /// </summary>
         /// <param name="uuid">UUID of the user</param>
         /// <param name="displayName">Display name of the user</param>
+        /// <param name="acceptingTrades">Whether the user is accepting trades</param>
         /// <returns>User updated successfully</returns>
         /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
-        public virtual bool UpdateUser(string uuid, string displayName = null)
+        public virtual bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
@@ -111,6 +112,8 @@ namespace UserManagement
                 if (!userStore.Users.ContainsKey(uuid)) return false;
 
                 if (displayName != null) userStore.Users[uuid].DisplayName = displayName;
+
+                if (acceptingTrades.HasValue) userStore.Users[uuid].AcceptingTrades = acceptingTrades.Value;
             }
 
             return true;

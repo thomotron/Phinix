@@ -160,10 +160,11 @@ namespace UserManagement
         /// </summary>
         /// <param name="uuid">UUID of the user</param>
         /// <param name="displayName">Display name of the user</param>
+        /// <param name="acceptingTrades">Whether the user is accepting trades</param>
         /// <returns>User updated successfully</returns>
-        public override bool UpdateUser(string uuid, string displayName = null)
+        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null)
         {
-            if (!base.UpdateUser(uuid, displayName)) return false;
+            if (!base.UpdateUser(uuid, displayName, acceptingTrades)) return false;
 
             User user;
             lock (userStoreLock)
@@ -529,7 +530,7 @@ namespace UserManagement
             if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
 
             // Update the user
-            UpdateUser(user.Uuid, user.DisplayName);
+            UpdateUser(user.Uuid, user.DisplayName, user.AcceptingTrades);
         }
     }
 }
