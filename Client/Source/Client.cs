@@ -150,7 +150,10 @@ namespace PhinixClient
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully authenticated with server.");
-                userManager.SendLogin(DisplayName);
+                userManager.SendLogin(
+                    displayName: DisplayName,
+                    acceptingTrades: AcceptingTrades
+                );
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
