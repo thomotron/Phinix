@@ -85,6 +85,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> acceptingTradesHandle;
+        public bool AcceptingTrades
+        {
+            get => acceptingTradesHandle.Value;
+            set
+            {
+                acceptingTradesHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -114,6 +125,12 @@ namespace PhinixClient
                 title: "Phinix_hugslibsettings_displayNameTitle".Translate(),
                 description: null,
                 defaultValue: SteamUtility.SteamPersonaName
+            );
+            acceptingTradesHandle = Settings.GetHandle(
+                settingName: "acceptingTrades",
+                title: "Phinix_hugslibsettings_acceptingTradesTitle",
+                description: null,
+                defaultValue: true
             );
 
             // Set up our module instances

@@ -14,6 +14,7 @@
     <Phinix_hugslibsettings_serverAddressTitle>Server Address</Phinix_hugslibsettings_serverAddressTitle>
     <Phinix_hugslibsettings_serverPortTitle>Server Port</Phinix_hugslibsettings_serverPortTitle>
     <Phinix_hugslibsettings_displayNameTitle>Display Name</Phinix_hugslibsettings_displayNameTitle>
+    <Phinix_hugslibsettings_acceptingTradesTitle>Accepting Trades</Phinix_hugslibsettings_acceptingTradesTitle>
     
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
