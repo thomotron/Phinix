@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Authentication;
 using Connections;
@@ -66,8 +67,9 @@ namespace Trading
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
-                case "Thing":
-                    thingHandler(connectionId, message.Unpack<Thing>());
+                case "CreateTradePacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a CreateTradePacket from {0}", connectionId), LogLevel.DEBUG));
+                    createTradePacketHandler(connectionId, message.Unpack<CreateTradePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -75,15 +77,119 @@ namespace Trading
             }
         }
 
-        private void thingHandler(string cId, Thing packet)
+        /// <summary>
+        /// Handles incoming <c>CreateTradePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>CreateTradePacket</c></param>
+        private void createTradePacketHandler(string connectionId, CreateTradePacket packet)
         {
+            // Make sure the session is valid
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
+            {
+                // Fail trade creation attempt due to bad session
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.SessionId, "Cannot create a trade because your session is not valid. Try reconnecting.");
+                
+                // Stop here
+                return;
+            }
+            
+            // Make sure the user is valid
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
+            {
+                // Fail trade creation attempt due to bad UUID
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.Uuid, "Cannot create a trade because your login is not valid. Try reconnecting.");
+                
+                // Stop here
+                return;
+            }
+
+            // Make sure the other party exists
+            if (!userManager.TryGetLoggedIn(packet.OtherPartyUuid, out bool otherPartyLoggedIn))
+            {
+                // Fail the trade creation request because the other party does not exist
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.OtherPartyDoesNotExist, "Cannot create a trade because the other party does not exist.");
+                
+                // Stop here
+                return;
+            }
+            
+            // Make sure the other party is logged in
+            // TODO: Offline trade offers
+            if (!otherPartyLoggedIn)
+            {
+                // Fail the trade creation request because the other party is not logged in
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.OtherPartyOffline, "Cannot create a trade because the other party is not logged in.");
+                
+                // Stop here
+                return; 
+            }
+
+            lock (activeTradesLock)
+            {
+                // Check if both parties are already in another active trade
+                bool alreadyTrading = activeTrades.Values.Any(t => t.PartyUuids.Contains(packet.Uuid) || t.PartyUuids.Contains(packet.OtherPartyUuid));
+                if (alreadyTrading)
+                {
+                    // Fail the trade creation request because both parties are already trading with each other
+                    sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.AlreadyTrading, "Cannot create a trade because you are already trading with the other party.");
+                    
+                    // Stop here
+                    return;
+                }
+                
+                // Get the other party's connection ID
+                if (!userManager.TryGetConnection(packet.OtherPartyUuid, out string otherPartyConnectionId))
+                {
+                    // Fail the trade creation request because the other party's connection ID cannot be retrieved
+                    sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.InternalServerError, "Cannot create a trade because the server could not find the other party's connection.");
+                    
+                    // Stop here
+                    return;
+                }
+                
+                // Passed all tests, create a new trade
+                string tradeId = Guid.NewGuid().ToString();
+                activeTrades.Add(tradeId, new Trade(new[]{packet.Uuid, packet.OtherPartyUuid}));
+                
+                // Send both parties a successful trade creation packet
+                sendSuccessfulCreateTradeResponsePacket(connectionId, tradeId, packet.OtherPartyUuid); // Sender
+                sendSuccessfulCreateTradeResponsePacket(otherPartyConnectionId, tradeId, packet.Uuid); // Other party
+            }
+        }
+
+        private void sendSuccessfulCreateTradeResponsePacket(string connectionId, string tradeId, string otherPartyUuid)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Create and pack a response
+            CreateTradeResponsePacket packet = new CreateTradeResponsePacket
+            {
+                Success = true,
+                TradeId = tradeId,
+                OtherPartyUuid = otherPartyUuid
+            };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
-            // Send it to each logged in user
-            foreach (string connectionId in userManager.GetConnections())
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        private void sendFailedCreateTradeResponsePacket(string connectionId, TradeFailureReason failureReason, string failureMessage)
+        {
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            
+            // Create and pack a response
+            CreateTradeResponsePacket packet = new CreateTradeResponsePacket
             {
-                netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
-            }
+                Success = false,
+                FailureReason = failureReason,
+                FailureMessage = failureMessage
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
         }
     }
 }
