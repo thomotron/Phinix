@@ -8,8 +8,15 @@ namespace Trading
         /// Incoming <c>Thing</c>
         /// </summary>
         public Thing Thing;
-        public ThingReceivedEventArgs(Thing thing)
+
+        /// <summary>
+        /// Sender's UUID.
+        /// </summary>
+        public string SenderUuid;
+
+        public ThingReceivedEventArgs(string senderUuid, Thing thing)
         {
+            this.SenderUuid = senderUuid;
             this.Thing = thing;
         }
     }
