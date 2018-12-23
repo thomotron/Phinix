@@ -16,7 +16,6 @@ namespace Trading
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
-        public event EventHandler<ThingReceivedEventArgs> OnThingReceived; 
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
@@ -95,7 +94,6 @@ namespace Trading
         /// <param name="packet">Incoming <c>Thing</c></param>
         private void thingHandler(string connectionId, Thing packet)
         {
-            OnThingReceived?.Invoke(this, new ThingReceivedEventArgs(packet));
         }
     }
 }
