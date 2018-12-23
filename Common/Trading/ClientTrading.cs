@@ -86,8 +86,8 @@ namespace Trading
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
-                case "Thing":
-                    thingHandler(connectionId, message.Unpack<Thing>());
+                case "CreateTradeResponsePacket":
+                    createTradeResponsePacketHandler(connectionId, message.Unpack<CreateTradeResponsePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -96,12 +96,31 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <c>Thing</c>s.
+        /// Handles incoming <c>CreateTradeResponsePacket</c>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>Thing</c></param>
-        private void thingHandler(string connectionId, Thing packet)
+        /// <param name="packet">Incoming <c>CreateTradeResponsePacket</c></param>
+        private void createTradeResponsePacketHandler(string connectionId, CreateTradeResponsePacket packet)
         {
+            if (packet.Success)
+            {
+                lock (activeTradesLock)
+                {
+                    // Stop here if the trade already exists locally
+                    if (activeTrades.ContainsKey(packet.TradeId)) return;
+                    
+                    // Add a new trade with the ID contained in the packet
+                    activeTrades.Add(packet.TradeId, new Trade(packet.TradeId, new[]{userManager.Uuid, packet.OtherPartyUuid}));
+                }
+                
+                // Raise the successful trade creation event
+                OnTradeCreationSuccess?.Invoke(this, new CreateTradeEventArgs(packet.TradeId, packet.OtherPartyUuid));
+            }
+            else
+            {
+                // Raise the failed trade creation event
+                OnTradeCreationFailure?.Invoke(this, new CreateTradeEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
         }
     }
 }
