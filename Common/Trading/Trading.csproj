@@ -51,6 +51,7 @@
     <Compile Include="Packets\compiled\TradeFailureReason.cs" />
     <Compile Include="Packets\compiled\UpdateTradePacket.cs" />
     <Compile Include="ServerTrading.cs" />
+    <Compile Include="ThingReceivedEventArgs.cs" />
     <Compile Include="Trade.cs" />
     <Compile Include="Trading.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

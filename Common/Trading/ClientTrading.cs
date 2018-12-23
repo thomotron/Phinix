@@ -98,17 +98,4 @@ namespace Trading
             OnThingReceived?.Invoke(this, new ThingReceivedEventArgs(packet));
         }
     }
-
-    public class ThingReceivedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Incoming <c>Thing</c>
-        /// </summary>
-        public Thing Thing;
-
-        public ThingReceivedEventArgs(Thing thing)
-        {
-            this.Thing = thing;
-        }
-    }
 }
