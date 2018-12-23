@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,11 +27,29 @@ namespace Trading
         /// </summary>
         public readonly List<string> AcceptedParties;
 
+        /// <summary>
+        /// Creates a new <c>Trade</c> between the given parties.
+        /// </summary>
+        /// <param name="partyUuids">UUIDs of each party</param>
         public Trade(IEnumerable<string> partyUuids)
         {
             this.PartyUuids = partyUuids.ToArray();
             
             this.TradeId = Guid.NewGuid().ToString();
+            this.ItemsOnOffer = new Dictionary<string, Thing[]>();
+            this.AcceptedParties = new List<string>();
+        }
+
+        /// <summary>
+        /// Creates a new <c>Trade</c> between the given parties with the given trade ID.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="partyUuids">UUIDs of each party</param>
+        public Trade(string tradeId, IEnumerable<string> partyUuids)
+        {
+            this.TradeId = tradeId;
+            this.PartyUuids = partyUuids.ToArray();
+            
             this.ItemsOnOffer = new Dictionary<string, Thing[]>();
             this.AcceptedParties = new List<string>();
         }
