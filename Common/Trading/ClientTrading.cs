@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -32,11 +33,22 @@ namespace Trading
         /// </summary>
         private ClientUserManager userManager;
 
+        /// <summary>
+        /// Collection of active trades with other users organised by trade ID.
+        /// </summary>
+        private Dictionary<string, Trade> activeTrades;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>activeTrades</c>.
+        /// </summary>
+        private object activeTradesLock = new object();
+
         public ClientTrading(NetClient netClient, ClientAuthenticator authenticator, ClientUserManager userManager)
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            
+            this.activeTrades = new Dictionary<string, Trade>();
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
