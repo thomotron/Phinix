@@ -16,6 +16,14 @@ namespace Trading
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
+        /// <summary>
+        /// Raised when a trade is created successfully.
+        /// </summary>
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
+        /// <summary>
+        /// Raised when a trade fails to create.
+        /// </summary>
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure; 
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
