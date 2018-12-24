@@ -22,14 +22,13 @@ namespace Trading {
     static CreateTradePacketReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Ch9QYWNrZXRzL0NyZWF0ZVRyYWRlUGFja2V0LnByb3RvEgdUcmFkaW5nIl0K",
+            "Ch9QYWNrZXRzL0NyZWF0ZVRyYWRlUGFja2V0LnByb3RvEgdUcmFkaW5nIkwK",
             "EUNyZWF0ZVRyYWRlUGFja2V0EhEKCVNlc3Npb25JZBgBIAEoCRIMCgRVdWlk",
-            "GAIgASgJEhYKDk90aGVyUGFydHlVdWlkGAMgASgJEg8KB1RyYWRlSWQYBCAB",
-            "KAliBnByb3RvMw=="));
+            "GAIgASgJEhYKDk90aGVyUGFydHlVdWlkGAMgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.CreateTradePacket), global::Trading.CreateTradePacket.Parser, new[]{ "SessionId", "Uuid", "OtherPartyUuid", "TradeId" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.CreateTradePacket), global::Trading.CreateTradePacket.Parser, new[]{ "SessionId", "Uuid", "OtherPartyUuid" }, null, null, null)
           }));
     }
     #endregion
@@ -63,7 +62,6 @@ namespace Trading {
       sessionId_ = other.sessionId_;
       uuid_ = other.uuid_;
       otherPartyUuid_ = other.otherPartyUuid_;
-      tradeId_ = other.tradeId_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -104,17 +102,6 @@ namespace Trading {
       }
     }
 
-    /// <summary>Field number for the "TradeId" field.</summary>
-    public const int TradeIdFieldNumber = 4;
-    private string tradeId_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string TradeId {
-      get { return tradeId_; }
-      set {
-        tradeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as CreateTradePacket);
@@ -131,7 +118,6 @@ namespace Trading {
       if (SessionId != other.SessionId) return false;
       if (Uuid != other.Uuid) return false;
       if (OtherPartyUuid != other.OtherPartyUuid) return false;
-      if (TradeId != other.TradeId) return false;
       return true;
     }
 
@@ -141,7 +127,6 @@ namespace Trading {
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
       if (Uuid.Length != 0) hash ^= Uuid.GetHashCode();
       if (OtherPartyUuid.Length != 0) hash ^= OtherPartyUuid.GetHashCode();
-      if (TradeId.Length != 0) hash ^= TradeId.GetHashCode();
       return hash;
     }
 
@@ -164,10 +149,6 @@ namespace Trading {
         output.WriteRawTag(26);
         output.WriteString(OtherPartyUuid);
       }
-      if (TradeId.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(TradeId);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -181,9 +162,6 @@ namespace Trading {
       }
       if (OtherPartyUuid.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(OtherPartyUuid);
-      }
-      if (TradeId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(TradeId);
       }
       return size;
     }
@@ -201,9 +179,6 @@ namespace Trading {
       }
       if (other.OtherPartyUuid.Length != 0) {
         OtherPartyUuid = other.OtherPartyUuid;
-      }
-      if (other.TradeId.Length != 0) {
-        TradeId = other.TradeId;
       }
     }
 
@@ -225,10 +200,6 @@ namespace Trading {
           }
           case 26: {
             OtherPartyUuid = input.ReadString();
-            break;
-          }
-          case 34: {
-            TradeId = input.ReadString();
             break;
           }
         }

@@ -8,6 +8,4 @@ message CreateTradePacket
     string Uuid = 2;
     
     string OtherPartyUuid = 3;
-    
-    string TradeId = 4;
 };
