@@ -61,6 +61,30 @@ namespace Trading
         }
 
         /// <summary>
+        /// Attempts to create a trade with another party.
+        /// </summary>
+        /// <param name="otherPartyUuid">Other party's UUID</param>
+        public void CreateTrade(string otherPartyUuid)
+        {
+            if (string.IsNullOrEmpty(otherPartyUuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(otherPartyUuid));
+            
+            // Do nothing if not online
+            if (!(netClient.Connected || authenticator.Authenticated || userManager.LoggedIn)) return;
+
+            // Create and pack a CreateTradePacket
+            CreateTradePacket packet = new CreateTradePacket
+            {
+                SessionId = authenticator.SessionId,
+                Uuid = userManager.Uuid,
+                OtherPartyUuid = otherPartyUuid
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
         /// </summary>
         /// <param name="module">Target module</param>
