@@ -50,7 +50,8 @@ namespace PhinixClient
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
-        public void SendThing(Trading.Thing thing) => trading.SendThing(thing);
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -177,19 +178,13 @@ namespace PhinixClient
             };
             
             // Subscribe to trading events
-            trading.OnThingReceived += (sender, args) =>
+            trading.OnTradeCreationSuccess += (sender, args) =>
             {
-                Logger.Trace("Received a thing");
-                
-                Thing thing = TradingThingConverter.ConvertThingFromProto(args.Thing);
-                IntVec3 position = DropCellFinder.TradeDropSpot(Find.CurrentMap);
-                DropPodUtility.DropThingsNear(position, Find.CurrentMap, new[] {thing}, canRoofPunch: false);
-                Find.LetterStack.ReceiveLetter(
-                    label: "Ship pod",
-                    text: "A pod was sent containing items",
-                    textLetterDef: LetterDefOf.PositiveEvent,
-                    lookTargets: new RimWorld.Planet.GlobalTargetInfo(position, Find.CurrentMap)
-                );
+                Logger.Trace("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid);
+            };
+            trading.OnTradeCreationFailure += (sender, args) =>
+            {
+                Logger.Trace("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString());
             };
             
             // Forward events so the UI can handle them
@@ -200,6 +195,8 @@ namespace PhinixClient
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
             userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
+            trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
+            trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

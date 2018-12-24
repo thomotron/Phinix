@@ -59,18 +59,6 @@ namespace Trading
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
-        
-        public void SendThing(Thing thing)
-        {
-            // Do nothing unless connected, authenticated, and logged in
-            if (!netClient.Connected || !authenticator.Authenticated || !userManager.LoggedIn) return;
-            
-            // Pack the thing
-            Any packedThing = ProtobufPacketHelper.Pack(thing);
-            
-            // Send it on its way
-            netClient.Send(MODULE_NAME, packedThing.ToByteArray());
-        }
 
         /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
