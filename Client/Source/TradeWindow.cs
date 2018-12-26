@@ -69,6 +69,16 @@ namespace PhinixClient
                 height: OFFER_WINDOW_HEIGHT
             );
             DrawTheirOffer(theirOfferRect);
+            
+            // Arrows
+            Rect tradeArrowsRect = new Rect(
+                x: ourOfferRect.xMax + DEFAULT_SPACING,
+                y: titleRect.yMax,
+                width: TRADE_ARROWS_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
+            Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
         }
 
         /// <summary>
