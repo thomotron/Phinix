@@ -145,6 +145,7 @@ namespace PhinixClient
             Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
             
             // Our confirmation
+            // TODO: Ellipsise display name length if it's going to spill over
             Rect ourConfirmationRect = new Rect(
                 x: ourOfferRect.xMin,
                 y: ourOfferRect.yMax + DEFAULT_SPACING,
@@ -158,6 +159,7 @@ namespace PhinixClient
             );
             
             // Their confirmation
+            // TODO: Ellipsise display name length if it's going to spill over
             Rect theirConfirmationRect = new Rect(
                 x: theirOfferRect.xMin,
                 y: theirOfferRect.yMax + DEFAULT_SPACING,
