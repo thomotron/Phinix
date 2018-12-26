@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -49,8 +50,12 @@ namespace PhinixClient
         /// <inheritdoc />
         public void Draw(Rect container)
         {
-            // Draw a label with the formatted text
-            Widgets.Label(container, Format());
+            // Draw a button with the formatted text
+            if (Widgets.ButtonText(container, Format(), false))
+            {
+                // Draw a context menu with user-specific actions
+                drawContextMenu();
+            }
         }
 
         /// <inheritdoc />
@@ -65,6 +70,22 @@ namespace PhinixClient
         public float GetWidth(float height)
         {
             throw new NotSupportedException("ChatMessages are always drawn at full width.");
+        }
+
+        private void drawContextMenu()
+        {
+            // Do nothing if this is our UUID
+            if (SenderUuid == Client.Instance.Uuid) return;
+            
+            // Try to get the display name of this message's sender
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
+            
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(new FloatMenuOption("Trade with " + displayName, () => Client.Instance.CreateTrade(SenderUuid)));
+            
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }

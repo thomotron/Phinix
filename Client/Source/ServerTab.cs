@@ -333,7 +333,11 @@ namespace PhinixClient
                     width: innerContainer.width,
                     height: USER_HEIGHT
                 );
-                Widgets.Label(userRect, displayName);
+                if (Widgets.ButtonText(userRect, displayName, false))
+                {
+                    // Display the user context menu with trade actions etc.
+                    DrawUserContextMenu(uuid, displayName);
+                }
                 
                 // Increment the user count
                 userCount++;
@@ -355,6 +359,24 @@ namespace PhinixClient
             
             // Text
             Widgets.NoneLabelCenteredVertically(container, text);
+        }
+
+        /// <summary>
+        /// Draws a context menu with user-specific actions.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="displayName">User's display name</param>
+        private void DrawUserContextMenu(string uuid, string displayName)
+        {
+            // Do nothing if this is our UUID
+            if (uuid == Instance.Uuid) return;
+            
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(new FloatMenuOption("Trade with " + displayName, () => Instance.CreateTrade(uuid)));
+            
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }
