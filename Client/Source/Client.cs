@@ -50,6 +50,7 @@ namespace PhinixClient
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
+        public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
 
