@@ -52,33 +52,14 @@ namespace PhinixClient
             );
             DrawTitle(titleRect);
             
-            // Our offer
-            Rect ourOfferRect = new Rect(
+            // Offers
+            Rect offersRect = new Rect(
                 x: inRect.xMin,
                 y: titleRect.yMax,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
+                width: inRect.width,
+                height: OFFER_WINDOW_HEIGHT + DEFAULT_SPACING + OFFER_CONFIRMATION_HEIGHT
             );
-            DrawOurOffer(ourOfferRect);
-            
-            // Their offer
-            Rect theirOfferRect = new Rect(
-                x: inRect.xMax - OFFER_WINDOW_WIDTH,
-                y: titleRect.yMax,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
-            );
-            DrawTheirOffer(theirOfferRect);
-            
-            // Arrows
-            Rect tradeArrowsRect = new Rect(
-                x: ourOfferRect.xMax + DEFAULT_SPACING,
-                y: titleRect.yMax,
-                width: TRADE_ARROWS_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
-            );
-            Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
-            Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
+            DrawOffers(offersRect);
         }
 
         /// <summary>
@@ -87,16 +68,8 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawTitle(Rect container)
         {
-            // Try to get the other party's UUID and display name
-            string displayName;
-            if (!Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid))
-            {
-                displayName = "???";
-            }
-            if (!Instance.TryGetDisplayName(otherPartyUuid, out displayName))
-            {
-                displayName = "???";
-            }
+            // Get the other party's display name
+            string displayName = GetOtherPartyDisplayName();
             
             // Set the text style
             Text.Anchor = TextAnchor.MiddleCenter;
@@ -108,6 +81,62 @@ namespace PhinixClient
             // Reset the text style
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+        }
+        
+        /// <summary>
+        /// Gets the display name of the other party of this trade.
+        /// Defaults to '???' if any part of the process fails.
+        /// </summary>
+        /// <returns>Other party's display name</returns>
+        private string GetOtherPartyDisplayName()
+        {
+            // Try to get the other party's UUID and display name
+            string displayName;
+            if (!Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid))
+            {
+                displayName = "???";
+            }
+            if (!Instance.TryGetDisplayName(otherPartyUuid, out displayName))
+            {
+                displayName = "???";
+            }
+
+            return displayName;
+        }
+        
+        /// <summary>
+        /// Draws the offer windows and confirmation statuses within the given container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawOffers(Rect container)
+        {
+            // Our offer
+            Rect ourOfferRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            DrawOurOffer(ourOfferRect);
+            
+            // Their offer
+            Rect theirOfferRect = new Rect(
+                x: container.xMax - OFFER_WINDOW_WIDTH,
+                y: container.yMin,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            DrawTheirOffer(theirOfferRect);
+            
+            // Arrows
+            Rect tradeArrowsRect = new Rect(
+                x: ourOfferRect.xMax + DEFAULT_SPACING,
+                y: container.yMin,
+                width: TRADE_ARROWS_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
+            Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
         }
 
         /// <summary>
