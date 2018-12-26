@@ -51,6 +51,7 @@ namespace PhinixClient
 
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
+        public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
 
