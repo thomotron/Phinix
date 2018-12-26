@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -82,6 +83,38 @@ namespace Trading
             
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Tries to get the other party's UUID from the given trade.
+        /// Returns whether the UUID was retrieved successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="otherPartyUuid">Output UUID</param>
+        /// <returns>UUID was retrieved successfully</returns>
+        public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid)
+        {
+            // Assign other party UUID to something arbitrary
+            otherPartyUuid = null;
+            
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId)) return false;
+
+                try
+                {
+                    // Try to get a single UUID that isn't ours from the party UUIDs array
+                    otherPartyUuid = activeTrades[tradeId].PartyUuids.Single(uuid => uuid != userManager.Uuid);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Couldn't find a single UUID that wasn't ours
+                    return false;
+                }
+            }
+            
+            return true;
         }
 
         /// <summary>
