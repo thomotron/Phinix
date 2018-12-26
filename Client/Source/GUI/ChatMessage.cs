@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 using Verse;
 
 namespace PhinixClient
@@ -82,7 +83,7 @@ namespace PhinixClient
             
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Trade with " + displayName, () => Client.Instance.CreateTrade(SenderUuid)));
+            items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
             
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));

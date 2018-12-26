@@ -1,5 +1,6 @@
 using RimWorld;
 using UnityEngine;
+using Utils;
 using Verse;
 using static PhinixClient.Client;
 
@@ -92,7 +93,7 @@ namespace PhinixClient
             Text.Font = GameFont.Medium;
             
             // Draw the title
-            Widgets.Label(container, "Trade with " + displayName);
+            Widgets.Label(container, "Trade with " + TextHelper.StripRichText(displayName));
             
             // Reset the text style
             Text.Anchor = TextAnchor.UpperLeft;
