@@ -19,6 +19,7 @@ namespace PhinixClient
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
+        private const float OFFER_CONFIRMATION_HEIGHT = 20f;
 
         private const float TITLE_HEIGHT = 30f;
 
@@ -26,6 +27,11 @@ namespace PhinixClient
         /// The ID of the trade this window is for.
         /// </summary>
         private string tradeId;
+
+        /// <summary>
+        /// Whether we accept the trade as it stands.
+        /// </summary>
+        private bool tradeAccepted = false;
 
         /// <summary>
         /// Creates a new <c>TradeWindow</c> for the given trade ID.
@@ -137,6 +143,33 @@ namespace PhinixClient
             );
             Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
             Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
+            
+            // Our confirmation
+            Rect ourConfirmationRect = new Rect(
+                x: ourOfferRect.xMin,
+                y: ourOfferRect.yMax + DEFAULT_SPACING,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_CONFIRMATION_HEIGHT
+            );
+            Widgets.CheckboxLabeled(
+                rect: ourConfirmationRect,
+                label: ("Phinix_trade_confirmOurTradeCheckbox" + (tradeAccepted ? "Checked" : "Unchecked")).Translate(), // Janky-looking easter egg, just for you
+                checkOn: ref tradeAccepted
+            );
+            
+            // Their confirmation
+            Rect theirConfirmationRect = new Rect(
+                x: theirOfferRect.xMin,
+                y: theirOfferRect.yMax + DEFAULT_SPACING,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_CONFIRMATION_HEIGHT
+            );
+            Instance.TryGetOtherPartyAccepted(tradeId, out bool otherPartyAccepted);
+            Widgets.CheckboxLabeled(
+                rect: theirConfirmationRect,
+                label: ("Phinix_trade_confirmTheirTradeCheckbox" + (otherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(GetOtherPartyDisplayName())), // Jankier-looking easter egg, just for you
+                checkOn: ref otherPartyAccepted
+            );
         }
 
         /// <summary>
