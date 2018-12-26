@@ -116,6 +116,33 @@ namespace Trading
             
             return true;
         }
+        
+        /// <summary>
+        /// Attempts to get the accepted state of the other party from the given trade.
+        /// Returns whether the accepted state was retrieved successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="otherPartyAccepted">Whether the other party has accepted</param>
+        /// <returns>Whether the accepted state was returned successfully</returns>
+        public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted)
+        {
+            // Set other party accepted to something arbitrary
+            otherPartyAccepted = false;
+
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId)) return false;
+
+                // Try to get the other party's UUID
+                if (!TryGetOtherPartyUuid(tradeId, out string otherPartyUuid)) return false;
+
+                // Set the accepted state to whether they are in the accepted parties list
+                otherPartyAccepted = activeTrades[tradeId].AcceptedParties.Contains(otherPartyUuid);
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
