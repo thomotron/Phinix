@@ -181,11 +181,11 @@ namespace PhinixClient
             // Subscribe to trading events
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
-                Logger.Trace("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid);
+                Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
             };
             trading.OnTradeCreationFailure += (sender, args) =>
             {
-                Logger.Trace("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString());
+                Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
             };
             
             // Forward events so the UI can handle them
