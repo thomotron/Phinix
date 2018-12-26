@@ -49,6 +49,24 @@ namespace PhinixClient
                 height: TITLE_HEIGHT
             );
             DrawTitle(titleRect);
+            
+            // Our offer
+            Rect ourOfferRect = new Rect(
+                x: inRect.xMin,
+                y: titleRect.yMax,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            DrawOurOffer(ourOfferRect);
+            
+            // Their offer
+            Rect theirOfferRect = new Rect(
+                x: inRect.xMax,
+                y: titleRect.yMax,
+                width: OFFER_WINDOW_WIDTH,
+                height: OFFER_WINDOW_HEIGHT
+            );
+            DrawTheirOffer(theirOfferRect);
         }
 
         /// <summary>
@@ -78,6 +96,24 @@ namespace PhinixClient
             // Reset the text style
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+        }
+
+        /// <summary>
+        /// Draws our offer within the given container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawOurOffer(Rect container)
+        {
+            Widgets.DrawMenuSection(container);
+        }
+
+        /// <summary>
+        /// Draws their offer within the given container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawTheirOffer(Rect container)
+        {
+            Widgets.DrawMenuSection(container);
         }
     }
 }
