@@ -183,6 +183,7 @@ namespace PhinixClient
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
                 Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
+                Find.WindowStack.Add(new TradeWindow(args.TradeId));
             };
             trading.OnTradeCreationFailure += (sender, args) =>
             {
