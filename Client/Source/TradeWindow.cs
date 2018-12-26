@@ -17,6 +17,7 @@ namespace PhinixClient
 
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
+        private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
 
         private const float TITLE_HEIGHT = 30f;
 
@@ -61,7 +62,7 @@ namespace PhinixClient
             
             // Their offer
             Rect theirOfferRect = new Rect(
-                x: inRect.xMax,
+                x: inRect.xMax - OFFER_WINDOW_WIDTH,
                 y: titleRect.yMax,
                 width: OFFER_WINDOW_WIDTH,
                 height: OFFER_WINDOW_HEIGHT
@@ -104,7 +105,25 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawOurOffer(Rect container)
         {
-            Widgets.DrawMenuSection(container);
+            // Title
+            Rect titleRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width,
+                height: OFFER_WINDOW_TITLE_HEIGHT
+            );
+            
+            // Set the text style
+            Text.Anchor = TextAnchor.MiddleCenter;
+            
+            // Draw the title
+            Widgets.Label(titleRect, "Our Offer");
+            
+            // Reset the text style
+            Text.Anchor = TextAnchor.UpperLeft;
+            
+            // Draw a placeholder
+            Widgets.DrawMenuSection(container.BottomPartPixels(container.height - titleRect.height));
         }
 
         /// <summary>
@@ -113,7 +132,25 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawTheirOffer(Rect container)
         {
-            Widgets.DrawMenuSection(container);
+            // Title
+            Rect titleRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width,
+                height: OFFER_WINDOW_TITLE_HEIGHT
+            );
+            
+            // Set the text style
+            Text.Anchor = TextAnchor.MiddleCenter;
+            
+            // Draw the title
+            Widgets.Label(titleRect, "Their Offer");
+            
+            // Reset the text style
+            Text.Anchor = TextAnchor.UpperLeft;
+            
+            // Draw a placeholder
+            Widgets.DrawMenuSection(container.BottomPartPixels(container.height - titleRect.height));
         }
     }
 }
