@@ -84,6 +84,36 @@ namespace Trading
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
+        
+        /// <summary>
+        /// Cancels a trade with the given ID.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <exception cref="ArgumentException">Trade ID cannot be null or empty</exception>
+        public void CancelTrade(string tradeId)
+        {
+            if (string.IsNullOrEmpty(tradeId)) throw new ArgumentException("Trade ID cannot be null or empty.", nameof(tradeId));
+            
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId)) return;
+            }
+            
+            // Do nothing if not online
+            if (!(netClient.Connected || authenticator.Authenticated || userManager.LoggedIn)) return;
+            
+            // Create and pack a CompleteTradePacket
+            CompleteTradePacket packet = new CompleteTradePacket
+            {
+                Success = false,
+                TradeId = tradeId
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
 
         /// <summary>
         /// Tries to get the other party's UUID from the given trade.
