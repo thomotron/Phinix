@@ -78,5 +78,35 @@ namespace Trading
             // Reset all parties' accepted states
             AcceptedParties.Clear();
         }
+
+        /// <summary>
+        /// Attempts to get the other party's UUID from this trade.
+        /// Returns whether the other party's UUID was retrieved successfully.
+        /// </summary>
+        /// <param name="partyUuid">This party's UUID</param>
+        /// <param name="otherPartyUuid">Other party's UUID output</param>
+        /// <returns>Whether the other party's UUID was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
+        public bool TryGetOtherParty(string partyUuid, out string otherPartyUuid)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) throw new ArgumentException("Party UUID is not present in this trade.", nameof(partyUuid));
+            
+            // Set other party's UUID to something arbitrary
+            otherPartyUuid = null;
+
+            // Try to get the other party's UUID
+            try
+            {
+                otherPartyUuid = PartyUuids.Single(uuid => uuid != partyUuid);
+            }
+            catch (InvalidOperationException)
+            {
+                // Failed to get a single UUID that isn't this party's
+                return false;
+            }
+
+            return true;
+        }
     }
 }
