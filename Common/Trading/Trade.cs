@@ -55,15 +55,16 @@ namespace Trading
         }
 
         /// <summary>
-        /// Sets the items on offer for the given party and resets the accepted status of all parties.
+        /// Attempts to set the items on offer for the given party and resets the accepted status of all parties.
+        /// Returns whether the operation completed successfully.
         /// </summary>
         /// <param name="partyUuid">Party's UUID</param>
         /// <param name="items">Items to set as on offer</param>
-        /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
-        public void SetItemsOnOffer(string partyUuid, IEnumerable<Thing> items)
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TrySetItemsOnOffer(string partyUuid, IEnumerable<Thing> items)
         {
             // Check if the party UUID is present in this trade
-            if (!PartyUuids.Contains(partyUuid)) throw new ArgumentException("Party UUID is not present in this trade.", nameof(partyUuid));
+            if (!PartyUuids.Contains(partyUuid)) return false;
 
             // Set the party's items on offer
             if (!ItemsOnOffer.ContainsKey(partyUuid))
@@ -77,6 +78,8 @@ namespace Trading
             
             // Reset all parties' accepted states
             AcceptedParties.Clear();
+
+            return true;
         }
 
         /// <summary>
