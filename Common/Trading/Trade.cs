@@ -106,6 +106,36 @@ namespace Trading
         }
 
         /// <summary>
+        /// Attempts to get the items on offer for the given party.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="items">Items output</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TryGetItemsOnOffer(string partyUuid, out IEnumerable<Thing> items)
+        {
+            // Set items to something arbitrary
+            items = null;
+            
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // Check if the party has items on offer
+            if (ItemsOnOffer.ContainsKey(partyUuid))
+            {
+                // Set items to the party's items on offer
+                items = ItemsOnOffer[partyUuid];
+            }
+            else
+            {
+                // Having no items is not a failure condition so set items to a blank list
+                items = new List<Thing>();
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Attempts to get the other party's UUID from this trade.
         /// Returns whether the other party's UUID was retrieved successfully.
         /// </summary>
