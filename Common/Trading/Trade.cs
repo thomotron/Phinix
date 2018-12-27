@@ -108,5 +108,24 @@ namespace Trading
 
             return true;
         }
+
+        /// <summary>
+        /// Attempts to get whether this party has accepted this trade.
+        /// Returns whether the accepted state was retrieved successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="accepted">Whether the party has accepted</param>
+        /// <returns>Whether the accepted state was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
+        public bool TryGetAccepted(string partyUuid, out bool accepted)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) throw new ArgumentException("Party UUID is not present in this trade.", nameof(partyUuid));
+
+            // Get whether the party has accepted
+            accepted = AcceptedParties.Contains(partyUuid);
+
+            return true;
+        }
     }
 }
