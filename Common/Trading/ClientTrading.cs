@@ -24,7 +24,16 @@ namespace Trading
         /// <summary>
         /// Raised when a trade fails to create.
         /// </summary>
-        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure; 
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
+
+        /// <summary>
+        /// Raised when a trade completes successfully.
+        /// </summary>
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
+        /// <summary>
+        /// Raised when a trade is cancelled.
+        /// </summary>
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCanceled;
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
@@ -192,6 +201,9 @@ namespace Trading
                 case "CreateTradeResponsePacket":
                     createTradeResponsePacketHandler(connectionId, message.Unpack<CreateTradeResponsePacket>());
                     break;
+                case "CompleteTradePacket":
+                    completeTradePacketHandler(connectionId, message.Unpack<CompleteTradePacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -223,6 +235,30 @@ namespace Trading
             {
                 // Raise the failed trade creation event
                 OnTradeCreationFailure?.Invoke(this, new CreateTradeEventArgs(packet.FailureReason, packet.FailureMessage));
+            }
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>CompleteTradePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>CompleteTradePacket</c></param>
+        private void completeTradePacketHandler(string connectionId, CompleteTradePacket packet)
+        {
+            // Raise finalised trade events
+            if (packet.Success)
+            {
+                OnTradeCompleted?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, true, packet.OtherPartyUuid, packet.Items));
+            }
+            else
+            {
+                OnTradeCanceled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
+            }
+            
+            lock (activeTradesLock)
+            {
+                // Remove the trade
+                activeTrades.Remove(packet.TradeId);
             }
         }
     }

@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientTrading.cs" />
+    <Compile Include="CompleteTradeEventArgs.cs" />
     <Compile Include="CreateTradeEventArgs.cs" />
     <Compile Include="Packets\compiled\CompleteTradePacket.cs" />
     <Compile Include="Packets\compiled\CreateTradePacket.cs" />
