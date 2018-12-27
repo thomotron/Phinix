@@ -175,6 +175,9 @@ namespace Trading
         /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
         public bool TryGetAccepted(string partyUuid, out bool accepted)
         {
+            // Set accepted to something arbitrary
+            accepted = false;
+            
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
