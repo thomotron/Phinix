@@ -1,4 +1,5 @@
 using RimWorld;
+using Trading;
 using UnityEngine;
 using Utils;
 using Verse;
@@ -49,6 +50,17 @@ namespace PhinixClient
             this.closeOnAccept = false;
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
+
+            Instance.OnTradeCompleted += OnTradeCompleted;
+            Instance.OnTradeCancelled += OnTradeCancelled;
+        }
+
+        public override void Close(bool doCloseSound = true)
+        {
+            base.Close(doCloseSound);
+            
+            Instance.OnTradeCompleted -= OnTradeCompleted;
+            Instance.OnTradeCancelled -= OnTradeCancelled;
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -70,6 +82,56 @@ namespace PhinixClient
                 height: OFFER_WINDOW_HEIGHT + DEFAULT_SPACING + OFFER_CONFIRMATION_HEIGHT
             );
             DrawOffers(offersRect);
+        }
+        
+        /// <summary>
+        /// Event handler for the <c>OnTradeCancelled</c> event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void OnTradeCancelled(object sender, CompleteTradeEventArgs args)
+        {
+            // Try get the other party's display name
+            if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+            {
+                // Strip formatting
+                displayName = TextHelper.StripRichText(displayName);
+            }
+            else
+            {
+                // Unknown display name, default to ???
+                displayName = "???";
+            }
+
+            LetterDef letterDef = new LetterDef {color = Color.yellow};
+            Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
+            
+            Close();
+        }
+
+        /// <summary>
+        /// Event handler for the <c>OnTradeCompleted</c> event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void OnTradeCompleted(object sender, CompleteTradeEventArgs args)
+        {
+            // Try get the other party's display name
+            if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+            {
+                // Strip formatting
+                displayName = TextHelper.StripRichText(displayName);
+            }
+            else
+            {
+                // Unknown display name, default to ???
+                displayName = "???";
+            }
+            
+            LetterDef letterDef = new LetterDef {color = Color.cyan};
+            Find.LetterStack.ReceiveLetter("Trade success", displayName, letterDef);
+            
+            Close();
         }
 
         /// <summary>
