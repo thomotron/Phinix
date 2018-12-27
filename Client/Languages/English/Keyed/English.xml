@@ -23,4 +23,7 @@
     <Phinix_trade_confirmOurTradeCheckboxUnchecked>You have not confirmed</Phinix_trade_confirmOurTradeCheckboxUnchecked>
     <Phinix_trade_confirmTheirTradeCheckboxChecked>{0} has confirmed</Phinix_trade_confirmTheirTradeCheckboxChecked>
     <Phinix_trade_confirmTheirTradeCheckboxUnchecked>{0} has not confirmed</Phinix_trade_confirmTheirTradeCheckboxUnchecked>
+    <Phinix_trade_updateButton>Update</Phinix_trade_updateButton>
+    <Phinix_trade_resetButton>Reset</Phinix_trade_resetButton>
+    <Phinix_trade_cancelButton>Cancel</Phinix_trade_cancelButton>
 </LanguageData>

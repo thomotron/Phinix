@@ -15,11 +15,15 @@ namespace PhinixClient
         private const float WINDOW_PADDING = 20f;
 
         private const float TRADE_ARROWS_WIDTH = 140f;
+        private const float TRADE_ARROWS_HEIGHT = 170f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
         private const float OFFER_CONFIRMATION_HEIGHT = 20f;
+
+        private const float TRADE_BUTTON_WIDTH = 140f;
+        private const float TRADE_BUTTON_HEIGHT = 30f;
 
         private const float TITLE_HEIGHT = 30f;
 
@@ -139,10 +143,46 @@ namespace PhinixClient
                 x: ourOfferRect.xMax + DEFAULT_SPACING,
                 y: container.yMin,
                 width: TRADE_ARROWS_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
+                height: TRADE_ARROWS_HEIGHT
             );
             Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
             Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
+            
+            // Update button
+            Rect updateButtonRect = new Rect(
+                x: tradeArrowsRect.xMin,
+                y: tradeArrowsRect.yMax + DEFAULT_SPACING,
+                width: TRADE_BUTTON_WIDTH,
+                height: TRADE_BUTTON_HEIGHT
+            );
+            if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
+            {
+                // TODO: Update trade
+            }
+            
+            // Reset button
+            Rect resetButtonRect = new Rect(
+                x: tradeArrowsRect.xMin,
+                y: updateButtonRect.yMax + DEFAULT_SPACING,
+                width: TRADE_BUTTON_WIDTH,
+                height: TRADE_BUTTON_HEIGHT
+            );
+            if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
+            {
+                // TODO: Reset trade
+            }
+            
+            // Cancel button
+            Rect cancelButtonRect = new Rect(
+                x: tradeArrowsRect.xMin,
+                y: resetButtonRect.yMax + DEFAULT_SPACING,
+                width: TRADE_BUTTON_WIDTH,
+                height: TRADE_BUTTON_HEIGHT
+            );
+            if (Widgets.ButtonText(cancelButtonRect, "Phinix_trade_cancelButton".Translate()))
+            {
+                Instance.CancelTrade(tradeId);
+            }
             
             // Our confirmation
             // TODO: Ellipsise display name length if it's going to spill over
