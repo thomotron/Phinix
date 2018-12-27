@@ -114,10 +114,12 @@ namespace Trading
             if (!(netClient.Connected || authenticator.Authenticated || userManager.LoggedIn)) return;
             
             // Create and pack a CompleteTradePacket
-            CompleteTradePacket packet = new CompleteTradePacket
+            UpdateTradeStatusPacket packet = new UpdateTradeStatusPacket
             {
-                Success = false,
-                TradeId = tradeId
+                SessionId = authenticator.SessionId,
+                Uuid = userManager.Uuid,
+                TradeId = tradeId,
+                Cancelled = true
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
@@ -252,7 +254,7 @@ namespace Trading
             }
             else
             {
-                OnTradeCanceled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
+                OnTradeCancelled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
             }
             
             lock (activeTradesLock)
