@@ -71,6 +71,10 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a CreateTradePacket from {0}", connectionId), LogLevel.DEBUG));
                     createTradePacketHandler(connectionId, message.Unpack<CreateTradePacket>());
                     break;
+                case "UpdateTradeItemsPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeItemsPacket from {0}", connectionId), LogLevel.DEBUG));
+                    updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -197,6 +201,79 @@ namespace Trading
                 Success = false,
                 FailureReason = failureReason,
                 FailureMessage = failureMessage
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UpdateTradeItemsPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UpdateTradeItemsPacket</c></param>
+        private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
+        {
+            // Ignore packets from non-authenticated and non-logged in users
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
+
+            lock (activeTradesLock)
+            {
+                Trade trade = activeTrades[packet.TradeId];
+
+                bool success;
+                if (packet.Items.Count == 0)
+                {
+                    // Clear the party's items
+                    success = trade.TryClearItemsOnOffer(packet.Uuid);
+                }
+                else
+                {
+                    // Update the party's items
+                    success = trade.TrySetItemsOnOffer(packet.Uuid, packet.Items);
+                }
+
+                // Only send an update on a successful change
+                if (success)
+                {
+                    // Try to get the other party's UUID, returning on failure
+                    if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid)) return;
+                    
+                    // Try to get the other party's items on offer, returning on failure
+                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out Thing[] otherPartyItems)) return;
+                    
+                    // Send an update to the sender
+                    sendUpdateTradeItemsPacket(connectionId, trade.TradeId, packet.Items, otherPartyItems);
+                    
+                    // Check if the other party is logged in
+                    if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
+                    
+                    // Try to get the other party's connection ID
+                    if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
+                    
+                    // Send an update to the other party
+                    sendUpdateTradeItemsPacket(otherPartyConnectionId, trade.TradeId, otherPartyItems, packet.Items);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Sends an <c>UpdateTradeItemsPacket</c> with the given items of both parties for the given trade.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="items">Party's items</param>
+        /// <param name="otherPartyItems">Other party's items</param>
+        private void sendUpdateTradeItemsPacket(string connectionId, string tradeId, IEnumerable<Thing> items, IEnumerable<Thing> otherPartyItems)
+        {
+            // Create and pack a response
+            UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
+            {
+                TradeId = tradeId,
+                Items = {items},
+                OtherPartyItems = {otherPartyItems}
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
