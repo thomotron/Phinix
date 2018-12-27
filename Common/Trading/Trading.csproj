@@ -50,7 +50,8 @@
     <Compile Include="Packets\compiled\Quality.cs" />
     <Compile Include="Packets\compiled\Thing.cs" />
     <Compile Include="Packets\compiled\TradeFailureReason.cs" />
-    <Compile Include="Packets\compiled\UpdateTradePacket.cs" />
+    <Compile Include="Packets\compiled\UpdateTradeItemsPacket.cs" />
+    <Compile Include="Packets\compiled\UpdateTradeStatusPacket.cs" />
     <Compile Include="ServerTrading.cs" />
     <Compile Include="ThingReceivedEventArgs.cs" />
     <Compile Include="Trade.cs" />
@@ -86,7 +87,8 @@
     <Content Include="Packets\Quality.proto" />
     <Content Include="Packets\Thing.proto" />
     <Content Include="Packets\TradeFailureReason.proto" />
-    <Content Include="Packets\UpdateTradePacket.proto" />
+    <Content Include="Packets\UpdateTradeItemsPacket.proto" />
+    <Content Include="Packets\UpdateTradeStatusPacket.proto" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

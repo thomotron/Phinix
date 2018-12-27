@@ -3,7 +3,7 @@ package Trading;
 
 import "Packets/Thing.proto";
 
-message UpdateTradePacket
+message UpdateTradeItemsPacket
 {
     string SessionId = 1;
 
@@ -14,8 +14,4 @@ message UpdateTradePacket
     repeated Thing Items = 4;
     
     repeated Thing OtherPartyItems = 5;
-    
-    bool Accepted = 6;
-    
-    bool OtherPartyAccepted = 7;
 };
