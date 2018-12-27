@@ -65,6 +65,7 @@ namespace Trading
         /// Attempts to create a trade with another party.
         /// </summary>
         /// <param name="otherPartyUuid">Other party's UUID</param>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
         public void CreateTrade(string otherPartyUuid)
         {
             if (string.IsNullOrEmpty(otherPartyUuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(otherPartyUuid));
