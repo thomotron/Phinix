@@ -56,6 +56,8 @@ namespace PhinixClient
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCanceled;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -191,6 +193,14 @@ namespace PhinixClient
             {
                 Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
             };
+            trading.OnTradeCompleted += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
+            };
+            trading.OnTradeCanceled += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
+            };
             
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
@@ -202,6 +212,8 @@ namespace PhinixClient
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
+            trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
+            trading.OnTradeCanceled += (sender, e) => { OnTradeCanceled?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
