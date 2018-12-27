@@ -33,7 +33,7 @@ namespace Trading
         /// <summary>
         /// Raised when a trade is cancelled.
         /// </summary>
-        public event EventHandler<CompleteTradeEventArgs> OnTradeCanceled;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.

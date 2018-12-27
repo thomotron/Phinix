@@ -57,7 +57,7 @@ namespace PhinixClient
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
-        public event EventHandler<CompleteTradeEventArgs> OnTradeCanceled;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -197,7 +197,7 @@ namespace PhinixClient
             {
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
-            trading.OnTradeCanceled += (sender, args) =>
+            trading.OnTradeCancelled += (sender, args) =>
             {
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
             };
@@ -213,7 +213,7 @@ namespace PhinixClient
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
-            trading.OnTradeCanceled += (sender, e) => { OnTradeCanceled?.Invoke(sender, e); };
+            trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
