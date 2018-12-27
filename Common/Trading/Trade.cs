@@ -81,6 +81,29 @@ namespace Trading
 
             return true;
         }
+        
+        /// <summary>
+        /// Attempts to clear the items on offer for the given party and resets the accepted status of all parties.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TryClearItemsOnOffer(string partyUuid)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // Set the party's items on offer
+            if (ItemsOnOffer.ContainsKey(partyUuid))
+            {
+                ItemsOnOffer.Remove(partyUuid);
+            }
+            
+            // Reset all parties' accepted states
+            AcceptedParties.Clear();
+
+            return true;
+        }
 
         /// <summary>
         /// Attempts to get the other party's UUID from this trade.
