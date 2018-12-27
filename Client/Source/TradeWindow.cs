@@ -1,3 +1,4 @@
+using System.Linq;
 using RimWorld;
 using Trading;
 using UnityEngine;
@@ -103,9 +104,19 @@ namespace PhinixClient
                 displayName = "???";
             }
 
+            // Generate a letter
             LetterDef letterDef = new LetterDef {color = Color.yellow};
             Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
             
+            // Convert all the received items into their Verse counterparts
+            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+
+            // Launch drop pods to a trade spot on a home tile
+            Map map = Find.AnyPlayerHomeMap;
+            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            
+            // Close the window
             Close();
         }
 
@@ -128,9 +139,19 @@ namespace PhinixClient
                 displayName = "???";
             }
             
+            // Generate a letter
             LetterDef letterDef = new LetterDef {color = Color.cyan};
-            Find.LetterStack.ReceiveLetter("Trade success", displayName, letterDef);
+            Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef);
+
+            // Convert all the received items into their Verse counterparts
+            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+
+            // Launch drop pods to a trade spot on a home tile
+            Map map = Find.AnyPlayerHomeMap;
+            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
             
+            // Close the window
             Close();
         }
 
