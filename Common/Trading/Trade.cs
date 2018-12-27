@@ -110,9 +110,9 @@ namespace Trading
         /// Returns whether the operation completed successfully.
         /// </summary>
         /// <param name="partyUuid">Party's UUID</param>
-        /// <param name="items">Items output</param>
+        /// <param name="items">Items array output</param>
         /// <returns>Whether the operation completed successfully</returns>
-        public bool TryGetItemsOnOffer(string partyUuid, out IEnumerable<Thing> items)
+        public bool TryGetItemsOnOffer(string partyUuid, out Thing[] items)
         {
             // Set items to something arbitrary
             items = null;
@@ -128,8 +128,8 @@ namespace Trading
             }
             else
             {
-                // Having no items is not a failure condition so set items to a blank list
-                items = new List<Thing>();
+                // Having no items is not a failure condition so set items to a blank array
+                items = new Thing[0];
             }
 
             return true;
