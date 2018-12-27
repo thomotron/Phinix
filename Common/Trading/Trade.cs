@@ -89,11 +89,11 @@ namespace Trading
         /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
         public bool TryGetOtherParty(string partyUuid, out string otherPartyUuid)
         {
-            // Check if the party UUID is present in this trade
-            if (!PartyUuids.Contains(partyUuid)) throw new ArgumentException("Party UUID is not present in this trade.", nameof(partyUuid));
-            
             // Set other party's UUID to something arbitrary
             otherPartyUuid = null;
+            
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
 
             // Try to get the other party's UUID
             try
@@ -120,7 +120,7 @@ namespace Trading
         public bool TryGetAccepted(string partyUuid, out bool accepted)
         {
             // Check if the party UUID is present in this trade
-            if (!PartyUuids.Contains(partyUuid)) throw new ArgumentException("Party UUID is not present in this trade.", nameof(partyUuid));
+            if (!PartyUuids.Contains(partyUuid)) return false;
 
             // Get whether the party has accepted
             accepted = AcceptedParties.Contains(partyUuid);
