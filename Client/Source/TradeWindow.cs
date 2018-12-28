@@ -23,7 +23,7 @@ namespace PhinixClient
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
-        private const float OFFER_WINDOW_ROW_HEIGHT = 20f;
+        private const float OFFER_WINDOW_ROW_HEIGHT = 30f;
         private const float OFFER_CONFIRMATION_HEIGHT = 20f;
 
         private const float HORIZONTAL_UPPER_LOWER_DIVISION_SPACING = 20f;
