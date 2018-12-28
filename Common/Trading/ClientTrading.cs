@@ -250,6 +250,32 @@ namespace Trading
         }
 
         /// <summary>
+        /// Sends a status update for the given trade to the server.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="accepted">Accepted state</param>
+        /// <param name="cancelled">Cancel the trade</param>
+        public void UpdateStatus(string tradeId, bool? accepted = null, bool? cancelled = null)
+        {
+            // Do nothing if not online
+            if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
+
+            // Create and pack an UpdateTradeStatus packet
+            UpdateTradeStatusPacket packet = new UpdateTradeStatusPacket
+            {
+                SessionId = authenticator.SessionId,
+                Uuid = userManager.Uuid,
+                TradeId = tradeId,
+                Accepted = accepted.HasValue ? accepted.Value : false,
+                Cancelled = cancelled.HasValue ? cancelled.Value : false
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
         /// </summary>
         /// <param name="module">Target module</param>
