@@ -26,6 +26,17 @@ namespace PhinixClient
         private const float OFFER_WINDOW_ROW_HEIGHT = 20f;
         private const float OFFER_CONFIRMATION_HEIGHT = 20f;
 
+        private const float HORIZONTAL_UPPER_LOWER_DIVISION_SPACING = 20f;
+
+        private const float LOWER_HALF_WIDTH = 470f;
+        private const float LOWER_HALF_HEIGHT = 310f;
+
+        private const float SORT_HEIGHT = 30f;
+        private const float SORT_LABEL_WIDTH = 60f;
+        private const float SORT_BUTTON_WIDTH = 100f;
+
+        private const float SEARCH_TEXT_FIELD_WIDTH = 135f;
+
         private const float TRADE_BUTTON_WIDTH = 140f;
         private const float TRADE_BUTTON_HEIGHT = 30f;
 
@@ -48,6 +59,11 @@ namespace PhinixClient
         private List<Thing> items;
 
         /// <summary>
+        /// Search text for filtering available items.
+        /// </summary>
+        private string search = "";
+
+        /// <summary>
         /// Scroll position of our offer window.
         /// </summary>
         private Vector2 ourOfferScrollPos = Vector2.zero;
@@ -55,6 +71,10 @@ namespace PhinixClient
         /// Scroll position of the other party's offer window.
         /// </summary>
         private Vector2 theirOfferScrollPos = Vector2.zero;
+        /// <summary>
+        /// Scroll position of  the available items window.
+        /// </summary>
+        private Vector2 stockpileItemsScrollPos = Vector2.zero;
 
         /// <summary>
         /// Creates a new <c>TradeWindow</c> for the given trade ID.
@@ -101,6 +121,15 @@ namespace PhinixClient
                 height: OFFER_WINDOW_HEIGHT + DEFAULT_SPACING + OFFER_CONFIRMATION_HEIGHT
             );
             DrawOffers(offersRect);
+            
+            // Available items
+            Rect availableItemsRect = new Rect(
+                x: inRect.xMin,
+                y: offersRect.yMax + HORIZONTAL_UPPER_LOWER_DIVISION_SPACING,
+                width: inRect.width,
+                height: LOWER_HALF_HEIGHT
+            );
+            DrawAvailableItems(availableItemsRect);
         }
         
         /// <summary>
@@ -395,6 +424,70 @@ namespace PhinixClient
                 // Couldn't get their items, draw a blank array
                 DrawItemList(container.BottomPartPixels(container.height - titleRect.height), new Thing[0], ref theirOfferScrollPos);
             }
+        }
+        
+        /// <summary>
+        /// Draws our available items within the given container.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        private void DrawAvailableItems(Rect container)
+        {
+            // 'Sort by' label
+            Rect sortByLabelRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: SORT_LABEL_WIDTH,
+                height: SORT_HEIGHT
+            );
+            Widgets.Label(sortByLabelRect, "Phinix_trade_sortByLabel".Translate());
+            
+            // First sorting preference
+            Rect firstSortButtonRect = new Rect(
+                x: sortByLabelRect.xMax + DEFAULT_SPACING,
+                y: container.yMin,
+                width: SORT_BUTTON_WIDTH,
+                height: SORT_HEIGHT
+            );
+            if (Widgets.ButtonText(firstSortButtonRect, "", active: false))
+            {
+                // TODO: Sorting
+            }
+            
+            // Second sorting preference
+            Rect secondSortButtonRect = new Rect(
+                x: firstSortButtonRect.xMax + DEFAULT_SPACING,
+                y: container.yMin,
+                width: SORT_BUTTON_WIDTH,
+                height: SORT_HEIGHT
+            );
+            if (Widgets.ButtonText(secondSortButtonRect, "", active: false))
+            {
+                // TODO: Sorting
+            }
+            
+            // Search text field
+            Rect searchTextRect = new Rect(
+                x: container.xMax - SEARCH_TEXT_FIELD_WIDTH,
+                y: container.yMin,
+                width: SEARCH_TEXT_FIELD_WIDTH,
+                height: SORT_HEIGHT
+            );
+            search = Widgets.TextField(searchTextRect, search);
+            
+            // Search label
+            Rect searchLabel = new Rect(
+                x: searchTextRect.xMin - Text.CalcSize("Phinix_trade_searchLabel".Translate()).x,
+                y: container.yMin,
+                width: Text.CalcSize("Phinix_trade_searchLabel".Translate()).x,
+                height: SORT_HEIGHT
+            );
+            Widgets.Label(searchLabel, "Phinix_trade_searchLabel".Translate());
+            
+            // Stockpile items list
+            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome); // Select all maps that are player homes
+            IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile)); // From each map, select all zones that are stockpiles
+            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item)); // From each stockpile, select all things that are an item
+            DrawItemList(container.BottomPartPixels(container.height - (SORT_HEIGHT + DEFAULT_SPACING)), stockpileItems, ref stockpileItemsScrollPos);
         }
         
         /// <summary>
