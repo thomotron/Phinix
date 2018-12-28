@@ -499,9 +499,6 @@ namespace PhinixClient
         /// <param name="scrollPos">List scroll position</param>
         private void DrawItemList(Rect container, IEnumerable<Verse.Thing> items, ref Vector2 scrollPos)
         {
-            // Draw a box to contain the list
-            Widgets.DrawMenuSection(container);
-            
             // Set up a list to hold our item rows
             List<ItemRow> rows = new List<ItemRow>();
 
@@ -515,23 +512,38 @@ namespace PhinixClient
             
             // Create a flex container with our rows
             VerticalFlexContainer flexContainer = new VerticalFlexContainer(container.width - SCROLLBAR_WIDTH, rows.Cast<IDrawable>());
+
+            // Determine if scrolling is necessary
+            if (flexContainer.GetHeight(container.width) > container.height)
+            {
+                // Create an inner 'scrollable' container
+                Rect innerContainer = new Rect(
+                    x: container.xMin,
+                    y: container.yMin,
+                    width: container.width - SCROLLBAR_WIDTH,
+                    height: flexContainer.GetHeight(container.width - SCROLLBAR_WIDTH)
+                );
+                
+                // Draw a box to contain the list
+                Widgets.DrawMenuSection(innerContainer);
+                
+                // Start scrolling
+                Widgets.BeginScrollView(container, ref scrollPos, innerContainer);
             
-            // Create an inner 'scrollable' container
-            Rect innerContainer = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.width - SCROLLBAR_WIDTH,
-                height: flexContainer.GetHeight(container.width)
-            );
+                // Draw the flex container
+                flexContainer.Draw(innerContainer);
             
-            // Start scrolling
-            Widgets.BeginScrollView(container, ref scrollPos, innerContainer);
-            
-            // Draw the flex container
-            flexContainer.Draw(innerContainer);
-            
-            // Stop scrolling
-            Widgets.EndScrollView();
+                // Stop scrolling
+                Widgets.EndScrollView();
+            }
+            else
+            {
+                // Draw a box to contain the list
+                Widgets.DrawMenuSection(container);
+                
+                // Draw the flex container directly to the container
+                flexContainer.Draw(container);
+            }
         }
     }
 }
