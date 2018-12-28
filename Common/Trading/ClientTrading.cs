@@ -272,7 +272,7 @@ namespace Trading
         /// <param name="partyUuid">Party's UUID</param>
         /// <param name="items">Items output</param>
         /// <returns>Whether the operation completed successfully</returns>
-        public bool TryGetItemsOnOffer(string tradeId, string partyUuid, out IEnumerable<Thing> items)
+        public bool TryGetItemsOnOffer(string tradeId, string partyUuid, out IEnumerable<ProtoThing> items)
         {
             // Initialise items to something arbitrary
             items = null;
@@ -296,7 +296,7 @@ namespace Trading
                 else
                 {
                     // No items on offer, return an empty array
-                    items = new Thing[0];
+                    items = new ProtoThing[0];
                 }
             }
 

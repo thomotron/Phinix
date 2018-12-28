@@ -55,7 +55,7 @@ namespace PhinixClient
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
         public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
-        public bool TryGetItemsOnOffer(string tradeId, string uuid, out IEnumerable<Trading.Thing> items) => trading.TryGetItemsOnOffer(tradeId, uuid, out items);
+        public bool TryGetItemsOnOffer(string tradeId, string uuid, out IEnumerable<Trading.ProtoThing> items) => trading.TryGetItemsOnOffer(tradeId, uuid, out items);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;

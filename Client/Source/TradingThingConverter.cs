@@ -14,13 +14,13 @@ namespace PhinixClient
         /// </summary>
         /// <param name="verseThing">Thing to convert</param>
         /// <returns>Converted thing</returns>
-        public static Trading.Thing ConvertThingFromVerse(Verse.Thing verseThing)
+        public static Trading.ProtoThing ConvertThingFromVerse(Verse.Thing verseThing)
         {
             // Try get the quality of the thing, failure defaulting to none
             Quality quality = verseThing.TryGetQuality(out QualityCategory gottenQuality) ? (Quality) gottenQuality : Quality.None;
             
             // Create a Trading.Thing with attributes from verseThing
-            Trading.Thing protoThing = new Trading.Thing
+            Trading.ProtoThing protoThing = new Trading.ProtoThing
             {
                 DefName = verseThing.def.defName,
                 StackCount = verseThing.stackCount,
@@ -39,7 +39,7 @@ namespace PhinixClient
             if (verseThing is MinifiedThing minifiedVerseThing)
             {
                 // Set protoThing's inner thing
-                protoThing.InnerThing = ConvertThingFromVerse(minifiedVerseThing.InnerThing);
+                protoThing.InnerProtoThing = ConvertThingFromVerse(minifiedVerseThing.InnerThing);
             }
             
             // Return constructed protoThing
@@ -54,7 +54,7 @@ namespace PhinixClient
         /// <returns>Converted thing</returns>
         /// <exception cref="InvalidOperationException">Could not find a single def that matches Trading.Thing def name</exception>
         /// <exception cref="InvalidOperationException">Could not find a single def that matches Trading.Thing stuff def name</exception>
-        public static Verse.Thing ConvertThingFromProto(Trading.Thing protoThing)
+        public static Verse.Thing ConvertThingFromProto(Trading.ProtoThing protoThing)
         {
             // Try to get the ThingDef for protoThing
             ThingDef thingDef;
@@ -99,7 +99,7 @@ namespace PhinixClient
             if (verseThing is MinifiedThing minifiedVerseThing)
             {
                 // Set verseThing's inner thing to protoThing's inner thing
-                minifiedVerseThing.InnerThing = protoThing.InnerThing != null ? ConvertThingFromProto(protoThing.InnerThing) : null;
+                minifiedVerseThing.InnerThing = protoThing.InnerProtoThing != null ? ConvertThingFromProto(protoThing.InnerProtoThing) : null;
             }
             
             // Return the constructed Verse.Thing

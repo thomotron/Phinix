@@ -11,7 +11,7 @@ message UpdateTradeItemsPacket
 
     string TradeId = 3;
 
-    repeated Thing Items = 4;
+    repeated ProtoThing Items = 4;
     
-    repeated Thing OtherPartyItems = 5;
+    repeated ProtoThing OtherPartyItems = 5;
 };

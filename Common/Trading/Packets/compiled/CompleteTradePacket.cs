@@ -23,10 +23,10 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiFQYWNrZXRzL0NvbXBsZXRlVHJhZGVQYWNrZXQucHJvdG8SB1RyYWRpbmca",
-            "E1BhY2tldHMvVGhpbmcucHJvdG8ibgoTQ29tcGxldGVUcmFkZVBhY2tldBIP",
+            "E1BhY2tldHMvVGhpbmcucHJvdG8icwoTQ29tcGxldGVUcmFkZVBhY2tldBIP",
             "CgdUcmFkZUlkGAEgASgJEhYKDk90aGVyUGFydHlVdWlkGAIgASgJEg8KB1N1",
-            "Y2Nlc3MYAyABKAgSHQoFSXRlbXMYBCADKAsyDi5UcmFkaW5nLlRoaW5nYgZw",
-            "cm90bzM="));
+            "Y2Nlc3MYAyABKAgSIgoFSXRlbXMYBCADKAsyEy5UcmFkaW5nLlByb3RvVGhp",
+            "bmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -107,11 +107,11 @@ namespace Trading {
 
     /// <summary>Field number for the "Items" field.</summary>
     public const int ItemsFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::Trading.Thing> _repeated_items_codec
-        = pb::FieldCodec.ForMessage(34, global::Trading.Thing.Parser);
-    private readonly pbc::RepeatedField<global::Trading.Thing> items_ = new pbc::RepeatedField<global::Trading.Thing>();
+    private static readonly pb::FieldCodec<global::Trading.ProtoThing> _repeated_items_codec
+        = pb::FieldCodec.ForMessage(34, global::Trading.ProtoThing.Parser);
+    private readonly pbc::RepeatedField<global::Trading.ProtoThing> items_ = new pbc::RepeatedField<global::Trading.ProtoThing>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Trading.Thing> Items {
+    public pbc::RepeatedField<global::Trading.ProtoThing> Items {
       get { return items_; }
     }
 

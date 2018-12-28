@@ -20,7 +20,7 @@ namespace Trading
         /// <summary>
         /// Items currently on offer organised by the owner's UUID.
         /// </summary>
-        public readonly Dictionary<string, Thing[]> ItemsOnOffer;
+        public readonly Dictionary<string, ProtoThing[]> ItemsOnOffer;
 
         /// <summary>
         /// List containing UUIDs of each party that has accepted the trade.
@@ -36,7 +36,7 @@ namespace Trading
             this.PartyUuids = partyUuids.ToArray();
             
             this.TradeId = Guid.NewGuid().ToString();
-            this.ItemsOnOffer = new Dictionary<string, Thing[]>();
+            this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
         }
 
@@ -50,7 +50,7 @@ namespace Trading
             this.TradeId = tradeId;
             this.PartyUuids = partyUuids.ToArray();
             
-            this.ItemsOnOffer = new Dictionary<string, Thing[]>();
+            this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
         }
 
@@ -61,7 +61,7 @@ namespace Trading
         /// <param name="partyUuid">Party's UUID</param>
         /// <param name="items">Items to set as on offer</param>
         /// <returns>Whether the operation completed successfully</returns>
-        public bool TrySetItemsOnOffer(string partyUuid, IEnumerable<Thing> items)
+        public bool TrySetItemsOnOffer(string partyUuid, IEnumerable<ProtoThing> items)
         {
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
@@ -112,7 +112,7 @@ namespace Trading
         /// <param name="partyUuid">Party's UUID</param>
         /// <param name="items">Items array output</param>
         /// <returns>Whether the operation completed successfully</returns>
-        public bool TryGetItemsOnOffer(string partyUuid, out Thing[] items)
+        public bool TryGetItemsOnOffer(string partyUuid, out ProtoThing[] items)
         {
             // Set items to something arbitrary
             items = null;
@@ -129,7 +129,7 @@ namespace Trading
             else
             {
                 // Having no items is not a failure condition so set items to a blank array
-                items = new Thing[0];
+                items = new ProtoThing[0];
             }
 
             return true;

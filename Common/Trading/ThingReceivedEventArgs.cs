@@ -7,14 +7,14 @@ namespace Trading
         /// <summary>
         /// Incoming <c>Thing</c>
         /// </summary>
-        public Thing Thing;
+        public ProtoThing Thing;
 
         /// <summary>
         /// Sender's UUID.
         /// </summary>
         public string SenderUuid;
 
-        public ThingReceivedEventArgs(string senderUuid, Thing thing)
+        public ThingReceivedEventArgs(string senderUuid, ProtoThing thing)
         {
             this.SenderUuid = senderUuid;
             this.Thing = thing;

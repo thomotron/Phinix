@@ -23,9 +23,9 @@ namespace Trading
         /// <summary>
         /// Items received.
         /// </summary>
-        public IEnumerable<Thing> Items;
+        public IEnumerable<ProtoThing> Items;
 
-        public CompleteTradeEventArgs(string tradeId, bool success, string otherPartyUuid, IEnumerable<Thing> items)
+        public CompleteTradeEventArgs(string tradeId, bool success, string otherPartyUuid, IEnumerable<ProtoThing> items)
         {
             this.TradeId = tradeId;
             this.Success = success;

@@ -23,24 +23,25 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChNQYWNrZXRzL1RoaW5nLnByb3RvEgdUcmFkaW5nGhVQYWNrZXRzL1F1YWxp",
-            "dHkucHJvdG8inAEKBVRoaW5nEg8KB0RlZk5hbWUYASABKAkSEgoKU3RhY2tD",
-            "b3VudBgCIAEoBRIUCgxTdHVmZkRlZk5hbWUYAyABKAkSIQoHUXVhbGl0eRgE",
-            "IAEoDjIQLlRyYWRpbmcuUXVhbGl0eRIRCglIaXRQb2ludHMYBSABKAUSIgoK",
-            "SW5uZXJUaGluZxgGIAEoCzIOLlRyYWRpbmcuVGhpbmdiBnByb3RvMw=="));
+            "dHkucHJvdG8iqwEKClByb3RvVGhpbmcSDwoHRGVmTmFtZRgBIAEoCRISCgpT",
+            "dGFja0NvdW50GAIgASgFEhQKDFN0dWZmRGVmTmFtZRgDIAEoCRIhCgdRdWFs",
+            "aXR5GAQgASgOMhAuVHJhZGluZy5RdWFsaXR5EhEKCUhpdFBvaW50cxgFIAEo",
+            "BRIsCg9Jbm5lclByb3RvVGhpbmcYBiABKAsyEy5UcmFkaW5nLlByb3RvVGhp",
+            "bmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.QualityReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.Thing), global::Trading.Thing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerThing" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoThing), global::Trading.ProtoThing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerProtoThing" }, null, null, null)
           }));
     }
     #endregion
 
   }
   #region Messages
-  public sealed partial class Thing : pb::IMessage<Thing> {
-    private static readonly pb::MessageParser<Thing> _parser = new pb::MessageParser<Thing>(() => new Thing());
+  public sealed partial class ProtoThing : pb::IMessage<ProtoThing> {
+    private static readonly pb::MessageParser<ProtoThing> _parser = new pb::MessageParser<ProtoThing>(() => new ProtoThing());
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Thing> Parser { get { return _parser; } }
+    public static pb::MessageParser<ProtoThing> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -53,25 +54,25 @@ namespace Trading {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Thing() {
+    public ProtoThing() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Thing(Thing other) : this() {
+    public ProtoThing(ProtoThing other) : this() {
       defName_ = other.defName_;
       stackCount_ = other.stackCount_;
       stuffDefName_ = other.stuffDefName_;
       quality_ = other.quality_;
       hitPoints_ = other.hitPoints_;
-      InnerThing = other.innerThing_ != null ? other.InnerThing.Clone() : null;
+      InnerProtoThing = other.innerProtoThing_ != null ? other.InnerProtoThing.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Thing Clone() {
-      return new Thing(this);
+    public ProtoThing Clone() {
+      return new ProtoThing(this);
     }
 
     /// <summary>Field number for the "DefName" field.</summary>
@@ -129,24 +130,24 @@ namespace Trading {
       }
     }
 
-    /// <summary>Field number for the "InnerThing" field.</summary>
-    public const int InnerThingFieldNumber = 6;
-    private global::Trading.Thing innerThing_;
+    /// <summary>Field number for the "InnerProtoThing" field.</summary>
+    public const int InnerProtoThingFieldNumber = 6;
+    private global::Trading.ProtoThing innerProtoThing_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Trading.Thing InnerThing {
-      get { return innerThing_; }
+    public global::Trading.ProtoThing InnerProtoThing {
+      get { return innerProtoThing_; }
       set {
-        innerThing_ = value;
+        innerProtoThing_ = value;
       }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as Thing);
+      return Equals(other as ProtoThing);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Thing other) {
+    public bool Equals(ProtoThing other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -158,7 +159,7 @@ namespace Trading {
       if (StuffDefName != other.StuffDefName) return false;
       if (Quality != other.Quality) return false;
       if (HitPoints != other.HitPoints) return false;
-      if (!object.Equals(InnerThing, other.InnerThing)) return false;
+      if (!object.Equals(InnerProtoThing, other.InnerProtoThing)) return false;
       return true;
     }
 
@@ -170,7 +171,7 @@ namespace Trading {
       if (StuffDefName.Length != 0) hash ^= StuffDefName.GetHashCode();
       if (Quality != 0) hash ^= Quality.GetHashCode();
       if (HitPoints != 0) hash ^= HitPoints.GetHashCode();
-      if (innerThing_ != null) hash ^= InnerThing.GetHashCode();
+      if (innerProtoThing_ != null) hash ^= InnerProtoThing.GetHashCode();
       return hash;
     }
 
@@ -201,9 +202,9 @@ namespace Trading {
         output.WriteRawTag(40);
         output.WriteInt32(HitPoints);
       }
-      if (innerThing_ != null) {
+      if (innerProtoThing_ != null) {
         output.WriteRawTag(50);
-        output.WriteMessage(InnerThing);
+        output.WriteMessage(InnerProtoThing);
       }
     }
 
@@ -225,14 +226,14 @@ namespace Trading {
       if (HitPoints != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(HitPoints);
       }
-      if (innerThing_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(InnerThing);
+      if (innerProtoThing_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(InnerProtoThing);
       }
       return size;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Thing other) {
+    public void MergeFrom(ProtoThing other) {
       if (other == null) {
         return;
       }
@@ -251,11 +252,11 @@ namespace Trading {
       if (other.HitPoints != 0) {
         HitPoints = other.HitPoints;
       }
-      if (other.innerThing_ != null) {
-        if (innerThing_ == null) {
-          innerThing_ = new global::Trading.Thing();
+      if (other.innerProtoThing_ != null) {
+        if (innerProtoThing_ == null) {
+          innerProtoThing_ = new global::Trading.ProtoThing();
         }
-        InnerThing.MergeFrom(other.InnerThing);
+        InnerProtoThing.MergeFrom(other.InnerProtoThing);
       }
     }
 
@@ -288,10 +289,10 @@ namespace Trading {
             break;
           }
           case 50: {
-            if (innerThing_ == null) {
-              innerThing_ = new global::Trading.Thing();
+            if (innerProtoThing_ == null) {
+              innerProtoThing_ = new global::Trading.ProtoThing();
             }
-            input.ReadMessage(innerThing_);
+            input.ReadMessage(innerProtoThing_);
             break;
           }
         }

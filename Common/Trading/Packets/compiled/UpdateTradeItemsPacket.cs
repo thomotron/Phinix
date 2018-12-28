@@ -23,10 +23,11 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiRQYWNrZXRzL1VwZGF0ZVRyYWRlSXRlbXNQYWNrZXQucHJvdG8SB1RyYWRp",
-            "bmcaE1BhY2tldHMvVGhpbmcucHJvdG8ikgEKFlVwZGF0ZVRyYWRlSXRlbXNQ",
+            "bmcaE1BhY2tldHMvVGhpbmcucHJvdG8inAEKFlVwZGF0ZVRyYWRlSXRlbXNQ",
             "YWNrZXQSEQoJU2Vzc2lvbklkGAEgASgJEgwKBFV1aWQYAiABKAkSDwoHVHJh",
-            "ZGVJZBgDIAEoCRIdCgVJdGVtcxgEIAMoCzIOLlRyYWRpbmcuVGhpbmcSJwoP",
-            "T3RoZXJQYXJ0eUl0ZW1zGAUgAygLMg4uVHJhZGluZy5UaGluZ2IGcHJvdG8z"));
+            "ZGVJZBgDIAEoCRIiCgVJdGVtcxgEIAMoCzITLlRyYWRpbmcuUHJvdG9UaGlu",
+            "ZxIsCg9PdGhlclBhcnR5SXRlbXMYBSADKAsyEy5UcmFkaW5nLlByb3RvVGhp",
+            "bmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -108,21 +109,21 @@ namespace Trading {
 
     /// <summary>Field number for the "Items" field.</summary>
     public const int ItemsFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::Trading.Thing> _repeated_items_codec
-        = pb::FieldCodec.ForMessage(34, global::Trading.Thing.Parser);
-    private readonly pbc::RepeatedField<global::Trading.Thing> items_ = new pbc::RepeatedField<global::Trading.Thing>();
+    private static readonly pb::FieldCodec<global::Trading.ProtoThing> _repeated_items_codec
+        = pb::FieldCodec.ForMessage(34, global::Trading.ProtoThing.Parser);
+    private readonly pbc::RepeatedField<global::Trading.ProtoThing> items_ = new pbc::RepeatedField<global::Trading.ProtoThing>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Trading.Thing> Items {
+    public pbc::RepeatedField<global::Trading.ProtoThing> Items {
       get { return items_; }
     }
 
     /// <summary>Field number for the "OtherPartyItems" field.</summary>
     public const int OtherPartyItemsFieldNumber = 5;
-    private static readonly pb::FieldCodec<global::Trading.Thing> _repeated_otherPartyItems_codec
-        = pb::FieldCodec.ForMessage(42, global::Trading.Thing.Parser);
-    private readonly pbc::RepeatedField<global::Trading.Thing> otherPartyItems_ = new pbc::RepeatedField<global::Trading.Thing>();
+    private static readonly pb::FieldCodec<global::Trading.ProtoThing> _repeated_otherPartyItems_codec
+        = pb::FieldCodec.ForMessage(42, global::Trading.ProtoThing.Parser);
+    private readonly pbc::RepeatedField<global::Trading.ProtoThing> otherPartyItems_ = new pbc::RepeatedField<global::Trading.ProtoThing>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Trading.Thing> OtherPartyItems {
+    public pbc::RepeatedField<global::Trading.ProtoThing> OtherPartyItems {
       get { return otherPartyItems_; }
     }
 

@@ -11,5 +11,5 @@ message CompleteTradePacket
 
     bool Success = 3;
     
-    repeated Thing Items = 4;
+    repeated ProtoThing Items = 4;
 };

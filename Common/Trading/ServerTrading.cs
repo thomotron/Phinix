@@ -233,13 +233,13 @@ namespace Trading
                 if (packet.Cancelled)
                 {
                     // Try to get the sender's items on offer, returning on failure
-                    if (!trade.TryGetItemsOnOffer(packet.Uuid, out Thing[] items)) return;
+                    if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
                     
                     // Return the sender's items to them
                     sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
                     
                     // Try to get the other party's items on offer, returning on failure
-                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out Thing[] otherPartyItems)) return;
+                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
                     
                     // Check if the other party is logged in
                     if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
@@ -277,10 +277,10 @@ namespace Trading
                     if (trade.AcceptedParties.Count == trade.PartyUuids.Length)
                     {
                         // Try to get the sender's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(packet.Uuid, out Thing[] items)) return;
+                        if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
                         
                         // Try to get the other party's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out Thing[] otherPartyItems)) return;
+                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
                     
                         // Give the other party's items to the sender
                         sendCompleteTradePacket(connectionId, trade.TradeId, false, otherPartyUuid, otherPartyItems);
@@ -334,7 +334,7 @@ namespace Trading
         /// <param name="cancelled">Whether the trade was cancelled</param>
         /// <param name="otherPartyUuid">Other party's UUID</param>
         /// <param name="items">Collection of items to send</param>
-        private void sendCompleteTradePacket(string connectionId, string tradeId, bool cancelled, string otherPartyUuid, IEnumerable<Thing> items)
+        private void sendCompleteTradePacket(string connectionId, string tradeId, bool cancelled, string otherPartyUuid, IEnumerable<ProtoThing> items)
         {
             // Create and pack a response
             CompleteTradePacket packet = new CompleteTradePacket
@@ -406,7 +406,7 @@ namespace Trading
                     if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid)) return;
                     
                     // Try to get the other party's items on offer, returning on failure
-                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out Thing[] otherPartyItems)) return;
+                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
                     
                     // Send an update to the sender
                     sendUpdateTradeItemsPacket(connectionId, trade.TradeId, packet.Items, otherPartyItems);
@@ -430,7 +430,7 @@ namespace Trading
         /// <param name="tradeId">Trade ID</param>
         /// <param name="items">Party's items</param>
         /// <param name="otherPartyItems">Other party's items</param>
-        private void sendUpdateTradeItemsPacket(string connectionId, string tradeId, IEnumerable<Thing> items, IEnumerable<Thing> otherPartyItems)
+        private void sendUpdateTradeItemsPacket(string connectionId, string tradeId, IEnumerable<ProtoThing> items, IEnumerable<ProtoThing> otherPartyItems)
         {
             // Create and pack a response
             UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
