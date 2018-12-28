@@ -18,7 +18,7 @@ namespace PhinixClient
         private const float WINDOW_PADDING = 20f;
 
         private const float TRADE_ARROWS_WIDTH = 140f;
-        private const float TRADE_ARROWS_HEIGHT = 170f;
+        private const float TRADE_ARROWS_HEIGHT = 190f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
