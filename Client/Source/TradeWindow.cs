@@ -500,7 +500,7 @@ namespace PhinixClient
         private void DrawItemList(Rect container, IEnumerable<Verse.Thing> items, ref Vector2 scrollPos)
         {
             // Draw a box to contain the list
-            Widgets.DrawBox(container);
+            Widgets.DrawMenuSection(container);
             
             // Set up a list to hold our item rows
             List<ItemRow> rows = new List<ItemRow>();
