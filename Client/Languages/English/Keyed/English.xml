@@ -26,4 +26,6 @@
     <Phinix_trade_updateButton>Update</Phinix_trade_updateButton>
     <Phinix_trade_resetButton>Reset</Phinix_trade_resetButton>
     <Phinix_trade_cancelButton>Cancel</Phinix_trade_cancelButton>
+    <Phinix_trade_sortByLabel>Sort by</Phinix_trade_sortByLabel>
+    <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
 </LanguageData>

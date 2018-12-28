@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Trading;
@@ -22,6 +23,7 @@ namespace PhinixClient
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_HEIGHT = 310f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
+        private const float OFFER_WINDOW_ROW_HEIGHT = 20f;
         private const float OFFER_CONFIRMATION_HEIGHT = 20f;
 
         private const float TRADE_BUTTON_WIDTH = 140f;
@@ -40,6 +42,21 @@ namespace PhinixClient
         private bool tradeAccepted = false;
 
         /// <summary>
+        /// Collection of items we have on offer.
+        /// Used to update our offer.
+        /// </summary>
+        private List<Thing> items;
+
+        /// <summary>
+        /// Scroll position of our offer window.
+        /// </summary>
+        private Vector2 ourOfferScrollPos = Vector2.zero;
+        /// <summary>
+        /// Scroll position of the other party's offer window.
+        /// </summary>
+        private Vector2 theirOfferScrollPos = Vector2.zero;
+
+        /// <summary>
         /// Creates a new <c>TradeWindow</c> for the given trade ID.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
@@ -51,6 +68,7 @@ namespace PhinixClient
             this.closeOnAccept = false;
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
+            this.items = new List<Thing>();
 
             Instance.OnTradeCompleted += OnTradeCompleted;
             Instance.OnTradeCancelled += OnTradeCancelled;
@@ -240,7 +258,8 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
             {
-                // TODO: Update trade
+                // Convert and update trade items
+                Instance.UpdateTradeItems(tradeId, items.Select(TradingThingConverter.ConvertThingFromVerse));
             }
             
             // Reset button
@@ -252,7 +271,9 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
             {
-                // TODO: Reset trade
+                // Clear and update trade items
+                items.Clear();
+                Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
             }
             
             // Cancel button
@@ -320,8 +341,20 @@ namespace PhinixClient
             // Reset the text style
             Text.Anchor = TextAnchor.UpperLeft;
             
-            // Draw a placeholder
-            Widgets.DrawMenuSection(container.BottomPartPixels(container.height - titleRect.height));
+            // Try get our items on offer
+            if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> items))
+            {
+                // Convert our items to their Verse equivalents
+                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                
+                // Draw our items
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), verseItems, ref ourOfferScrollPos);
+            }
+            else
+            {
+                // Couldn't get our items, draw a blank array
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), new Verse.Thing[0], ref ourOfferScrollPos);
+            }
         }
 
         /// <summary>
@@ -347,8 +380,65 @@ namespace PhinixClient
             // Reset the text style
             Text.Anchor = TextAnchor.UpperLeft;
             
-            // Draw a placeholder
-            Widgets.DrawMenuSection(container.BottomPartPixels(container.height - titleRect.height));
+            // Try get their UUID and items on offer
+            if (Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) &&
+                Instance.TryGetItemsOnOffer(tradeId, otherPartyUuid, out IEnumerable<ProtoThing> items))
+            {
+                // Convert their items to their Verse equivalents
+                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                
+                // Draw their items
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), verseItems, ref theirOfferScrollPos);
+            }
+            else
+            {
+                // Couldn't get their items, draw a blank array
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), new Thing[0], ref theirOfferScrollPos);
+            }
+        }
+        
+        /// <summary>
+        /// Draws an item list within the given container.
+        /// Used to draw the offer windows.
+        /// </summary>
+        /// <param name="container">Container to draw within</param>
+        /// <param name="items">Items to draw in the list</param>
+        /// <param name="scrollPos">List scroll position</param>
+        private void DrawItemList(Rect container, IEnumerable<Verse.Thing> items, ref Vector2 scrollPos)
+        {
+            // Draw a box to contain the list
+            Widgets.DrawBox(container);
+            
+            // Set up a list to hold our item rows
+            List<ItemRow> rows = new List<ItemRow>();
+
+            // Yes, I know what you're thinking: 'just use a for loop lmao'. I don't want to cast an IEnumerable to a list so this will do.
+            int iterations = 0;
+            foreach (Verse.Thing item in items)
+            {
+                // Create an ItemRow from this item
+                rows.Add(new ItemRow(item, OFFER_WINDOW_ROW_HEIGHT, iterations++ % 2 != 0));
+            }
+            
+            // Create a flex container with our rows
+            VerticalFlexContainer flexContainer = new VerticalFlexContainer(container.width - SCROLLBAR_WIDTH, rows.Cast<IDrawable>());
+            
+            // Create an inner 'scrollable' container
+            Rect innerContainer = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width - SCROLLBAR_WIDTH,
+                height: flexContainer.GetHeight(container.width)
+            );
+            
+            // Start scrolling
+            Widgets.BeginScrollView(container, ref scrollPos, innerContainer);
+            
+            // Draw the flex container
+            flexContainer.Draw(innerContainer);
+            
+            // Stop scrolling
+            Widgets.EndScrollView();
         }
     }
 }
