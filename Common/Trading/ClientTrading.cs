@@ -185,6 +185,45 @@ namespace Trading
 
             return true;
         }
+        
+        /// <summary>
+        /// Attempts to get the items on offer in the given trade for a given party.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="items">Items output</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TryGetItemsOnOffer(string tradeId, string partyUuid, out IEnumerable<ProtoThing> items)
+        {
+            // Initialise items to something arbitrary
+            items = null;
+            
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId)) return false;
+
+                Trade trade = activeTrades[tradeId];
+                
+                // Make sure the party is a part of this trade
+                if (!trade.PartyUuids.Contains(partyUuid)) return false;
+                
+                // Check if the party has any items on offer 
+                if (trade.ItemsOnOffer.ContainsKey(partyUuid))
+                {
+                    // Set items as those on offer
+                    items = trade.ItemsOnOffer[partyUuid];
+                }
+                else
+                {
+                    // No items on offer, return an empty array
+                    items = new ProtoThing[0];
+                }
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
@@ -262,45 +301,6 @@ namespace Trading
                 // Remove the trade
                 activeTrades.Remove(packet.TradeId);
             }
-        }
-
-        /// <summary>
-        /// Attempts to get the items on offer in the given trade for a given party.
-        /// Returns whether the operation completed successfully.
-        /// </summary>
-        /// <param name="tradeId">Trade ID</param>
-        /// <param name="partyUuid">Party's UUID</param>
-        /// <param name="items">Items output</param>
-        /// <returns>Whether the operation completed successfully</returns>
-        public bool TryGetItemsOnOffer(string tradeId, string partyUuid, out IEnumerable<ProtoThing> items)
-        {
-            // Initialise items to something arbitrary
-            items = null;
-            
-            lock (activeTradesLock)
-            {
-                // Make sure the trade exists
-                if (!activeTrades.ContainsKey(tradeId)) return false;
-
-                Trade trade = activeTrades[tradeId];
-                
-                // Make sure the party is a part of this trade
-                if (!trade.PartyUuids.Contains(partyUuid)) return false;
-                
-                // Check if the party has any items on offer 
-                if (trade.ItemsOnOffer.ContainsKey(partyUuid))
-                {
-                    // Set items as those on offer
-                    items = trade.ItemsOnOffer[partyUuid];
-                }
-                else
-                {
-                    // No items on offer, return an empty array
-                    items = new ProtoThing[0];
-                }
-            }
-
-            return true;
         }
     }
 }
