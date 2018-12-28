@@ -42,7 +42,7 @@ namespace PhinixClient
                 width: container.height,
                 height: height
             );
-            Widgets.ThingIcon(iconRect, thing);
+            Widgets.ThingIcon(iconRect.ContractedBy(iconRect.width * 0.1f), thing);
             
             // Set text alignment
             TextAnchor oldAnchorPos = Text.Anchor;
