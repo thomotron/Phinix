@@ -226,6 +226,30 @@ namespace Trading
         }
 
         /// <summary>
+        /// Sends an item update for the given trade with the given items to the server.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="items">Items on offer</param>
+        public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items)
+        {
+            // Do nothing if not online
+            if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
+            
+            // Create and pack an UpdateTradeItems packet
+            UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
+            {
+                SessionId = authenticator.SessionId,
+                Uuid = userManager.Uuid,
+                TradeId = tradeId,
+                Items = {items}
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
         /// Handles incoming packets from <c>NetCommon</c>.
         /// </summary>
         /// <param name="module">Target module</param>
