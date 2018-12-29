@@ -325,11 +325,18 @@ namespace PhinixClient
                 width: OFFER_WINDOW_WIDTH,
                 height: OFFER_CONFIRMATION_HEIGHT
             );
+            bool oldTradeAccepted = tradeAccepted;
             Widgets.CheckboxLabeled(
                 rect: ourConfirmationRect,
                 label: ("Phinix_trade_confirmOurTradeCheckbox" + (tradeAccepted ? "Checked" : "Unchecked")).Translate(), // Janky-looking easter egg, just for you
                 checkOn: ref tradeAccepted
             );
+            // Check if the accepted state has changed
+            if (tradeAccepted != oldTradeAccepted)
+            {
+                // Update our trade status
+                Instance.UpdateTradeStatus(tradeId, tradeAccepted);
+            }
             
             // Their confirmation
             // TODO: Ellipsise display name length if it's going to spill over
