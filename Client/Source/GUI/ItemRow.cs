@@ -52,10 +52,10 @@ namespace PhinixClient
             Rect labelRect = new Rect(
                 x: iconRect.xMax,
                 y: container.yMin,
-                width: Text.CalcSize(thing.Label).x,
+                width: Text.CalcSize(thing.def.label.CapitalizeFirst()).x,
                 height: height
             );
-            Widgets.Label(labelRect, thing.Label);
+            Widgets.Label(labelRect, thing.def.label.CapitalizeFirst());
             
             // Item count
             Rect countRect = new Rect(
