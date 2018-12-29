@@ -142,7 +142,6 @@ namespace Trading
         /// <param name="partyUuid">This party's UUID</param>
         /// <param name="otherPartyUuid">Other party's UUID output</param>
         /// <returns>Whether the other party's UUID was retrieved successfully</returns>
-        /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
         public bool TryGetOtherParty(string partyUuid, out string otherPartyUuid)
         {
             // Set other party's UUID to something arbitrary
@@ -172,7 +171,6 @@ namespace Trading
         /// <param name="partyUuid">Party's UUID</param>
         /// <param name="accepted">Whether the party has accepted</param>
         /// <returns>Whether the accepted state was retrieved successfully</returns>
-        /// <exception cref="ArgumentException">Party UUID is not present in this trade</exception>
         public bool TryGetAccepted(string partyUuid, out bool accepted)
         {
             // Set accepted to something arbitrary
