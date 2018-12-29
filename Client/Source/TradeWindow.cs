@@ -337,6 +337,12 @@ namespace PhinixClient
                 // Update our trade status
                 Instance.UpdateTradeStatus(tradeId, tradeAccepted);
             }
+            // Check if the backend has updated
+            else if (Instance.TryGetPartyAccepted(tradeId, Instance.Uuid, out bool accepted) && tradeAccepted != accepted)
+            {
+                // Update the GUI's status to match the backend
+                tradeAccepted = accepted;
+            }
             
             // Their confirmation
             // TODO: Ellipsise display name length if it's going to spill over
