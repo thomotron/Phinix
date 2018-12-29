@@ -156,12 +156,14 @@ namespace Trading
                 }
                 
                 // Passed all tests, create a new trade
-                string tradeId = Guid.NewGuid().ToString();
-                activeTrades.Add(tradeId, new Trade(new[]{packet.Uuid, packet.OtherPartyUuid}));
+                Trade trade = new Trade(new[] {packet.Uuid, packet.OtherPartyUuid});
+                activeTrades.Add(trade.TradeId, trade);
                 
                 // Send both parties a successful trade creation packet
-                sendSuccessfulCreateTradeResponsePacket(connectionId, tradeId, packet.OtherPartyUuid); // Sender
-                sendSuccessfulCreateTradeResponsePacket(otherPartyConnectionId, tradeId, packet.Uuid); // Other party
+                sendSuccessfulCreateTradeResponsePacket(connectionId, trade.TradeId, packet.OtherPartyUuid); // Sender
+                sendSuccessfulCreateTradeResponsePacket(otherPartyConnectionId, trade.TradeId, packet.Uuid); // Other party
+                
+                RaiseLogEntry(new LogEventArgs(string.Format("Created trade {0} between {1} and {2}", trade.TradeId, packet.Uuid, packet.OtherPartyUuid), LogLevel.DEBUG));
             }
         }
 
