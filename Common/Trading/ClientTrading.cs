@@ -301,6 +301,10 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsPacket", LogLevel.DEBUG));
                     updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
                     break;
+                case "UpdateTradeStatusPacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeStatusPacket", LogLevel.DEBUG));
+                    updateTradeStatusPacketHandler(connectionId, message.Unpack<UpdateTradeStatusPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -385,6 +389,32 @@ namespace Trading
                     trade.TrySetItemsOnOffer(otherPartyUuid, packet.OtherPartyItems);
                     
                     RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for {1}", packet.Items.Count, otherPartyUuid), LogLevel.DEBUG));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UpdateTradeStatusPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UpdateTradeStatusPacket</c></param>
+        private void updateTradeStatusPacketHandler(string connectionId, UpdateTradeStatusPacket packet)
+        {
+            lock (activeTradesLock)
+            {
+                // Ignore packets from trades we don't have
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+
+                Trade trade = activeTrades[packet.TradeId];
+
+                // Try set our accepted state
+                trade.TrySetAccepted(packet.Uuid, packet.Accepted);
+                
+                // Try get the other party's UUID
+                if (trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid))
+                {
+                    // Try set their accepted state
+                    trade.TrySetAccepted(otherPartyUuid, packet.OtherPartyAccepted);
                 }
             }
         }
