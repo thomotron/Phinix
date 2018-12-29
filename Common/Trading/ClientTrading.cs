@@ -187,6 +187,33 @@ namespace Trading
         }
         
         /// <summary>
+        /// Attempts to get the accepted state of the given party from the given trade.
+        /// Returns whether the accepted state was retrieved successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="accepted">Accepted state output</param>
+        /// <returns>Whether the accepted state was returned successfully</returns>
+        public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted)
+        {
+            // Set other party accepted to something arbitrary
+            accepted = false;
+
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId)) return false;
+
+                Trade trade = activeTrades[tradeId];
+
+                // Try to get the party's accepted state, returning false on failure
+                if (!trade.TryGetAccepted(partyUuid, out accepted)) return false;
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
         /// Attempts to get the items on offer in the given trade for a given party.
         /// Returns whether the operation completed successfully.
         /// </summary>
