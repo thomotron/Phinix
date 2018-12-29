@@ -290,10 +290,16 @@ namespace Trading
             switch (typeUrl.Type)
             {
                 case "CreateTradeResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a CreateTradeResponsePacket", LogLevel.DEBUG));
                     createTradeResponsePacketHandler(connectionId, message.Unpack<CreateTradeResponsePacket>());
                     break;
                 case "CompleteTradePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a CompleteTradePacket", LogLevel.DEBUG));
                     completeTradePacketHandler(connectionId, message.Unpack<CompleteTradePacket>());
+                    break;
+                case "UpdateTradeItemsPacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsPacket", LogLevel.DEBUG));
+                    updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -350,6 +356,36 @@ namespace Trading
             {
                 // Remove the trade
                 activeTrades.Remove(packet.TradeId);
+            }
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UpdateTradeItemsPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UpdateTradeItemsPacket</c></param>
+        private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
+        {
+            lock (activeTradesLock)
+            {
+                // Ignore packets from trades we don't have
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+
+                Trade trade = activeTrades[packet.TradeId];
+
+                // Set our items on offer
+                trade.TrySetItemsOnOffer(userManager.Uuid, packet.Items);
+                
+                RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for us", packet.Items.Count), LogLevel.DEBUG));
+                
+                // Try get the other party's UUID
+                if (trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
+                {
+                    // Set the other party's items on offer
+                    trade.TrySetItemsOnOffer(otherPartyUuid, packet.OtherPartyItems);
+                    
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for {1}", packet.Items.Count, otherPartyUuid), LogLevel.DEBUG));
+                }
             }
         }
     }
