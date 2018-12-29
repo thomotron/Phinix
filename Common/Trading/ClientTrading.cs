@@ -408,10 +408,10 @@ namespace Trading
                 Trade trade = activeTrades[packet.TradeId];
 
                 // Try set our accepted state
-                trade.TrySetAccepted(packet.Uuid, packet.Accepted);
+                trade.TrySetAccepted(userManager.Uuid, packet.Accepted);
                 
                 // Try get the other party's UUID
-                if (trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid))
+                if (trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
                 {
                     // Try set their accepted state
                     trade.TrySetAccepted(otherPartyUuid, packet.OtherPartyAccepted);
