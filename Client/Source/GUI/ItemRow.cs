@@ -59,7 +59,7 @@ namespace PhinixClient
             
             // Item count
             Rect countRect = new Rect(
-                x: container.xMax - Text.CalcSize(thing.stackCount.ToString()).x,
+                x: container.xMax - (Text.CalcSize(thing.stackCount.ToString()).x + 10f), // Move a further 10f for some nicer-looking padding
                 y: container.yMin,
                 width: Text.CalcSize(thing.stackCount.ToString()).x,
                 height: height
