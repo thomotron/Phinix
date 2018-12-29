@@ -186,5 +186,36 @@ namespace Trading
 
             return true;
         }
+        
+        /// <summary>
+        /// Attempts to set whether this party has accepted this trade.
+        /// Returns whether the accepted state was set successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="accepted">Whether the party has accepted</param>
+        /// <returns>Whether the accepted state was set successfully</returns>
+        public bool TrySetAccepted(string partyUuid, bool accepted)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // If accepting
+            if (accepted)
+            {
+                // Check if the party has not already accepted
+                if (!AcceptedParties.Contains(partyUuid))
+                {
+                    // Add them to the accepted list
+                    AcceptedParties.Add(partyUuid);
+                }
+            }
+            else
+            {
+                // Remove the party from the accepted list
+                AcceptedParties.Remove(partyUuid);
+            }
+
+            return true;
+        }
     }
 }
