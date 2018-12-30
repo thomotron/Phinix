@@ -589,6 +589,9 @@ namespace PhinixClient
             // Determine if scrolling is necessary
             if (flexContainer.GetHeight(container.width) > container.height)
             {
+                // Draw a box to contain the list
+                Widgets.DrawMenuSection(container.LeftPartPixels(container.width - SCROLLBAR_WIDTH));
+                
                 // Create an inner 'scrollable' container
                 Rect innerContainer = new Rect(
                     x: container.xMin,
@@ -596,9 +599,6 @@ namespace PhinixClient
                     width: container.width - SCROLLBAR_WIDTH,
                     height: flexContainer.GetHeight(container.width - SCROLLBAR_WIDTH)
                 );
-                
-                // Draw a box to contain the list
-                Widgets.DrawMenuSection(innerContainer);
                 
                 // Start scrolling
                 Widgets.BeginScrollView(container, ref scrollPos, innerContainer);
