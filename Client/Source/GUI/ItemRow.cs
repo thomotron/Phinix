@@ -11,6 +11,11 @@ namespace PhinixClient
         /// The item this row will display.
         /// </summary>
         private Thing thing;
+
+        /// <summary>
+        /// The displayed number of items.
+        /// </summary>
+        private int count;
         
         /// <summary>
         /// Height of the row.
@@ -22,9 +27,10 @@ namespace PhinixClient
         /// </summary>
         private bool alternateBackground;
 
-        public ItemRow(Thing thing, float height, bool alternateBackground = false)
+        public ItemRow(Thing thing, int count, float height, bool alternateBackground = false)
         {
             this.thing = thing;
+            this.count = count;
             this.height = height;
             this.alternateBackground = alternateBackground;
         }
@@ -59,12 +65,12 @@ namespace PhinixClient
             
             // Item count
             Rect countRect = new Rect(
-                x: container.xMax - (Text.CalcSize(thing.stackCount.ToString()).x + 10f), // Move a further 10f for some nicer-looking padding
+                x: container.xMax - (Text.CalcSize(count.ToString()).x + 10f), // Move a further 10f for some nicer-looking padding
                 y: container.yMin,
-                width: Text.CalcSize(thing.stackCount.ToString()).x,
+                width: Text.CalcSize(count.ToString()).x,
                 height: height
             );
-            Widgets.Label(countRect, thing.stackCount.ToString());
+            Widgets.Label(countRect, count.ToString());
             
             // Reset text alignment
             Text.Anchor = oldAnchorPos;
