@@ -611,6 +611,10 @@ namespace PhinixClient
             }
             else
             {
+                // Re-make the flex container with full width
+                // TODO: Make VerticalFlexContainers draw with a dynamic width
+                flexContainer = new VerticalFlexContainer(container.width, rows.Cast<IDrawable>());
+                
                 // Draw a box to contain the list
                 Widgets.DrawMenuSection(container);
                 
