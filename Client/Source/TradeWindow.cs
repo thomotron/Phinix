@@ -29,7 +29,7 @@ namespace PhinixClient
         private const float HORIZONTAL_UPPER_LOWER_DIVISION_SPACING = 20f;
 
         private const float LOWER_HALF_WIDTH = 470f;
-        private const float LOWER_HALF_HEIGHT = 310f;
+        private const float LOWER_HALF_HEIGHT = 320f;
 
         private const float SORT_HEIGHT = 30f;
         private const float SORT_LABEL_WIDTH = 60f;
