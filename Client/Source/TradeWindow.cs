@@ -527,15 +527,54 @@ namespace PhinixClient
         /// <param name="scrollPos">List scroll position</param>
         private void DrawItemList(Rect container, IEnumerable<Verse.Thing> items, ref Vector2 scrollPos)
         {
+            // Group each item for the list
+            Dictionary<string, List<ThingStack>> groupedItems = new Dictionary<string, List<ThingStack>>();
+            foreach (Thing item in items)
+            {
+                // Check if this item type already has a group
+                if (groupedItems.ContainsKey(item.def.defName))
+                {
+                    // Loop over all the item stacks in the group
+                    bool stacked = false;
+                    foreach (ThingStack itemStack in groupedItems[item.def.defName])
+                    {
+                        // Check if this item can stack on this stack
+                        if (item.CanStackWith(itemStack.Thing))
+                        {
+                            // Increment this stack's item count by the item's stack count and break the loop
+                            itemStack.Count += item.stackCount;
+                            stacked = true;
+                            break;
+                        }
+                    }
+
+                    // Check if a stack wasn't found within this group
+                    if (!stacked)
+                    {
+                        // Add a new stack with this item in it
+                        groupedItems[item.def.defName].Add(new ThingStack(item, 1));
+                    }
+                }
+                else
+                {
+                    // Create a new item stack with this item in it
+                    ThingStack itemStack = new ThingStack(item, 1);
+                    
+                    // Add a new group with the item stack
+                    groupedItems.Add(item.def.defName, new List<ThingStack>() {itemStack});
+                }
+            }
+            
             // Set up a list to hold our item rows
             List<ItemRow> rows = new List<ItemRow>();
-
-            // Yes, I know what you're thinking: 'just use a for loop lmao'. I don't want to cast an IEnumerable to a list so this will do.
             int iterations = 0;
-            foreach (Verse.Thing item in items)
+            foreach (List<ThingStack> itemStacks in groupedItems.Values)
             {
-                // Create an ItemRow from this item
-                rows.Add(new ItemRow(item, OFFER_WINDOW_ROW_HEIGHT, iterations++ % 2 != 0));
+                foreach (ThingStack itemStack in itemStacks)
+                {
+                    // Create an ItemRow from this item
+                    rows.Add(new ItemRow(itemStack.Thing, itemStack.Count, OFFER_WINDOW_ROW_HEIGHT, iterations++ % 2 != 0));
+                }
             }
             
             // Create a flex container with our rows
@@ -572,6 +611,19 @@ namespace PhinixClient
                 // Draw the flex container directly to the container
                 flexContainer.Draw(container);
             }
+        }
+    }
+
+    public class ThingStack
+    {
+        public Thing Thing;
+
+        public int Count;
+
+        public ThingStack(Thing thing, int count)
+        {
+            this.Thing = thing;
+            this.Count = count;
         }
     }
 }
