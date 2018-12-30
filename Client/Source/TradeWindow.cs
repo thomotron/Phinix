@@ -445,14 +445,21 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawAvailableItems(Rect container)
         {
+            // Set the text anchor
+            TextAnchor oldAnchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleCenter;
+            
             // 'Sort by' label
             Rect sortByLabelRect = new Rect(
                 x: container.xMin,
                 y: container.yMin,
-                width: SORT_LABEL_WIDTH,
+                width: Text.CalcSize("Phinix_trade_sortByLabel".Translate()).x,
                 height: SORT_HEIGHT
             );
             Widgets.Label(sortByLabelRect, "Phinix_trade_sortByLabel".Translate());
+            
+            // Reset the text anchor
+            Text.Anchor = oldAnchor;
             
             // First sorting preference
             Rect firstSortButtonRect = new Rect(
@@ -487,14 +494,21 @@ namespace PhinixClient
             );
             search = Widgets.TextField(searchTextRect, search);
             
+            // Set the text anchor
+            oldAnchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleCenter;
+            
             // Search label
             Rect searchLabel = new Rect(
-                x: searchTextRect.xMin - Text.CalcSize("Phinix_trade_searchLabel".Translate()).x,
+                x: searchTextRect.xMin - (Text.CalcSize("Phinix_trade_searchLabel".Translate()).x + DEFAULT_SPACING),
                 y: container.yMin,
                 width: Text.CalcSize("Phinix_trade_searchLabel".Translate()).x,
                 height: SORT_HEIGHT
             );
             Widgets.Label(searchLabel, "Phinix_trade_searchLabel".Translate());
+            
+            // Reset the text anchor
+            Text.Anchor = oldAnchor;
             
             // Stockpile items list
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome); // Select all maps that are player homes
