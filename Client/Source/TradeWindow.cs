@@ -500,7 +500,8 @@ namespace PhinixClient
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome); // Select all maps that are player homes
             IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile)); // From each map, select all zones that are stockpiles
             IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item)); // From each stockpile, select all things that are an item
-            DrawItemList(container.BottomPartPixels(container.height - (SORT_HEIGHT + DEFAULT_SPACING)), stockpileItems, ref stockpileItemsScrollPos);
+            IEnumerable<Thing> filteredStockpileItems = stockpileItems.Where(thing => thing.def.label.ToLower().Contains(search.ToLower())); // Select all items that have names containing the search text
+            DrawItemList(container.BottomPartPixels(container.height - (SORT_HEIGHT + DEFAULT_SPACING)), filteredStockpileItems, ref stockpileItemsScrollPos);
         }
         
         /// <summary>
