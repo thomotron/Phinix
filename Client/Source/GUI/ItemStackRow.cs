@@ -88,8 +88,6 @@ namespace PhinixClient
                 if (Widgets.ButtonText(addAllRect, "++"))
                 {
                     itemStack.Selected = itemStack.Count;
-                    
-                    Log.Message("Maxing = " + itemStack.Selected);
                 }
                 
                 // Add one button
@@ -102,8 +100,6 @@ namespace PhinixClient
                 if (Widgets.ButtonText(addOneRect, "+"))
                 {
                     if (itemStack.Selected + 1 <= itemStack.Count) itemStack.Selected++;
-                    
-                    Log.Message("Adding = " + itemStack.Selected);
                 }
                 
                 // Count text field
@@ -124,8 +120,6 @@ namespace PhinixClient
                 if (Widgets.ButtonText(removeOneRect, "-"))
                 {
                     if (itemStack.Selected - 1 >= 0) itemStack.Selected--;
-                    
-                    Log.Message("Taking = " + itemStack.Selected);
                 }
                 
                 // Remove all button
@@ -138,8 +132,6 @@ namespace PhinixClient
                 if (Widgets.ButtonText(removeAllRect, "--"))
                 {
                     itemStack.Selected = 0;
-                    
-                    Log.Message("Minning = " + itemStack.Selected);
                 }
                 
                 // Logic for the count text field
