@@ -111,7 +111,7 @@ namespace PhinixClient
             IEnumerable<Thing> filteredStockpileItems = stockpileItems.Where(thing => thing.def.label.ToLower().Contains(search.ToLower()));
 
             // Group all items and cache them for later
-            this.itemStacks = groupItems(filteredStockpileItems);
+            this.itemStacks = StackedThings.GroupThings(filteredStockpileItems);
         }
 
         public override void Close(bool doCloseSound = true)
@@ -422,12 +422,12 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw our items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(verseItems), ref ourOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(verseItems), ref ourOfferScrollPos);
             }
             else
             {
                 // Couldn't get our items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(new Verse.Thing[0]), ref ourOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(new Verse.Thing[0]), ref ourOfferScrollPos);
             }
         }
 
@@ -462,12 +462,12 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw their items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(verseItems), ref theirOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(verseItems), ref theirOfferScrollPos);
             }
             else
             {
                 // Couldn't get their items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(new Thing[0]), ref theirOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(new Thing[0]), ref theirOfferScrollPos);
             }
         }
         
@@ -619,56 +619,6 @@ namespace PhinixClient
                 // Draw the flex container directly to the container
                 flexContainer.Draw(container);
             }
-        }
-
-        /// <summary>
-        /// Groups the given collection of items by their def type and stackability.
-        /// </summary>
-        /// <param name="items">Items to group</param>
-        /// <returns>Grouped items list</returns>
-        private static List<StackedThings> groupItems(IEnumerable<Thing> items)
-        {
-            // Set up an item dictionary
-            Dictionary<string, List<StackedThings>> groupedItems = new Dictionary<string, List<StackedThings>>();
-            
-            foreach (Thing item in items)
-            {
-                // Check if this item type already has a group
-                if (groupedItems.ContainsKey(item.def.defName))
-                {
-                    // Loop over all the item stacks in the group
-                    bool stacked = false;
-                    foreach (StackedThings itemStack in groupedItems[item.def.defName])
-                    {
-                        // Check if this item can stack on this stack
-                        if (itemStack.CanStack(item))
-                        {
-                            // Increment this stack's item count by the item's stack count and break the loop
-                            itemStack.Things.Add(item);
-                            stacked = true;
-                            break;
-                        }
-                    }
-
-                    // Check if a stack wasn't found within this group
-                    if (!stacked)
-                    {
-                        // Add a new stack with this item in it
-                        groupedItems[item.def.defName].Add(new StackedThings(new[]{item}));
-                    }
-                }
-                else
-                {
-                    // Create a new item stack with this item in it
-                    StackedThings itemStack = new StackedThings(new[]{item});
-
-                    // Add a new group with the item stack
-                    groupedItems.Add(item.def.defName, new List<StackedThings>{itemStack});
-                }
-            }
-
-            // Return the grouped items dictionary
-            return groupedItems.SelectMany(pair => pair.Value).ToList();
         }
     }
 }
