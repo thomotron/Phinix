@@ -106,12 +106,9 @@ namespace PhinixClient
             
             // From each stockpile, select all things that are an item
             IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item));
-            
-            // Select all items that have names containing the search text
-            IEnumerable<Thing> filteredStockpileItems = stockpileItems.Where(thing => thing.def.label.ToLower().Contains(search.ToLower()));
 
             // Group all items and cache them for later
-            this.itemStacks = StackedThings.GroupThings(filteredStockpileItems);
+            this.itemStacks = StackedThings.GroupThings(stockpileItems);
         }
 
         public override void Close(bool doCloseSound = true)
@@ -555,7 +552,19 @@ namespace PhinixClient
                 width: container.width,
                 height: container.height - (SORT_HEIGHT + DEFAULT_SPACING)
             );
-            DrawItemList(availableItemsListRect, itemStacks, ref stockpileItemsScrollPos, true);
+            // Filter the item stacks list for only those containing the search text
+            IEnumerable<StackedThings> filteredItemStacks = itemStacks.Where(itemStack =>
+            {
+                // Make sure the item stack has things in it
+                if (itemStack.Things.Count == 0) return false;
+                
+                // Get the first thing from the item stack
+                Thing firstThing = itemStack.Things.First();
+
+                // Return whether the first thing's def label matches the search text
+                return firstThing.def.label.ToLower().Contains(search.ToLower());
+            });
+            DrawItemList(availableItemsListRect, filteredItemStacks, ref stockpileItemsScrollPos, true);
         }
 
         /// <summary>
