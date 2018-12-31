@@ -210,10 +210,6 @@ namespace PhinixClient
                 displayName = "???";
             }
             
-            // Generate a letter
-            LetterDef letterDef = new LetterDef {color = Color.cyan};
-            Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef);
-
             // Convert all the received items into their Verse counterparts
             Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
 
@@ -221,6 +217,10 @@ namespace PhinixClient
             Map map = Find.AnyPlayerHomeMap;
             IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
             DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            
+            // Generate a letter
+            LetterDef letterDef = new LetterDef {color = Color.cyan};
+            Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
             
             // Delete our selected items
             foreach (StackedThings itemStack in itemStacks)
