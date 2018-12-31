@@ -483,10 +483,10 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawAvailableItems(Rect container)
         {
-            // Set the text anchor
-            TextAnchor oldAnchor = Text.Anchor;
-            Text.Anchor = TextAnchor.MiddleCenter;
-            
+//            // Set the text anchor
+//            TextAnchor oldAnchor = Text.Anchor;
+//            Text.Anchor = TextAnchor.MiddleCenter;
+//            
 //            // 'Sort by' label
 //            Rect sortByLabelRect = new Rect(
 //                x: container.xMin,
@@ -533,7 +533,7 @@ namespace PhinixClient
             search = Widgets.TextField(searchTextRect, search);
             
             // Set the text anchor
-            oldAnchor = Text.Anchor;
+            TextAnchor oldAnchor = Text.Anchor;
             Text.Anchor = TextAnchor.MiddleCenter;
             
             // Search label
