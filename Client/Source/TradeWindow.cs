@@ -333,7 +333,13 @@ namespace PhinixClient
             );
             if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
             {
-                // Clear and update trade items
+                // Reset all selected counts to zero
+                foreach (StackedThings itemStack in itemStacks)
+                {
+                    itemStack.Selected = 0;
+                }
+                
+                // Update trade items
                 Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
             }
             
