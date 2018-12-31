@@ -71,6 +71,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
     <Compile Include="SettingsWindow.cs" />
+    <Compile Include="StackedThings.cs" />
     <Compile Include="TradeWindow.cs" />
     <Compile Include="TradingThingConverter.cs" />
     <Content Include="..\About\**">
