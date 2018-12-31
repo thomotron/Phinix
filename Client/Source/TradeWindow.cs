@@ -487,41 +487,41 @@ namespace PhinixClient
             TextAnchor oldAnchor = Text.Anchor;
             Text.Anchor = TextAnchor.MiddleCenter;
             
-            // 'Sort by' label
-            Rect sortByLabelRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: Text.CalcSize("Phinix_trade_sortByLabel".Translate()).x,
-                height: SORT_HEIGHT
-            );
-            Widgets.Label(sortByLabelRect, "Phinix_trade_sortByLabel".Translate());
-            
-            // Reset the text anchor
-            Text.Anchor = oldAnchor;
-            
-            // First sorting preference
-            Rect firstSortButtonRect = new Rect(
-                x: sortByLabelRect.xMax + DEFAULT_SPACING,
-                y: container.yMin,
-                width: SORT_BUTTON_WIDTH,
-                height: SORT_HEIGHT
-            );
-            if (Widgets.ButtonText(firstSortButtonRect, "", active: false))
-            {
-                // TODO: Sorting
-            }
-            
-            // Second sorting preference
-            Rect secondSortButtonRect = new Rect(
-                x: firstSortButtonRect.xMax + DEFAULT_SPACING,
-                y: container.yMin,
-                width: SORT_BUTTON_WIDTH,
-                height: SORT_HEIGHT
-            );
-            if (Widgets.ButtonText(secondSortButtonRect, "", active: false))
-            {
-                // TODO: Sorting
-            }
+//            // 'Sort by' label
+//            Rect sortByLabelRect = new Rect(
+//                x: container.xMin,
+//                y: container.yMin,
+//                width: Text.CalcSize("Phinix_trade_sortByLabel".Translate()).x,
+//                height: SORT_HEIGHT
+//            );
+//            Widgets.Label(sortByLabelRect, "Phinix_trade_sortByLabel".Translate());
+//            
+//            // Reset the text anchor
+//            Text.Anchor = oldAnchor;
+//            
+//            // First sorting preference
+//            Rect firstSortButtonRect = new Rect(
+//                x: sortByLabelRect.xMax + DEFAULT_SPACING,
+//                y: container.yMin,
+//                width: SORT_BUTTON_WIDTH,
+//                height: SORT_HEIGHT
+//            );
+//            if (Widgets.ButtonText(firstSortButtonRect, "", active: false))
+//            {
+//                // TODO: Sorting
+//            }
+//            
+//            // Second sorting preference
+//            Rect secondSortButtonRect = new Rect(
+//                x: firstSortButtonRect.xMax + DEFAULT_SPACING,
+//                y: container.yMin,
+//                width: SORT_BUTTON_WIDTH,
+//                height: SORT_HEIGHT
+//            );
+//            if (Widgets.ButtonText(secondSortButtonRect, "", active: false))
+//            {
+//                // TODO: Sorting
+//            }
             
             // Search text field
             Rect searchTextRect = new Rect(
