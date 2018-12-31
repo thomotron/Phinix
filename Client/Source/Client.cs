@@ -200,10 +200,50 @@ namespace PhinixClient
             };
             trading.OnTradeCompleted += (sender, args) =>
             {
+                // Try get the other party's display name
+                if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+            
+                // Convert all the received items into their Verse counterparts
+                Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+
+                // Launch drop pods to a trade spot on a home tile
+                Map map = Find.AnyPlayerHomeMap;
+                IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+                DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
+                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
+                
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
+                // Try get the other party's display name
+                if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCancelled");
+                Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
+                
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
             };
             

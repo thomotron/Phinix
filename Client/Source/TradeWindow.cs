@@ -156,37 +156,6 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeCancelled(object sender, CompleteTradeEventArgs args)
         {
-            // Try get the other party's display name
-            if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
-            {
-                // Strip formatting
-                displayName = TextHelper.StripRichText(displayName);
-            }
-            else
-            {
-                // Unknown display name, default to ???
-                displayName = "???";
-            }
-
-            // Generate a letter
-            LetterDef letterDef = new LetterDef {color = Color.yellow};
-            Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
-            
-            // This below section is unnecessary since we aren't deleting items when we update the trade
-//            // Convert all the received items into their Verse counterparts
-//            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
-//
-//            // Launch drop pods to a trade spot on a home tile
-//            Map map = Find.AnyPlayerHomeMap;
-//            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-//            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
-//            
-//            // Delete our selected items
-//            foreach (StackedThings itemStack in itemStacks)
-//            {
-//                itemStack.DeleteSelected();
-//            }
-            
             // Close the window
             Close();
         }
@@ -198,30 +167,6 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeCompleted(object sender, CompleteTradeEventArgs args)
         {
-            // Try get the other party's display name
-            if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
-            {
-                // Strip formatting
-                displayName = TextHelper.StripRichText(displayName);
-            }
-            else
-            {
-                // Unknown display name, default to ???
-                displayName = "???";
-            }
-            
-            // Convert all the received items into their Verse counterparts
-            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
-
-            // Launch drop pods to a trade spot on a home tile
-            Map map = Find.AnyPlayerHomeMap;
-            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
-            
-            // Generate a letter
-            LetterDef letterDef = new LetterDef {color = Color.cyan};
-            Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
-            
             // Delete our selected items
             foreach (StackedThings itemStack in itemStacks)
             {
