@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -53,10 +54,9 @@ namespace PhinixClient
         private bool tradeAccepted = false;
 
         /// <summary>
-        /// Collection of items we have on offer.
-        /// Used to update our offer.
+        /// Collection of stacked items we have available and on offer.
         /// </summary>
-        private List<Thing> items;
+        private List<StackedThings> itemStacks;
 
         /// <summary>
         /// Search text for filtering available items.
@@ -88,10 +88,30 @@ namespace PhinixClient
             this.closeOnAccept = false;
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
-            this.items = new List<Thing>();
+            this.itemStacks = new List<StackedThings>();
 
             Instance.OnTradeCompleted += OnTradeCompleted;
             Instance.OnTradeCancelled += OnTradeCancelled;
+        }
+
+        public override void PreOpen()
+        {
+            base.PreOpen();
+            
+            // Select all maps that are player homes
+            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
+            
+            // From each map, select all zones that are stockpiles
+            IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile));
+            
+            // From each stockpile, select all things that are an item
+            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item));
+            
+            // Select all items that have names containing the search text
+            IEnumerable<Thing> filteredStockpileItems = stockpileItems.Where(thing => thing.def.label.ToLower().Contains(search.ToLower()));
+
+            // Group all items and cache them for later
+            this.itemStacks = groupItems(filteredStockpileItems);
         }
 
         public override void Close(bool doCloseSound = true)
@@ -155,13 +175,20 @@ namespace PhinixClient
             LetterDef letterDef = new LetterDef {color = Color.yellow};
             Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
             
-            // Convert all the received items into their Verse counterparts
-            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
-
-            // Launch drop pods to a trade spot on a home tile
-            Map map = Find.AnyPlayerHomeMap;
-            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            // This below section is unnecessary since we aren't deleting items when we update the trade
+//            // Convert all the received items into their Verse counterparts
+//            Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+//
+//            // Launch drop pods to a trade spot on a home tile
+//            Map map = Find.AnyPlayerHomeMap;
+//            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+//            DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+//            
+//            // Delete our selected items
+//            foreach (StackedThings itemStack in itemStacks)
+//            {
+//                itemStack.DeleteSelected();
+//            }
             
             // Close the window
             Close();
@@ -197,6 +224,12 @@ namespace PhinixClient
             Map map = Find.AnyPlayerHomeMap;
             IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
             DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            
+            // Delete our selected items
+            foreach (StackedThings itemStack in itemStacks)
+            {
+                itemStack.DeleteSelected();
+            }
             
             // Close the window
             Close();
@@ -288,7 +321,7 @@ namespace PhinixClient
             if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
             {
                 // Convert and update trade items
-                Instance.UpdateTradeItems(tradeId, items.Select(TradingThingConverter.ConvertThingFromVerse));
+                Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()));
             }
             
             // Reset button
@@ -301,7 +334,6 @@ namespace PhinixClient
             if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
             {
                 // Clear and update trade items
-                items.Clear();
                 Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
             }
             
@@ -390,12 +422,12 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw our items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), verseItems, ref ourOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(verseItems), ref ourOfferScrollPos);
             }
             else
             {
                 // Couldn't get our items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), new Verse.Thing[0], ref ourOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(new Verse.Thing[0]), ref ourOfferScrollPos);
             }
         }
 
@@ -430,12 +462,12 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw their items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), verseItems, ref theirOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(verseItems), ref theirOfferScrollPos);
             }
             else
             {
                 // Couldn't get their items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), new Thing[0], ref theirOfferScrollPos);
+                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), groupItems(new Thing[0]), ref theirOfferScrollPos);
             }
         }
         
@@ -517,70 +549,36 @@ namespace PhinixClient
                 width: container.width,
                 height: container.height - (SORT_HEIGHT + DEFAULT_SPACING)
             );
-            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome); // Select all maps that are player homes
-            IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile)); // From each map, select all zones that are stockpiles
-            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item)); // From each stockpile, select all things that are an item
-            IEnumerable<Thing> filteredStockpileItems = stockpileItems.Where(thing => thing.def.label.ToLower().Contains(search.ToLower())); // Select all items that have names containing the search text
-            DrawItemList(availableItemsListRect, filteredStockpileItems, ref stockpileItemsScrollPos);
+            DrawItemList(availableItemsListRect, itemStacks, ref stockpileItemsScrollPos, true);
         }
-        
+
         /// <summary>
         /// Draws an item list within the given container.
-        /// Used to draw the offer windows.
+        /// Used to draw the available items window.
+        /// Returns a collection of items that are selected.
         /// </summary>
         /// <param name="container">Container to draw within</param>
-        /// <param name="items">Items to draw in the list</param>
+        /// <param name="itemStacks">Item stacks to draw in the list</param>
         /// <param name="scrollPos">List scroll position</param>
-        private void DrawItemList(Rect container, IEnumerable<Verse.Thing> items, ref Vector2 scrollPos)
+        /// <param name="interactive">Whether the item counts should be modifiable by the user</param>
+        /// <returns>Selected items</returns>
+        private void DrawItemList(Rect container, IEnumerable<StackedThings> itemStacks, ref Vector2 scrollPos, bool interactive = false)
         {
-            // Group each item for the list
-            Dictionary<string, List<ThingStack>> groupedItems = new Dictionary<string, List<ThingStack>>();
-            foreach (Thing item in items)
-            {
-                // Check if this item type already has a group
-                if (groupedItems.ContainsKey(item.def.defName))
-                {
-                    // Loop over all the item stacks in the group
-                    bool stacked = false;
-                    foreach (ThingStack itemStack in groupedItems[item.def.defName])
-                    {
-                        // Check if this item can stack on this stack
-                        if (item.CanStackWith(itemStack.Thing))
-                        {
-                            // Increment this stack's item count by the item's stack count and break the loop
-                            itemStack.Count += item.stackCount;
-                            stacked = true;
-                            break;
-                        }
-                    }
-
-                    // Check if a stack wasn't found within this group
-                    if (!stacked)
-                    {
-                        // Add a new stack with this item in it
-                        groupedItems[item.def.defName].Add(new ThingStack(item, 1));
-                    }
-                }
-                else
-                {
-                    // Create a new item stack with this item in it
-                    ThingStack itemStack = new ThingStack(item, 1);
-                    
-                    // Add a new group with the item stack
-                    groupedItems.Add(item.def.defName, new List<ThingStack>() {itemStack});
-                }
-            }
-            
-            // Set up a list to hold our item rows
-            List<ItemRow> rows = new List<ItemRow>();
+            // Set up a list to hold our item stack rows
+            List<ItemStackRow> rows = new List<ItemStackRow>();
             int iterations = 0;
-            foreach (List<ThingStack> itemStacks in groupedItems.Values)
+            foreach (StackedThings itemStack in itemStacks)
             {
-                foreach (ThingStack itemStack in itemStacks)
-                {
-                    // Create an ItemRow from this item
-                    rows.Add(new ItemRow(itemStack.Thing, itemStack.Count, OFFER_WINDOW_ROW_HEIGHT, iterations++ % 2 != 0));
-                }
+                // Create an ItemStackRow from this item
+                ItemStackRow row = new ItemStackRow(
+                    itemStack: itemStack,
+                    height: OFFER_WINDOW_ROW_HEIGHT,
+                    interactive: interactive,
+                    alternateBackground: iterations++ % 2 != 0
+                );
+                
+                // Add it to the row list
+                rows.Add(row);
             }
             
             // Create a flex container with our rows
@@ -622,18 +620,55 @@ namespace PhinixClient
                 flexContainer.Draw(container);
             }
         }
-    }
 
-    public class ThingStack
-    {
-        public Thing Thing;
-
-        public int Count;
-
-        public ThingStack(Thing thing, int count)
+        /// <summary>
+        /// Groups the given collection of items by their def type and stackability.
+        /// </summary>
+        /// <param name="items">Items to group</param>
+        /// <returns>Grouped items list</returns>
+        private static List<StackedThings> groupItems(IEnumerable<Thing> items)
         {
-            this.Thing = thing;
-            this.Count = count;
+            // Set up an item dictionary
+            Dictionary<string, List<StackedThings>> groupedItems = new Dictionary<string, List<StackedThings>>();
+            
+            foreach (Thing item in items)
+            {
+                // Check if this item type already has a group
+                if (groupedItems.ContainsKey(item.def.defName))
+                {
+                    // Loop over all the item stacks in the group
+                    bool stacked = false;
+                    foreach (StackedThings itemStack in groupedItems[item.def.defName])
+                    {
+                        // Check if this item can stack on this stack
+                        if (itemStack.CanStack(item))
+                        {
+                            // Increment this stack's item count by the item's stack count and break the loop
+                            itemStack.Things.Add(item);
+                            stacked = true;
+                            break;
+                        }
+                    }
+
+                    // Check if a stack wasn't found within this group
+                    if (!stacked)
+                    {
+                        // Add a new stack with this item in it
+                        groupedItems[item.def.defName].Add(new StackedThings(new[]{item}));
+                    }
+                }
+                else
+                {
+                    // Create a new item stack with this item in it
+                    StackedThings itemStack = new StackedThings(new[]{item});
+
+                    // Add a new group with the item stack
+                    groupedItems.Add(item.def.defName, new List<StackedThings>{itemStack});
+                }
+            }
+
+            // Return the grouped items dictionary
+            return groupedItems.SelectMany(pair => pair.Value).ToList();
         }
     }
 }
