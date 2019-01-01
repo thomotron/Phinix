@@ -128,6 +128,18 @@ namespace Trading
         }
 
         /// <summary>
+        /// Returns a collection of all active trade IDs.
+        /// </summary>
+        /// <returns>Collection of all active trade IDs</returns>
+        public string[] GetTrades()
+        {
+            lock (activeTradesLock)
+            {
+                return activeTrades.Values.Select(trade => trade.TradeId).ToArray();
+            }
+        }
+
+        /// <summary>
         /// Tries to get the other party's UUID from the given trade.
         /// Returns whether the UUID was retrieved successfully.
         /// </summary>
