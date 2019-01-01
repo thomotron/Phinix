@@ -53,6 +53,7 @@ namespace PhinixClient
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
+        public string[] GetTrades() => trading.GetTrades();
         public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
         public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted) => trading.TryGetPartyAccepted(tradeId, partyUuid, out accepted);
