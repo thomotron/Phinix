@@ -12,7 +12,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// List of contents to draw.
         /// </summary>
-        private List<Displayable> contents;
+        public readonly List<Displayable> Contents;
 
         /// <summary>
         /// Spacing between elements.
@@ -26,7 +26,7 @@ namespace PhinixClient.GUI
         {
             this.spacing = spacing;
             
-            this.contents = new List<Displayable>();
+            this.Contents = new List<Displayable>();
         }
         
         /// <summary>
@@ -35,7 +35,7 @@ namespace PhinixClient.GUI
         /// <param name="contents">Drawable contents</param>
         public VerticalFlexContainer(IEnumerable<Displayable> contents, float spacing = 10f)
         {
-            this.contents = contents.ToList();
+            this.Contents = contents.ToList();
             this.spacing = spacing;
         }
         
@@ -43,19 +43,19 @@ namespace PhinixClient.GUI
         public override void Draw(Rect container)
         {
             // Get the height taken up by fixed-height elements
-            float fixedHeight = contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(container.width));
+            float fixedHeight = Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(container.width));
 
             // Divvy out the remaining height to each fluid element
             float remainingHeight = container.height - fixedHeight;
-            remainingHeight -= (contents.Count - 1) * spacing; // Remove spacing between each element
-            int fluidItems = contents.Count(item => item.IsFluidHeight);
+            remainingHeight -= (Contents.Count - 1) * spacing; // Remove spacing between each element
+            int fluidItems = Contents.Count(item => item.IsFluidHeight);
             float heightPerFluid = remainingHeight / fluidItems;
             
             // Draw each item
             float yOffset = 0f;
-            for (int i = 0; i < contents.Count; i++)
+            for (int i = 0; i < Contents.Count; i++)
             {
-                Displayable item = contents[i];
+                Displayable item = Contents[i];
                 Rect rect;
 
                 // Give fluid items special treatment
@@ -87,7 +87,7 @@ namespace PhinixClient.GUI
                 yOffset += rect.height;
                 
                 // Add spacing to the y offset if applicable
-                if (i < contents.Count - 1) yOffset += spacing;
+                if (i < Contents.Count - 1) yOffset += spacing;
             }
         }
 
@@ -95,7 +95,7 @@ namespace PhinixClient.GUI
         public override float CalcHeight(float width)
         {
             // Return the sum of each item's height, ignoring fluid items
-            return contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(width));
+            return Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(width));
         }
 
         /// <inheritdoc />
@@ -110,7 +110,7 @@ namespace PhinixClient.GUI
         /// <param name="item">Drawable item to add</param>
         public void Add(Displayable item)
         {
-            contents.Add(item);
+            Contents.Add(item);
         }
     }
 }

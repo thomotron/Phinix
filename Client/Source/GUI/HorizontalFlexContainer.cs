@@ -13,7 +13,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// List of contents to draw.
         /// </summary>
-        private List<Displayable> contents;
+        public readonly List<Displayable> Contents;
 
         /// <summary>
         /// Spacing between elements.
@@ -27,7 +27,7 @@ namespace PhinixClient.GUI
         {
             this.spacing = spacing;
             
-            this.contents = new List<Displayable>();
+            this.Contents = new List<Displayable>();
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace PhinixClient.GUI
         /// <param name="contents">Drawable contents</param>
         public HorizontalFlexContainer(IEnumerable<Displayable> contents, float spacing = 10f)
         {
-            this.contents = contents.ToList();
+            this.Contents = contents.ToList();
             this.spacing = spacing;
         }
         
@@ -44,19 +44,19 @@ namespace PhinixClient.GUI
         public override void Draw(Rect container)
         {
             // Get the width taken up by fixed-width elements
-            float fixedWidth = contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(container.height));
+            float fixedWidth = Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(container.height));
 
             // Divvy out the remaining width to each fluid element
             float remainingWidth = container.width - fixedWidth;
-            remainingWidth -= (contents.Count - 1) * spacing; // Remove spacing between each element
-            int fluidItems = contents.Count(item => item.IsFluidWidth);
+            remainingWidth -= (Contents.Count - 1) * spacing; // Remove spacing between each element
+            int fluidItems = Contents.Count(item => item.IsFluidWidth);
             float widthPerFluid = remainingWidth / fluidItems;
             
             // Draw each item
             float xOffset = 0f;
-            for (int i = 0; i < contents.Count; i++)
+            for (int i = 0; i < Contents.Count; i++)
             {
-                Displayable item = contents[i];
+                Displayable item = Contents[i];
                 Rect rect;
 
                 // Give fluid items special treatment
@@ -88,7 +88,7 @@ namespace PhinixClient.GUI
                 xOffset += rect.width;
                 
                 // Add spacing to the x offset if applicable
-                if (i < contents.Count - 1) xOffset += spacing;
+                if (i < Contents.Count - 1) xOffset += spacing;
             }
         }
 
@@ -102,7 +102,7 @@ namespace PhinixClient.GUI
         public override float CalcWidth(float height)
         {
             // Return the sum of each item's width, ignoring fluid items
-            return contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height));
+            return Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height));
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace PhinixClient.GUI
         /// <param name="item">Drawable item to add</param>
         public void Add(Displayable item)
         {
-            contents.Add(item);
+            Contents.Add(item);
         }
     }
 }
