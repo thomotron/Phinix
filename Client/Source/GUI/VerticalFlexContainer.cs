@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace PhinixClient
+namespace PhinixClient.GUI
 {
     public class VerticalFlexContainer : IDrawable
     {

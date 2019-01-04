@@ -1,20 +1,16 @@
 ﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
-    class WidthContainer : Container
+    internal class WidthContainer : Container
     {
         public WidthContainer(Displayable child, float width): base(child, width, Displayable.FLUID)
         {
 
         }
 
+        /// <inheritdoc />
         public override bool IsFluidWidth()
         {
             return false;

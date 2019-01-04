@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Chat;
+using PhinixClient.GUI;
 using RimWorld;
 using UnityEngine;
 using Verse;

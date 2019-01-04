@@ -1,17 +1,16 @@
 ﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
-    class ThingIconWidget : Displayable
+    internal class ThingIconWidget : Displayable
     {
+        /// <summary>
+        /// Thing the icon is for.
+        /// </summary>
         public Thing thing;
 
         public ThingIconWidget(Thing thing)
@@ -19,6 +18,7 @@ namespace PhiClient.UI
             this.thing = thing;
         }
 
+        /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
             Widgets.ThingIcon(inRect, thing);

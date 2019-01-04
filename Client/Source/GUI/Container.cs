@@ -1,60 +1,75 @@
 ﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
-using System;
-using Verse;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
+using Verse;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
-    class Container : Displayable
+    internal class Container : Displayable
     {
-        float width;
-        float height;
-        Displayable child;
+        /// <summary>
+        /// Width of the container.
+        /// </summary>
+        private float width;
         
-        public Container(Displayable child, float width, float height)
+        /// <summary>
+        /// Height of the container.
+        /// </summary>
+        private float height;
+        
+        /// <summary>
+        /// Contents of the container.
+        /// </summary>
+        private Displayable child;
+        
+        public Container(Displayable child, float width = FLUID, float height = FLUID)
         {
             this.child = child;
             this.width = width;
             this.height = height;
         }
 
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return this.height;
+            return height;
         }
 
+        /// <inheritdoc />
         public override float CalcWidth(float height)
         {
-            return this.width;
+            return width;
         }
 
+        /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
             if (!IsFluidHeight())
             {
+                // Clip the rect to the container's height
                 inRect = inRect.TopPartPixels(height);
             }
             if (!IsFluidWidth())
             {
+                // Clip the rect to the container's width
                 inRect = inRect.LeftPartPixels(width);
             }
 
+            // Draw the container's contents
             child.Draw(inRect);
         }
 
+        /// <inheritdoc />
         public override bool IsFluidHeight()
         {
-            return height == Displayable.FLUID;
+            return height.Equals(FLUID);
         }
 
+        /// <inheritdoc />
         public override bool IsFluidWidth()
         {
-            return width == Displayable.FLUID;
+            return width.Equals(FLUID);
         }
     }
 }

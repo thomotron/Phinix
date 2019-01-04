@@ -1,26 +1,49 @@
 ﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
-using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
     [StaticConstructorOnStartup]
-    class ListContainer : Displayable
+    internal class ListContainer : Displayable
     {
+        /// <summary>
+        /// The background texture used for alternate rows.
+        /// </summary>
         public static readonly Texture2D alternateBackground = SolidColorMaterials.NewSolidColorTexture(new Color(1f, 1f, 1f, 0.04f));
+        
+        /// <summary>
+        /// Some kind of spacing idk.
+        /// </summary>
         public const float SPACE = 10f;
 
-        List<Displayable> children;
-        ListFlow flow;
-        ListDirection direction;
+        /// <summary>
+        /// Collection of displayable children.
+        /// </summary>
+        private List<Displayable> children;
+        
+        /// <summary>
+        /// Type of flow child elements will be drawn with.
+        /// </summary>
+        private ListFlow flow;
+        
+        /// <summary>
+        /// Direction the list will be drawn.
+        /// </summary>
+        private ListDirection direction;
+        
+        /// <summary>
+        /// Space between elements.
+        /// </summary>
         public float spaceBetween = 0f;
+        
+        /// <summary>
+        /// Whether to draw the alternate background texture for every second element.
+        /// </summary>
         public bool drawAlternateBackground = false;
 
         public ListContainer(List<Displayable> children, ListFlow flow = ListFlow.COLUMN, ListDirection direction = ListDirection.NORMAL)
@@ -40,51 +63,68 @@ namespace PhiClient.UI
 
         }
 
-        public void Add(Displayable display)
+        /// <summary>
+        /// Append the given element to the list.
+        /// </summary>
+        /// <param name="element">Element to add</param>
+        public void Add(Displayable element)
         {
-            this.children.Add(display);
+            children.Add(element);
         }
 
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
             if (IsFluidHeight())
             {
-                return -1;
+                return FLUID;
             }
             else
             {
+                // Return the combined height of each child and the space between them
                 return children.Sum((c) => c.CalcHeight(width)) + (children.Count - 1) * spaceBetween;
             }
         }
 
+        /// <inheritdoc />
         public override float CalcWidth(float height)
         {
             if (IsFluidWidth())
             {
-                return -1;
+                return FLUID;
             }
             else
             {
+                // Return the combined width of each child 
                 return children.Sum((c) => c.CalcWidth(height));
             }
         }
 
+        /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            GUI.BeginGroup(inRect);
+            // Draw the following as a group, localising the co-ordinate space to the container
+            UnityEngine.GUI.BeginGroup(inRect);
 
             if (flow == ListFlow.COLUMN)
             {
+                // Draw the list as a single column
                 DrawColumn(inRect);
             }
             else
             {
+                // Draw the list as a single row
                 DrawRow(inRect);
             }
 
-            GUI.EndGroup();
+            // Close the group
+            UnityEngine.GUI.EndGroup();
         }
 
+        /// <summary>
+        /// Draws the list as a single row within the given container.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
         private void DrawRow(Rect inRect)
         {
             float height = inRect.height;
@@ -94,15 +134,18 @@ namespace PhiClient.UI
             int countFluidElements = 0;
             if (IsFluidWidth())
             {
+                // Get the sum of each child's width
                 takenWidth = children.Sum((c) =>
                 {
                     float childWidth = c.CalcWidth(height);
-                    if (childWidth != -1)
+                    if (!childWidth.Equals(FLUID))
                     {
+                        // Child is not fluid, return its width
                         return childWidth;
                     }
                     else
                     {
+                        // Child is fluid, add one to the fluid count and move on
                         countFluidElements++;
                         return 0;
                     }
@@ -114,51 +157,55 @@ namespace PhiClient.UI
                 takenWidth = inRect.width;
             }
             
-            float widthForFluid = inRect.width - takenWidth;
+            // Get the remaining width to be divvied out between each fluid element
+            float remainingWidth = inRect.width - takenWidth;
+            
             // We remove the width taken by the spaces between elements
-            widthForFluid -= (children.Count - 1) * spaceBetween;
-            // Each fluid element will take equal space
-            widthForFluid /= countFluidElements;
+            remainingWidth -= (children.Count - 1) * spaceBetween;
+            
+            // Split the remaining width between each fluid element
+            float widthForFluid = remainingWidth / countFluidElements;
 
-            float beginX = 0;
-            // If going right to left, we begin at the end of the Rect
-            if (direction == ListDirection.OPPOSITE)
-            {
-                beginX += inRect.width;
-            }
-
+            // Set the starting X coord to 0 for a normal list direction or the container width for reverse
+            float beginX = direction == ListDirection.NORMAL ? 0 : inRect.width;
+            
+            // Begin drawing each child element
             int i = 0;
             foreach (Displayable child in children)
             {
                 float width = child.CalcWidth(height);
-                if (width == -1)
+                if (width.Equals(FLUID))
                 {
+                    // Give the element a share of the remaining width
                     width = widthForFluid;
                 }
 
-                // If going from right to left, we first remove the width
-                // of the child
+                // If going from right to left, we first remove the width of the child
                 if (direction == ListDirection.OPPOSITE)
                 {
                     beginX -= width + spaceBetween;
                 }
 
+                // Container for the child element
                 Rect childArea = new Rect(beginX, 0, width, height);
-                GUI.BeginGroup(childArea);
+                
+                // Draw the following as a group
+                UnityEngine.GUI.BeginGroup(childArea);
                 childArea.x = 0;
 
-                // Must we draw the background
+                // Check if we should draw an alternate background
                 if (drawAlternateBackground && i % 2 == 1)
                 {
-                    GUI.DrawTexture(childArea, alternateBackground);
+                    UnityEngine.GUI.DrawTexture(childArea, alternateBackground);
                 }
 
+                // Draw the element
                 child.Draw(childArea);
 
-                GUI.EndGroup();
+                // Close the group
+                UnityEngine.GUI.EndGroup();
 
-                // If going from left to right, we then add the width
-                // of the child
+                // If going from left to right, we then add the width of the child
                 if (direction == ListDirection.NORMAL)
                 {
                     beginX += width + spaceBetween;
@@ -168,6 +215,10 @@ namespace PhiClient.UI
             }
         }
 
+        /// <summary>
+        /// Draws the list as a single column within the given container.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
         private void DrawColumn(Rect inRect)
         {
             float width = inRect.width;
@@ -177,15 +228,18 @@ namespace PhiClient.UI
             int countFluidElements = 0;
             if (IsFluidWidth())
             {
+                // Get the sum of each child's height
                 takenHeight = children.Sum((c) =>
                 {
                     float childHeight = c.CalcHeight(width);
-                    if (childHeight != -1)
+                    if (childHeight != FLUID)
                     {
+                        // Child is not fluid, return its height
                         return childHeight;
                     }
                     else
                     {
+                        // Child is fluid, add one to the fluid count and move on
                         countFluidElements++;
                         return 0;
                     }
@@ -197,52 +251,55 @@ namespace PhiClient.UI
                 takenHeight = inRect.height;
             }
 
-            float heightForFluid = inRect.height - takenHeight;
+            // Get the remaining height to be divvied out between fluid elements
+            float remainingHeight = inRect.height - takenHeight;
+            
             // We remove the height taken by the spaces between elements
-            heightForFluid -= (children.Count - 1) * spaceBetween;
-            // Each fluid element will take equal space
-            heightForFluid /= countFluidElements;
+            remainingHeight -= (children.Count - 1) * spaceBetween;
+            
+            // Split the remaining width between each fluid element
+            float heightForFluid = remainingHeight / countFluidElements;
 
-            float beginY = 0;
-            // If going bottom to top, we begin at the end of the Rect
-            if (direction == ListDirection.OPPOSITE)
-            {
-                beginY += inRect.height;
-            }
+            // Set the starting Y coord to 0 for a normal list direction or the container height for reverse
+            float beginY = direction == ListDirection.NORMAL ? 0 : inRect.height;
 
+            // Begin drawing each child element
             int i = 0;
             foreach (Displayable child in children)
             {
-
                 float height = child.CalcHeight(width);
-                if (height == -1)
+                if (height == FLUID)
                 {
+                    // Give the element a share of the remaining height
                     height = heightForFluid;
                 }
 
-                // If going from bottom to top, we first remove the height
-                // of the child
+                // If going from bottom to top, we first remove the height of the child
                 if (direction == ListDirection.OPPOSITE)
                 {
                     beginY -= height + spaceBetween;
                 }
 
+                // Container for the child element
                 Rect childArea = new Rect(0, beginY, width, height);
-                GUI.BeginGroup(childArea);
+                
+                // Draw the following as a group
+                UnityEngine.GUI.BeginGroup(childArea);
                 childArea.y = 0;
 
-                // Must we draw the background
+                // Check if we should draw an alternate background
                 if (drawAlternateBackground && i % 2 == 1)
                 {
-                    GUI.DrawTexture(childArea, alternateBackground);
+                    UnityEngine.GUI.DrawTexture(childArea, alternateBackground);
                 }
 
+                // Draw the element
                 child.Draw(childArea);
 
-                GUI.EndGroup();
+                // Close the group
+                UnityEngine.GUI.EndGroup();
 
-                // If going from top to bottom, we then add the height
-                // of the child
+                // If going from top to bottom, we then add the height of the child
                 if (direction == ListDirection.NORMAL)
                 {
                     beginY += height + spaceBetween;
@@ -252,20 +309,30 @@ namespace PhiClient.UI
             }
         }
 
+        /// <summary>
+        /// Returns the number of elements with fluid height.
+        /// </summary>
+        /// <returns>Number of elements with fluid height</returns>
         private int CountFluidHeight()
         {
             return children.Count((c) => c.IsFluidHeight());
         }
 
+        /// <summary>
+        /// Returns the number of elements with fluid width.
+        /// </summary>
+        /// <returns>Number of elements with fluid width</returns>
         private int CountFluidWidth()
         {
             return children.Count((c) => c.IsFluidWidth());
         }
 
+        /// <inheritdoc />
         public override bool IsFluidHeight()
         {
             if (flow == ListFlow.COLUMN)
             {
+                // Return whether any of the elements have fluid height
                 return children.Any((c) => c.IsFluidHeight());
             }
             else
@@ -275,10 +342,12 @@ namespace PhiClient.UI
             }
         }
 
+        /// <inheritdoc />
         public override bool IsFluidWidth()
         {
             if (flow == ListFlow.ROW)
             {
+                // Return whether any of the elements have fluid width
                 return children.Any((c) => c.IsFluidWidth());
             }
             else
@@ -287,17 +356,5 @@ namespace PhiClient.UI
                 return true;
             }
         }
-    }
-
-    public enum ListFlow
-    {
-        ROW,
-        COLUMN
-    }
-
-    public enum ListDirection
-    {
-        NORMAL,
-        OPPOSITE
     }
 }

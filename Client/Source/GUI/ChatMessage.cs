@@ -2,7 +2,7 @@
 using UnityEngine;
 using Verse;
 
-namespace PhinixClient
+namespace PhinixClient.GUI
 {
     public class ChatMessage : IDrawable
     {

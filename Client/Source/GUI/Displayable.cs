@@ -1,13 +1,9 @@
 ﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
     public abstract class Displayable
     {

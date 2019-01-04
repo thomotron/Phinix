@@ -2,48 +2,64 @@
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
-    class CheckboxLabeledWidget : Displayable
+    internal class CheckboxLabeledWidget : Displayable
     {
-        const float CHECKBOX_SIZE = 40f;
+        private const float CHECKBOX_HEIGHT = 40f;
 
-        string label;
-        bool checkedOn;
-        Action<bool> onChange;
+        /// <summary>
+        /// Label text displayed next to the checkbox.
+        /// </summary>
+        private string label;
+        
+        /// <summary>
+        /// Whether the checkbox is checked.
+        /// </summary>
+        private bool isChecked;
 
-        public CheckboxLabeledWidget(string label, bool checkedOn, Action<bool> onChange)
+        /// <summary>
+        /// Callback invoked when the checkbox state changes. 
+        /// </summary>
+        private Action<bool> onChange;
+
+        public CheckboxLabeledWidget(string label, bool isChecked, Action<bool> onChange)
         {
             this.label = label;
-            this.checkedOn = checkedOn;
+            this.isChecked = isChecked;
             this.onChange = onChange;
         }
 
+        /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            bool oldValue = checkedOn;
-            Widgets.CheckboxLabeled(inRect, label, ref checkedOn);
+            // Get a copy of the old checked state to compare with later
+            bool oldValue = isChecked;
+            
+            // Draw the checkbox
+            Widgets.CheckboxLabeled(inRect, label, ref isChecked);
 
-            if (oldValue != checkedOn)
+            // Check if the checked state has changed
+            if (oldValue != isChecked)
             {
-                onChange(checkedOn);
+                // Invoke the callback with the checked state
+                onChange(isChecked);
             }
         }
 
+        /// <inheritdoc />
         public override bool IsFluidHeight()
         {
             return false;
         }
 
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return CHECKBOX_SIZE;
+            return CHECKBOX_HEIGHT;
         }
     }
 }

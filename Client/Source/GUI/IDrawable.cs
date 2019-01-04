@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace PhinixClient
+namespace PhinixClient.GUI
 {
     /// <summary>
     /// Interface for drawing custom GUI widgets.

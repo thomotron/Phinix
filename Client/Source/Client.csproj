@@ -71,7 +71,10 @@
     <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\IDrawable.cs" />
     <Compile Include="GUI\ListContainer.cs" />
+    <Compile Include="GUI\ListDirection.cs" />
+    <Compile Include="GUI\ListFlow.cs" />
     <Compile Include="GUI\ScrollContainer.cs" />
+    <Compile Include="GUI\TabEntry.cs" />
     <Compile Include="GUI\TabsContainer.cs" />
     <Compile Include="GUI\TextFieldWidget.cs" />
     <Compile Include="GUI\TextWidget.cs" />

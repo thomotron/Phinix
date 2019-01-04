@@ -2,18 +2,22 @@
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace PhiClient.UI
+namespace PhinixClient.GUI
 {
-    class TextFieldWidget : Displayable
+    internal class TextFieldWidget : Displayable
     {
-        public string text = "";
-        public Action<string> onChange;
+        /// <summary>
+        /// The field's text content.
+        /// </summary>
+        private string text;
+        
+        /// <summary>
+        /// Callback invoked when the field's text changes
+        /// </summary>
+        private Action<string> onChange;
 
         public TextFieldWidget(string text, Action<string> onChange)
         {
@@ -21,10 +25,16 @@ namespace PhiClient.UI
             this.onChange = onChange;
         }
 
+        /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
+            // Draw the text field
             string newText = Widgets.TextField(inRect, text);
-            if (newText != text) {
+            
+            // Check if the content has changed
+            if (newText != text)
+            {
+                // Invoke the callback
                 onChange(newText);
             }
         }
