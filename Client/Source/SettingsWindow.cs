@@ -38,10 +38,6 @@ namespace PhinixClient
             // Create a flex container to hold our settings
             VerticalFlexContainer flexContainer = new VerticalFlexContainer(DEFAULT_SPACING);
 
-            // Keep track of how much height we should allocate to the flex container
-            // This is just to keep all the fluid height elements in check
-            float height = 0f;
-
             // Server details (address and [dis]connect button) container
             if (Client.Instance.Connected)
             {
@@ -51,18 +47,21 @@ namespace PhinixClient
             {
                 flexContainer.Add(GenerateDisconnectedServerDetails());
             }
-            height += ROW_HEIGHT;
             
-            // Display name container
+            // Display name
             if (Client.Instance.Online)
             {
                 flexContainer.Add(GenerateEditableDisplayName());
-                height += ROW_HEIGHT + DEFAULT_SPACING;
             };
             
-            // Draw the flex container with 5f padding at the top to avoid clipping with the close button and only the
-            // height we've accumulated from the top to avoid having super large widgets
-            flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f).TopPartPixels(height));
+            // Constrain the flex container within another container to avoid widgets becoming excessively large
+            Container container = new Container(
+                child: flexContainer,
+                height: ROW_HEIGHT * flexContainer.Contents.Count + DEFAULT_SPACING * (flexContainer.Contents.Count - 1)
+            );
+            
+            // Draw the container with 5f padding at the top to avoid clipping with the close button
+            container.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
 
         /// <summary>
