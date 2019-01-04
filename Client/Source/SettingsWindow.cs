@@ -12,23 +12,14 @@ namespace PhinixClient
         
         private const float ROW_HEIGHT = 30f;
 
-        private const float SERVER_ADDRESS_LABEL_HEIGHT = 120f;
         private const float SERVER_ADDRESS_LABEL_WIDTH = 60f;
 
-        private const float SERVER_ADDRESS_BOX_HEIGHT = 30f;
-
-        private const float SERVER_PORT_LABEL_HEIGHT = 30f;
         private const float SERVER_PORT_LABEL_WIDTH = 30f;
 
-        private const float SERVER_PORT_BOX_HEIGHT = 30f;
         private const float SERVER_PORT_BOX_WIDTH = 50f;
 
-        private const float CONNECT_BUTTON_HEIGHT = 30f;
         private const float CONNECT_BUTTON_WIDTH = 120f;
 
-        private const float USERNAME_BOX_HEIGHT = 30f;
-
-        private const float USERNAME_SET_BUTTON_HEIGHT = 30f;
         private const float DISPLAY_NAME_SET_BUTTON_WIDTH = 120f;
 
         public override Vector2 InitialSize => new Vector2(600f, 120f);
