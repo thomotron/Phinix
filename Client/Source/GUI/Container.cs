@@ -8,6 +8,12 @@ namespace PhinixClient.GUI
 {
     internal class Container : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => height.Equals(FLUID);
+
+        /// <inheritdoc />
+        public override bool IsFluidWidth => width.Equals(FLUID);
+        
         /// <summary>
         /// Width of the container.
         /// </summary>
@@ -45,12 +51,12 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            if (!IsFluidHeight())
+            if (!IsFluidHeight)
             {
                 // Clip the rect to the container's height
                 inRect = inRect.TopPartPixels(height);
             }
-            if (!IsFluidWidth())
+            if (!IsFluidWidth)
             {
                 // Clip the rect to the container's width
                 inRect = inRect.LeftPartPixels(width);
@@ -58,18 +64,6 @@ namespace PhinixClient.GUI
 
             // Draw the container's contents
             child.Draw(inRect);
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return height.Equals(FLUID);
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidWidth()
-        {
-            return width.Equals(FLUID);
         }
     }
 }

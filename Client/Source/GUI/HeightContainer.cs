@@ -5,15 +5,12 @@ namespace PhinixClient.GUI
 {
     internal class HeightContainer : Container
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        
         public HeightContainer(Displayable child, float height): base(child, Displayable.FLUID, height)
         {
 
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return false;
         }
     }
 }

@@ -9,6 +9,9 @@ namespace PhinixClient.GUI
 {
     internal class ButtonWidget : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => drawBackground;
+        
         /// <summary>
         /// The button label.
         /// </summary>
@@ -38,12 +41,6 @@ namespace PhinixClient.GUI
             {
                 clickAction();
             }
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return drawBackground;
         }
 
         /// <inheritdoc />

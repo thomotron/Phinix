@@ -11,6 +11,9 @@ namespace PhinixClient.GUI
 {
     public class TabsContainer : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        
         private const float TAB_HEIGHT = 45f;
 
         /// <summary>
@@ -62,12 +65,6 @@ namespace PhinixClient.GUI
         public override float CalcHeight(float width)
         {
             return TAB_HEIGHT;
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return false;
         }
     }
 }

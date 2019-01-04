@@ -5,15 +5,12 @@ namespace PhinixClient.GUI
 {
     internal class WidthContainer : Container
     {
+        /// <inheritdoc />
+        public override bool IsFluidWidth => false;
+        
         public WidthContainer(Displayable child, float width): base(child, width, Displayable.FLUID)
         {
 
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidWidth()
-        {
-            return false;
         }
     }
 }

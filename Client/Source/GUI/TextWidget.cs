@@ -8,6 +8,9 @@ namespace PhinixClient.GUI
 {
     public class TextWidget : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        
         /// <summary>
         /// The label's text content.
         /// </summary>
@@ -64,12 +67,6 @@ namespace PhinixClient.GUI
         {
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return false;
         }
     }
 }

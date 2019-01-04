@@ -14,12 +14,18 @@ namespace PhinixClient.GUI
         /// <summary>
         /// The background texture used for alternate rows.
         /// </summary>
-        public static readonly Texture2D alternateBackground = SolidColorMaterials.NewSolidColorTexture(new Color(1f, 1f, 1f, 0.04f));
+        private static readonly Texture2D alternateBackground = SolidColorMaterials.NewSolidColorTexture(new Color(1f, 1f, 1f, 0.04f));
         
         /// <summary>
         /// Some kind of spacing idk.
         /// </summary>
         public const float SPACE = 10f;
+        
+        /// <inheritdoc />
+        public override bool IsFluidHeight => flow != ListFlow.COLUMN || children.Any(child => child.IsFluidHeight);
+
+        /// <inheritdoc />
+        public override bool IsFluidWidth => flow != ListFlow.ROW || children.Any(child => child.IsFluidWidth);
 
         /// <summary>
         /// Collection of displayable children.
@@ -75,7 +81,7 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            if (IsFluidHeight())
+            if (IsFluidHeight)
             {
                 return FLUID;
             }
@@ -89,7 +95,7 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcWidth(float height)
         {
-            if (IsFluidWidth())
+            if (IsFluidWidth)
             {
                 return FLUID;
             }
@@ -132,7 +138,7 @@ namespace PhinixClient.GUI
             // We first calculate the remaining space that will be given to the fluid element
             float takenWidth;
             int countFluidElements = 0;
-            if (IsFluidWidth())
+            if (IsFluidWidth)
             {
                 // Get the sum of each child's width
                 takenWidth = children.Sum((c) =>
@@ -226,7 +232,7 @@ namespace PhinixClient.GUI
             // We first calculate the remaining space that will be given to the fluid element
             float takenHeight;
             int countFluidElements = 0;
-            if (IsFluidWidth())
+            if (IsFluidWidth)
             {
                 // Get the sum of each child's height
                 takenHeight = children.Sum((c) =>
@@ -315,7 +321,7 @@ namespace PhinixClient.GUI
         /// <returns>Number of elements with fluid height</returns>
         private int CountFluidHeight()
         {
-            return children.Count((c) => c.IsFluidHeight());
+            return children.Count((c) => c.IsFluidHeight);
         }
 
         /// <summary>
@@ -324,37 +330,7 @@ namespace PhinixClient.GUI
         /// <returns>Number of elements with fluid width</returns>
         private int CountFluidWidth()
         {
-            return children.Count((c) => c.IsFluidWidth());
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            if (flow == ListFlow.COLUMN)
-            {
-                // Return whether any of the elements have fluid height
-                return children.Any((c) => c.IsFluidHeight());
-            }
-            else
-            {
-                // If the list is a row, it takes all height
-                return true;
-            }
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidWidth()
-        {
-            if (flow == ListFlow.ROW)
-            {
-                // Return whether any of the elements have fluid width
-                return children.Any((c) => c.IsFluidWidth());
-            }
-            else
-            {
-                // If the list is a column, it takes all width
-                return true;
-            }
+            return children.Count((c) => c.IsFluidWidth);
         }
     }
 }

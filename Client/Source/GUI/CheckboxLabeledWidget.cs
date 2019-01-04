@@ -9,6 +9,9 @@ namespace PhinixClient.GUI
 {
     internal class CheckboxLabeledWidget : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        
         private const float CHECKBOX_HEIGHT = 40f;
 
         /// <summary>
@@ -48,12 +51,6 @@ namespace PhinixClient.GUI
                 // Invoke the callback with the checked state
                 onChange(isChecked);
             }
-        }
-
-        /// <inheritdoc />
-        public override bool IsFluidHeight()
-        {
-            return false;
         }
 
         /// <inheritdoc />
