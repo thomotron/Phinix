@@ -193,7 +193,26 @@ namespace PhinixClient
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
                 Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
-                Find.WindowStack.Add(new TradeWindow(args.TradeId));
+                
+                // Try get the other party's display name
+                if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+                
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCreated");
+                Find.LetterStack.ReceiveLetter(
+                    label: "Phinix_trade_tradeReceivedLetter_label".Translate(displayName),
+                    text: "Phinix_trade_tradeReceivedLetter_description".Translate(displayName),
+                    textLetterDef: letterDef
+                );
             };
             trading.OnTradeCreationFailure += (sender, args) =>
             {
