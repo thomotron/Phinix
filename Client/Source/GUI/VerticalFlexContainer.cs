@@ -47,6 +47,7 @@ namespace PhinixClient.GUI
 
             // Divvy out the remaining height to each fluid element
             float remainingHeight = container.height - fixedHeight;
+            remainingHeight -= (contents.Count - 1) * spacing; // Remove spacing between each element
             int fluidItems = contents.Count(item => item.IsFluidHeight);
             float heightPerFluid = remainingHeight / fluidItems;
             

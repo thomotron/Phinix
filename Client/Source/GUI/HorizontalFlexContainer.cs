@@ -48,6 +48,7 @@ namespace PhinixClient.GUI
 
             // Divvy out the remaining width to each fluid element
             float remainingWidth = container.width - fixedWidth;
+            remainingWidth -= (contents.Count - 1) * spacing; // Remove spacing between each element
             int fluidItems = contents.Count(item => item.IsFluidWidth);
             float widthPerFluid = remainingWidth / fluidItems;
             
