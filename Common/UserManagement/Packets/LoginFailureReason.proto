@@ -5,5 +5,7 @@ enum LoginFailureReason
 {
     SessionId = 0;
     
+    DisplayName = 2;
+    
     InternalServerError = 1;
 };

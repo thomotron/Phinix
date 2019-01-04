@@ -2,6 +2,7 @@ syntax = "proto3";
 package Authentication;
 
 import "Packets/AuthFailureReason.proto";
+import "google/protobuf/timestamp.proto";
 
 message AuthResponsePacket
 {
@@ -12,4 +13,6 @@ message AuthResponsePacket
     string FailureMessage = 3;
     
     string SessionId = 4;
+    
+    google.protobuf.Timestamp Expiry = 5;
 }

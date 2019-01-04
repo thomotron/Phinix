@@ -9,7 +9,7 @@ namespace PhinixClient
     class SettingsWindow : Window
     {
         private const float DEFAULT_SPACING = 10f;
-        
+
         private const float ROW_HEIGHT = 30f;
 
         private const float SERVER_ADDRESS_LABEL_WIDTH = 60f;
@@ -27,14 +27,12 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
-        private static string displayName = Client.Instance.DisplayName;
-
         public override void DoWindowContents(Rect inRect)
         {
             doCloseX = true;
             doCloseButton = false;
             doWindowBackground = true;
-            
+
             // Create a flex container to hold our settings
             VerticalFlexContainer flexContainer = new VerticalFlexContainer(DEFAULT_SPACING);
 
@@ -47,19 +45,19 @@ namespace PhinixClient
             {
                 flexContainer.Add(GenerateDisconnectedServerDetails());
             }
-            
+
             // Display name
             if (Client.Instance.Online)
             {
                 flexContainer.Add(GenerateEditableDisplayName());
             };
-            
+
             // Constrain the flex container within another container to avoid widgets becoming excessively large
             Container container = new Container(
                 child: flexContainer,
                 height: ROW_HEIGHT * flexContainer.Contents.Count + DEFAULT_SPACING * (flexContainer.Contents.Count - 1)
             );
-            
+
             // Draw the container with 5f padding at the top to avoid clipping with the close button
             container.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
@@ -72,7 +70,7 @@ namespace PhinixClient
         {
             // Create a flex container as our 'row' to store elements in
             HorizontalFlexContainer row = new HorizontalFlexContainer();
-            
+
             // Server address label
             row.Add(
                 new TextWidget(
@@ -104,7 +102,7 @@ namespace PhinixClient
         {
             // Create a flex container as our 'row' to store elements in
             HorizontalFlexContainer row = new HorizontalFlexContainer();
-            
+
             // Address label
             row.Add(
                 new Container(
@@ -120,7 +118,7 @@ namespace PhinixClient
             row.Add(
                 new TextFieldWidget(
                     text: serverAddress,
-                    onChange: newAddress => serverAddress = newAddress 
+                    onChange: newAddress => serverAddress = newAddress
                 )
             );
 
@@ -172,11 +170,11 @@ namespace PhinixClient
                     width: CONNECT_BUTTON_WIDTH
                 )
             );
-            
+
             // Return the generated row
             return row;
         }
-        
+
         /// <summary>
         /// Generates an editable display name field and a button to apply the changes.
         /// </summary>
@@ -185,26 +183,26 @@ namespace PhinixClient
         {
             // Create a flex container as our 'row' to store elements in
             HorizontalFlexContainer row = new HorizontalFlexContainer();
-            
+
             // Editable display name text box
             row.Add(
                 new TextFieldWidget(
-                    text: displayName,
-                    onChange: newDisplayName => displayName = newDisplayName
+                    text: Client.Instance.DisplayName,
+                    onChange: newDisplayName => Client.Instance.DisplayName = newDisplayName
                 )
             );
-            
+
             // Set display name button
             row.Add(
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_settings_setDisplayNameButton".Translate(),
-                        clickAction: () => Client.Instance.UpdateDisplayName(displayName)
+                        clickAction: () => Client.Instance.UpdateDisplayName(Client.Instance.DisplayName)
                     ),
                     width: DISPLAY_NAME_SET_BUTTON_WIDTH
                 )
             );
-            
+
             // Return the generated row
             return row;
         }

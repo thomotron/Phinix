@@ -22,6 +22,8 @@ namespace PhinixClient
         private NetClient netClient;
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
+        public event EventHandler OnConnecting;
+        public event EventHandler OnDisconnect;
 
         private ClientAuthenticator authenticator;
         public bool Authenticated => authenticator.Authenticated;
@@ -47,20 +49,33 @@ namespace PhinixClient
         public string ServerAddress
         {
             get => serverAddressHandle.Value;
-            set => serverAddressHandle.Value = value;
+            set
+            {
+                serverAddressHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
+
         private SettingHandle<int> serverPortHandle;
         public int ServerPort
         {
             get => serverPortHandle.Value;
-            set => serverPortHandle.Value = value;
+            set
+            {
+                serverPortHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
 
         private SettingHandle<string> displayNameHandle;
         public string DisplayName
         {
             get => displayNameHandle.Value;
-            set => displayNameHandle.Value = value;
+            set
+            {
+                displayNameHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
         }
 
         /// <inheritdoc />
@@ -97,7 +112,7 @@ namespace PhinixClient
             // Set up our module instances
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
-            this.userManager = new ClientUserManager(netClient, authenticator, DisplayName);
+            this.userManager = new ClientUserManager(netClient, authenticator);
             this.chat = new ClientChat(netClient, authenticator, userManager);
             
             // Subscribe to log events
@@ -109,7 +124,7 @@ namespace PhinixClient
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully authenticated with server.");
-                userManager.SendLogin();
+                userManager.SendLogin(DisplayName);
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
@@ -133,6 +148,8 @@ namespace PhinixClient
             };
             
             // Forward events so the UI can handle them
+            netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
+            netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
             authenticator.OnAuthenticationSuccess += (sender, e) => { OnAuthenticationSuccess?.Invoke(sender, e); };
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
@@ -178,11 +195,7 @@ namespace PhinixClient
         public void UpdateDisplayName(string displayName)
         {
             // Try to update within the user manager
-            if (userManager.UpdateSelf(displayName))
-            {
-                // Update the setting
-                DisplayName = displayName;
-            }
+            userManager.UpdateSelf(displayName);
         }
         
         /// <summary>

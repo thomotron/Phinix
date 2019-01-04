@@ -11,6 +11,15 @@ namespace Connections
     {
         public bool Connected => connection != null && connection.ConnectionInfo.ConnectionState == ConnectionState.Established;
 
+        /// <summary>
+        /// Raised when connecting to a server.
+        /// </summary>
+        public event EventHandler OnConnecting; 
+        /// <summary>
+        /// Raised when disconnecting from a server.
+        /// </summary>
+        public event EventHandler OnDisconnect; 
+
         private TCPConnection connection;
 
         /// <summary>
@@ -64,6 +73,8 @@ namespace Connections
             if (TryParseHostnameOrAddress(address, out resolvedAddress))
             {
                 Connect(new IPEndPoint(resolvedAddress, port));
+                
+                OnConnecting?.Invoke(this, EventArgs.Empty);
             }
             else
             {
@@ -120,6 +131,8 @@ namespace Connections
                 connection.CloseConnection(false);
                 
                 connection = null;
+                
+                OnDisconnect?.Invoke(this, EventArgs.Empty);
             }
         }
 

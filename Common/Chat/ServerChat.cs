@@ -48,7 +48,7 @@ namespace Chat
         private void packetHandler(string module, string connectionId, byte[] data)
         {
             // Discard packet if it fails validation
-            if (!ProtobufPacketHelper.ValidatePacket("Chat", MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
+            if (!ProtobufPacketHelper.ValidatePacket(typeof(ServerChat).Namespace, MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
 
             // Determine what to do with the packet
             switch (typeUrl.Type)
@@ -73,6 +73,9 @@ namespace Chat
             
             // Clear the session ID for security
             packet.SessionId = "";
+            
+            // Sanitise the message content
+            packet.Message = TextHelper.SanitiseRichText(packet.Message);
                     
             // Broadcast the chat packet to everyone
             broadcastChatMessage(packet);

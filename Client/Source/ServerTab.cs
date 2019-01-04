@@ -41,10 +41,10 @@ namespace PhinixClient
         private static float oldHeight = 0f;
         private static bool scrollToBottom = false;
         private static bool stickyScroll = true;
-        
+
         private static List<ChatMessage> messages = new List<ChatMessage>();
         private static readonly object messagesLock = new object();
-        
+
         private static Vector2 userListScroll = new Vector2(0, 0);
 
         private static string message = "";
@@ -52,10 +52,13 @@ namespace PhinixClient
 
         public ServerTab()
         {
+            // Subscribe to disconnection events
+            Instance.OnDisconnect += disconnectHandler;
+
             // Subscribe to new chat messages
             Instance.OnChatMessageReceived += messageHandler;
         }
-        
+
         ///<inheritdoc/>
         /// <summary>
         /// Overrides the default accept key behaviour and instead sends a message.
@@ -97,7 +100,7 @@ namespace PhinixClient
             );
             DrawRightColumn(rightColumnContainer);
         }
-        
+
         /// <summary>
         /// Handles chat message events raised by the client and adds them to the message list.
         /// </summary>
@@ -113,6 +116,19 @@ namespace PhinixClient
             {
                 // Scroll to the bottom on next update
                 scrollToBottom = true;
+            }
+        }
+
+        /// <summary>
+        /// Handles the OnDisconnect event from the client instance and invalidates any connection-specific data.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            lock (messagesLock)
+            {
+                messages.Clear();
             }
         }
 
@@ -156,7 +172,7 @@ namespace PhinixClient
             {
                 column.Add(new PlaceholderWidget());
             }
-            
+
             // Draw the column
             column.Draw(container);
         }
@@ -177,13 +193,13 @@ namespace PhinixClient
             {
                 DrawPlaceholder(chatAreaRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
             }
-            
+
             // Message entry field
             TextFieldWidget messageField = new TextFieldWidget(
                 text: message,
                 onChange: newMessage => message = newMessage
             );
-            
+
             // Send button
             ButtonWidget button = new ButtonWidget(
                 label: "Phinix_chat_sendButton".Translate(),
@@ -194,7 +210,7 @@ namespace PhinixClient
                     {
                         // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
                         Instance.SendMessage(message);
-    
+
                         message = "";
                         scrollToBottom = true;
                     }
@@ -205,10 +221,10 @@ namespace PhinixClient
                 width: CHAT_SEND_BUTTON_WIDTH,
                 height: CHAT_SEND_BUTTON_HEIGHT
             );
-            
+
             // Fit the text field and button within a flex container
             HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer(new Displayable[]{messageField, buttonWrapper});
-            
+
             // Draw the flex container
             messageEntryFlexContainer.Draw(container.BottomPartPixels(CHAT_TEXTBOX_HEIGHT));
         }
@@ -223,7 +239,7 @@ namespace PhinixClient
             {
                 // Create a new flex container from our message list
                 VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messages.Cast<Displayable>(), 0f);
-                
+
                 // Set up the scrollable container
                 Rect innerContainer = new Rect(
                     x: container.xMin,
@@ -231,16 +247,16 @@ namespace PhinixClient
                     width: container.width - SCROLLBAR_WIDTH,
                     height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
                 );
-                
+
                 // Get a copy of the old scroll position
                 Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
-                
+
                 // Start scrolling
                 Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
-            
+
                 // Draw the flex container
                 chatFlexContainer.Draw(innerContainer);
-                
+
                 // Stop scrolling
                 Widgets.EndScrollView();
 
@@ -274,14 +290,14 @@ namespace PhinixClient
                         scrollToBottom = false;
                     }
                 }
-                
+
                 // Update old height for the next pass
                 oldHeight = innerContainer.height;
-                
+
                 #endregion
             }
         }
-        
+
         /// <summary>
         /// Adds each logged in user to a scrollable container.
         /// </summary>
@@ -290,23 +306,26 @@ namespace PhinixClient
         {
             // Create a flex container to hold the users
             VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
-            
+
             // Add each logged in user to the flex container
             foreach (string uuid in Instance.GetUserUuids(true))
             {
                 // Try to get the display name of the user
                 if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
-                
+
+                // Skip the user if they don't contain the search text
+                if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
+
                 userListFlexContainer.Add(new TextWidget(displayName));
             }
-            
+
             // Wrap the flex container in a scroll container
             ScrollContainer scrollContainer = new ScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
-            
+
             // Return the scroll container
             return scrollContainer;
         }
-        
+
         /// <summary>
         /// Draws a grey placeholder box over the container with the given text.
         /// </summary>
@@ -315,7 +334,7 @@ namespace PhinixClient
         private void DrawPlaceholder(Rect container, string text = "")
         {
             PlaceholderWidget placeholder = new PlaceholderWidget(text);
-            
+
             placeholder.Draw(container);
         }
     }
