@@ -310,11 +310,9 @@ namespace PhinixClient
         /// <param name="text">Text to display</param>
         private void DrawPlaceholder(Rect container, string text = "")
         {
-            // Background
-            Widgets.DrawMenuSection(container);
+            PlaceholderWidget placeholder = new PlaceholderWidget(text);
             
-            // Text
-            Widgets.NoneLabelCenteredVertically(container, text);
+            placeholder.Draw(container);
         }
     }
 }
