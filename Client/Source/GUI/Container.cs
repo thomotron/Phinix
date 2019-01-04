@@ -64,8 +64,6 @@ namespace PhinixClient.GUI
 
             // Draw the container's contents
             child.Draw(inRect);
-            
-            Log.Message(string.Format("Drew a {0} between ({1}, {2}) and ({3}, {4})", child.GetType(), inRect.xMin, inRect.yMin, inRect.xMax, inRect.yMax));
         }
     }
 }
