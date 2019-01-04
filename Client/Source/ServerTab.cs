@@ -122,42 +122,43 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawRightColumn(Rect container)
         {
+            // Create a flex container to hold the column elements
+            VerticalFlexContainer column = new VerticalFlexContainer();
+
             // Settings button
-            Rect settingsButtonRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: SETTINGS_BUTTON_WIDTH,
-                height: SETTINGS_BUTTON_HEIGHT
+            column.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_chat_settingsButton".Translate(),
+                        clickAction: () => Find.WindowStack.Add(new SettingsWindow())
+                    ),
+                    height: SETTINGS_BUTTON_HEIGHT
+                )
             );
-            if (Widgets.ButtonText(settingsButtonRect, "Phinix_chat_settingsButton".Translate()))
-            {
-                Find.WindowStack.Add(new SettingsWindow());
-            }
 
             // User search box
-            Rect searchBoxRect = new Rect(
-                x: container.xMin,
-                y: container.yMin + settingsButtonRect.yMax + DEFAULT_SPACING,
-                width: USER_SEARCH_WIDTH,
-                height: USER_SEARCH_HEIGHT
+            column.Add(
+                new Container(
+                    new TextFieldWidget(
+                        text: userSearch,
+                        onChange: (newText) => userSearch = newText
+                    ),
+                    height: USER_SEARCH_HEIGHT
+                )
             );
-            userSearch = Widgets.TextField(searchBoxRect, userSearch);
 
             // User list
-            Rect userListRect = new Rect(
-                x: container.xMin,
-                y: container.yMin + searchBoxRect.yMax + DEFAULT_SPACING,
-                width: USER_LIST_WIDTH,
-                height: container.height - (searchBoxRect.yMax + DEFAULT_SPACING)
-            );
             if (Instance.Online)
             {
-                DrawUserList(userListRect);
+                column.Add(GenerateUserList());
             }
             else
             {
-                DrawPlaceholder(userListRect);
+                column.Add(new PlaceholderWidget());
             }
+            
+            // Draw the column
+            column.Draw(container);
         }
 
         /// <summary>
@@ -178,7 +179,10 @@ namespace PhinixClient
             }
             
             // Message entry field
-            TextFieldWidget messageField = new TextFieldWidget(message, newMessage => message = newMessage);
+            TextFieldWidget messageField = new TextFieldWidget(
+                text: message,
+                onChange: newMessage => message = newMessage
+            );
             
             // Send button
             ButtonWidget button = new ButtonWidget(
@@ -279,10 +283,10 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Draws each logged in user within a scrollable container.
+        /// Adds each logged in user to a scrollable container.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawUserList(Rect container)
+        /// <returns>A <c>ScrollContainer</c> containing the user list</returns>
+        private ScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
             VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
@@ -299,8 +303,8 @@ namespace PhinixClient
             // Wrap the flex container in a scroll container
             ScrollContainer scrollContainer = new ScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
             
-            // Draw the scroll container
-            scrollContainer.Draw(container);
+            // Return the scroll container
+            return scrollContainer;
         }
         
         /// <summary>
