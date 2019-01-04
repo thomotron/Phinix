@@ -4,10 +4,12 @@ using UnityEngine;
 using Utils;
 using Verse;
 
-namespace PhinixClient
+namespace PhinixClient.GUI
 {
-    public class ChatMessage : IDrawable
+    public class ChatMessage : Displayable
     {
+        public override bool IsFluidHeight => false;
+
         /// <summary>
         /// Time message was received.
         /// Set when the constructor is run.
@@ -49,7 +51,7 @@ namespace PhinixClient
         }
 
         /// <inheritdoc />
-        public void Draw(Rect container)
+        public override void Draw(Rect container)
         {
             // Draw a button with the formatted text
             if (Widgets.ButtonText(container, Format(), false))
@@ -60,17 +62,16 @@ namespace PhinixClient
         }
 
         /// <inheritdoc />
-        public float GetHeight(float width)
+        public override float CalcHeight(float width)
         {
             // Return the calculated the height of the formatted text
             return Text.CalcHeight(Format(), width);
         }
 
         /// <inheritdoc />
-        /// <exception cref="NotSupportedException"><c>ChatMessage</c>s are always drawn at full width</exception>
-        public float GetWidth(float height)
+        public override float CalcWidth(float height)
         {
-            throw new NotSupportedException("ChatMessages are always drawn at full width.");
+            return FLUID;
         }
 
         private void drawContextMenu()

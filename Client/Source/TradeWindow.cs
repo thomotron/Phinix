@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhinixClient.GUI;
 using RimWorld;
 using Trading;
 using UnityEngine;
@@ -542,10 +543,10 @@ namespace PhinixClient
             }
             
             // Create a flex container with our rows
-            VerticalFlexContainer flexContainer = new VerticalFlexContainer(container.width - SCROLLBAR_WIDTH, rows.Cast<IDrawable>());
+            VerticalFlexContainer flexContainer = new VerticalFlexContainer(rows.Cast<Displayable>());
 
             // Determine if scrolling is necessary
-            if (flexContainer.GetHeight(container.width) > container.height)
+            if (flexContainer.CalcHeight(container.width) > container.height)
             {
                 // Draw a box to contain the list
                 Widgets.DrawMenuSection(container.LeftPartPixels(container.width - SCROLLBAR_WIDTH));
@@ -555,7 +556,7 @@ namespace PhinixClient
                     x: container.xMin,
                     y: container.yMin,
                     width: container.width - SCROLLBAR_WIDTH,
-                    height: flexContainer.GetHeight(container.width - SCROLLBAR_WIDTH)
+                    height: flexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
                 );
                 
                 // Start scrolling
@@ -571,7 +572,7 @@ namespace PhinixClient
             {
                 // Re-make the flex container with full width
                 // TODO: Make VerticalFlexContainers draw with a dynamic width
-                flexContainer = new VerticalFlexContainer(container.width, rows.Cast<IDrawable>());
+                flexContainer = new VerticalFlexContainer(rows.Cast<Displayable>());
                 
                 // Draw a box to contain the list
                 Widgets.DrawMenuSection(container);

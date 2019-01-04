@@ -1,89 +1,117 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Verse;
 
-namespace PhinixClient
+namespace PhinixClient.GUI
 {
-    public class HorizontalFlexContainer : IDrawable
+    public class HorizontalFlexContainer : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidWidth => false;
+
         /// <summary>
         /// List of contents to draw.
         /// </summary>
-        private List<IDrawable> contents;
+        public readonly List<Displayable> Contents;
 
         /// <summary>
-        /// Height of the flex container.
+        /// Spacing between elements.
         /// </summary>
-        private float height;
+        private float spacing;
 
         /// <summary>
-        /// Creates a new <c>HorizontalFlexContainer</c> with the given height.
+        /// Creates a new <c>HorizontalFlexContainer</c> with the given spacing.
         /// </summary>
-        /// <param name="height">Height of the container</param>
-        public HorizontalFlexContainer(float height)
+        public HorizontalFlexContainer(float spacing = 10f)
         {
-            this.contents = new List<IDrawable>();
+            this.spacing = spacing;
+            
+            this.Contents = new List<Displayable>();
         }
-        
+
         /// <summary>
-        /// Creates a new <c>HorizontalFlexContainer</c> with the given height and contents.
+        /// Creates a new <c>HorizontalFlexContainer</c> with the given contents and spacing.
         /// </summary>
-        /// <param name="height">Height of the container</param>
         /// <param name="contents">Drawable contents</param>
-        public HorizontalFlexContainer(float height, IEnumerable<IDrawable> contents)
+        public HorizontalFlexContainer(IEnumerable<Displayable> contents, float spacing = 10f)
         {
-            this.height = height;
-            this.contents = contents.ToList();
+            this.Contents = contents.ToList();
+            this.spacing = spacing;
         }
         
         /// <inheritdoc />
-        public void Draw(Rect container)
+        public override void Draw(Rect container)
         {
+            // Get the width taken up by fixed-width elements
+            float fixedWidth = Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(container.height));
+
+            // Divvy out the remaining width to each fluid element
+            float remainingWidth = container.width - fixedWidth;
+            remainingWidth -= (Contents.Count - 1) * spacing; // Remove spacing between each element
+            int fluidItems = Contents.Count(item => item.IsFluidWidth);
+            float widthPerFluid = remainingWidth / fluidItems;
+            
             // Draw each item
             float xOffset = 0f;
-            foreach (IDrawable item in contents)
+            for (int i = 0; i < Contents.Count; i++)
             {
-                // Draw the item with fixed height and dynamic width
-                Rect rect = new Rect(
-                    x: container.xMin,
-                    y: container.yMin + xOffset,
-                    width: item.GetWidth(height),
-                    height: height
-                );
+                Displayable item = Contents[i];
+                Rect rect;
+
+                // Give fluid items special treatment
+                if (item.IsFluidWidth)
+                {
+                    // Give the item a container with a share of the remaining width
+                    rect = new Rect(
+                        x: container.xMin + xOffset,
+                        y: container.yMin,
+                        width: widthPerFluid,
+                        height: container.height
+                    );
+                }
+                else
+                {
+                    // Give the item a container with fixed height and dynamic width
+                    rect = new Rect(
+                        x: container.xMin + xOffset,
+                        y: container.yMin,
+                        width: item.CalcWidth(container.height),
+                        height: container.height
+                    );
+                }
+
+                // Draw the item
                 item.Draw(rect);
-                
+
                 // Increment the x offset by the item's width
                 xOffset += rect.width;
+                
+                // Add spacing to the x offset if applicable
+                if (i < Contents.Count - 1) xOffset += spacing;
             }
         }
 
         /// <inheritdoc />
-        public float GetHeight(float width)
+        public override float CalcHeight(float width)
         {
-            return height;
+            return FLUID;
         }
 
         /// <inheritdoc />
-        public float GetWidth(float height)
+        public override float CalcWidth(float height)
         {
-            // Calculate the height of each item
-            float width = 0f;
-            foreach (IDrawable item in contents)
-            {
-                // Increment width by the item's width
-                width += item.GetWidth(height);
-            }
-            
-            return width;
+            // Return the sum of each item's width, ignoring fluid items
+            return Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height));
         }
 
         /// <summary>
         /// Adds an <c>IDrawable</c> item to the container.
         /// </summary>
         /// <param name="item">Drawable item to add</param>
-        public void Add(IDrawable item)
+        public void Add(Displayable item)
         {
-            contents.Add(item);
+            Contents.Add(item);
         }
     }
 }

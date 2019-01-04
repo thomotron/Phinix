@@ -1,13 +1,17 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PhinixClient.GUI;
 using UnityEngine;
 using Verse;
 
 namespace PhinixClient
 {
-    public class ItemStackRow : IDrawable
+    public class ItemStackRow : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        
         private const float BUTTON_WIDTH = 30f;
         private const float COUNT_FIELD_WIDTH = 70f;
         
@@ -47,7 +51,7 @@ namespace PhinixClient
         }
         
         /// <inheritdoc />
-        public void Draw(Rect container)
+        public override void Draw(Rect container)
         {
             // Background
             if (alternateBackground) Widgets.DrawHighlight(container);
@@ -156,16 +160,15 @@ namespace PhinixClient
         }
 
         /// <inheritdoc />
-        public float GetHeight(float width)
+        public override float CalcHeight(float width)
         {
             return height;
         }
 
         /// <inheritdoc />
-        /// <exception cref="NotSupportedException"><c>ItemStackRow</c>s are always drawn at full width</exception>
-        public float GetWidth(float height)
+        public override float CalcWidth(float height)
         {
-            throw new NotSupportedException("ItemStackRows are always drawn at full width.");
+            return FLUID;
         }
     }
 }

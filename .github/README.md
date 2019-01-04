@@ -25,4 +25,4 @@ Due to the way the codebase was laid out, we decided it was easier to start from
 We are building the foundation and core functionality of the mod
 
 **How long until there is a functional alpha?**  
-We should have the very first alpha build ready sometime during December
+We should have the very first alpha build ready sometime during ~~December~~ January
