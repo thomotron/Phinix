@@ -1,4 +1,4 @@
-﻿// Original file provided by Longwelwind (https://github.com/Longwelwind)
+// Original file provided by Longwelwind (https://github.com/Longwelwind)
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
 using System;
@@ -10,7 +10,7 @@ namespace PhinixClient.GUI
     internal class ButtonWidget : Displayable
     {
         /// <inheritdoc />
-        public override bool IsFluidHeight => drawBackground;
+        public override bool IsFluidHeight => false;
         
         /// <summary>
         /// The button label.

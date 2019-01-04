@@ -167,12 +167,7 @@ namespace PhinixClient
         private void DrawChat(Rect container)
         {
             // Chat message area
-            Rect chatAreaRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.width,
-                height: container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING)
-            );
+            Rect chatAreaRect = container.TopPartPixels(container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING));
             if (Instance.Online)
             {
                 DrawMessages(chatAreaRect);
@@ -181,35 +176,37 @@ namespace PhinixClient
             {
                 DrawPlaceholder(chatAreaRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
             }
-
-            // Message entry box
-            Rect messageEntryRect = new Rect(
-                x: container.xMin,
-                y: container.yMax - CHAT_TEXTBOX_HEIGHT,
-                width: container.width - (CHAT_SEND_BUTTON_WIDTH + DEFAULT_SPACING),
-                height: CHAT_TEXTBOX_HEIGHT
-            );
-            message = Widgets.TextField(messageEntryRect, message);
-
+            
+            // Message entry field
+            TextFieldWidget messageField = new TextFieldWidget(message, newMessage => message = newMessage);
+            
             // Send button
-            Rect sendButtonRect = new Rect(
-                x: container.xMax - CHAT_SEND_BUTTON_WIDTH,
-                y: container.yMax - CHAT_SEND_BUTTON_HEIGHT,
+            ButtonWidget button = new ButtonWidget(
+                label: "Phinix_chat_sendButton".Translate(),
+                clickAction: () =>
+                {
+                    // Send the message
+                    if (!string.IsNullOrEmpty(message) && Instance.Online)
+                    {
+                        // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
+                        Instance.SendMessage(message);
+    
+                        message = "";
+                        scrollToBottom = true;
+                    }
+                }
+            );
+            Container buttonWrapper = new Container(
+                child: button,
                 width: CHAT_SEND_BUTTON_WIDTH,
                 height: CHAT_SEND_BUTTON_HEIGHT
             );
-            if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate()))
-            {
-                // Send the message
-                if (!string.IsNullOrEmpty(message) && Instance.Online)
-                {
-                    // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                    Instance.SendMessage(message);
-
-                    message = "";
-                    scrollToBottom = true;
-                }
-            }
+            
+            // Fit the text field and button within a flex container
+            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer(new Displayable[]{messageField, buttonWrapper});
+            
+            // Draw the flex container
+            messageEntryFlexContainer.Draw(container.BottomPartPixels(CHAT_TEXTBOX_HEIGHT));
         }
 
         /// <summary>
@@ -221,14 +218,14 @@ namespace PhinixClient
             lock (messagesLock)
             {
                 // Create a new flex container from our message list
-                VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(container.width - SCROLLBAR_WIDTH, messages.Cast<IDrawable>());
+                VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messages.Cast<Displayable>(), 0f);
                 
                 // Set up the scrollable container
                 Rect innerContainer = new Rect(
                     x: container.xMin,
                     y: container.yMin,
                     width: container.width - SCROLLBAR_WIDTH,
-                    height: chatFlexContainer.GetHeight(container.width - SCROLLBAR_WIDTH)
+                    height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
                 );
                 
                 // Get a copy of the old scroll position
@@ -287,37 +284,23 @@ namespace PhinixClient
         /// <param name="container">Container to draw within</param>
         private void DrawUserList(Rect container)
         {
-            // Get a list of logged in user UUIDs
-            string[] uuids = Instance.GetUserUuids(true);
+            // Create a flex container to hold the users
+            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
             
-            // Set up scrollable container
-            Rect innerContainer = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.width - SCROLLBAR_WIDTH,
-                height: USER_HEIGHT * uuids.Length 
-            );
-            
-            // Start scrolling
-            Widgets.BeginScrollView(container, ref userListScroll, innerContainer);
-            
-            // Add each user to the scrollable container
-            for (int i = 0; i < uuids.Length; i++)
+            // Add each logged in user to the flex container
+            foreach (string uuid in Instance.GetUserUuids(true))
             {
                 // Try to get the display name of the user
-                if (!Instance.TryGetDisplayName(uuids[i], out string displayName)) displayName = "???";
+                if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
                 
-                Rect userRect = new Rect(
-                    x: innerContainer.xMin,
-                    y: innerContainer.yMin + (USER_HEIGHT * i),
-                    width: innerContainer.width,
-                    height: USER_HEIGHT
-                );
-                Widgets.Label(userRect, displayName);
+                userListFlexContainer.Add(new TextWidget(displayName));
             }
-
-            // Stop scrolling
-            Widgets.EndScrollView();
+            
+            // Wrap the flex container in a scroll container
+            ScrollContainer scrollContainer = new ScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
+            
+            // Draw the scroll container
+            scrollContainer.Draw(container);
         }
         
         /// <summary>

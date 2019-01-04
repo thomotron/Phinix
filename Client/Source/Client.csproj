@@ -69,7 +69,7 @@
     <Compile Include="GUI\Container.cs" />
     <Compile Include="GUI\Displayable.cs" />
     <Compile Include="GUI\HeightContainer.cs" />
-    <Compile Include="GUI\IDrawable.cs" />
+    <Compile Include="GUI\HorizontalFlexContainer.cs" />
     <Compile Include="GUI\ListContainer.cs" />
     <Compile Include="GUI\ListDirection.cs" />
     <Compile Include="GUI\ListFlow.cs" />

@@ -4,8 +4,10 @@ using Verse;
 
 namespace PhinixClient.GUI
 {
-    public class ChatMessage : IDrawable
+    public class ChatMessage : Displayable
     {
+        public override bool IsFluidHeight => false;
+
         /// <summary>
         /// Time message was received.
         /// Set when the constructor is run.
@@ -47,24 +49,23 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
-        public void Draw(Rect container)
+        public override void Draw(Rect container)
         {
             // Draw a label with the formatted text
             Widgets.Label(container, Format());
         }
 
         /// <inheritdoc />
-        public float GetHeight(float width)
+        public override float CalcHeight(float width)
         {
             // Return the calculated the height of the formatted text
             return Text.CalcHeight(Format(), width);
         }
 
         /// <inheritdoc />
-        /// <exception cref="NotSupportedException"><c>ChatMessage</c>s are always drawn at full width</exception>
-        public float GetWidth(float height)
+        public override float CalcWidth(float height)
         {
-            throw new NotSupportedException("ChatMessages are always drawn at full width.");
+            return FLUID;
         }
     }
 }
