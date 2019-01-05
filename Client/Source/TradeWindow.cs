@@ -122,32 +122,21 @@ namespace PhinixClient
 
         public override void DoWindowContents(Rect inRect)
         {
+            // Get the other party's display name
+            string displayName = GetOtherPartyDisplayName();
+            
             // Title
-            Rect titleRect = new Rect(
-                x: inRect.xMin,
-                y: inRect.yMin,
-                width: inRect.width,
-                height: TITLE_HEIGHT
-            );
-            DrawTitle(titleRect);
+            new TextWidget(
+                text: "Phinix_trade_tradeTitle".Translate(TextHelper.StripRichText(displayName)),
+                font: GameFont.Medium,
+                anchor: TextAnchor.MiddleCenter
+            ).Draw(inRect.TopPartPixels(TITLE_HEIGHT));
             
             // Offers
-            Rect offersRect = new Rect(
-                x: inRect.xMin,
-                y: titleRect.yMax,
-                width: inRect.width,
-                height: OFFER_WINDOW_HEIGHT + DEFAULT_SPACING + OFFER_CONFIRMATION_HEIGHT
-            );
-            DrawOffers(offersRect);
+            GenerateOffers().Draw(inRect.BottomPartPixels(inRect.height - TITLE_HEIGHT).TopHalf());
             
             // Available items
-            Rect availableItemsRect = new Rect(
-                x: inRect.xMin,
-                y: offersRect.yMax + HORIZONTAL_UPPER_LOWER_DIVISION_SPACING,
-                width: inRect.width,
-                height: LOWER_HALF_HEIGHT
-            );
-            DrawAvailableItems(availableItemsRect);
+            GenerateAvailableItems().Draw(inRect.BottomPartPixels(inRect.height - TITLE_HEIGHT).BottomHalf());
         }
         
         /// <summary>
@@ -177,27 +166,6 @@ namespace PhinixClient
             // Close the window
             Close();
         }
-
-        /// <summary>
-        /// Draws the title of the trade window within the given container.
-        /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawTitle(Rect container)
-        {
-            // Get the other party's display name
-            string displayName = GetOtherPartyDisplayName();
-            
-            // Set the text style
-            Text.Anchor = TextAnchor.MiddleCenter;
-            Text.Font = GameFont.Medium;
-            
-            // Draw the title
-            Widgets.Label(container, "Trade with " + TextHelper.StripRichText(displayName));
-            
-            // Reset the text style
-            Text.Anchor = TextAnchor.UpperLeft;
-            Text.Font = GameFont.Small;
-        }
         
         /// <summary>
         /// Gets the display name of the other party of this trade.
@@ -221,148 +189,169 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Draws the offer windows and confirmation statuses within the given container.
+        /// Generates a <c>VerticalFlexContainer</c> with the offer windows and confirmation statuses.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawOffers(Rect container)
+        /// <returns><c>VerticalFlexContainer</c> with the offer windows and confirmation statuses</returns>
+        private VerticalFlexContainer GenerateOffers()
         {
-            // Our offer
-            Rect ourOfferRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
-            );
-            DrawOurOffer(ourOfferRect);
+            // Create a new flex container as the main column to store everything in
+            VerticalFlexContainer theAllEncompassingColumnOfOmnipotence = new VerticalFlexContainer(DEFAULT_SPACING);
             
-            // Their offer
-            Rect theirOfferRect = new Rect(
-                x: container.xMax - OFFER_WINDOW_WIDTH,
-                y: container.yMin,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_WINDOW_HEIGHT
+            // Create a new flex container as our 'row' to store the offers and the centre column in
+            HorizontalFlexContainer offerRow = new HorizontalFlexContainer(DEFAULT_SPACING);
+            
+            // Our offer
+            offerRow.Add(
+                new Container(
+                    GenerateOurOffer(),
+                    width: OFFER_WINDOW_WIDTH
+                )
             );
-            DrawTheirOffer(theirOfferRect);
+            
+            // Create a new flex container as a 'column' to store the trade arrows and buttons in
+            VerticalFlexContainer centreColumn = new VerticalFlexContainer(DEFAULT_SPACING);
             
             // Arrows
-            Rect tradeArrowsRect = new Rect(
-                x: ourOfferRect.xMax + DEFAULT_SPACING,
-                y: container.yMin,
-                width: TRADE_ARROWS_WIDTH,
-                height: TRADE_ARROWS_HEIGHT
+            centreColumn.Add(
+                new FittedTextureWidget(
+                    texture: ContentFinder<Texture2D>.Get("tradeArrows")
+                )
             );
-            Texture arrowsTexture = ContentFinder<Texture2D>.Get("tradeArrows");
-            Widgets.DrawTextureFitted(tradeArrowsRect, arrowsTexture, 1f);
             
             // Update button
-            Rect updateButtonRect = new Rect(
-                x: tradeArrowsRect.xMin,
-                y: tradeArrowsRect.yMax + DEFAULT_SPACING,
-                width: TRADE_BUTTON_WIDTH,
-                height: TRADE_BUTTON_HEIGHT
+            centreColumn.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_trade_updateButton".Translate(),
+                        clickAction: () => Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()))
+                    ),
+                    height: TRADE_BUTTON_HEIGHT
+                )
             );
-            if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
-            {
-                // Convert and update trade items
-                Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()));
-            }
             
             // Reset button
-            Rect resetButtonRect = new Rect(
-                x: tradeArrowsRect.xMin,
-                y: updateButtonRect.yMax + DEFAULT_SPACING,
-                width: TRADE_BUTTON_WIDTH,
-                height: TRADE_BUTTON_HEIGHT
-            );
-            if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
-            {
-                // Reset all selected counts to zero
-                foreach (StackedThings itemStack in itemStacks)
-                {
-                    itemStack.Selected = 0;
-                }
+            centreColumn.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_trade_resetButton".Translate(),
+                        clickAction: () =>
+                        {
+                            // Reset all selected counts to zero
+                            foreach (StackedThings itemStack in itemStacks)
+                            {
+                                itemStack.Selected = 0;
+                            }
                 
-                // Update trade items
-                Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
-            }
+                            // Update trade items
+                            Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
+                        }
+                    ),
+                    height: TRADE_BUTTON_HEIGHT
+                )
+            );
             
             // Cancel button
-            Rect cancelButtonRect = new Rect(
-                x: tradeArrowsRect.xMin,
-                y: resetButtonRect.yMax + DEFAULT_SPACING,
-                width: TRADE_BUTTON_WIDTH,
-                height: TRADE_BUTTON_HEIGHT
+            centreColumn.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_trade_cancelButton".Translate(),
+                        clickAction: () => Instance.CancelTrade(tradeId)
+                    ),
+                    height: TRADE_BUTTON_HEIGHT
+                )
             );
-            if (Widgets.ButtonText(cancelButtonRect, "Phinix_trade_cancelButton".Translate()))
-            {
-                Instance.CancelTrade(tradeId);
-            }
             
-            // Our confirmation
-            // TODO: Ellipsise display name length if it's going to spill over
-            Rect ourConfirmationRect = new Rect(
-                x: ourOfferRect.xMin,
-                y: ourOfferRect.yMax + DEFAULT_SPACING,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_CONFIRMATION_HEIGHT
+            // Add the centre column to the row
+            offerRow.Add(centreColumn);
+            
+            // Their offer
+            offerRow.Add(
+                new Container(
+                    GenerateTheirOffer(),
+                    width: OFFER_WINDOW_WIDTH
+                )
             );
-            bool oldTradeAccepted = tradeAccepted;
-            Widgets.CheckboxLabeled(
-                rect: ourConfirmationRect,
-                label: ("Phinix_trade_confirmOurTradeCheckbox" + (tradeAccepted ? "Checked" : "Unchecked")).Translate(), // Janky-looking easter egg, just for you
-                checkOn: ref tradeAccepted
-            );
-            // Check if the accepted state has changed
-            if (tradeAccepted != oldTradeAccepted)
-            {
-                // Update our trade status
-                Instance.UpdateTradeStatus(tradeId, tradeAccepted);
-            }
-            // Check if the backend has updated
-            else if (Instance.TryGetPartyAccepted(tradeId, Instance.Uuid, out bool accepted) && tradeAccepted != accepted)
+            
+            // Add the offer row to the main column
+            theAllEncompassingColumnOfOmnipotence.Add(offerRow);
+            
+            // Create a new row to hold the confirmation checkboxes in
+            HorizontalFlexContainer offerAcceptanceRow = new HorizontalFlexContainer(DEFAULT_SPACING);
+            
+            // Check if the backend has updated before we let the user change their offer checkbox
+            if (Instance.TryGetPartyAccepted(tradeId, Instance.Uuid, out bool accepted) && tradeAccepted != accepted)
             {
                 // Update the GUI's status to match the backend
                 tradeAccepted = accepted;
             }
             
+            // Our confirmation
+            // TODO: Ellipsise display name length if it's going to spill over
+            offerAcceptanceRow.Add(
+                new Container(
+                    new CheckboxLabeledWidget(
+                        label: ("Phinix_trade_confirmOurTradeCheckbox" + (tradeAccepted ? "Checked" : "Unchecked")).Translate(), // Janky-looking easter egg, just for you
+                        isChecked: tradeAccepted,
+                        onChange: (newCheckState) =>
+                        {
+                            tradeAccepted = newCheckState;
+                            Instance.UpdateTradeStatus(tradeId, tradeAccepted);
+                        }
+                    ),
+                    width: OFFER_WINDOW_WIDTH
+                )
+            );
+            
+            // Spacer
+            offerAcceptanceRow.Add(
+                new SpacerWidget()
+            );
+            
             // Their confirmation
             // TODO: Ellipsise display name length if it's going to spill over
-            Rect theirConfirmationRect = new Rect(
-                x: theirOfferRect.xMin,
-                y: theirOfferRect.yMax + DEFAULT_SPACING,
-                width: OFFER_WINDOW_WIDTH,
-                height: OFFER_CONFIRMATION_HEIGHT
-            );
             Instance.TryGetOtherPartyAccepted(tradeId, out bool otherPartyAccepted);
-            Widgets.CheckboxLabeled(
-                rect: theirConfirmationRect,
-                label: ("Phinix_trade_confirmTheirTradeCheckbox" + (otherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(GetOtherPartyDisplayName())), // Jankier-looking easter egg, just for you
-                checkOn: ref otherPartyAccepted
+            offerAcceptanceRow.Add(
+                new Container(
+                    new CheckboxLabeledWidget(
+                        label: ("Phinix_trade_confirmTheirTradeCheckbox" + (otherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(GetOtherPartyDisplayName())), // Jankier-looking easter egg, just for you
+                        isChecked: otherPartyAccepted,
+                        onChange: null
+                    ),
+                    width: OFFER_WINDOW_WIDTH
+                )
             );
+            
+            // Add the offer acceptance row to the main column
+            theAllEncompassingColumnOfOmnipotence.Add(
+                new Container(
+                    offerAcceptanceRow,
+                    height: SORT_HEIGHT
+                )
+            );
+
+            // Return the generated main column
+            return theAllEncompassingColumnOfOmnipotence;
         }
 
         /// <summary>
-        /// Draws our offer within the given container.
+        /// Generates a <c>VerticalFlexContainer</c> containing our offer.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawOurOffer(Rect container)
+        /// <returns><c>VerticalFlexContainer</c> containing our offer</returns>
+        private VerticalFlexContainer GenerateOurOffer()
         {
+            // Create a flex container as our 'column' to store elements in
+            VerticalFlexContainer column = new VerticalFlexContainer(0f);
+            
             // Title
-            Rect titleRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.width,
-                height: OFFER_WINDOW_TITLE_HEIGHT
+            column.Add(
+                new Container(
+                    new TextWidget(
+                        text: "Phinix_trade_ourOfferLabel".Translate(),
+                        anchor: TextAnchor.MiddleCenter
+                    ),
+                    height: OFFER_WINDOW_TITLE_HEIGHT
+                )
             );
-            
-            // Set the text style
-            Text.Anchor = TextAnchor.MiddleCenter;
-            
-            // Draw the title
-            Widgets.Label(titleRect, "Our Offer");
-            
-            // Reset the text style
-            Text.Anchor = TextAnchor.UpperLeft;
             
             // Try get our items on offer
             if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> items))
@@ -371,37 +360,49 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw our items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(verseItems), ref ourOfferScrollPos);
+                column.Add(
+                    GenerateItemList(
+                        itemStacks: StackedThings.GroupThings(verseItems),
+                        scrollPos: ourOfferScrollPos,
+                        scrollUpdate: newScrollPos => ourOfferScrollPos = newScrollPos
+                    )
+                );
             }
             else
             {
                 // Couldn't get our items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(new Verse.Thing[0]), ref ourOfferScrollPos);
+                column.Add(
+                    GenerateItemList(
+                        itemStacks: StackedThings.GroupThings(new Thing[0]),
+                        scrollPos: ourOfferScrollPos,
+                        scrollUpdate: newScrollPos => ourOfferScrollPos = newScrollPos
+                    )
+                );
             }
+
+            // Return the generated flex container
+            return column;
         }
 
         /// <summary>
-        /// Draws their offer within the given container.
+        /// Generates a <c>VerticalFlexContainer</c> containing their offer.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawTheirOffer(Rect container)
+        /// <returns><c>VerticalFlexContainer</c> containing their offer</returns>
+        private VerticalFlexContainer GenerateTheirOffer()
         {
+            // Create a flex container as our 'column' to store elements in
+            VerticalFlexContainer column = new VerticalFlexContainer(0f);
+            
             // Title
-            Rect titleRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.width,
-                height: OFFER_WINDOW_TITLE_HEIGHT
+            column.Add(
+                new Container(
+                    new TextWidget(
+                        text: "Phinix_trade_theirOfferLabel".Translate(),
+                        anchor: TextAnchor.MiddleCenter
+                    ),
+                    height: OFFER_WINDOW_TITLE_HEIGHT
+                )
             );
-            
-            // Set the text style
-            Text.Anchor = TextAnchor.MiddleCenter;
-            
-            // Draw the title
-            Widgets.Label(titleRect, "Their Offer");
-            
-            // Reset the text style
-            Text.Anchor = TextAnchor.UpperLeft;
             
             // Try get their UUID and items on offer
             if (Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) &&
@@ -411,20 +412,34 @@ namespace PhinixClient
                 Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
                 
                 // Draw their items
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(verseItems), ref theirOfferScrollPos);
+                column.Add(
+                    GenerateItemList(
+                        itemStacks: StackedThings.GroupThings(verseItems),
+                        scrollPos: theirOfferScrollPos,
+                        scrollUpdate: newScrollPos => theirOfferScrollPos = newScrollPos
+                    )
+                );
             }
             else
             {
                 // Couldn't get their items, draw a blank array
-                DrawItemList(container.BottomPartPixels(container.height - titleRect.height), StackedThings.GroupThings(new Thing[0]), ref theirOfferScrollPos);
+                column.Add(
+                    GenerateItemList(
+                        itemStacks: StackedThings.GroupThings(new Thing[0]),
+                        scrollPos: theirOfferScrollPos,
+                        scrollUpdate: newScrollPos => theirOfferScrollPos = newScrollPos
+                    )
+                );
             }
+
+            // Return the generated flex container
+            return column;
         }
         
         /// <summary>
-        /// Draws our available items within the given container.
+        /// Generates a <c>VerticalFlexContainer</c> containing our available items.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawAvailableItems(Rect container)
+        private VerticalFlexContainer GenerateAvailableItems()
         {
 //            // Set the text anchor
 //            TextAnchor oldAnchor = Text.Anchor;
@@ -466,38 +481,47 @@ namespace PhinixClient
 //                // TODO: Sorting
 //            }
             
-            // Search text field
-            Rect searchTextRect = new Rect(
-                x: container.xMax - SEARCH_TEXT_FIELD_WIDTH,
-                y: container.yMin,
-                width: SEARCH_TEXT_FIELD_WIDTH,
-                height: SORT_HEIGHT
-            );
-            search = Widgets.TextField(searchTextRect, search);
+            // Create a new flex container as our 'column' to store everything in
+            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
             
-            // Set the text anchor
-            TextAnchor oldAnchor = Text.Anchor;
-            Text.Anchor = TextAnchor.MiddleCenter;
+            // Create a new flex container as our 'row' to store the search bar in
+            HorizontalFlexContainer searchRow = new HorizontalFlexContainer(DEFAULT_SPACING);
+            
+            // Spacer to push everything to the right
+            searchRow.Add(
+                new SpacerWidget()
+            );
             
             // Search label
-            Rect searchLabel = new Rect(
-                x: searchTextRect.xMin - (Text.CalcSize("Phinix_trade_searchLabel".Translate()).x + DEFAULT_SPACING),
-                y: container.yMin,
-                width: Text.CalcSize("Phinix_trade_searchLabel".Translate()).x,
-                height: SORT_HEIGHT
+            searchRow.Add(
+                new Container(
+                    new TextWidget(
+                        text: "Phinix_trade_searchLabel".Translate(),
+                        anchor: TextAnchor.MiddleCenter
+                    ),
+                    width: Text.CalcSize("Phinix_trade_searchLabel".Translate()).x
+                )
             );
-            Widgets.Label(searchLabel, "Phinix_trade_searchLabel".Translate());
             
-            // Reset the text anchor
-            Text.Anchor = oldAnchor;
-            
-            // Stockpile items list
-            Rect availableItemsListRect = new Rect(
-                x: container.xMin,
-                y: container.yMin + SORT_HEIGHT + DEFAULT_SPACING,
-                width: container.width,
-                height: container.height - (SORT_HEIGHT + DEFAULT_SPACING)
+            // Search text field
+            searchRow.Add(
+                new Container(
+                    new TextFieldWidget(
+                        text: search,
+                        onChange: newSearch => search = newSearch
+                    ),
+                    width: SEARCH_TEXT_FIELD_WIDTH
+                )
             );
+            
+            // Add the search row to the main column
+            column.Add(
+                new Container(
+                    searchRow,
+                    height: SORT_HEIGHT
+                )
+            );
+            
             // Filter the item stacks list for only those containing the search text
             IEnumerable<StackedThings> filteredItemStacks = itemStacks.Where(itemStack =>
             {
@@ -510,23 +534,29 @@ namespace PhinixClient
                 // Return whether the first thing's def label matches the search text
                 return firstThing.def.label.ToLower().Contains(search.ToLower());
             });
-            DrawItemList(availableItemsListRect, filteredItemStacks, ref stockpileItemsScrollPos, true);
+            
+            // Stockpile items list
+            column.Add(
+                GenerateItemList(filteredItemStacks, stockpileItemsScrollPos, newScrollPos => stockpileItemsScrollPos = newScrollPos, true)
+            );
+            
+            // Return the generated flex container
+            return column;
         }
 
         /// <summary>
-        /// Draws an item list within the given container.
-        /// Used to draw the available items window.
-        /// Returns a collection of items that are selected.
+        /// Generates a <c>ScrollContainer</c> containing an item list within the given container.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
         /// <param name="itemStacks">Item stacks to draw in the list</param>
         /// <param name="scrollPos">List scroll position</param>
+        /// <param name="scrollUpdate">Action invoked with the scroll position of the item list when it is drawn</param>
         /// <param name="interactive">Whether the item counts should be modifiable by the user</param>
-        /// <returns>Selected items</returns>
-        private void DrawItemList(Rect container, IEnumerable<StackedThings> itemStacks, ref Vector2 scrollPos, bool interactive = false)
+        private ScrollContainer GenerateItemList(IEnumerable<StackedThings> itemStacks, Vector2 scrollPos, Action<Vector2> scrollUpdate, bool interactive = false)
         {
+            // Create a new flex container as our 'column' to hold each element
+            VerticalFlexContainer column = new VerticalFlexContainer(0f);
+            
             // Set up a list to hold our item stack rows
-            List<ItemStackRow> rows = new List<ItemStackRow>();
             int iterations = 0;
             foreach (StackedThings itemStack in itemStacks)
             {
@@ -535,51 +565,15 @@ namespace PhinixClient
                     itemStack: itemStack,
                     height: OFFER_WINDOW_ROW_HEIGHT,
                     interactive: interactive,
-                    alternateBackground: iterations++ % 2 != 0
-                );
+                    alternateBackground: iterations++ % 2 != 0 // Be careful of the positioning of ++ here, this should increment /after/ the operation
+                );                                             // This is your brain on C/C++
                 
                 // Add it to the row list
-                rows.Add(row);
+                column.Add(row);
             }
             
-            // Create a flex container with our rows
-            VerticalFlexContainer flexContainer = new VerticalFlexContainer(rows.Cast<Displayable>());
-
-            // Determine if scrolling is necessary
-            if (flexContainer.CalcHeight(container.width) > container.height)
-            {
-                // Draw a box to contain the list
-                Widgets.DrawMenuSection(container.LeftPartPixels(container.width - SCROLLBAR_WIDTH));
-                
-                // Create an inner 'scrollable' container
-                Rect innerContainer = new Rect(
-                    x: container.xMin,
-                    y: container.yMin,
-                    width: container.width - SCROLLBAR_WIDTH,
-                    height: flexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
-                );
-                
-                // Start scrolling
-                Widgets.BeginScrollView(container, ref scrollPos, innerContainer);
-            
-                // Draw the flex container
-                flexContainer.Draw(innerContainer);
-            
-                // Stop scrolling
-                Widgets.EndScrollView();
-            }
-            else
-            {
-                // Re-make the flex container with full width
-                // TODO: Make VerticalFlexContainers draw with a dynamic width
-                flexContainer = new VerticalFlexContainer(rows.Cast<Displayable>());
-                
-                // Draw a box to contain the list
-                Widgets.DrawMenuSection(container);
-                
-                // Draw the flex container directly to the container
-                flexContainer.Draw(container);
-            }
+            // Return the flex container wrapped in a scroll container
+            return new ScrollContainer(column, scrollPos, scrollUpdate);
         }
     }
 }
