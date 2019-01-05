@@ -317,7 +317,13 @@ namespace PhinixClient
                 // Skip the user if they don't contain the search text
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
 
-                userListFlexContainer.Add(new TextWidget(displayName));
+                userListFlexContainer.Add(
+                    new ButtonWidget(
+                        label: displayName,
+                        clickAction: () => DrawUserContextMenu(uuid, displayName),
+                        drawBackground: false
+                    )
+                );
             }
 
             // Wrap the flex container in a scroll container
@@ -337,6 +343,24 @@ namespace PhinixClient
             PlaceholderWidget placeholder = new PlaceholderWidget(text);
 
             placeholder.Draw(container);
+        }
+        
+        /// <summary>
+        /// Draws a context menu with user-specific actions.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="displayName">User's display name</param>
+        private void DrawUserContextMenu(string uuid, string displayName)
+        {
+            // Do nothing if this is our UUID
+            if (uuid == Instance.Uuid) return;
+            
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Instance.CreateTrade(uuid)));
+            
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }
