@@ -9,10 +9,10 @@ namespace PhinixClient
     public class SpacerWidget : Displayable
     {
         /// <inheritdoc />
-        public override bool IsFluidHeight => !height.Equals(FLUID);
+        public override bool IsFluidHeight => height.Equals(FLUID);
 
         /// <inheritdoc />
-        public override bool IsFluidWidth => !width.Equals(FLUID);
+        public override bool IsFluidWidth => width.Equals(FLUID);
 
         /// <summary>
         /// Height of the spacer.
