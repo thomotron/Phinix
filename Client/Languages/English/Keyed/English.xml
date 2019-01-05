@@ -29,9 +29,7 @@
     <Phinix_trade_sortByLabel>Sort by</Phinix_trade_sortByLabel>
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
-    <Phinix_trade_tradeReceivedLetter_description>
-{0} has sent you a trade offer.
+    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.
 
-Check the 'Active Trades' tab in the Phinix chat menu for details.
-    </Phinix_trade_tradeReceivedLetter_description>
+Check the 'Active Trades' tab in the Phinix chat menu for details.</Phinix_trade_tradeReceivedLetter_description>
 </LanguageData>
