@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
+    <Compile Include="FittedTextureWidget.cs" />
     <Compile Include="GUI\ButtonWidget.cs" />
     <Compile Include="GUI\ChatMessage.cs" />
     <Compile Include="GUI\CheckboxLabeledWidget.cs" />
