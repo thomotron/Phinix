@@ -16,30 +16,15 @@ namespace PhinixClient
         public override Vector2 InitialSize => new Vector2(1000f, 750f);
         
         private const float DEFAULT_SPACING = 10f;
-        private const float SCROLLBAR_WIDTH = 16f;
-        private const float WINDOW_PADDING = 20f;
-
-        private const float TRADE_ARROWS_WIDTH = 140f;
-        private const float TRADE_ARROWS_HEIGHT = 190f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
-        private const float OFFER_WINDOW_HEIGHT = 310f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
         private const float OFFER_WINDOW_ROW_HEIGHT = 30f;
-        private const float OFFER_CONFIRMATION_HEIGHT = 20f;
-
-        private const float HORIZONTAL_UPPER_LOWER_DIVISION_SPACING = 20f;
-
-        private const float LOWER_HALF_WIDTH = 470f;
-        private const float LOWER_HALF_HEIGHT = 320f;
 
         private const float SORT_HEIGHT = 30f;
-        private const float SORT_LABEL_WIDTH = 60f;
-        private const float SORT_BUTTON_WIDTH = 100f;
 
         private const float SEARCH_TEXT_FIELD_WIDTH = 135f;
 
-        private const float TRADE_BUTTON_WIDTH = 140f;
         private const float TRADE_BUTTON_HEIGHT = 30f;
 
         private const float TITLE_HEIGHT = 30f;
