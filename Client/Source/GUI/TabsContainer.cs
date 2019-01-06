@@ -13,23 +13,16 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
-        
-        private const float TAB_HEIGHT = 45f;
 
         /// <summary>
         /// Collection of tabs that will be drawn.
         /// </summary>
         private List<TabEntry> tabs = new List<TabEntry>();
-        
+
         /// <summary>
         /// Index of the currently-selected tab.
         /// </summary>
-        private int selectedTab;
-
-        public TabsContainer(int selectedTab, Action onChange)
-        {
-            this.selectedTab = selectedTab;
-        }
+        private int selectedTab = 0;
 
         /// <summary>
         /// Adds a tab to the container.
@@ -51,12 +44,18 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
+            // Do nothing if there's no tabs
+            if (tabs.Count == 0) return;
+
+            // Ok, so for whatever reason the tabs are drawn /above/ whatever region you give them (why?!)
+            // To work around this we just trim the tab height off of the container rect
+            inRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
+            
             // We draw the top with tabs
-            Rect tabsArea = inRect.TopPartPixels(TAB_HEIGHT);
-            TabDrawer.DrawTabs(tabsArea, (List<TabRecord>) tabs.Select((e) => e.tab));
+            TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
 
             // We draw the selected tab
-            Rect childArea = inRect.BottomPartPixels(inRect.height - TAB_HEIGHT);
+            Rect childArea = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
             Displayable selectedDisplayable = tabs[selectedTab].displayable;
             selectedDisplayable.Draw(childArea);
         }
@@ -64,7 +63,7 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return TAB_HEIGHT;
+            return TabDrawer.TabHeight;
         }
     }
 }
