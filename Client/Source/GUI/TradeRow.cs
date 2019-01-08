@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Utils;
 using Verse;
 
 namespace PhinixClient.GUI
@@ -11,11 +12,11 @@ namespace PhinixClient.GUI
 
         private const float DEFAULT_SPACING = 10f;
 
-        private const float HEIGHT = 45f;
-
-        private const float TRADE_WITH_LABEL_HEIGHT = 30f;
+        private const float TRADE_WITH_LABEL_HEIGHT = 25f;
 
         private const float ACCEPTED_STATE_LABEL_HEIGHT = 15f;
+        
+        private const float HEIGHT = TRADE_WITH_LABEL_HEIGHT + ACCEPTED_STATE_LABEL_HEIGHT;
 
         private const float BUTTON_WIDTH = 80f;
 
@@ -57,8 +58,8 @@ namespace PhinixClient.GUI
             textColumn.Add(
                 new Container(
                     new TextWidget(
-                        text: "Phinix_trade_activeTrade_tradeWithLabel".Translate(otherPartyDisplayName),
-                        anchor: TextAnchor.MiddleCenter
+                        text: "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(otherPartyDisplayName)),
+                        anchor: TextAnchor.MiddleLeft
                     ),
                     height: TRADE_WITH_LABEL_HEIGHT
                 )
@@ -68,9 +69,9 @@ namespace PhinixClient.GUI
             textColumn.Add(
                 new Container(
                     new TextWidget(
-                        text: "Phinix_trade_activeTrade_theyHave" + (!otherPartyAccepted ? "Not" : "") + "Accepted".Translate(),
+                        text: ("Phinix_trade_activeTrade_theyHave" + (!otherPartyAccepted ? "Not" : "") + "Accepted").Translate(),
                         font: GameFont.Tiny,
-                        anchor: TextAnchor.MiddleCenter
+                        anchor: TextAnchor.MiddleLeft
                     ),
                     height: ACCEPTED_STATE_LABEL_HEIGHT
                 )
