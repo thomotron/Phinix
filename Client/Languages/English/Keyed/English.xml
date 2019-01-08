@@ -34,7 +34,7 @@
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.
 
-Check the 'Active Trades' tab in the Phinix chat menu for details.</Phinix_trade_tradeReceivedLetter_description>
+Check the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
     <Phinix_trade_activeTrade_tradeWithLabel>Trade with {0}</Phinix_trade_activeTrade_tradeWithLabel>
     <Phinix_trade_activeTrade_theyHaveAccepted>They have accepted</Phinix_trade_activeTrade_theyHaveAccepted>
     <Phinix_trade_activeTrade_theyHaveNotAccepted>They have not accepted</Phinix_trade_activeTrade_theyHaveNotAccepted>

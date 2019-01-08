@@ -52,6 +52,8 @@ namespace PhinixClient
 
         private static string message = "";
         private static string userSearch = "";
+        
+        private static Vector2 activeTradesScroll = new Vector2(0, 0);
 
         public ServerTab()
         {
@@ -107,10 +109,10 @@ namespace PhinixClient
             // Add the chat row as a tab
             tabContainer.AddTab("Chat", chatRow);
             
-            // Add a placeholder tab
+            // Add the active trades tab
             tabContainer.AddTab(
-                "New feature!",
-                new PlaceholderWidget("Y'all have to wait for this feature")
+                "Trades",
+                Instance.GetTrades().Length == 0 ? (Displayable) new PlaceholderWidget("You have no active trades") : GenerateTradeRows()
             );
             
             // Draw the tabs
@@ -395,6 +397,31 @@ namespace PhinixClient
             
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        /// <summary>
+        /// Generates a <c>ScrollContainer</c> containing a series of available trades.
+        /// </summary>
+        /// <returns></returns>
+        private ScrollContainer GenerateTradeRows()
+        {
+            // Create a column to store everything in
+            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
+
+            // Get TradeRows for each trade and add them to the column
+            string[] tradeIds = Instance.GetTrades();
+            for (int i = 0; i < tradeIds.Length; i++)
+            {
+                column.Add(
+                    new TradeRow(
+                        tradeId: tradeIds[i],
+                        drawAlternateBackground: i % 2 != 0
+                     )
+                );
+            }
+
+            // Return the generated column wrapped in a scroll container
+            return new ScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
         }
     }
 }
