@@ -17,12 +17,25 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Collection of tabs that will be drawn.
         /// </summary>
-        private List<TabEntry> tabs = new List<TabEntry>();
+        private List<TabEntry> tabs;
+
+        /// <summary>
+        /// Callback invoked when a different tab is selected.
+        /// </summary>
+        private Action<int> onTabChange;
 
         /// <summary>
         /// Index of the currently-selected tab.
         /// </summary>
-        private int selectedTab = 0;
+        private int selectedTab;
+
+        public TabsContainer(Action<int> onTabChange, int selectedTab = 0)
+        {
+            this.onTabChange = onTabChange;
+            this.selectedTab = selectedTab;
+            
+            this.tabs = new List<TabEntry>();
+        }
 
         /// <summary>
         /// Adds a tab to the container.
@@ -35,7 +48,11 @@ namespace PhinixClient.GUI
             int index = tabs.Count;
             
             // Create a tab record
-            TabRecord tab = new TabRecord(label, () => selectedTab = index, selectedTab == index);
+            TabRecord tab = new TabRecord(label, () =>
+                {
+                    selectedTab = index;
+                    onTabChange(index);
+                }, selectedTab == index);
             
             // Add the tab to the tab list
             tabs.Add(new TabEntry { tab = tab, displayable = displayable });
