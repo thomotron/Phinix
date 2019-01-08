@@ -107,12 +107,12 @@ namespace PhinixClient
             );
             
             // Add the chat row as a tab
-            tabContainer.AddTab("Chat", chatRow);
+            tabContainer.AddTab("Phinix_tabs_chat".Translate(), chatRow);
             
             // Add the active trades tab
             tabContainer.AddTab(
-                "Trades",
-                Instance.GetTrades().Length == 0 ? (Displayable) new PlaceholderWidget("You have no active trades") : GenerateTradeRows()
+                "Phinix_tabs_trades".Translate(),
+                Instance.GetTrades().Length == 0 ? (Displayable) new PlaceholderWidget("Phinix_trade_noActiveTrades".Translate()) : GenerateTradeRows()
             );
             
             // Draw the tabs
@@ -393,7 +393,7 @@ namespace PhinixClient
             
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Instance.CreateTrade(uuid)));
+            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
             
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
