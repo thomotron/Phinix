@@ -72,9 +72,8 @@ namespace PhinixClient.GUI
             TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
 
             // We draw the selected tab
-            Rect childArea = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
             Displayable selectedDisplayable = tabs[selectedTab].displayable;
-            selectedDisplayable.Draw(childArea);
+            selectedDisplayable.Draw(inRect);
         }
 
         /// <inheritdoc />
