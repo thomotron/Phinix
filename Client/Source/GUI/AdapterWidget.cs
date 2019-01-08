@@ -8,6 +8,11 @@ namespace PhinixClient.GUI
     /// </summary>
     public class AdapterWidget : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight { get; }
+        /// <inheritdoc />
+        public override bool IsFluidWidth { get; }
+
         /// <summary>
         /// Callback invoked when the adapter is drawn.
         /// </summary>
@@ -23,11 +28,14 @@ namespace PhinixClient.GUI
         /// </summary>
         private Func<float, float> getHeightCallback;
         
-        public AdapterWidget(Action<Rect> drawCallback, Func<float, float> getWidthCallback, Func<float, float> getHeightCallback)
+        public AdapterWidget(Action<Rect> drawCallback, Func<float, float> getWidthCallback = null, Func<float, float> getHeightCallback = null)
         {
             this.drawCallback = drawCallback;
             this.getWidthCallback = getWidthCallback;
             this.getHeightCallback = getHeightCallback;
+
+            IsFluidWidth = getWidthCallback == null;
+            IsFluidHeight = getHeightCallback == null;
         }
         
         /// <inheritdoc />
@@ -39,13 +47,13 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcWidth(float height)
         {
-            return getWidthCallback(height);
+            return getWidthCallback == null ? FLUID : getWidthCallback(height);
         }
 
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return getHeightCallback(width);
+            return getHeightCallback == null ? FLUID : getHeightCallback(width);
         }
     }
 }
