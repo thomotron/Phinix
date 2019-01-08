@@ -21,13 +21,19 @@ namespace PhinixClient.GUI
         private const float BUTTON_WIDTH = 80f;
 
         /// <summary>
-        /// Trade ID this trade row represents
+        /// Trade ID this trade row represents.
         /// </summary>
         private string tradeId;
 
-        public TradeRow(string tradeId)
+        /// <summary>
+        /// Whether to draw an alternate, lighter background behind the trade row.
+        /// </summary>
+        private bool drawAlternateBackground;
+
+        public TradeRow(string tradeId, bool drawAlternateBackground = false)
         {
             this.tradeId = tradeId;
+            this.drawAlternateBackground = drawAlternateBackground;
         }
         
         /// <inheritdoc />
@@ -101,6 +107,9 @@ namespace PhinixClient.GUI
                     width: BUTTON_WIDTH
                 )
             );
+            
+            // Draw a background highlight
+            if (drawAlternateBackground) Widgets.DrawHighlight(inRect);
             
             // Draw the row
             row.Draw(inRect);
