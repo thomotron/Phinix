@@ -79,6 +79,7 @@
     <Compile Include="GUI\TextFieldWidget.cs" />
     <Compile Include="GUI\TextWidget.cs" />
     <Compile Include="GUI\ThingIconWidget.cs" />
+    <Compile Include="GUI\TradeRow.cs" />
     <Compile Include="GUI\VerticalFlexContainer.cs" />
     <Compile Include="GUI\WidthContainer.cs" />
     <Compile Include="PlaceholderWidget.cs" />
