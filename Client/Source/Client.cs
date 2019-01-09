@@ -186,6 +186,8 @@ namespace PhinixClient
             catch
             {
                 Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_connectionFailedTitle".Translate(), "Phinix_error_connectionFailedMessage".Translate(ServerAddress, ServerPort)));
             }
         }
 
