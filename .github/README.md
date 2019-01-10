@@ -1,5 +1,5 @@
 <h1 align="center">PHINIX</h1>
-<h4 align="center"><i>A Rimworld multiplayer mod</i></h4>
+<h4 align="center"><i>A RimWorld chat and trading mod</i></h4>
 <br><br>
 <p align="center">
   <a href="https://github.com/PhinixTeam/Phinix/issues">
@@ -15,6 +15,31 @@
 <br><br>
   
 <!-- It'd be great if markdown had some way of aligning things, but ya gotta do what ya gotta do -->
+
+# Installation
+## Client
+1. Download `PhinixClient.zip` above
+2. Extract it into your `RimWorld/Mods` folder
+(If you bought the game through Steam, this should be under somewhere like `C:\Program Files (x86)\Steam\steamapps\common\RimWorld\`)
+3. Download and install [HugsLib](https://github.com/UnlimitedHugs/RimworldHugsLib/releases)
+4. Load **HugsLib first**, *then* Phinix
+5. Restart your game and you should be good to go
+## Server
+1. Download `PhinixServer.zip` above
+2. Extract it wherever, entirely up to you
+3. Edit the `server.conf` file as you see fit with a text editor
+4. Run `PhinixServer.exe`
+
+# Usage
+## Client
+1. Load up a save or create a new one
+2. Open the `Chat` tab toward the bottom-right
+3. Click on `Settings` and enter the address and port of the server you want to connect to
+4. Click `Connect`   
+The chat panel should change from being greyed-out to a blue background and the user list on the right of the panel will update to show you and anyone else that is online.
+## Server
+1. Run `PhiServer.exe`
+2. Refer to step 1
 
 FAQ
 ===
