@@ -125,7 +125,7 @@ namespace PhinixClient
                 settingName: "serverAddress",
                 title: "Phinix_hugslibsettings_serverAddressTitle".Translate(),
                 description: null,
-                defaultValue: "localhost"
+                defaultValue: "phinix.chat"
             );
             serverPortHandle = Settings.GetHandle(
                 settingName: "serverPort",
