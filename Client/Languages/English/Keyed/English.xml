@@ -49,4 +49,6 @@
     <Phinix_error_authFailedMessage>Failed to authenticate with the server: {0} ({1})</Phinix_error_authFailedMessage>
     <Phinix_error_connectionFailedTitle>Connecting failed</Phinix_error_connectionFailedTitle>
     <Phinix_error_connectionFailedMessage>Could not connect to a server at {0}:{1}</Phinix_error_connectionFailedMessage>
+    <Phinix_error_tradeCreationFailedTitle>Trade creation failed</Phinix_error_tradeCreationFailedTitle>
+    <Phinix_error_tradeCreationFailedMessage>Could not start a trade: {0} ({1})</Phinix_error_tradeCreationFailedMessage>
 </LanguageData>

@@ -226,6 +226,8 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, args) =>
             {
                 Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
             };
             trading.OnTradeCompleted += (sender, args) =>
             {
