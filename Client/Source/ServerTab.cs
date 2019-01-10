@@ -110,10 +110,7 @@ namespace PhinixClient
             tabContainer.AddTab("Phinix_tabs_chat".Translate(), chatRow);
             
             // Add the active trades tab
-            tabContainer.AddTab(
-                "Phinix_tabs_trades".Translate(),
-                Instance.GetTrades().Length == 0 ? (Displayable) new PlaceholderWidget("Phinix_trade_noActiveTrades".Translate()) : GenerateTradeRows()
-            );
+            tabContainer.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
             
             // Draw the tabs
             tabContainer.Draw(inRect);
@@ -403,8 +400,18 @@ namespace PhinixClient
         /// Generates a <c>ScrollContainer</c> containing a series of available trades.
         /// </summary>
         /// <returns></returns>
-        private ScrollContainer GenerateTradeRows()
+        private Displayable GenerateTradeRows()
         {
+            // Make sure we are online and have active trades before attempting to draw them
+            if (!Instance.Online)
+            {
+                return new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate());
+            }
+            else if (Instance.GetTrades().Count() == 0)
+            {
+                return new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate());
+            }
+            
             // Create a column to store everything in
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 

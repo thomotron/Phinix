@@ -5,7 +5,7 @@
     
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
-    <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right).</Phinix_chat_pleaseLogInPlaceholder>
+    <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
     <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
     
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
@@ -37,7 +37,7 @@
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
-    <Phinix_trade_noActiveTrades>You have no active trades.</Phinix_trade_noActiveTrades>
+    <Phinix_trade_noActiveTradesPlaceholder>You have no active trades.</Phinix_trade_noActiveTradesPlaceholder>
     <Phinix_trade_activeTrade_tradeWithLabel>Trade with {0}</Phinix_trade_activeTrade_tradeWithLabel>
     <Phinix_trade_activeTrade_theyHaveAccepted>They have accepted</Phinix_trade_activeTrade_theyHaveAccepted>
     <Phinix_trade_activeTrade_theyHaveNotAccepted>They have not accepted</Phinix_trade_activeTrade_theyHaveNotAccepted>

@@ -68,6 +68,16 @@ namespace Trading
             this.activeTrades = new Dictionary<string, Trade>();
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            netClient.OnDisconnect += disconnectHandler;
+        }
+
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            // Clear all active trades on disconnect
+            lock (activeTradesLock)
+            {
+                activeTrades.Clear();
+            }
         }
 
         /// <summary>
