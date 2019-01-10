@@ -49,7 +49,7 @@ namespace PhinixClient.GUI
             if (oldValue != isChecked)
             {
                 // Invoke the callback with the checked state
-                onChange(isChecked);
+                onChange?.Invoke(isChecked);
             }
         }
 

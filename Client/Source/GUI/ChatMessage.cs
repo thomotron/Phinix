@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 using Verse;
 
 namespace PhinixClient.GUI
@@ -51,8 +53,12 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
-            // Draw a label with the formatted text
-            Widgets.Label(container, Format());
+            // Draw a button with the formatted text
+            if (Widgets.ButtonText(container, Format(), false))
+            {
+                // Draw a context menu with user-specific actions
+                drawContextMenu();
+            }
         }
 
         /// <inheritdoc />
@@ -66,6 +72,22 @@ namespace PhinixClient.GUI
         public override float CalcWidth(float height)
         {
             return FLUID;
+        }
+
+        private void drawContextMenu()
+        {
+            // Do nothing if this is our UUID
+            if (SenderUuid == Client.Instance.Uuid) return;
+            
+            // Try to get the display name of this message's sender
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
+            
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
+            
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }

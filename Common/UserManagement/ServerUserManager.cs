@@ -23,6 +23,11 @@ namespace UserManagement
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// Raised when a user is logged in.
+        /// </summary>
+        public event EventHandler<ServerLoginEventArgs> OnLogin;
+
+        /// <summary>
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
@@ -160,10 +165,11 @@ namespace UserManagement
         /// </summary>
         /// <param name="uuid">UUID of the user</param>
         /// <param name="displayName">Display name of the user</param>
+        /// <param name="acceptingTrades">Whether the user is accepting trades</param>
         /// <returns>User updated successfully</returns>
-        public override bool UpdateUser(string uuid, string displayName = null)
+        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null)
         {
-            if (!base.UpdateUser(uuid, displayName)) return false;
+            if (!base.UpdateUser(uuid, displayName, acceptingTrades)) return false;
 
             User user;
             lock (userStoreLock)
@@ -257,6 +263,40 @@ namespace UserManagement
         public string[] GetConnections()
         {
             lock (connectedUsersLock) return connectedUsers.Keys.ToArray();
+        }
+
+        /// <summary>
+        /// Attempts to get the connection ID associated with the given UUID.
+        /// Returns whether the connection ID was gathered successfully.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="connectionId">Output connection ID</param>
+        /// <returns>Whether the connection ID was gathered successfully</returns>
+        public bool TryGetConnection(string uuid, out string connectionId)
+        {
+            // Initialise connection ID to something arbitrary
+            connectionId = null;
+            
+            // It's a surprise tool that will help us later
+            KeyValuePair<string, string> pair;
+            
+            lock (connectedUsersLock)
+            {
+                try
+                {
+                    // Try to get a single key-value pair
+                    pair = connectedUsers.Single(p => p.Value == uuid);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Couldn't get a single result, bail out
+                    return false;
+                }
+            }
+            
+            // Output the connection ID and return successfully
+            connectionId = pair.Key;
+            return true;
         }
         
         /// <summary>
@@ -380,6 +420,9 @@ namespace UserManagement
                 UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
             
+            // Set whether they are accepting trades
+            UpdateUser(uuid, acceptingTrades: packet.AcceptingTrades);
+            
             // Add their UUID/Session ID pair to connectedUsers
             lock (connectedUsersLock)
             {
@@ -398,6 +441,9 @@ namespace UserManagement
             
             // Send a sync packet with the current user list
             sendSyncPacket(connectionId);
+            
+            // Raise the OnLogin event
+            OnLogin?.Invoke(this, new ServerLoginEventArgs(connectionId, uuid));
         }
 
         /// <summary>
@@ -529,7 +575,7 @@ namespace UserManagement
             if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
 
             // Update the user
-            UpdateUser(user.Uuid, user.DisplayName);
+            UpdateUser(user.Uuid, user.DisplayName, user.AcceptingTrades);
         }
     }
 }

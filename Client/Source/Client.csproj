@@ -63,25 +63,33 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="CredentialsWindow.cs" />
+    <Compile Include="GUI\AdapterWidget.cs" />
     <Compile Include="GUI\ButtonWidget.cs" />
     <Compile Include="GUI\ChatMessage.cs" />
     <Compile Include="GUI\CheckboxLabeledWidget.cs" />
     <Compile Include="GUI\Container.cs" />
     <Compile Include="GUI\Displayable.cs" />
+    <Compile Include="GUI\FittedTextureWidget.cs" />
     <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\HorizontalFlexContainer.cs" />
+    <Compile Include="GUI\ItemStackRow.cs" />
     <Compile Include="GUI\ScrollContainer.cs" />
     <Compile Include="GUI\TabEntry.cs" />
     <Compile Include="GUI\TabsContainer.cs" />
     <Compile Include="GUI\TextFieldWidget.cs" />
     <Compile Include="GUI\TextWidget.cs" />
     <Compile Include="GUI\ThingIconWidget.cs" />
+    <Compile Include="GUI\TradeRow.cs" />
     <Compile Include="GUI\VerticalFlexContainer.cs" />
     <Compile Include="GUI\WidthContainer.cs" />
     <Compile Include="PlaceholderWidget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
     <Compile Include="SettingsWindow.cs" />
+    <Compile Include="SpacerWidget.cs" />
+    <Compile Include="StackedThings.cs" />
+    <Compile Include="TradeWindow.cs" />
+    <Compile Include="TradingThingConverter.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
@@ -105,6 +113,10 @@
       <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
       <Name>Connections</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\Trading\Trading.csproj">
+      <Project>{b63ede99-90e5-47b5-8411-0d1d3eb97adb}</Project>
+      <Name>Trading</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\UserManagement\UserManagement.csproj">
       <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
       <Name>UserManagement</Name>
@@ -127,6 +139,7 @@
     <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
     <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-UserManagement.dll" />
     <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-Chat.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-Trading.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\9-PhinixClient.dll" />
   </Target>
 </Project>

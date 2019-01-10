@@ -1,0 +1,17 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/TradeFailureReason.proto";
+
+message CreateTradeResponsePacket
+{    
+    bool Success = 1;
+    
+    string TradeId = 2;
+    
+    string OtherPartyUuid = 3;
+    
+    TradeFailureReason FailureReason = 4;
+    
+    string FailureMessage = 5;
+};

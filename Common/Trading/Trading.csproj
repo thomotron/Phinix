@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Trading</RootNamespace>
+    <AssemblyName>Trading</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="protobuf3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ab50b488852587ac">
+      <HintPath>..\..\.nuget\protobuf3.3.1.0\lib\net35\protobuf3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CompletedTrade.cs" />
+    <Compile Include="ClientTrading.cs" />
+    <Compile Include="CompleteTradeEventArgs.cs" />
+    <Compile Include="CreateTradeEventArgs.cs" />
+    <Compile Include="Packets\compiled\CompleteTradePacket.cs" />
+    <Compile Include="Packets\compiled\CreateTradePacket.cs" />
+    <Compile Include="Packets\compiled\CreateTradeResponsePacket.cs" />
+    <Compile Include="Packets\compiled\Quality.cs" />
+    <Compile Include="Packets\compiled\SyncTradesPacket.cs" />
+    <Compile Include="Packets\compiled\Thing.cs" />
+    <Compile Include="Packets\compiled\TradeFailureReason.cs" />
+    <Compile Include="Packets\compiled\TradeProto.cs" />
+    <Compile Include="Packets\compiled\UpdateTradeItemsPacket.cs" />
+    <Compile Include="Packets\compiled\UpdateTradeStatusPacket.cs" />
+    <Compile Include="ServerTrading.cs" />
+    <Compile Include="ThingReceivedEventArgs.cs" />
+    <Compile Include="Trade.cs" />
+    <Compile Include="Trading.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Authentication\Authentication.csproj">
+      <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
+      <Name>Authentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Connections\Connections.csproj">
+      <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
+      <Name>Connections</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UserManagement\UserManagement.csproj">
+      <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
+      <Name>UserManagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="compile-proto.sh" />
+    <Content Include="Packets\CompleteTradePacket.proto" />
+    <Content Include="Packets\CreateTradePacket.proto" />
+    <Content Include="Packets\CreateTradeResponsePacket.proto" />
+    <Content Include="Packets\Quality.proto" />
+    <Content Include="Packets\SyncTradesPacket.proto" />
+    <Content Include="Packets\Thing.proto" />
+    <Content Include="Packets\TradeFailureReason.proto" />
+    <Content Include="Packets\TradeProto.proto" />
+    <Content Include="Packets\UpdateTradeItemsPacket.proto" />
+    <Content Include="Packets\UpdateTradeStatusPacket.proto" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+</Project>

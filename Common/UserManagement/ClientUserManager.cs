@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -80,7 +82,8 @@ namespace UserManagement
         /// </summary>
         /// <param name="displayName">Display name to log in with</param>
         /// <param name="useServerDisplayName">Use the server's copy of the user's display name if it has one</param>
-        public void SendLogin(string displayName, bool useServerDisplayName = false)
+        /// <param name="acceptingTrades">Whether to accept trades from other users</param>
+        public void SendLogin(string displayName, bool useServerDisplayName = false, bool acceptingTrades = true)
         {
             if (!authenticator.Authenticated) return;
             
@@ -89,7 +92,8 @@ namespace UserManagement
             {
                 SessionId = authenticator.SessionId,
                 DisplayName = displayName,
-                UseServerDisplayName = useServerDisplayName
+                UseServerDisplayName = useServerDisplayName,
+                AcceptingTrades = acceptingTrades
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
@@ -124,22 +128,29 @@ namespace UserManagement
         /// Returns whether the update was successful locally and was sent to server.
         /// </summary>
         /// <param name="displayName">New display name</param>
+        /// <param name="acceptingTrades">Whether to accept trades from other users</param>
         /// <returns>User update was successful and sent to server</returns>
-        public bool UpdateSelf(string displayName = null)
+        public bool UpdateSelf(string displayName = null, bool? acceptingTrades = null)
         {
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
+            
+            // Don't do anything if the parameters are all null
+            if (displayName == null && acceptingTrades == null) return false;
 
             lock (userStoreLock)
             {
                 // Make sure we are in the user store
                 if (!userStore.Users.ContainsKey(Uuid)) return false; // This should never return as the server ensures you exist on login
 
-                // Close the user to avoid editing properties by reference
+                // Clone the user to avoid editing properties by reference
                 User user = userStore.Users[Uuid].Clone();
 
-                // Update the user's display name
-                user.DisplayName = displayName;
+                // Set the users display name if it is present
+                if (displayName != null) user.DisplayName = displayName;
+
+                // Set the users trade acceptance if it is present
+                if (acceptingTrades.HasValue) user.AcceptingTrades = acceptingTrades.Value;
                 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket

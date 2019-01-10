@@ -1,0 +1,19 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Quality.proto";
+
+message ProtoThing
+{
+    string DefName = 1;
+    
+    int32 StackCount = 2;
+    
+    string StuffDefName = 3;
+    
+    Quality Quality = 4;
+    
+    int32 HitPoints = 5;
+
+    ProtoThing InnerProtoThing = 6;
+};

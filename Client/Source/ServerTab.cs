@@ -6,6 +6,7 @@ using Chat;
 using PhinixClient.GUI;
 using RimWorld;
 using UnityEngine;
+using Utils;
 using Verse;
 using static PhinixClient.Client;
 
@@ -37,6 +38,8 @@ namespace PhinixClient
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
+        private static int currentTabIndex;
+
         private static Vector2 chatScroll = new Vector2(0, 0);
         private static float oldHeight = 0f;
         private static bool scrollToBottom = false;
@@ -49,6 +52,8 @@ namespace PhinixClient
 
         private static string message = "";
         private static string userSearch = "";
+        
+        private static Vector2 activeTradesScroll = new Vector2(0, 0);
 
         public ServerTab()
         {
@@ -81,24 +86,34 @@ namespace PhinixClient
         public override void DoWindowContents(Rect inRect)
         {
             base.DoWindowContents(inRect);
+            
+            // Create a tab container to hold the chat and trade list
+            TabsContainer tabContainer = new TabsContainer(newTabIndex => currentTabIndex = newTabIndex, currentTabIndex);
+            
+            // Create a flex container to hold the chat tab content
+            HorizontalFlexContainer chatRow = new HorizontalFlexContainer(DEFAULT_SPACING);
 
             // Chat container
-            Rect chatContainer = new Rect(
-                x: inRect.xMin,
-                y: inRect.yMin,
-                width: inRect.width - (RIGHT_COLUMN_CONTAINER_WIDTH + COLUMN_SPACING),
-                height: inRect.height
+            chatRow.Add(
+                GenerateChat()
             );
-            DrawChat(chatContainer);
 
             // Right column (settings and user list) container
-            Rect rightColumnContainer = new Rect(
-                x: inRect.xMax - RIGHT_COLUMN_CONTAINER_WIDTH,
-                y: inRect.yMin,
-                width: RIGHT_COLUMN_CONTAINER_WIDTH,
-                height: inRect.height
+            chatRow.Add(
+                new Container(
+                    GenerateRightColumn(),
+                    width: RIGHT_COLUMN_CONTAINER_WIDTH
+                )
             );
-            DrawRightColumn(rightColumnContainer);
+            
+            // Add the chat row as a tab
+            tabContainer.AddTab("Phinix_tabs_chat".Translate(), chatRow);
+            
+            // Add the active trades tab
+            tabContainer.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
+            
+            // Draw the tabs
+            tabContainer.Draw(inRect);
         }
 
         /// <summary>
@@ -133,10 +148,9 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Draws the right column - consisting of a settings button, user search box, and a user list - within the given <c>Rect</c>.
+        /// Generates a <c>VerticalFlexContainer</c> containing a settings button, user search box, and a user list.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawRightColumn(Rect container)
+        private VerticalFlexContainer GenerateRightColumn()
         {
             // Create a flex container to hold the column elements
             VerticalFlexContainer column = new VerticalFlexContainer();
@@ -173,25 +187,32 @@ namespace PhinixClient
                 column.Add(new PlaceholderWidget());
             }
 
-            // Draw the column
-            column.Draw(container);
+            // Return the generated column
+            return column;
         }
 
         /// <summary>
-        /// Draws the chat window - consisting of a message list, message entry box, and a send button - within the given <c>Rect</c>.
+        /// Generates a <c>VerticalFlexContainer</c> the chat window consisting of a message list, message entry box, and a send button.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawChat(Rect container)
+        private VerticalFlexContainer GenerateChat()
         {
+            // Create a flex container to hold the column elements
+            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
+            
             // Chat message area
-            Rect chatAreaRect = container.TopPartPixels(container.height - (CHAT_TEXTBOX_HEIGHT + DEFAULT_SPACING));
             if (Instance.Online)
             {
-                DrawMessages(chatAreaRect);
+                column.Add(
+                    GenerateMessages()
+                );
             }
             else
             {
-                DrawPlaceholder(chatAreaRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
+                column.Add(
+                    new PlaceholderWidget(
+                        text: "Phinix_chat_pleaseLogInPlaceholder".Translate()
+                    )
+                );
             }
 
             // Message entry field
@@ -225,77 +246,90 @@ namespace PhinixClient
             // Fit the text field and button within a flex container
             HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer(new Displayable[]{messageField, buttonWrapper});
 
-            // Draw the flex container
-            messageEntryFlexContainer.Draw(container.BottomPartPixels(CHAT_TEXTBOX_HEIGHT));
+            // Add the flex container to the column
+            column.Add(
+                new Container(
+                    messageEntryFlexContainer,
+                    height: CHAT_TEXTBOX_HEIGHT
+                )
+            );
+            
+            // Return the generated column
+            return column;
         }
 
         /// <summary>
         /// Draws each chat message within a scrollable container.
         /// </summary>
-        /// <param name="container">Container to draw within</param>
-        private void DrawMessages(Rect container)
+        private AdapterWidget GenerateMessages()
         {
-            lock (messagesLock)
-            {
-                // Create a new flex container from our message list
-                VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messages.Cast<Displayable>(), 0f);
-
-                // Set up the scrollable container
-                Rect innerContainer = new Rect(
-                    x: container.xMin,
-                    y: container.yMin,
-                    width: container.width - SCROLLBAR_WIDTH,
-                    height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
-                );
-
-                // Get a copy of the old scroll position
-                Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
-
-                // Start scrolling
-                Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
-
-                // Draw the flex container
-                chatFlexContainer.Draw(innerContainer);
-
-                // Stop scrolling
-                Widgets.EndScrollView();
-
-                // Enter the logic to get sticky scrolling to work
-                #region Sticky scroll logic
-
-                // Credit to Aze for figuring out how to get the bottom scroll pos
-                bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
-                bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
-                float heightDifference = oldHeight - innerContainer.height;
-
-                if (scrollChanged)
+            return new AdapterWidget(
+                drawCallback: container =>
                 {
-                    if (scrolledToBottom)
+                    lock (messagesLock)
                     {
-                        // Enable sticky scroll
-                        stickyScroll = true;
-                    }
-                    else
-                    {
-                        // Not at bottom, disable sticky scroll
-                        stickyScroll = false;
+                        // Create a new flex container from our message list
+                        VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messages.Cast<Displayable>(), 0f);
+
+                        // Set up the scrollable container
+                        Rect innerContainer = new Rect(
+                            x: container.xMin,
+                            y: container.yMin,
+                            width: container.width - SCROLLBAR_WIDTH,
+                            height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
+                        );
+
+                        // Get a copy of the old scroll position
+                        Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
+
+                        // Start scrolling
+                        Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
+
+                        // Draw the flex container
+                        chatFlexContainer.Draw(innerContainer);
+
+                        // Stop scrolling
+                        Widgets.EndScrollView();
+
+                        // Enter the logic to get sticky scrolling to work
+
+                        #region Sticky scroll logic
+
+                        // Credit to Aze for figuring out how to get the bottom scroll pos
+                        bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
+                        bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
+                        float heightDifference = oldHeight - innerContainer.height;
+
+                        if (scrollChanged)
+                        {
+                            if (scrolledToBottom)
+                            {
+                                // Enable sticky scroll
+                                stickyScroll = true;
+                            }
+                            else
+                            {
+                                // Not at bottom, disable sticky scroll
+                                stickyScroll = false;
+                            }
+                        }
+                        else if (!heightDifference.Equals(0f))
+                        {
+                            if (stickyScroll || scrollToBottom)
+                            {
+                                // Scroll to bottom
+                                chatScroll.y = innerContainer.height - container.height;
+                                scrollToBottom = false;
+                            }
+                        }
+
+                        // Update old height for the next pass
+                        oldHeight = innerContainer.height;
+
+                        #endregion
                     }
                 }
-                else if (!heightDifference.Equals(0f))
-                {
-                    if (stickyScroll || scrollToBottom)
-                    {
-                        // Scroll to bottom
-                        chatScroll.y = innerContainer.height - container.height;
-                        scrollToBottom = false;
-                    }
-                }
-
-                // Update old height for the next pass
-                oldHeight = innerContainer.height;
-
-                #endregion
-            }
+            );
         }
 
         /// <summary>
@@ -316,7 +350,13 @@ namespace PhinixClient
                 // Skip the user if they don't contain the search text
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
 
-                userListFlexContainer.Add(new TextWidget(displayName));
+                userListFlexContainer.Add(
+                    new ButtonWidget(
+                        label: displayName,
+                        clickAction: () => DrawUserContextMenu(uuid, displayName),
+                        drawBackground: false
+                    )
+                );
             }
 
             // Wrap the flex container in a scroll container
@@ -336,6 +376,59 @@ namespace PhinixClient
             PlaceholderWidget placeholder = new PlaceholderWidget(text);
 
             placeholder.Draw(container);
+        }
+        
+        /// <summary>
+        /// Draws a context menu with user-specific actions.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="displayName">User's display name</param>
+        private void DrawUserContextMenu(string uuid, string displayName)
+        {
+            // Do nothing if this is our UUID
+            if (uuid == Instance.Uuid) return;
+            
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
+            
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        /// <summary>
+        /// Generates a <c>ScrollContainer</c> containing a series of available trades.
+        /// </summary>
+        /// <returns></returns>
+        private Displayable GenerateTradeRows()
+        {
+            // Make sure we are online and have active trades before attempting to draw them
+            if (!Instance.Online)
+            {
+                return new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate());
+            }
+            else if (Instance.GetTrades().Count() == 0)
+            {
+                return new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate());
+            }
+            
+            // Create a column to store everything in
+            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
+
+            // Get TradeRows for each trade and add them to the column
+            string[] tradeIds = Instance.GetTrades();
+            for (int i = 0; i < tradeIds.Length; i++)
+            {
+                column.Add(
+                    new TradeRow(
+                        tradeId: tradeIds[i],
+                        drawAlternateBackground: i % 2 != 0
+                     )
+                );
+            }
+
+            // Return the generated column wrapped in a scroll container
+            return new ScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
         }
     }
 }

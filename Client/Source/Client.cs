@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using Authentication;
@@ -6,10 +8,13 @@ using Chat;
 using Connections;
 using HugsLib;
 using HugsLib.Settings;
+using RimWorld;
+using Trading;
 using HugsLib.Utils;
 using UserManagement;
 using Utils;
 using Verse;
+using Thing = Verse.Thing;
 
 namespace PhinixClient
 {
@@ -46,6 +51,21 @@ namespace PhinixClient
         public void SendMessage(string message) => chat.Send(message);
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
+        private ClientTrading trading;
+        public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
+        public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
+        public string[] GetTrades() => trading.GetTrades();
+        public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
+        public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
+        public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted) => trading.TryGetPartyAccepted(tradeId, partyUuid, out accepted);
+        public bool TryGetItemsOnOffer(string tradeId, string uuid, out IEnumerable<Trading.ProtoThing> items) => trading.TryGetItemsOnOffer(tradeId, uuid, out items);
+        public void UpdateTradeItems(string tradeId, IEnumerable<ProtoThing> items) => trading.UpdateItems(tradeId, items);
+        public void UpdateTradeStatus(string tradeId, bool? accepted = null, bool? cancelled = null) => trading.UpdateStatus(tradeId, accepted, cancelled);
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
+        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
+        public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
+
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
         {
@@ -75,6 +95,17 @@ namespace PhinixClient
             set
             {
                 displayNameHandle.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<bool> acceptingTradesHandle;
+        public bool AcceptingTrades
+        {
+            get => acceptingTradesHandle.Value;
+            set
+            {
+                acceptingTradesHandle.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
@@ -109,23 +140,34 @@ namespace PhinixClient
                 description: null,
                 defaultValue: SteamUtility.SteamPersonaName
             );
+            acceptingTradesHandle = Settings.GetHandle(
+                settingName: "acceptingTrades",
+                title: "Phinix_hugslibsettings_acceptingTradesTitle",
+                description: null,
+                defaultValue: true
+            );
 
             // Set up our module instances
             this.netClient = new NetClient();
             this.authenticator = new ClientAuthenticator(netClient, getCredentials);
             this.userManager = new ClientUserManager(netClient, authenticator);
             this.chat = new ClientChat(netClient, authenticator, userManager);
+            this.trading = new ClientTrading(netClient, authenticator, userManager);
             
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
             userManager.OnLogEntry += ILoggableHandler;
             chat.OnLogEntry += ILoggableHandler;
+            trading.OnLogEntry += ILoggableHandler;
             
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
                 Logger.Message("Successfully authenticated with server.");
-                userManager.SendLogin(DisplayName);
+                userManager.SendLogin(
+                    displayName: DisplayName,
+                    acceptingTrades: AcceptingTrades
+                );
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
@@ -156,6 +198,86 @@ namespace PhinixClient
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
             };
             
+            // Subscribe to trading events
+            trading.OnTradeCreationSuccess += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
+                
+                // Try get the other party's display name
+                if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+                
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCreated");
+                Find.LetterStack.ReceiveLetter(
+                    label: "Phinix_trade_tradeReceivedLetter_label".Translate(displayName),
+                    text: "Phinix_trade_tradeReceivedLetter_description".Translate(displayName),
+                    textLetterDef: letterDef
+                );
+            };
+            trading.OnTradeCreationFailure += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+            };
+            trading.OnTradeCompleted += (sender, args) =>
+            {
+                // Try get the other party's display name
+                if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+            
+                // Convert all the received items into their Verse counterparts
+                Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+
+                // Launch drop pods to a trade spot on a home tile
+                Map map = Find.AnyPlayerHomeMap;
+                IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+                DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+            
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
+                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
+                
+                Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
+            };
+            trading.OnTradeCancelled += (sender, args) =>
+            {
+                // Try get the other party's display name
+                if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+
+                // Generate a letter
+                LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCancelled");
+                Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
+                
+                Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
+            };
+            
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
             netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
@@ -164,6 +286,10 @@ namespace PhinixClient
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
             userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
+            trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
+            trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
+            trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
+            trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

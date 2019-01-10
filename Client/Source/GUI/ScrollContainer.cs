@@ -56,7 +56,7 @@ namespace PhinixClient.GUI
             Widgets.BeginScrollView(inRect, ref scrollPosition, childRect);
             
             // Invoke the scroll callback
-            onScroll(scrollPosition);
+            onScroll?.Invoke(scrollPosition);
             
             // Draw the contents
             child.Draw(childRect);

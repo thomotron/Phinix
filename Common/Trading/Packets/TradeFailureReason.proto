@@ -1,0 +1,12 @@
+syntax = "proto3";
+package Trading;
+
+enum TradeFailureReason
+{
+    SessionId = 0;
+    Uuid = 1;
+    InternalServerError = 2;
+    OtherPartyOffline = 3;
+    OtherPartyDoesNotExist = 4;
+    AlreadyTrading = 5;
+};

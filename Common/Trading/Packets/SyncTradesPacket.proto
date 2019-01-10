@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/TradeProto.proto";
+
+message SyncTradesPacket
+{
+    repeated TradeProto Trades = 1;
+}

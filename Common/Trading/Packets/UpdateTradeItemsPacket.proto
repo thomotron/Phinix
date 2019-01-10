@@ -1,0 +1,17 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Thing.proto";
+
+message UpdateTradeItemsPacket
+{
+    string SessionId = 1;
+
+    string Uuid = 2;
+
+    string TradeId = 3;
+
+    repeated ProtoThing Items = 4;
+    
+    repeated ProtoThing OtherPartyItems = 5;
+};

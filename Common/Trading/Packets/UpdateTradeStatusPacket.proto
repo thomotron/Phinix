@@ -1,0 +1,17 @@
+syntax = "proto3";
+package Trading;
+
+message UpdateTradeStatusPacket
+{
+    string SessionId = 1;
+
+    string Uuid = 2;
+
+    string TradeId = 3;
+
+    bool Accepted = 4;
+
+    bool OtherPartyAccepted = 5;
+
+    bool Cancelled = 6;
+};

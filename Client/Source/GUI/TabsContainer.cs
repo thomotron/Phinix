@@ -13,22 +13,28 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
-        
-        private const float TAB_HEIGHT = 45f;
 
         /// <summary>
         /// Collection of tabs that will be drawn.
         /// </summary>
-        private List<TabEntry> tabs = new List<TabEntry>();
-        
+        private List<TabEntry> tabs;
+
+        /// <summary>
+        /// Callback invoked when a different tab is selected.
+        /// </summary>
+        private Action<int> onTabChange;
+
         /// <summary>
         /// Index of the currently-selected tab.
         /// </summary>
         private int selectedTab;
 
-        public TabsContainer(int selectedTab, Action onChange)
+        public TabsContainer(Action<int> onTabChange, int selectedTab = 0)
         {
+            this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
+            
+            this.tabs = new List<TabEntry>();
         }
 
         /// <summary>
@@ -42,7 +48,11 @@ namespace PhinixClient.GUI
             int index = tabs.Count;
             
             // Create a tab record
-            TabRecord tab = new TabRecord(label, () => selectedTab = index, selectedTab == index);
+            TabRecord tab = new TabRecord(label, () =>
+                {
+                    selectedTab = index;
+                    onTabChange(index);
+                }, selectedTab == index);
             
             // Add the tab to the tab list
             tabs.Add(new TabEntry { tab = tab, displayable = displayable });
@@ -51,20 +61,25 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
+            // Do nothing if there's no tabs
+            if (tabs.Count == 0) return;
+
+            // Ok, so for whatever reason the tabs are drawn /above/ whatever region you give them (why?!)
+            // To work around this we just trim the tab height off of the container rect
+            inRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
+            
             // We draw the top with tabs
-            Rect tabsArea = inRect.TopPartPixels(TAB_HEIGHT);
-            TabDrawer.DrawTabs(tabsArea, (List<TabRecord>) tabs.Select((e) => e.tab));
+            TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
 
             // We draw the selected tab
-            Rect childArea = inRect.BottomPartPixels(inRect.height - TAB_HEIGHT);
             Displayable selectedDisplayable = tabs[selectedTab].displayable;
-            selectedDisplayable.Draw(childArea);
+            selectedDisplayable.Draw(inRect);
         }
 
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return TAB_HEIGHT;
+            return TabDrawer.TabHeight;
         }
     }
 }

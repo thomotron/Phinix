@@ -1,0 +1,19 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Thing.proto";
+
+message TradeProto
+{
+    string TradeId = 1;
+
+    string OtherPartyUuid = 2;
+
+    repeated ProtoThing Items = 3;
+
+    repeated ProtoThing OtherPartyItems = 4;
+
+    bool Accepted = 5;
+
+    bool OtherPartyAccepted = 6;
+}

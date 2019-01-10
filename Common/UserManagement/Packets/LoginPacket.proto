@@ -8,4 +8,6 @@ message LoginPacket
     bool UseServerDisplayName = 2;
     
     string DisplayName = 3;
+    
+    bool AcceptingTrades = 4;
 }
