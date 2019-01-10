@@ -18,14 +18,14 @@
 
 # Installation
 ## Client
-1. Download `PhinixClient.zip` above
+1. Download `PhinixClient.zip` from the [releases page](https://github.com/PhinixTeam/Phinix/releases)
 2. Extract it into your `RimWorld/Mods` folder
 (If you bought the game through Steam, this should be under somewhere like `C:\Program Files (x86)\Steam\steamapps\common\RimWorld\`)
 3. Download and install [HugsLib](https://github.com/UnlimitedHugs/RimworldHugsLib/releases)
 4. Load **HugsLib first**, *then* Phinix
 5. Restart your game and you should be good to go
 ## Server
-1. Download `PhinixServer.zip` above
+1. Download `PhinixServer.zip` from the [releases page](https://github.com/PhinixTeam/Phinix/releases)
 2. Extract it wherever, entirely up to you
 3. Edit the `server.conf` file as you see fit with a text editor
 4. Run `PhinixServer.exe`
