@@ -23,6 +23,11 @@ namespace UserManagement
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// Raised when a user is logged in.
+        /// </summary>
+        public event EventHandler<ServerLoginEventArgs> OnLogin;
+
+        /// <summary>
         /// <c>NetServer</c> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
@@ -436,6 +441,9 @@ namespace UserManagement
             
             // Send a sync packet with the current user list
             sendSyncPacket(connectionId);
+            
+            // Raise the OnLogin event
+            OnLogin?.Invoke(this, new ServerLoginEventArgs(connectionId, uuid));
         }
 
         /// <summary>
