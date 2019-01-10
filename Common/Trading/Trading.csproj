@@ -49,8 +49,10 @@
     <Compile Include="Packets\compiled\CreateTradePacket.cs" />
     <Compile Include="Packets\compiled\CreateTradeResponsePacket.cs" />
     <Compile Include="Packets\compiled\Quality.cs" />
+    <Compile Include="Packets\compiled\SyncTradesPacket.cs" />
     <Compile Include="Packets\compiled\Thing.cs" />
     <Compile Include="Packets\compiled\TradeFailureReason.cs" />
+    <Compile Include="Packets\compiled\TradeProto.cs" />
     <Compile Include="Packets\compiled\UpdateTradeItemsPacket.cs" />
     <Compile Include="Packets\compiled\UpdateTradeStatusPacket.cs" />
     <Compile Include="ServerTrading.cs" />
@@ -86,8 +88,10 @@
     <Content Include="Packets\CreateTradePacket.proto" />
     <Content Include="Packets\CreateTradeResponsePacket.proto" />
     <Content Include="Packets\Quality.proto" />
+    <Content Include="Packets\SyncTradesPacket.proto" />
     <Content Include="Packets\Thing.proto" />
     <Content Include="Packets\TradeFailureReason.proto" />
+    <Content Include="Packets\TradeProto.proto" />
     <Content Include="Packets\UpdateTradeItemsPacket.proto" />
     <Content Include="Packets\UpdateTradeStatusPacket.proto" />
   </ItemGroup>
