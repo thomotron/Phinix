@@ -50,6 +50,7 @@ namespace Trading
             this.activeTrades = new Dictionary<string, Trade>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginEventHandler;
         }
 
         /// <summary>
@@ -81,6 +82,24 @@ namespace Trading
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
+            }
+        }
+        
+        private void loginEventHandler(object sender, ServerLoginEventArgs args)
+        {
+            lock (activeTradesLock)
+            {
+                Dictionary<string, Trade>.ValueCollection allTrades = activeTrades.Values;
+                
+                // Check if there are any active trades with the newly logged-in user
+                if (allTrades.Any(trade => trade.PartyUuids.Contains(args.Uuid)))
+                {
+                    // Get all trades involving the user
+                    IEnumerable<Trade> trades = allTrades.Where(trade => trade.AcceptedParties.Contains(args.Uuid));
+                    
+                    // Send the user a sync packet with each trade
+                    sendSyncTradesPacket(args.ConnectionId, trades, args.Uuid);
+                }
             }
         }
 
@@ -441,6 +460,59 @@ namespace Trading
                 Items = {items},
                 OtherPartyItems = {otherPartyItems}
             };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+        
+        /// <summary>
+        /// Sends a <c>SyncTradesPacket</c> containing the given trades from the given party's perspective.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="trades">Collection of trades toi send</param>
+        /// <param name="partyUuid">Party's UUID</param>
+        private void sendSyncTradesPacket(string connectionId, IEnumerable<Trade> trades, string partyUuid)
+        {
+            // Create our SyncTradesPacket
+            SyncTradesPacket packet = new SyncTradesPacket();
+
+            // Proto-ify each trade and add them to the packet
+            foreach (Trade trade in trades)
+            {
+                // Try get the other party's UUID, continuing on failure
+                if (!trade.TryGetOtherParty(partyUuid, out string otherPartyUuid)) continue;
+                
+                // Try get each party's items on offer, continuing on failure
+                if (!trade.TryGetItemsOnOffer(partyUuid, out ProtoThing[] partyItems) ||
+                    !trade.TryGetItemsOnOffer(partyUuid, out ProtoThing[] otherPartyItems))
+                {
+                    continue;
+                }
+                
+                // Try get each party's accepted state, continuing on failure
+                if (!trade.TryGetAccepted(partyUuid, out bool partyAccepted) ||
+                    !trade.TryGetAccepted(otherPartyUuid, out bool otherPartyAccepted))
+                {
+                    continue;
+                }
+                
+                // Create a proto-ified trade with the values we just got
+                TradeProto tradeProto = new TradeProto
+                {
+                    TradeId = trade.TradeId,
+                    OtherPartyUuid = otherPartyUuid,
+                    Items = {partyItems},
+                    OtherPartyItems = {otherPartyItems},
+                    Accepted = partyAccepted,
+                    OtherPartyAccepted = otherPartyAccepted
+                };
+                
+                // Add it to the packet
+                packet.Trades.Add(tradeProto);
+            }
+            
+            // Pack the packet
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
