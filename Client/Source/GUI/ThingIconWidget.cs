@@ -8,6 +8,11 @@ namespace PhinixClient.GUI
 {
     internal class ThingIconWidget : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => false;
+        /// <inheritdoc />
+        public override bool IsFluidWidth => false;
+
         /// <summary>
         /// Thing the icon is for.
         /// </summary>
@@ -28,6 +33,18 @@ namespace PhinixClient.GUI
         public override void Draw(Rect inRect)
         {
             Widgets.ThingIcon(inRect.ScaledBy(scale), thing);
+        }
+
+        /// <inheritdoc />
+        public override float CalcHeight(float width)
+        {
+            return width;
+        }
+
+        /// <inheritdoc />
+        public override float CalcWidth(float height)
+        {
+            return height;
         }
     }
 }
