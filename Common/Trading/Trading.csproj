@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CancelledTrade.cs" />
+    <Compile Include="CompletedTrade.cs" />
     <Compile Include="ClientTrading.cs" />
     <Compile Include="CompleteTradeEventArgs.cs" />
     <Compile Include="CreateTradeEventArgs.cs" />
