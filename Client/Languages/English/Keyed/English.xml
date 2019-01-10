@@ -42,4 +42,11 @@
     <Phinix_trade_activeTrade_theyHaveAccepted>They have accepted</Phinix_trade_activeTrade_theyHaveAccepted>
     <Phinix_trade_activeTrade_theyHaveNotAccepted>They have not accepted</Phinix_trade_activeTrade_theyHaveNotAccepted>
     <Phinix_trade_activeTrade_openButton>Open</Phinix_trade_activeTrade_openButton>
+
+    <Phinix_error_loginFailedTitle>Login failed</Phinix_error_loginFailedTitle>
+    <Phinix_error_loginFailedMessage>Failed to log in to the server: {0} ({1})</Phinix_error_loginFailedMessage>
+    <Phinix_error_authFailedTitle>Authentication failed</Phinix_error_authFailedTitle>
+    <Phinix_error_authFailedMessage>Failed to authenticate with the server: {0} ({1})</Phinix_error_authFailedMessage>
+    <Phinix_error_connectionFailedTitle>Connecting failed</Phinix_error_connectionFailedTitle>
+    <Phinix_error_connectionFailedMessage>Could not connect to a server at {0}:{1}</Phinix_error_connectionFailedMessage>
 </LanguageData>

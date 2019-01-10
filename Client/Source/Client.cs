@@ -10,6 +10,7 @@ using HugsLib;
 using HugsLib.Settings;
 using RimWorld;
 using Trading;
+using HugsLib.Utils;
 using UserManagement;
 using Utils;
 using Verse;
@@ -171,6 +172,10 @@ namespace PhinixClient
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
                 Logger.Message("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_authFailedTitle".Translate(), "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                
+                Disconnect();
             };
             
             // Subscribe to user management events
@@ -181,6 +186,10 @@ namespace PhinixClient
             userManager.OnLoginFailure += (sender, args) =>
             {
                 Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_loginFailedTitle".Translate(), "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                
+                Disconnect();
             };
             
             // Subscribe to chat events
@@ -301,6 +310,8 @@ namespace PhinixClient
             catch
             {
                 Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
+                
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_connectionFailedTitle".Translate(), "Phinix_error_connectionFailedMessage".Translate(ServerAddress, ServerPort)));
             }
         }
 
