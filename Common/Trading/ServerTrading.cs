@@ -42,14 +42,14 @@ namespace Trading
         private object activeTradesLock = new object();
 
         /// <summary>
-        /// Collection of cancelled trades organised by trade ID.
-        /// Trades are stored here until both parties have been notified that they have been cancelled. 
+        /// Collection of completed trades organised by trade ID.
+        /// Trades are stored here until both parties have been notified that they have been completed.
         /// </summary>
-        private Dictionary<string, CancelledTrade> cancelledTrades;
+        private Dictionary<string, CompletedTrade> completedTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>activeTrades</c>.
+        /// Lock object to prevent race conditions when accessing <c>completedTrades</c>.
         /// </summary>
-        private object cancelledTradesLock = new object();
+        private object completedTradesLock = new object();
 
         public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
         {
@@ -58,7 +58,7 @@ namespace Trading
             this.userManager = userManager;
             
             this.activeTrades = new Dictionary<string, Trade>();
-            this.cancelledTrades = new Dictionary<string, CancelledTrade>();
+            this.completedTrades = new Dictionary<string, CompletedTrade>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginEventHandler;
@@ -101,28 +101,26 @@ namespace Trading
             // Send the user a list of their active trades
             lock (activeTradesLock)
             {
-                Dictionary<string, Trade>.ValueCollection allTrades = activeTrades.Values;
-                
-                // Check if there are any active trades with the newly logged-in user
-                if (allTrades.Any(trade => trade.PartyUuids.Contains(args.Uuid)))
+                // Get all trades involving the user
+                List<Trade> trades = activeTrades.Values.Where(trade => trade.PartyUuids.Contains(args.Uuid)).ToList();
+
+                // Make sure there are trades to send before sending any
+                if (trades.Count != 0)
                 {
-                    // Get all trades involving the user
-                    IEnumerable<Trade> trades = allTrades.Where(trade => trade.AcceptedParties.Contains(args.Uuid));
-                    
                     // Send the user a sync packet with each trade
                     sendSyncTradesPacket(args.ConnectionId, trades, args.Uuid);
                 }
             }
 
             // Notify the user of cancelled trades they were not notified of earlier
-            lock (cancelledTradesLock)
+            lock (completedTradesLock)
             {
-                // Get all cancelled trades where the user is pending notification
-                IEnumerable<CancelledTrade> _cancelledTrades = cancelledTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
+                // Get all completed trades where the user is pending notification
+                IEnumerable<CompletedTrade> _completedTrades = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
-                foreach (CancelledTrade cancelledTrade in _cancelledTrades)
+                foreach (CompletedTrade completedTrade in _completedTrades)
                 {
-                    Trade trade = cancelledTrade.Trade;
+                    Trade trade = completedTrade.Trade;
                         
                     // Try get the other party's UUID, continuing on failure
                     if (!trade.TryGetOtherParty(args.Uuid, out string otherPartyUuid)) continue;
@@ -131,15 +129,15 @@ namespace Trading
                     if (!trade.TryGetItemsOnOffer(args.Uuid, out ProtoThing[] things)) continue;
                         
                     // Send a cancelled trade completion packet
-                    sendCompleteTradePacket(args.ConnectionId, cancelledTrade.Trade.TradeId, true, otherPartyUuid, things);
+                    sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, completedTrade.Cancelled, otherPartyUuid, things);
                         
                     // Check them off the pending notification list
-                    cancelledTrade.PendingNotification.Remove(args.Uuid);
+                    completedTrade.PendingNotification.Remove(args.Uuid);
                         
                     // Remove the cancelled trade if this was the last user pending notification
-                    if (cancelledTrade.PendingNotification.Count == 0)
+                    if (completedTrade.PendingNotification.Count == 0)
                     {
-                        cancelledTrades.Remove(trade.TradeId);
+                        completedTrades.Remove(trade.TradeId);
                     }
                 }
             }
@@ -295,20 +293,20 @@ namespace Trading
                 // Check if the trade is being cancelled
                 if (packet.Cancelled)
                 {
-                    lock (cancelledTradesLock)
+                    lock (completedTradesLock)
                     {
-                        // Move the trade from the active trades dictionary to the cancelled trades dictionary
-                        cancelledTrades.Add(trade.TradeId, new CancelledTrade(trade, new []{packet.Uuid, otherPartyUuid}));
-                        CancelledTrade cancelledTrade = cancelledTrades[trade.TradeId];
+                        // Move the trade from the active trades dictionary to the completed trades dictionary
+                        completedTrades.Add(trade.TradeId, new CompletedTrade(trade, new []{packet.Uuid, otherPartyUuid}, true));
+                        CompletedTrade completedTrade = completedTrades[trade.TradeId];
                         activeTrades.Remove(trade.TradeId);
-                        trade = cancelledTrade.Trade;
+                        trade = completedTrade.Trade;
                     
                         // Try to get the sender's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
                     
                         // Return the sender's items to them and check them off the pending notification list
                         sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
-                        cancelledTrade.PendingNotification.Remove(packet.Uuid);
+                        completedTrade.PendingNotification.Remove(packet.Uuid);
                     
                         // Try to get the other party's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
@@ -321,7 +319,7 @@ namespace Trading
                     
                         // Return the other party's items to them and check them off the pending notification list
                         sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
-                        cancelledTrade.PendingNotification.Remove(packet.Uuid);
+                        completedTrade.PendingNotification.Remove(otherPartyUuid);
                     }
                 }
                 else
@@ -347,14 +345,21 @@ namespace Trading
                     // Check if all parties have accepted and the trade can be completed successfully
                     if (trade.AcceptedParties.Count == trade.PartyUuids.Length)
                     {
+                        // Move the trade from the active trades dictionary to the completed trades dictionary
+                        completedTrades.Add(trade.TradeId, new CompletedTrade(trade, new []{packet.Uuid, otherPartyUuid}, false));
+                        CompletedTrade completedTrade = completedTrades[trade.TradeId];
+                        activeTrades.Remove(trade.TradeId);
+                        trade = completedTrade.Trade;
+                        
                         // Try to get the sender's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
                         
                         // Try to get the other party's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
                     
-                        // Give the other party's items to the sender
+                        // Give the other party's items to the sender and check them off the pending notification list
                         sendCompleteTradePacket(connectionId, trade.TradeId, false, otherPartyUuid, otherPartyItems);
+                        completedTrade.PendingNotification.Remove(packet.Uuid);
                     
                         // Check if the other party is logged in
                         if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
@@ -362,11 +367,9 @@ namespace Trading
                         // Try to get the other party's connection ID
                         if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
                     
-                        // Give the sender's items to the other party
+                        // Give the sender's items to the other party and check them off the pending notification list
                         sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, false, packet.Uuid, items);
-                    
-                        // Remove the trade
-                        activeTrades.Remove(packet.TradeId);
+                        completedTrade.PendingNotification.Remove(otherPartyUuid);
                     }
                     else
                     {
@@ -535,7 +538,7 @@ namespace Trading
                 
                 // Try get each party's items on offer, continuing on failure
                 if (!trade.TryGetItemsOnOffer(partyUuid, out ProtoThing[] partyItems) ||
-                    !trade.TryGetItemsOnOffer(partyUuid, out ProtoThing[] otherPartyItems))
+                    !trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems))
                 {
                     continue;
                 }
