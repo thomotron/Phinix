@@ -131,7 +131,7 @@ namespace PhinixClient
                 settingName: "serverPort",
                 title: "Phinix_hugslibsettings_serverPortTitle".Translate(),
                 description: null,
-                defaultValue: 16180,
+                defaultValue: 16200,
                 validator: value => int.TryParse(value, out _)
             );
             displayNameHandle = Settings.GetHandle(

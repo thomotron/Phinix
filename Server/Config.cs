@@ -30,7 +30,7 @@ namespace PhinixServer
         /// Port to listen on.
         /// </summary>
         [DataMember(Name = "Port", Order = 1)]
-        public int Port = 16180;
+        public int Port = 16200;
 
         /// <summary>
         /// Path to the log file.
