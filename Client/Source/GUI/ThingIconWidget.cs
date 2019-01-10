@@ -13,15 +13,21 @@ namespace PhinixClient.GUI
         /// </summary>
         public Thing thing;
 
-        public ThingIconWidget(Thing thing)
+        /// <summary>
+        /// Scale of the icon.
+        /// </summary>
+        private float scale;
+
+        public ThingIconWidget(Thing thing, float scale = 1f)
         {
             this.thing = thing;
+            this.scale = scale;
         }
 
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            Widgets.ThingIcon(inRect, thing);
+            Widgets.ThingIcon(inRect.ScaledBy(scale), thing);
         }
     }
 }
