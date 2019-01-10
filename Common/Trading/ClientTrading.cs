@@ -344,6 +344,10 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeStatusPacket", LogLevel.DEBUG));
                     updateTradeStatusPacketHandler(connectionId, message.Unpack<UpdateTradeStatusPacket>());
                     break;
+                case "SyncTradesPacket":
+                    RaiseLogEntry(new LogEventArgs("Got a SyncTradesPacket", LogLevel.DEBUG));
+                    syncTradesPacketHandler(connectionId, message.Unpack<SyncTradesPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -454,6 +458,38 @@ namespace Trading
                 {
                     // Try set their accepted state
                     trade.TrySetAccepted(otherPartyUuid, packet.OtherPartyAccepted);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>SyncTradesPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>SyncTradesPacket</c></param>
+        private void syncTradesPacketHandler(string connectionId, SyncTradesPacket packet)
+        {
+            lock (activeTradesLock)
+            {
+                // Clear out all active trades
+                activeTrades.Clear();
+                
+                // Construct new trades for each in the sync packet
+                foreach (TradeProto tradeProto in packet.Trades)
+                {
+                    // Create a new trade between us and the other party
+                    Trade trade = new Trade(tradeProto.TradeId, new[]{userManager.Uuid, tradeProto.OtherPartyUuid});
+                    
+                    // Set items on offer
+                    trade.TrySetItemsOnOffer(userManager.Uuid, tradeProto.Items);
+                    trade.TrySetItemsOnOffer(tradeProto.OtherPartyUuid, tradeProto.OtherPartyItems);
+
+                    // Set accepted states
+                    trade.TrySetAccepted(userManager.Uuid, tradeProto.Accepted);
+                    trade.TrySetAccepted(tradeProto.OtherPartyUuid, tradeProto.OtherPartyAccepted);
+                    
+                    // Add the trade to the active trades collection
+                    activeTrades.Add(trade.TradeId, trade);
                 }
             }
         }
