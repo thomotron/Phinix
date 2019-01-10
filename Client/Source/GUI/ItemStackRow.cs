@@ -11,8 +11,10 @@ namespace PhinixClient
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
+
+        private const float DEFAULT_SPACING = 10f;
         
-        private const float BUTTON_WIDTH = 30f;
+        private const float BUTTON_WIDTH = 40f;
         private const float COUNT_FIELD_WIDTH = 70f;
         
         /// <summary>
@@ -56,107 +58,180 @@ namespace PhinixClient
             // Background
             if (alternateBackground) Widgets.DrawHighlight(container);
             
-            // Icon
-            Rect iconRect = new Rect(
-                x: container.xMin,
-                y: container.yMin,
-                width: container.height,
-                height: height
-            );
-            Widgets.ThingIcon(iconRect.ContractedBy(iconRect.width * 0.1f), itemStack.Things.First());
+            // Create a row to hold everything
+            HorizontalFlexContainer row = new HorizontalFlexContainer(DEFAULT_SPACING);
             
-            // Set text alignment
-            TextAnchor oldAnchorPos = Text.Anchor;
-            Text.Anchor = TextAnchor.MiddleLeft;
+            // Icon
+            row.Add(
+                new ThingIconWidget(itemStack.Things.First(), 0.9f)
+            );
             
             // Item name
-            Rect labelRect = new Rect(
-                x: iconRect.xMax,
-                y: container.yMin,
-                width: Text.CalcSize(itemStack.Things.First().def.label.CapitalizeFirst()).x,
-                height: height
+            row.Add(
+                new TextWidget(
+                    text: itemStack.Things.First().def.label.CapitalizeFirst(),
+                    anchor: TextAnchor.MiddleLeft
+                )
             );
-            Widgets.Label(labelRect, itemStack.Things.First().def.label.CapitalizeFirst());
 
             if (interactive)
             {
-                int oldSelectedCount = itemStack.Selected;
+                // Add some padding to right-align the buttons
+                row.Add(new SpacerWidget());
                 
-                // Add all button
-                Rect addAllRect = new Rect(
-                    x: container.xMax - (BUTTON_WIDTH + 10f), // Move a further 10f for some nicer-looking padding
-                    y: container.yMin,
-                    width: BUTTON_WIDTH,
-                    height: height
+                // -100 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "-100",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected -= 100) < itemStack.Count)
+                                {
+                                    itemStack.Selected = 0;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
                 );
-                if (Widgets.ButtonText(addAllRect, "++"))
-                {
-                    itemStack.Selected = itemStack.Count;
-                }
                 
-                // Add one button
-                Rect addOneRect = new Rect(
-                    x: addAllRect.xMin - BUTTON_WIDTH,
-                    y: container.yMin,
-                    width: BUTTON_WIDTH,
-                    height: height
+                // -10 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "-10",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected -= 10) < itemStack.Count)
+                                {
+                                    itemStack.Selected = 0;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
                 );
-                if (Widgets.ButtonText(addOneRect, "+"))
-                {
-                    if (itemStack.Selected + 1 <= itemStack.Count) itemStack.Selected++;
-                }
+                
+                // -1 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "-1",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected -= 1) < itemStack.Count)
+                                {
+                                    itemStack.Selected = 0;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
+                );
                 
                 // Count text field
-                Rect countTextFieldRect = new Rect(
-                    x: addOneRect.xMin - COUNT_FIELD_WIDTH,
-                    y: container.yMin,
-                    width: COUNT_FIELD_WIDTH,
-                    height: height
+                row.Add(
+                    new Container(
+                        new TextFieldWidget(
+                            text: itemStack.Selected.ToString(),
+                            onChange: (countText) =>
+                            {
+                                if (int.TryParse(countText, out int result))
+                                {
+                                    if (result < 0)
+                                    {
+                                        itemStack.Selected = 0;
+                                    }
+                                    else if (result > itemStack.Count)
+                                    {
+                                        itemStack.Selected = itemStack.Count;
+                                    }
+                                    else
+                                    {
+                                        itemStack.Selected = result;
+                                    }
+                                }
+                                else
+                                {
+                                    itemStack.Selected = 0;
+                                }
+                            }
+                        ),
+                        width: COUNT_FIELD_WIDTH
+                    )
                 );
                 
-                // Remove one button
-                Rect removeOneRect = new Rect(
-                    x: countTextFieldRect.xMin - BUTTON_WIDTH,
-                    y: container.yMin,
-                    width: BUTTON_WIDTH,
-                    height: height
+                // +1 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "+1",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected += 1) > itemStack.Count)
+                                {
+                                    itemStack.Selected = itemStack.Count;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
                 );
-                if (Widgets.ButtonText(removeOneRect, "-"))
-                {
-                    if (itemStack.Selected - 1 >= 0) itemStack.Selected--;
-                }
                 
-                // Remove all button
-                Rect removeAllRect = new Rect(
-                    x: removeOneRect.xMin - BUTTON_WIDTH,
-                    y: container.yMin,
-                    width: BUTTON_WIDTH,
-                    height: height
+                // +10 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "+10",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected += 10) > itemStack.Count)
+                                {
+                                    itemStack.Selected = itemStack.Count;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
                 );
-                if (Widgets.ButtonText(removeAllRect, "--"))
-                {
-                    itemStack.Selected = 0;
-                }
                 
-                // Logic for the count text field
-                string countText = itemStack.Selected.ToString();
-                countText = Widgets.TextField(countTextFieldRect, countText, int.MaxValue, new Regex("(^\\d$)")); // Match only digits
-                itemStack.Selected = int.Parse(countText);
+                // +100 button
+                row.Add(
+                    new Container(
+                        new ButtonWidget(
+                            label: "+100",
+                            clickAction: () =>
+                            {
+                                if ((itemStack.Selected += 100) > itemStack.Count)
+                                {
+                                    itemStack.Selected = itemStack.Count;
+                                }
+                            }
+                        ),
+                        width: BUTTON_WIDTH
+                    )
+                );
             }
             else
             {
                 // Item count
-                Rect countRect = new Rect(
-                    x: container.xMax - (Text.CalcSize(itemStack.Count.ToString()).x + 10f), // Move a further 10f for some nicer-looking padding
-                    y: container.yMin,
-                    width: Text.CalcSize(itemStack.Count.ToString()).x,
-                    height: height
+                row.Add(
+                    new Container(
+                        new TextWidget(
+                            text: itemStack.Count.ToString(),
+                            anchor: TextAnchor.MiddleRight
+                        ),
+                        width: COUNT_FIELD_WIDTH
+                    )
                 );
-                Widgets.Label(countRect, itemStack.Count.ToString());
             }
             
-            // Reset text alignment
-            Text.Anchor = oldAnchorPos;
+            // Add some padding to keep off the edge
+            row.Add(new SpacerWidget(5f));
+            
+            // Draw the row
+            row.Draw(container);
         }
 
         /// <inheritdoc />
