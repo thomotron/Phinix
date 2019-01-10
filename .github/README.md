@@ -41,8 +41,7 @@ The chat panel should change from being greyed-out to a blue background and the 
 1. Run `PhiServer.exe`
 2. Refer to step 1
 
-FAQ
-===
+# FAQ
 **Why are you rewriting Phi instead of updating it?**  
 Due to the way the codebase was laid out, we decided it was easier to start from scratch rather than try to add our own features and fixes in
 
@@ -50,4 +49,4 @@ Due to the way the codebase was laid out, we decided it was easier to start from
 We are building the foundation and core functionality of the mod
 
 **How long until there is a functional alpha?**  
-We should have the very first alpha build ready sometime during ~~December~~ January
+It's here!
