@@ -287,6 +287,11 @@ namespace UserManagement
         {
             LoggedIn = false;
             Uuid = null;
+
+            lock (userStoreLock)
+            {
+                userStore.Users.Clear();
+            }
         }
     }
 }
