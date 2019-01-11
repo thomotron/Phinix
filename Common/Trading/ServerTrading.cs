@@ -194,7 +194,7 @@ namespace Trading
             lock (activeTradesLock)
             {
                 // Check if both parties are already in another active trade
-                bool alreadyTrading = activeTrades.Values.Any(t => t.PartyUuids.Contains(packet.Uuid) || t.PartyUuids.Contains(packet.OtherPartyUuid));
+                bool alreadyTrading = activeTrades.Values.Any(t => t.PartyUuids.Contains(packet.Uuid) && t.PartyUuids.Contains(packet.OtherPartyUuid));
                 if (alreadyTrading)
                 {
                     // Fail the trade creation request because both parties are already trading with each other
