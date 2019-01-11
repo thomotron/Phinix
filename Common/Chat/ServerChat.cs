@@ -105,7 +105,7 @@ namespace Chat
             // Add the message to the message history
             lock (messageHistoryLock)
             {
-                messageHistory.Insert(0, new ChatMessage(packet.Uuid, packet.Message));
+                messageHistory.Add(new ChatMessage(packet.Uuid, packet.Message));
             }
             
             // Set the timestamp
