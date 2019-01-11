@@ -45,7 +45,7 @@ namespace PhinixClient
         private static bool scrollToBottom = false;
         private static bool stickyScroll = true;
 
-        private static List<ChatMessage> messages = new List<ChatMessage>();
+        private static List<GUI.ChatMessage> messages = new List<GUI.ChatMessage>();
         private static readonly object messagesLock = new object();
 
         private static Vector2 userListScroll = new Vector2(0, 0);
@@ -124,7 +124,7 @@ namespace PhinixClient
         private static void messageHandler(object sender, ChatMessageEventArgs args)
         {
             // Add the message
-            lock (messagesLock) messages.Add(new ChatMessage(args.OriginUuid, args.Message));
+            lock (messagesLock) messages.Add(new GUI.ChatMessage(args.OriginUuid, args.Message));
 
             // Was this our message?
             if (args.OriginUuid == Instance.Uuid)
