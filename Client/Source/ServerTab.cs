@@ -124,7 +124,7 @@ namespace PhinixClient
         private static void messageHandler(object sender, ChatMessageEventArgs args)
         {
             // Add the message
-            lock (messagesLock) messages.Add(new GUI.ChatMessage(args.OriginUuid, args.Message));
+            lock (messagesLock) messages.Add(new GUI.ChatMessage(args.OriginUuid, args.Message, args.Timestamp));
 
             // Was this our message?
             if (args.OriginUuid == Instance.Uuid)

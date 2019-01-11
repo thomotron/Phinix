@@ -113,7 +113,7 @@ namespace Chat
         /// <param name="packet">Incoming packet</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
-            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid));
+            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
         }
     }
 }
