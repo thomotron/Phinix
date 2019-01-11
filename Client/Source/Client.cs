@@ -49,6 +49,7 @@ namespace PhinixClient
 
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
+        public ChatMessage[] GetChatMessages() => chat.GetMessages();
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
