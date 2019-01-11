@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -29,14 +30,43 @@ namespace Chat
         /// <c>ServerUserManager</c> instance used to check login state and source UUID validity.
         /// </summary>
         private ServerUserManager userManager;
+
+        /// <summary>
+        /// List of chat messages sent to users on connect.
+        /// </summary>
+        private List<ChatMessage> messageHistory;
+        /// <summary>
+        /// Lock file to prevent race conditions when accessing <c>messageHistory</c>.
+        /// </summary>
+        private object messageHistoryLock = new object();
+        /// <summary>
+        /// Maximum number of chat messages to buffer in history.
+        /// </summary>
+        private int messageHistoryCapacity;
         
-        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            this.messageHistoryCapacity = messageHistoryCapacity;
+            
+            this.messageHistory = new List<ChatMessage>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginHandler;
+        }
+
+        private void loginHandler(object sender, ServerLoginEventArgs args)
+        {
+            lock (messageHistoryLock)
+            {
+                // Send each message in the chat history to the newly logged-in user
+                foreach (ChatMessage chatMessage in messageHistory)
+                {
+                    sendChatMessage(args.ConnectionId, chatMessage);
+                }
+            }
         }
 
         /// <summary>
@@ -76,6 +106,12 @@ namespace Chat
             
             // Sanitise the message content
             packet.Message = TextHelper.SanitiseRichText(packet.Message);
+            
+            // Add the message to the message history
+            addMessageToHistory(new ChatMessage(packet.Uuid, packet.Message));
+            
+            // Set the timestamp
+            packet.Timestamp = DateTime.UtcNow.ToTimestamp();
                     
             // Broadcast the chat packet to everyone
             broadcastChatMessage(packet);
@@ -94,6 +130,46 @@ namespace Chat
             foreach (string connectionId in userManager.GetConnections())
             {
                 netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            }
+        }
+
+        /// <summary>
+        /// Sends the given <c>ChatMessage</c> to the user.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="chatMessage"><c>ChatMessage</c> to send</param>
+        private void sendChatMessage(string connectionId, ChatMessage chatMessage)
+        {
+            // Create and pack our chat message packet
+            ChatMessagePacket packet = new ChatMessagePacket
+            {
+                Uuid = chatMessage.SenderUuid,
+                Message = chatMessage.Message,
+                Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Adds the given <c>ChatMessage</c> to the message history.
+        /// </summary>
+        /// <param name="chatMessage"><c>ChatMessage</c> to store</param>
+        private void addMessageToHistory(ChatMessage chatMessage)
+        {
+            lock (messageHistoryLock)
+            {
+                // Add the message to history
+                messageHistory.Add(chatMessage);
+
+                // Check if we've exceeded the history capacity
+                if (messageHistory.Count > messageHistoryCapacity)
+                {
+                    // Remove the oldest message
+                    messageHistory.RemoveAt(0);
+                }
             }
         }
     }

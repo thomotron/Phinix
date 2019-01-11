@@ -1,6 +1,8 @@
 syntax = "proto3";
 package Chat;
 
+import "google/protobuf/timestamp.proto";
+
 message ChatMessagePacket
 {
     string SessionId = 1;
@@ -8,4 +10,6 @@ message ChatMessagePacket
     string Uuid = 2;
     
     string Message = 3;
+
+    google.protobuf.Timestamp Timestamp = 4;
 };

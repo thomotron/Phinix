@@ -203,17 +203,6 @@ namespace PhinixClient
                 )
             );
             
-            // Update button
-            centreColumn.Add(
-                new Container(
-                    new ButtonWidget(
-                        label: "Phinix_trade_updateButton".Translate(),
-                        clickAction: () => Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()))
-                    ),
-                    height: TRADE_BUTTON_HEIGHT
-                )
-            );
-            
             // Reset button
             centreColumn.Add(
                 new Container(
@@ -550,8 +539,12 @@ namespace PhinixClient
                     itemStack: itemStack,
                     height: OFFER_WINDOW_ROW_HEIGHT,
                     interactive: interactive,
-                    alternateBackground: iterations++ % 2 != 0 // Be careful of the positioning of ++ here, this should increment /after/ the operation
-                );                                             // This is your brain on C/C++
+                    alternateBackground: iterations++ % 2 != 0, // Be careful of the positioning of ++ here, this should increment /after/ the operation
+                    onSelectedChanged: _ =>                     // We don't need the value, so we can just assign it to _
+                    {
+                        Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
+                    }
+                );
                 
                 // Add it to the row list
                 column.Add(row);

@@ -8,10 +8,13 @@ namespace Chat
 
         public string OriginUuid;
 
-        public ChatMessageEventArgs(string message, string originUuid)
+        public DateTime Timestamp;
+
+        public ChatMessageEventArgs(string message, string originUuid, DateTime timestamp)
         {
             this.Message = message;
             this.OriginUuid = originUuid;
+            this.Timestamp = timestamp;
         }
     }
 }

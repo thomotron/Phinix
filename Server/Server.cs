@@ -42,7 +42,7 @@ namespace PhinixServer
                 credentialStorePath: Config.CredentialDatabasePath
             );
             UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
-            Chat = new ServerChat(Connections, Authenticator, UserManager);
+            Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength);
             Trading = new ServerTrading(Connections, Authenticator, UserManager);
             
             // Add handler for ILoggable modules

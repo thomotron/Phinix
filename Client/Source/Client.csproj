@@ -65,7 +65,7 @@
     <Compile Include="CredentialsWindow.cs" />
     <Compile Include="GUI\AdapterWidget.cs" />
     <Compile Include="GUI\ButtonWidget.cs" />
-    <Compile Include="GUI\ChatMessage.cs" />
+    <Compile Include="GUI\ChatMessageWidget.cs" />
     <Compile Include="GUI\CheckboxLabeledWidget.cs" />
     <Compile Include="GUI\Container.cs" />
     <Compile Include="GUI\Displayable.cs" />
