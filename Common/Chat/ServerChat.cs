@@ -49,6 +49,19 @@ namespace Chat
             this.messageHistory = new List<ChatMessage>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginHandler;
+        }
+
+        private void loginHandler(object sender, ServerLoginEventArgs args)
+        {
+            lock (messageHistoryLock)
+            {
+                // Send each message in the chat history to the newly logged-in user
+                foreach (ChatMessage chatMessage in messageHistory)
+                {
+                    sendChatMessage(args.ConnectionId, chatMessage);
+                }
+            }
         }
 
         /// <summary>
@@ -113,6 +126,26 @@ namespace Chat
             {
                 netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
             }
+        }
+
+        /// <summary>
+        /// Sends the given <c>ChatMessage</c> to the user.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="chatMessage"><c>ChatMessage</c> to send</param>
+        private void sendChatMessage(string connectionId, ChatMessage chatMessage)
+        {
+            // Create and pack our chat message packet
+            ChatMessagePacket packet = new ChatMessagePacket
+            {
+                Uuid = chatMessage.SenderUuid,
+                Message = chatMessage.Message,
+                Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
         }
     }
 }
