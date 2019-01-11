@@ -39,12 +39,17 @@ namespace Chat
         /// Lock file to prevent race conditions when accessing <c>messageHistory</c>.
         /// </summary>
         private object messageHistoryLock = new object();
+        /// <summary>
+        /// Maximum number of chat messages to buffer in history.
+        /// </summary>
+        private int messageHistoryCapacity;
         
-        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            this.messageHistoryCapacity = messageHistoryCapacity;
             
             this.messageHistory = new List<ChatMessage>();
             
@@ -103,10 +108,7 @@ namespace Chat
             packet.Message = TextHelper.SanitiseRichText(packet.Message);
             
             // Add the message to the message history
-            lock (messageHistoryLock)
-            {
-                messageHistory.Add(new ChatMessage(packet.Uuid, packet.Message));
-            }
+            addMessageToHistory(new ChatMessage(packet.Uuid, packet.Message));
             
             // Set the timestamp
             packet.Timestamp = DateTime.UtcNow.ToTimestamp();
@@ -149,6 +151,26 @@ namespace Chat
             
             // Send it on its way
             netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Adds the given <c>ChatMessage</c> to the message history.
+        /// </summary>
+        /// <param name="chatMessage"><c>ChatMessage</c> to store</param>
+        private void addMessageToHistory(ChatMessage chatMessage)
+        {
+            lock (messageHistoryLock)
+            {
+                // Add the message to history
+                messageHistory.Add(chatMessage);
+
+                // Check if we've exceeded the history capacity
+                if (messageHistory.Count > messageHistoryCapacity)
+                {
+                    // Remove the oldest message
+                    messageHistory.RemoveAt(0);
+                }
+            }
         }
     }
 }

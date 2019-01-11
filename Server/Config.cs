@@ -87,6 +87,12 @@ namespace PhinixServer
         public int MaxDisplayNameLength = 100;
 
         /// <summary>
+        /// Maximum number of chat messages to store in the chat history buffer.
+        /// </summary>
+        [DataMember(Name = "ChatHistoryLength", Order = 11)]
+        public int ChatHistoryLength = 40;
+
+        /// <summary>
         /// Loads a <c>Config</c> object from the given file path. Will return a default <c>Config</c> if the file does not exist.
         /// </summary>
         /// <param name="filePath">Config file path</param>
