@@ -107,6 +107,9 @@ namespace Chat
             {
                 messageHistory.Insert(0, new ChatMessage(packet.Uuid, packet.Message));
             }
+            
+            // Set the timestamp
+            packet.Timestamp = DateTime.UtcNow.ToTimestamp();
                     
             // Broadcast the chat packet to everyone
             broadcastChatMessage(packet);
