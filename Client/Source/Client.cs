@@ -249,7 +249,7 @@ namespace PhinixClient
                 // Launch drop pods to a trade spot on a home tile
                 Map map = Find.AnyPlayerHomeMap;
                 IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-                DropPodUtility.DropThingsNear(dropSpot, map, verseItems);
+                DropPodUtility.DropThingsNear(dropSpot, map, verseItems, canRoofPunch: false);
             
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
