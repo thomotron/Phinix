@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -34,6 +35,15 @@ namespace Chat
         /// <c>ClientUserManager</c> used for user lookup and display name rendering.
         /// </summary>
         private ClientUserManager userManager;
+
+        /// <summary>
+        /// List of chat messages received from the server.
+        /// </summary>
+        private List<ChatMessage> messageHistory;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>messageHistory</c>.
+        /// </summary>
+        private object messageHistoryLock = new object();
         
         public ClientChat(NetClient netClient, ClientAuthenticator authenticator, ClientUserManager userManager)
         {
@@ -41,7 +51,19 @@ namespace Chat
             this.authenticator = authenticator;
             this.userManager = userManager;
             
+            this.messageHistory = new List<ChatMessage>();
+            
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            netClient.OnDisconnect += disconnectHandler;
+        }
+
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            lock (messageHistoryLock)
+            {
+                // Clear message history
+                messageHistory.Clear();
+            }
         }
 
         /// <summary>
@@ -107,13 +129,31 @@ namespace Chat
         }
 
         /// <summary>
+        /// Returns a list of all messages received since connecting to the server.
+        /// </summary>
+        /// <returns>A list of all messages received since connecting to the server</returns>
+        public ChatMessage[] GetMessages()
+        {
+            lock (messageHistoryLock)
+            {
+                return messageHistory.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Handles incoming <c>ChatMessagePacket</c>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
-            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid));
+            lock (messageHistoryLock)
+            {
+                // Store the message in chat history
+                messageHistory.Add(new ChatMessage(packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
+            }
+            
+            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
         }
     }
 }

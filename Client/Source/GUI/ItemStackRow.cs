@@ -38,18 +38,25 @@ namespace PhinixClient
         private bool alternateBackground;
 
         /// <summary>
+        /// Callback invoked when the number of selected items has changed.
+        /// </summary>
+        private Action<int> onSelectedChanged;
+
+        /// <summary>
         /// Creates an <c>ItemRow</c> for the given stack of items.
         /// </summary>
         /// <param name="itemStack">Item stack the row is for</param>
         /// <param name="height">Height to draw</param>
         /// <param name="interactive">Whether to display buttons for altering the item stack's selected count</param>
         /// <param name="alternateBackground">Whether to alternate the background of each second row</param>
-        public ItemStackRow(StackedThings itemStack, float height, bool interactive = false, bool alternateBackground = false)
+        /// <param name="onSelectedChanged">Callback invoked when the number of selected items has changed</param>
+        public ItemStackRow(StackedThings itemStack, float height, bool interactive = false, bool alternateBackground = false, Action<int> onSelectedChanged = null)
         {
             this.itemStack = itemStack;
             this.height = height;
             this.interactive = interactive;
             this.alternateBackground = alternateBackground;
+            this.onSelectedChanged = onSelectedChanged;
         }
         
         /// <inheritdoc />
@@ -229,9 +236,19 @@ namespace PhinixClient
             
             // Add some padding to keep off the edge
             row.Add(new SpacerWidget(5f));
+
+            // Get a copy of the number of selected items
+            int oldSelectedCount = itemStack.Selected;
             
             // Draw the row
             row.Draw(container);
+
+            // Check if the number of selected items has changed
+            if (itemStack.Selected != oldSelectedCount)
+            {
+                // Invoke the selected items changed callback
+                onSelectedChanged?.Invoke(itemStack.Selected);
+            }
         }
 
         /// <inheritdoc />

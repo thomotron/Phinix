@@ -22,13 +22,15 @@ namespace Chat {
     static ChatMessagePacketReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Ch9QYWNrZXRzL0NoYXRNZXNzYWdlUGFja2V0LnByb3RvEgRDaGF0IkUKEUNo",
-            "YXRNZXNzYWdlUGFja2V0EhEKCVNlc3Npb25JZBgBIAEoCRIMCgRVdWlkGAIg",
-            "ASgJEg8KB01lc3NhZ2UYAyABKAliBnByb3RvMw=="));
+            "Ch9QYWNrZXRzL0NoYXRNZXNzYWdlUGFja2V0LnByb3RvEgRDaGF0Gh9nb29n",
+            "bGUvcHJvdG9idWYvdGltZXN0YW1wLnByb3RvInQKEUNoYXRNZXNzYWdlUGFj",
+            "a2V0EhEKCVNlc3Npb25JZBgBIAEoCRIMCgRVdWlkGAIgASgJEg8KB01lc3Nh",
+            "Z2UYAyABKAkSLQoJVGltZXN0YW1wGAQgASgLMhouZ29vZ2xlLnByb3RvYnVm",
+            "LlRpbWVzdGFtcGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Chat.ChatMessagePacket), global::Chat.ChatMessagePacket.Parser, new[]{ "SessionId", "Uuid", "Message" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Chat.ChatMessagePacket), global::Chat.ChatMessagePacket.Parser, new[]{ "SessionId", "Uuid", "Message", "Timestamp" }, null, null, null)
           }));
     }
     #endregion
@@ -62,6 +64,7 @@ namespace Chat {
       sessionId_ = other.sessionId_;
       uuid_ = other.uuid_;
       message_ = other.message_;
+      Timestamp = other.timestamp_ != null ? other.Timestamp.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -102,6 +105,17 @@ namespace Chat {
       }
     }
 
+    /// <summary>Field number for the "Timestamp" field.</summary>
+    public const int TimestampFieldNumber = 4;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp timestamp_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp Timestamp {
+      get { return timestamp_; }
+      set {
+        timestamp_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ChatMessagePacket);
@@ -118,6 +132,7 @@ namespace Chat {
       if (SessionId != other.SessionId) return false;
       if (Uuid != other.Uuid) return false;
       if (Message != other.Message) return false;
+      if (!object.Equals(Timestamp, other.Timestamp)) return false;
       return true;
     }
 
@@ -127,6 +142,7 @@ namespace Chat {
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
       if (Uuid.Length != 0) hash ^= Uuid.GetHashCode();
       if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (timestamp_ != null) hash ^= Timestamp.GetHashCode();
       return hash;
     }
 
@@ -149,6 +165,10 @@ namespace Chat {
         output.WriteRawTag(26);
         output.WriteString(Message);
       }
+      if (timestamp_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Timestamp);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -162,6 +182,9 @@ namespace Chat {
       }
       if (Message.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (timestamp_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Timestamp);
       }
       return size;
     }
@@ -179,6 +202,12 @@ namespace Chat {
       }
       if (other.Message.Length != 0) {
         Message = other.Message;
+      }
+      if (other.timestamp_ != null) {
+        if (timestamp_ == null) {
+          timestamp_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        Timestamp.MergeFrom(other.Timestamp);
       }
     }
 
@@ -200,6 +229,13 @@ namespace Chat {
           }
           case 26: {
             Message = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (timestamp_ == null) {
+              timestamp_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(timestamp_);
             break;
           }
         }

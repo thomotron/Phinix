@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using Chat;
 using PhinixClient.GUI;
 using RimWorld;
@@ -45,24 +43,12 @@ namespace PhinixClient
         private static bool scrollToBottom = false;
         private static bool stickyScroll = true;
 
-        private static List<ChatMessage> messages = new List<ChatMessage>();
-        private static readonly object messagesLock = new object();
-
         private static Vector2 userListScroll = new Vector2(0, 0);
 
         private static string message = "";
         private static string userSearch = "";
         
         private static Vector2 activeTradesScroll = new Vector2(0, 0);
-
-        public ServerTab()
-        {
-            // Subscribe to disconnection events
-            Instance.OnDisconnect += disconnectHandler;
-
-            // Subscribe to new chat messages
-            Instance.OnChatMessageReceived += messageHandler;
-        }
 
         ///<inheritdoc/>
         /// <summary>
@@ -114,37 +100,6 @@ namespace PhinixClient
             
             // Draw the tabs
             tabContainer.Draw(inRect);
-        }
-
-        /// <summary>
-        /// Handles chat message events raised by the client and adds them to the message list.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private static void messageHandler(object sender, ChatMessageEventArgs args)
-        {
-            // Add the message
-            lock (messagesLock) messages.Add(new ChatMessage(args.OriginUuid, args.Message));
-
-            // Was this our message?
-            if (args.OriginUuid == Instance.Uuid)
-            {
-                // Scroll to the bottom on next update
-                scrollToBottom = true;
-            }
-        }
-
-        /// <summary>
-        /// Handles the OnDisconnect event from the client instance and invalidates any connection-specific data.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void disconnectHandler(object sender, EventArgs e)
-        {
-            lock (messagesLock)
-            {
-                messages.Clear();
-            }
         }
 
         /// <summary>
@@ -266,68 +221,69 @@ namespace PhinixClient
             return new AdapterWidget(
                 drawCallback: container =>
                 {
-                    lock (messagesLock)
+                    // Get all chat messages and convert them to widgets
+                    ChatMessage[] messages = Instance.GetChatMessages();
+                    ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.ReceivedTime)).ToArray();
+                    
+                    // Create a new flex container from our message list
+                    VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
+
+                    // Set up the scrollable container
+                    Rect innerContainer = new Rect(
+                        x: container.xMin,
+                        y: container.yMin,
+                        width: container.width - SCROLLBAR_WIDTH,
+                        height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
+                    );
+
+                    // Get a copy of the old scroll position
+                    Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
+
+                    // Start scrolling
+                    Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
+
+                    // Draw the flex container
+                    chatFlexContainer.Draw(innerContainer);
+
+                    // Stop scrolling
+                    Widgets.EndScrollView();
+
+                    // Enter the logic to get sticky scrolling to work
+
+                    #region Sticky scroll logic
+
+                    // Credit to Aze for figuring out how to get the bottom scroll pos
+                    bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
+                    bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
+                    float heightDifference = oldHeight - innerContainer.height;
+
+                    if (scrollChanged)
                     {
-                        // Create a new flex container from our message list
-                        VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messages.Cast<Displayable>(), 0f);
-
-                        // Set up the scrollable container
-                        Rect innerContainer = new Rect(
-                            x: container.xMin,
-                            y: container.yMin,
-                            width: container.width - SCROLLBAR_WIDTH,
-                            height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
-                        );
-
-                        // Get a copy of the old scroll position
-                        Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
-
-                        // Start scrolling
-                        Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
-
-                        // Draw the flex container
-                        chatFlexContainer.Draw(innerContainer);
-
-                        // Stop scrolling
-                        Widgets.EndScrollView();
-
-                        // Enter the logic to get sticky scrolling to work
-
-                        #region Sticky scroll logic
-
-                        // Credit to Aze for figuring out how to get the bottom scroll pos
-                        bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
-                        bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
-                        float heightDifference = oldHeight - innerContainer.height;
-
-                        if (scrollChanged)
+                        if (scrolledToBottom)
                         {
-                            if (scrolledToBottom)
-                            {
-                                // Enable sticky scroll
-                                stickyScroll = true;
-                            }
-                            else
-                            {
-                                // Not at bottom, disable sticky scroll
-                                stickyScroll = false;
-                            }
+                            // Enable sticky scroll
+                            stickyScroll = true;
                         }
-                        else if (!heightDifference.Equals(0f))
+                        else
                         {
-                            if (stickyScroll || scrollToBottom)
-                            {
-                                // Scroll to bottom
-                                chatScroll.y = innerContainer.height - container.height;
-                                scrollToBottom = false;
-                            }
+                            // Not at bottom, disable sticky scroll
+                            stickyScroll = false;
                         }
-
-                        // Update old height for the next pass
-                        oldHeight = innerContainer.height;
-
-                        #endregion
                     }
+                    else if (!heightDifference.Equals(0f))
+                    {
+                        if (stickyScroll || scrollToBottom)
+                        {
+                            // Scroll to bottom
+                            chatScroll.y = innerContainer.height - container.height;
+                            scrollToBottom = false;
+                        }
+                    }
+
+                    // Update old height for the next pass
+                    oldHeight = innerContainer.height;
+
+                    #endregion
                 }
             );
         }
