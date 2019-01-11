@@ -54,6 +54,16 @@ namespace Chat
             this.messageHistory = new List<ChatMessage>();
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            netClient.OnDisconnect += disconnectHandler;
+        }
+
+        private void disconnectHandler(object sender, EventArgs e)
+        {
+            lock (messageHistoryLock)
+            {
+                // Clear message history
+                messageHistory.Clear();
+            }
         }
 
         /// <summary>
