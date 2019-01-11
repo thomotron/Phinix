@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -29,12 +30,23 @@ namespace Chat
         /// <c>ServerUserManager</c> instance used to check login state and source UUID validity.
         /// </summary>
         private ServerUserManager userManager;
+
+        /// <summary>
+        /// List of chat messages sent to users on connect.
+        /// </summary>
+        private List<ChatMessage> messageHistory;
+        /// <summary>
+        /// Lock file to prevent race conditions when accessing <c>messageHistory</c>.
+        /// </summary>
+        private object messageHistoryLock = new object();
         
         public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            
+            this.messageHistory = new List<ChatMessage>();
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
@@ -76,6 +88,12 @@ namespace Chat
             
             // Sanitise the message content
             packet.Message = TextHelper.SanitiseRichText(packet.Message);
+            
+            // Add the message to the message history
+            lock (messageHistoryLock)
+            {
+                messageHistory.Insert(0, new ChatMessage(packet.Uuid, packet.Message));
+            }
                     
             // Broadcast the chat packet to everyone
             broadcastChatMessage(packet);
