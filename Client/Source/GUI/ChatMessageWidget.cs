@@ -6,7 +6,7 @@ using Verse;
 
 namespace PhinixClient.GUI
 {
-    public class ChatMessage : Displayable
+    public class ChatMessageWidget : Displayable
     {
         public override bool IsFluidHeight => false;
 
@@ -26,7 +26,7 @@ namespace PhinixClient.GUI
         /// </summary>
         public string Message;
         
-        public ChatMessage(string senderUuid, string message)
+        public ChatMessageWidget(string senderUuid, string message)
         {
             this.SenderUuid = senderUuid;
             this.Message = message;
@@ -34,7 +34,7 @@ namespace PhinixClient.GUI
             this.ReceivedTime = DateTime.UtcNow;
         }
 
-        public ChatMessage(string senderUuid, string message, DateTime receivedTime)
+        public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime)
         {
             this.ReceivedTime = receivedTime;
             this.SenderUuid = senderUuid;
