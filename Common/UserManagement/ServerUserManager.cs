@@ -65,6 +65,7 @@ namespace UserManagement
         /// </summary>
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
         /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
+        /// <param name="maxDisplayNameLength">Maximum number of non-format characters users may have in their display name</param>
         public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, int maxDisplayNameLength = 100)
         {
             this.netServer = netServer;
@@ -84,6 +85,7 @@ namespace UserManagement
         /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
         /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
         /// <param name="userStorePath">Path to user store</param>
+        /// <param name="maxDisplayNameLength">Maximum number of non-format characters users may have in their display name</param>
         public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, string userStorePath, int maxDisplayNameLength = 100)
         {
             this.netServer = netServer;
