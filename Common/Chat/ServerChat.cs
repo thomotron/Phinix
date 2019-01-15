@@ -129,7 +129,16 @@ namespace Chat
             // Send it to each logged in user
             foreach (string connectionId in userManager.GetConnections())
             {
-                netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                try
+                {
+                    // Try send the chat message
+                    netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                }
+                catch (NotConnectedException)
+                {
+                    // Report the failure
+                    RaiseLogEntry(new LogEventArgs(string.Format("Tried sending a chat message to connection {0}, but it is closed", connectionId), LogLevel.DEBUG));
+                }
             }
         }
 
