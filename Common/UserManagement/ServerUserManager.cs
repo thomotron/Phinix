@@ -103,12 +103,12 @@ namespace UserManagement
         {
             lock (connectedUsersLock)
             {
+                // Make sure this connection has a UUID associated with it
+                if (!connectedUsers.ContainsKey(e.ConnectionId)) return;
+                
                 // Try to log them out
-                if (connectedUsers.ContainsKey(e.ConnectionId))
-                {
-                    TryLogOut(connectedUsers[e.ConnectionId]);
-                }
-
+                TryLogOut(connectedUsers[e.ConnectionId]);
+                    
                 // Drop them from the connected user dictionary
                 connectedUsers.Remove(e.ConnectionId);
             }
