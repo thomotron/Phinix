@@ -90,6 +90,7 @@
     <Compile Include="StackedThings.cs" />
     <Compile Include="TradeWindow.cs" />
     <Compile Include="TradingThingConverter.cs" />
+    <Compile Include="UnknownItem.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
