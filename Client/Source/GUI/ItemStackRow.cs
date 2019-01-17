@@ -76,7 +76,7 @@ namespace PhinixClient
             // Item name
             row.Add(
                 new TextWidget(
-                    text: itemStack.Things.First().def.label.CapitalizeFirst(),
+                    text: itemStack.Things.First().Label.CapitalizeFirst(),
                     anchor: TextAnchor.MiddleLeft
                 )
             );
