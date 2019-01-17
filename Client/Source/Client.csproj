@@ -69,6 +69,8 @@
     <Compile Include="GUI\CheckboxLabeledWidget.cs" />
     <Compile Include="GUI\Container.cs" />
     <Compile Include="GUI\Displayable.cs" />
+    <Compile Include="GUI\HorizontalPaddedContainer.cs" />
+    <Compile Include="GUI\VerticalPaddedContainer.cs" />
     <Compile Include="GUI\FittedTextureWidget.cs" />
     <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\HorizontalFlexContainer.cs" />
