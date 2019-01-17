@@ -537,7 +537,6 @@ namespace PhinixClient
                 // Create an ItemStackRow from this item
                 ItemStackRow row = new ItemStackRow(
                     itemStack: itemStack,
-                    height: OFFER_WINDOW_ROW_HEIGHT,
                     interactive: interactive,
                     alternateBackground: iterations++ % 2 != 0, // Be careful of the positioning of ++ here, this should increment /after/ the operation
                     onSelectedChanged: _ =>                     // We don't need the value, so we can just assign it to _
@@ -546,8 +545,14 @@ namespace PhinixClient
                     }
                 );
                 
+                // Contain the row within a minimum-height container
+                MinimumContainer container = new MinimumContainer(
+                    row,
+                    minHeight: OFFER_WINDOW_ROW_HEIGHT
+                );
+                
                 // Add it to the row list
-                column.Add(row);
+                column.Add(container);
             }
             
             // Return the flex container wrapped in a scroll container

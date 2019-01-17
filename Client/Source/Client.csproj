@@ -73,6 +73,7 @@
     <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\HorizontalFlexContainer.cs" />
     <Compile Include="GUI\ItemStackRow.cs" />
+    <Compile Include="GUI\MinimumContainer.cs" />
     <Compile Include="GUI\ScrollContainer.cs" />
     <Compile Include="GUI\TabEntry.cs" />
     <Compile Include="GUI\TabsContainer.cs" />
