@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Unknown item -->
+  <ThingDef>
+    <defName>UnknownItem</defName>
+    <label>Unknown item</label>
+    <category>Item</category>
+    <thingClass>PhinixClient.UnknownItem</thingClass>
+    <description>Placeholder for unknown items in trade offers.</description>
+    <graphicData>
+      <texPath>Things/UnknownItem</texPath>
+      <graphicClass>Graphic_StackCount</graphicClass>
+    </graphicData>
+  </ThingDef>
+
+</Defs>

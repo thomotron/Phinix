@@ -244,8 +244,15 @@ namespace PhinixClient
                     displayName = "???";
                 }
             
-                // Convert all the received items into their Verse counterparts
-                Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                // Convert all the received items into their Verse counterparts and strip out any unknown ones
+                //// While it would be less computationally-expensive to strip out unknown items beforehand, we would
+                //// have no idea whether we could actually make the item without another check, so we just piggy-back
+                //// off of the converter's checks and strip them out afterward.
+                Verse.Thing[] verseItems = args.Items
+                                                .Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)
+                                                .Where(thing => thing.def.defName != "UnknownItem")
+                                                .ToArray();
+                
 
                 // Launch drop pods to a trade spot on a home tile
                 Map map = Find.AnyPlayerHomeMap;

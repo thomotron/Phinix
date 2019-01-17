@@ -13,7 +13,9 @@ namespace PhinixClient
         public override bool IsFluidHeight => false;
 
         private const float DEFAULT_SPACING = 10f;
-        
+        private const float RIGHT_PADDING = 5f;
+
+        private const float ICON_WIDTH = 30f;
         private const float BUTTON_WIDTH = 40f;
         private const float COUNT_FIELD_WIDTH = 70f;
         
@@ -21,11 +23,6 @@ namespace PhinixClient
         /// The item stack this row will display.
         /// </summary>
         private StackedThings itemStack;
-
-        /// <summary>
-        /// Height of the row.
-        /// </summary>
-        private float height;
 
         /// <summary>
         /// Whether to draw count-modifying buttons.
@@ -46,14 +43,12 @@ namespace PhinixClient
         /// Creates an <c>ItemRow</c> for the given stack of items.
         /// </summary>
         /// <param name="itemStack">Item stack the row is for</param>
-        /// <param name="height">Height to draw</param>
         /// <param name="interactive">Whether to display buttons for altering the item stack's selected count</param>
         /// <param name="alternateBackground">Whether to alternate the background of each second row</param>
         /// <param name="onSelectedChanged">Callback invoked when the number of selected items has changed</param>
-        public ItemStackRow(StackedThings itemStack, float height, bool interactive = false, bool alternateBackground = false, Action<int> onSelectedChanged = null)
+        public ItemStackRow(StackedThings itemStack, bool interactive = false, bool alternateBackground = false, Action<int> onSelectedChanged = null)
         {
             this.itemStack = itemStack;
-            this.height = height;
             this.interactive = interactive;
             this.alternateBackground = alternateBackground;
             this.onSelectedChanged = onSelectedChanged;
@@ -70,13 +65,19 @@ namespace PhinixClient
             
             // Icon
             row.Add(
-                new ThingIconWidget(itemStack.Things.First(), 0.9f)
+                new VerticalPaddedContainer(
+                    new ThingIconWidget(
+                        thing: itemStack.Things.First(),
+                        scale: 0.9f
+                    ),
+                    ICON_WIDTH
+                )
             );
             
             // Item name
             row.Add(
                 new TextWidget(
-                    text: itemStack.Things.First().def.label.CapitalizeFirst(),
+                    text: itemStack.Things.First().Label.CapitalizeFirst(),
                     anchor: TextAnchor.MiddleLeft
                 )
             );
@@ -235,7 +236,7 @@ namespace PhinixClient
             }
             
             // Add some padding to keep off the edge
-            row.Add(new SpacerWidget(5f));
+            row.Add(new SpacerWidget(RIGHT_PADDING));
 
             // Get a copy of the number of selected items
             int oldSelectedCount = itemStack.Selected;
@@ -254,7 +255,26 @@ namespace PhinixClient
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            return height;
+            // Get the text we will be calculating the height of
+            string text = itemStack.Things.First().Label.CapitalizeFirst();
+            
+            // Check if we should factor in the interactive-only buttons
+            if (interactive)
+            {
+                // Get the remaining width after subtracting all fixed-width elements and spacing
+                float remainingWidth = width - (ICON_WIDTH + (BUTTON_WIDTH * 6) + COUNT_FIELD_WIDTH + RIGHT_PADDING + (DEFAULT_SPACING * 9));
+                
+                // Return the height required by the text
+                return Text.CalcHeight(text, remainingWidth);
+            }
+            else
+            {
+                // Get the remaining width after subtracting all fixed-width elements and spacing
+                float remainingWidth = width - (ICON_WIDTH + COUNT_FIELD_WIDTH + (DEFAULT_SPACING * 2));
+                
+                // Return the height required by the text
+                return Text.CalcHeight(text, remainingWidth);
+            }
         }
 
         /// <inheritdoc />
