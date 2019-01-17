@@ -15,10 +15,12 @@
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
     <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
     
-    <Phinix_hugslibsettings_serverAddressTitle>Server Address</Phinix_hugslibsettings_serverAddressTitle>
-    <Phinix_hugslibsettings_serverPortTitle>Server Port</Phinix_hugslibsettings_serverPortTitle>
-    <Phinix_hugslibsettings_displayNameTitle>Display Name</Phinix_hugslibsettings_displayNameTitle>
-    <Phinix_hugslibsettings_acceptingTradesTitle>Accepting Trades</Phinix_hugslibsettings_acceptingTradesTitle>
+    <Phinix_hugslibsettings_serverAddressTitle>Server address</Phinix_hugslibsettings_serverAddressTitle>
+    <Phinix_hugslibsettings_serverPortTitle>Server port</Phinix_hugslibsettings_serverPortTitle>
+    <Phinix_hugslibsettings_displayNameTitle>Display name</Phinix_hugslibsettings_displayNameTitle>
+    <Phinix_hugslibsettings_acceptingTradesTitle>Accepting trades</Phinix_hugslibsettings_acceptingTradesTitle>
+    <Phinix_hugslibsettings_showNameFormatting>Show name formatting</Phinix_hugslibsettings_showNameFormatting>
+    <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
     
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>

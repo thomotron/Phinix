@@ -111,6 +111,28 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> showNameFormatting;
+        public bool ShowNameFormatting
+        {
+            get => showNameFormatting.Value;
+            set
+            {
+                showNameFormatting.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+        
+        private SettingHandle<bool> showChatFormatting;
+        public bool ShowChatFormatting
+        {
+            get => showChatFormatting.Value;
+            set
+            {
+                showChatFormatting.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -143,7 +165,19 @@ namespace PhinixClient
             );
             acceptingTradesHandle = Settings.GetHandle(
                 settingName: "acceptingTrades",
-                title: "Phinix_hugslibsettings_acceptingTradesTitle",
+                title: "Phinix_hugslibsettings_acceptingTradesTitle".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            showNameFormatting = Settings.GetHandle(
+                settingName: "showNameFormatting",
+                title: "Phinix_hugslibsettings_showNameFormatting".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            showChatFormatting = Settings.GetHandle(
+                settingName: "showChatFormatting",
+                title: "Phinix_hugslibsettings_showChatFormatting".Translate(),
                 description: null,
                 defaultValue: true
             );
@@ -244,8 +278,15 @@ namespace PhinixClient
                     displayName = "???";
                 }
             
-                // Convert all the received items into their Verse counterparts
-                Verse.Thing[] verseItems = args.Items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                // Convert all the received items into their Verse counterparts and strip out any unknown ones
+                //// While it would be less computationally-expensive to strip out unknown items beforehand, we would
+                //// have no idea whether we could actually make the item without another check, so we just piggy-back
+                //// off of the converter's checks and strip them out afterward.
+                Verse.Thing[] verseItems = args.Items
+                                                .Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)
+                                                .Where(thing => thing.def.defName != "UnknownItem")
+                                                .ToArray();
+                
 
                 // Launch drop pods to a trade spot on a home tile
                 Map map = Find.AnyPlayerHomeMap;

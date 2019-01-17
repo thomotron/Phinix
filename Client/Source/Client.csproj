@@ -69,10 +69,13 @@
     <Compile Include="GUI\CheckboxLabeledWidget.cs" />
     <Compile Include="GUI\Container.cs" />
     <Compile Include="GUI\Displayable.cs" />
+    <Compile Include="GUI\HorizontalPaddedContainer.cs" />
+    <Compile Include="GUI\VerticalPaddedContainer.cs" />
     <Compile Include="GUI\FittedTextureWidget.cs" />
     <Compile Include="GUI\HeightContainer.cs" />
     <Compile Include="GUI\HorizontalFlexContainer.cs" />
     <Compile Include="GUI\ItemStackRow.cs" />
+    <Compile Include="GUI\MinimumContainer.cs" />
     <Compile Include="GUI\ScrollContainer.cs" />
     <Compile Include="GUI\TabEntry.cs" />
     <Compile Include="GUI\TabsContainer.cs" />
@@ -90,6 +93,7 @@
     <Compile Include="StackedThings.cs" />
     <Compile Include="TradeWindow.cs" />
     <Compile Include="TradingThingConverter.cs" />
+    <Compile Include="UnknownItem.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>

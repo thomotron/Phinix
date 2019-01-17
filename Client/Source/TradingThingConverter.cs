@@ -105,5 +105,54 @@ namespace PhinixClient
             // Return the constructed Verse.Thing
             return verseThing;
         }
+
+        /// <summary>
+        /// Converts a <c>Trading.Thing</c> into a <c>Verse.Thing</c>, resorting to an unknown item if the conversion fails.
+        /// Used for safely unloading a <c>Trading.Thing</c> after transport.
+        /// </summary>
+        /// <param name="protoThing">Thing to convert</param>
+        /// <returns>Converted thing</returns>
+        public static Verse.Thing ConvertThingFromProtoOrUnknown(ProtoThing protoThing)
+        {
+            try
+            {
+                // Try converting normally
+                return ConvertThingFromProto(protoThing);
+            }
+            catch (InvalidOperationException)
+            {
+                // Normal conversion failed, crack out the unknown item def
+                ThingDef thingDef = DefDatabase<ThingDef>.AllDefs.Single(def => def.defName == "UnknownItem");
+    
+                // Make our base item and give it protoThing's stack count and hit points
+                UnknownItem verseThing = (UnknownItem) ThingMaker.MakeThing(thingDef);
+                verseThing.stackCount = protoThing.StackCount;
+                verseThing.HitPoints = protoThing.HitPoints;
+
+                // Set the original label to protoThing's def name
+                verseThing.OriginalLabel = getInnerDefName(protoThing);
+                
+                // Return the constructed Verse.Thing
+                return verseThing;
+            }
+        }
+
+        /// <summary>
+        /// Recursively gets the def name of the given <c>ProtoThing</c>.
+        /// </summary>
+        /// <param name="protoThing"><c>ProtoThing</c> to get the def name from</param>
+        /// <returns>Def name</returns>
+        private static string getInnerDefName(ProtoThing protoThing)
+        {
+            // Check if this protoThing contains stuff
+            if (protoThing.InnerProtoThing != null)
+            {
+                // Recurse and get the def name of protoThing's stuff
+                return getInnerDefName(protoThing.InnerProtoThing);
+            }
+            
+            // Return protoThing's def name
+            return protoThing.DefName;
+        }
     }
 }

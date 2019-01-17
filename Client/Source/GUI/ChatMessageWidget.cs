@@ -43,22 +43,35 @@ namespace PhinixClient.GUI
 
         public string Format()
         {
+            // Get a local copy of the message
+            string message = Message;
+            
             // Try to get the display name of the sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
+
+            // Strip name formatting if the user wishes not to see it
+            if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
+            
+            // Strip message formatting if the user wishes not to see it
+            if (!Client.Instance.ShowChatFormatting) message = TextHelper.StripRichText(message);
             
             // Return the formatted message
-            return string.Format("[{0:HH:mm}] {1}: {2}", ReceivedTime.ToLocalTime(), displayName, Message);
+            return string.Format("[{0:HH:mm}] {1}: {2}", ReceivedTime.ToLocalTime(), displayName, message);
         }
 
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
-            // Draw a button with the formatted text
-            if (Widgets.ButtonText(container, Format(), false))
-            {
-                // Draw a context menu with user-specific actions
-                drawContextMenu();
-            }
+            // Disabled due to bad text wrapping (as per issue #7)
+            // BUG: Text doesn't wrap properly when drawing a button, but it works just fine when drawing a label
+//            // Draw a button with the formatted text
+//            if (Widgets.ButtonText(container, Client.Instance.ShowChatFormatting ? Format() : TextHelper.StripRichText(Format()), false))
+//            {
+//                // Draw a context menu with user-specific actions
+//                drawContextMenu();
+//            }
+            
+            Widgets.Label(container, Format());
         }
 
         /// <inheritdoc />
