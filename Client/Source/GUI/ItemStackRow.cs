@@ -13,7 +13,7 @@ namespace PhinixClient
         public override bool IsFluidHeight => false;
 
         private const float DEFAULT_SPACING = 10f;
-        
+        private const float ICON_WIDTH = 30f;
         private const float BUTTON_WIDTH = 40f;
         private const float COUNT_FIELD_WIDTH = 70f;
         
@@ -70,7 +70,13 @@ namespace PhinixClient
             
             // Icon
             row.Add(
-                new ThingIconWidget(itemStack.Things.First(), 0.9f)
+                new VerticalPaddedContainer(
+                    new ThingIconWidget(
+                        thing: itemStack.Things.First(),
+                        scale: 0.9f
+                    ),
+                    ICON_WIDTH
+                )
             );
             
             // Item name
