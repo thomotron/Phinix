@@ -331,7 +331,7 @@ namespace PhinixClient
             if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> items))
             {
                 // Convert our items to their Verse equivalents
-                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
                 
                 // Draw our items
                 column.Add(
@@ -383,7 +383,7 @@ namespace PhinixClient
                 Instance.TryGetItemsOnOffer(tradeId, otherPartyUuid, out IEnumerable<ProtoThing> items))
             {
                 // Convert their items to their Verse equivalents
-                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProto).ToArray();
+                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
                 
                 // Draw their items
                 column.Add(
