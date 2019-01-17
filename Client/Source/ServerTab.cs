@@ -305,6 +305,9 @@ namespace PhinixClient
 
                 // Skip the user if they don't contain the search text
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
+                
+                // Strip name formatting if the user wishes not to see it
+                if (!Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
 
                 userListFlexContainer.Add(
                     new ButtonWidget(
