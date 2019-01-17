@@ -53,12 +53,16 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
-            // Draw a button with the formatted text
-            if (Widgets.ButtonText(container, Format(), false))
-            {
-                // Draw a context menu with user-specific actions
-                drawContextMenu();
-            }
+            // Disabled due to bad text wrapping (as per issue #7)
+            // BUG: Text doesn't wrap properly when drawing a button, but it works just fine when drawing a label
+//            // Draw a button with the formatted text
+//            if (Widgets.ButtonText(container, Format(), false))
+//            {
+//                // Draw a context menu with user-specific actions
+//                drawContextMenu();
+//            }
+            
+            Widgets.Label(container, Format());
         }
 
         /// <inheritdoc />
