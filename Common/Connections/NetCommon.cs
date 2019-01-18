@@ -2,20 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NetworkCommsDotNet;
-using NetworkCommsDotNet.Connections;
+using Google.Protobuf.WellKnownTypes;
+using LiteNetLib;
+using LiteNetLib.Utils;
+using Utils;
 
 namespace Connections
 {
     public class NetCommon
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(NetCommon)).GetName().Version;
+        
+        /// <summary>
+        /// Listener that handles communications over the wire.
+        /// </summary>
+        internal EventBasedNetListener listener = new EventBasedNetListener();
 
         /// <summary>
         /// Packet handler callback delegate. Used when registering packet handlers as the callback method.
         /// Exposes basic information about the incoming packet.
         /// </summary>
-        /// <param name="packetType">Target module</param>
+        /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="incomingObject">Data payload</param>
         public delegate void PacketHandlerDelegate(string module, string connectionId, byte[] incomingObject);
@@ -25,6 +32,12 @@ namespace Connections
         /// </summary>
         private Dictionary<string, PacketHandlerDelegate> registeredPacketHandlers = new Dictionary<string, PacketHandlerDelegate>();
 
+        public NetCommon()
+        {
+            // Register the packet handler wrapper
+            listener.NetworkReceiveEvent += packetHandlerCallbackWrapper;
+        }
+
         /// <summary>
         /// Registers a callback to be run whenever a given packet type is received.
         /// </summary>
@@ -32,12 +45,11 @@ namespace Connections
         /// <param name="callback">Callback delegate</param>
         public void RegisterPacketHandler(string packetType, PacketHandlerDelegate callback)
         {
-            if (NetworkComms.GlobalIncomingPacketHandlerExists(packetType) || registeredPacketHandlers.ContainsKey(packetType))
+            if (registeredPacketHandlers.ContainsKey(packetType))
             {
                 throw new PacketHandlerAlreadyRegisteredException(packetType);
             }
             
-            NetworkComms.AppendGlobalIncomingPacketHandler<byte[]>(packetType, packetHandlerCallbackWrapper);
             registeredPacketHandlers.Add(packetType, callback);
         }
 
@@ -47,11 +59,6 @@ namespace Connections
         /// <param name="packetType">Type of packets handled by handler</param>
         public void UnregisterPacketHandler(string packetType)
         {
-            if (NetworkComms.GlobalIncomingPacketHandlerExists(packetType))
-            {
-                NetworkComms.RemoveGlobalIncomingPacketHandler(packetType);
-            }
-
             if (registeredPacketHandlers.ContainsKey(packetType))
             {
                 registeredPacketHandlers.Remove(packetType);
@@ -72,20 +79,22 @@ namespace Connections
         }
         
         /// <summary>
-        /// Wrapper callback for incoming packets to translate from NetworkComms.Net-specific classes to more generic ones.
+        /// Wrapper callback for incoming packets to translate from network library-specific classes to more generic ones.
         /// Called whenever any packet type with a registered handler is received to adapt the callback values.
         /// </summary>
-        /// <param name="header">Packet header</param>
-        /// <param name="connection">Connection originated from</param>
-        /// <param name="incomingObject">Data payload</param>
-        private void packetHandlerCallbackWrapper(PacketHeader header, Connection connection, byte[] incomingObject)
+        /// <param name="peer">Peer the packet originated from</param>
+        /// <param name="reader">Data reader containing the payload</param>
+        private void packetHandlerCallbackWrapper(NetPeer peer, NetDataReader reader)
         {
-            string packetType = header.PacketType;
-            string connectionId = connection.ConnectionInfo.NetworkIdentifier;
+            // Get the connection ID by converting LiteNetLib's connection id long to bytes then a Base64 string
+            string connectionId = Convert.ToBase64String(BitConverter.GetBytes(peer.ConnectId));
             
-            if (registeredPacketHandlers.ContainsKey(packetType))
+            // Deserialise the message and get the type URL to identify it's type
+            TypeUrl typeUrl = new TypeUrl(Any.Parser.ParseFrom(reader.Data).TypeUrl);
+            
+            if (registeredPacketHandlers.ContainsKey(typeUrl.Type))
             {
-                registeredPacketHandlers[packetType].Invoke(packetType, connectionId, incomingObject);
+                registeredPacketHandlers[typeUrl.Type].Invoke(typeUrl.Type, connectionId, reader.Data);
             }
         }
     }

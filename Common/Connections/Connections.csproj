@@ -34,6 +34,9 @@
       <HintPath>..\..\.nuget\LiteNetLib.0.7.7.3\lib\net35\LiteNetLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="protobuf3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ab50b488852587ac">
+      <HintPath>..\..\.nuget\protobuf3.3.1.0\lib\net35\protobuf3.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -56,6 +59,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

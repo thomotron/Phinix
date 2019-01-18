@@ -1,5 +1,5 @@
 ﻿using System;
-using NetworkCommsDotNet.Connections;
+using LiteNetLib;
 
 namespace Connections
 {
@@ -9,16 +9,16 @@ namespace Connections
     public class NotConnectedException : Exception
     {
         public override string Message => "Connection for message to be sent through is not open.";
-        public Connection Connection;
+        public NetPeer Peer;
 
         public NotConnectedException()
         {
             // This space is intentionally left blank.
         }
 
-        public NotConnectedException(Connection connection)
+        public NotConnectedException(NetPeer peer)
         {
-            this.Connection = connection;
+            this.Peer = peer;
         }
     }
 }
