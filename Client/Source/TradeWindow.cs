@@ -91,7 +91,7 @@ namespace PhinixClient
             IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile));
             
             // From each stockpile, select all things that are an item
-            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item));
+            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
 
             // Group all items and cache them for later
             this.itemStacks = StackedThings.GroupThings(stockpileItems);
