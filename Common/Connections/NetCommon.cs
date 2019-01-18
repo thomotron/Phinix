@@ -92,9 +92,9 @@ namespace Connections
             // Deserialise the message and get the type URL to identify it's type
             TypeUrl typeUrl = new TypeUrl(Any.Parser.ParseFrom(reader.Data).TypeUrl);
             
-            if (registeredPacketHandlers.ContainsKey(typeUrl.Type))
+            if (registeredPacketHandlers.ContainsKey(typeUrl.Namespace))
             {
-                registeredPacketHandlers[typeUrl.Type].Invoke(typeUrl.Type, connectionId, reader.Data);
+                registeredPacketHandlers[typeUrl.Namespace].Invoke(typeUrl.Namespace, connectionId, reader.Data);
             }
         }
     }
