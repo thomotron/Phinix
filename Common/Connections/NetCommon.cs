@@ -86,8 +86,8 @@ namespace Connections
         /// <param name="reader">Data reader containing the payload</param>
         private void packetHandlerCallbackWrapper(NetPeer peer, NetDataReader reader)
         {
-            // Get the connection ID by converting LiteNetLib's connection id long to bytes then a Base64 string
-            string connectionId = Convert.ToBase64String(BitConverter.GetBytes(peer.ConnectId));
+            // Get the connection ID by converting LiteNetLib's connection id long to a hex string
+            string connectionId = peer.ConnectId.ToString("X");
             
             // Deserialise the message and get the type URL to identify it's type
             TypeUrl typeUrl = new TypeUrl(Any.Parser.ParseFrom(reader.Data).TypeUrl);
