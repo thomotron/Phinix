@@ -46,7 +46,7 @@ namespace Connections
         {
             this.Endpoint = endpoint;
             
-            this.server = new NetManager(listener, "Phinix");
+            this.server = new NetManager(listener, int.MaxValue, "Phinix");
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
             // Forward events
