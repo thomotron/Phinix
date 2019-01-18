@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using LiteNetLib;
 
 namespace Connections
@@ -35,6 +36,11 @@ namespace Connections
         /// Collection of currently-connected peers organised by their connection ID.
         /// </summary>
         private Dictionary<string, NetPeer> connectedPeers;
+
+        /// <summary>
+        /// Thread that polls the server backend for incoming packets.
+        /// </summary>
+        private Thread pollThread;
 
         public NetServer(IPEndPoint endpoint)
         {
@@ -79,6 +85,17 @@ namespace Connections
             if (Listening) throw new Exception("Cannot start listening while already doing so.");
 
             server.Start(Endpoint.Port);
+            
+            // Start a polling thread to check for incoming packets
+            pollThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    server.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
         }
 
         /// <summary>
@@ -88,6 +105,13 @@ namespace Connections
         {
             server.Stop();
             connectedPeers.Clear();
+            
+            // Kill the poll thread and clear the variable
+            if (pollThread != null)
+            {
+                pollThread.Abort();
+                pollThread = null;
+            }
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using LiteNetLib;
 
 namespace Connections
@@ -27,6 +28,11 @@ namespace Connections
         /// Peer representing the server's side of the connection.
         /// </summary>
         private NetPeer serverPeer;
+
+        /// <summary>
+        /// Thread that polls the client backend for incoming packets.
+        /// </summary>
+        private Thread pollThread;
 
         /// <summary>
         /// Creates a new <c>NetClient</c> instance.
@@ -57,6 +63,17 @@ namespace Connections
             // Try to connect
             client.Start();
             serverPeer = client.Connect(endpoint.Address.ToString(), endpoint.Port);
+            
+            // Start a polling thread to check for incoming packets
+            pollThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    client.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
         }
 
         /// <summary>
@@ -146,6 +163,13 @@ namespace Connections
                 
                 // Raise the OnDisconnect event
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
+            }
+            
+            // Kill the poll thread and clear the variable
+            if (pollThread != null)
+            {
+                pollThread.Abort();
+                pollThread = null;
             }
         }
 
