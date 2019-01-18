@@ -136,7 +136,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(TargetDir)\$HugsLibChecker.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll" />
-    <Copy SourceFiles="$(TargetDir)\NetworkCommsDotNet.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-NetworkCommsDotNet.dll" />
+    <Copy SourceFiles="$(TargetDir)\LiteNetLib.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-LiteNetLib.dll" />
     <Copy SourceFiles="$(TargetDir)\protobuf3.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
     <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Utils.dll" />
     <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Connections.dll" />
