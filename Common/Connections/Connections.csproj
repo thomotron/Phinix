@@ -30,8 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NetworkCommsDotNet, Version=3.0.0.0, Culture=neutral, PublicKeyToken=f58108eb6480f6ec, processorArchitecture=MSIL">
-      <HintPath>..\..\.nuget\NetworkCommsDotNet.3.0.3\lib\NetworkCommsDotNet.dll</HintPath>
+    <Reference Include="LiteNetLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\.nuget\LiteNetLib.0.7.7.3\lib\net35\LiteNetLib.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
