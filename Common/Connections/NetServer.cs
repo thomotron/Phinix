@@ -46,7 +46,10 @@ namespace Connections
         {
             this.Endpoint = endpoint;
             
-            this.server = new NetManager(listener, maxConnections, "Phinix");
+            this.server = new NetManager(listener, maxConnections, "Phinix")
+            {
+                PingInterval = 5000
+            };
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
             // Forward events

@@ -38,7 +38,7 @@ namespace Connections
         /// Creates a new <c>NetClient</c> instance.
         /// </summary>
         /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
-        public NetClient(int checkInterval = 5)
+        public NetClient(int checkInterval = 5000)
         {
             // Set up the client
             client = new NetManager(listener, "Phinix")
