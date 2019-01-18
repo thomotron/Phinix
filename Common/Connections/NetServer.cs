@@ -42,11 +42,11 @@ namespace Connections
         /// </summary>
         private Thread pollThread;
 
-        public NetServer(IPEndPoint endpoint)
+        public NetServer(IPEndPoint endpoint, int maxConnections)
         {
             this.Endpoint = endpoint;
             
-            this.server = new NetManager(listener, int.MaxValue, "Phinix");
+            this.server = new NetManager(listener, maxConnections, "Phinix");
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
             // Forward events
