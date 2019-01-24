@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace Connections
 {
@@ -187,8 +188,13 @@ namespace Connections
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
 
             if (!Connected) throw new NotConnectedException(serverPeer);
+            
+            // Write the module and message data to a NetDataWriter stream
+            NetDataWriter writer = new NetDataWriter();
+            writer.Put(module);
+            writer.Put(serialisedMessage);
 
-            serverPeer.Send(serialisedMessage, SendOptions.ReliableOrdered);
+            serverPeer.Send(writer, SendOptions.ReliableOrdered);
         }
     }
 }

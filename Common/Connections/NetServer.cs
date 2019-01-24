@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace Connections
 {
@@ -148,8 +149,12 @@ namespace Connections
                 throw new NotConnectedException(peer);
             }
             
-            // Send the message
-            peer.Send(serialisedMessage, SendOptions.ReliableOrdered);
+            // Write the module and message data to a NetDataWriter stream
+            NetDataWriter writer = new NetDataWriter();
+            writer.Put(module);
+            writer.Put(serialisedMessage);
+
+            peer.Send(writer, SendOptions.ReliableOrdered);
         }
     }
 }

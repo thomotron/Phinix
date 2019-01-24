@@ -88,13 +88,15 @@ namespace Connections
         {
             // Get the connection ID by converting LiteNetLib's connection id long to a hex string
             string connectionId = peer.ConnectId.ToString("X");
+
+            // Get the module string and message data
+            string type = reader.GetString();
+            byte[] data = reader.GetRemainingBytes();
             
-            // Deserialise the message and get the type URL to identify it's type
-            TypeUrl typeUrl = new TypeUrl(Any.Parser.ParseFrom(reader.Data).TypeUrl);
-            
-            if (registeredPacketHandlers.ContainsKey(typeUrl.Namespace))
+            // Invoke the packet handler responsible for this packet type
+            if (registeredPacketHandlers.ContainsKey(type))
             {
-                registeredPacketHandlers[typeUrl.Namespace].Invoke(typeUrl.Namespace, connectionId, reader.Data);
+                registeredPacketHandlers[type].Invoke(type, connectionId, data);
             }
         }
     }
