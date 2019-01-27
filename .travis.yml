@@ -2,9 +2,7 @@ language: csharp
 solution: Phinix.sln
 
 install:
-#  - sudo apt-get install nunit-console
   - nuget restore ./Phinix.sln
  
 script:
   - xbuild /property:Configuration=TravisCI ./Phinix.sln
-#  - nunit-console ./Common/ConnectionsTests/bin/Debug/ConnectionsTests.dll ./Common/UserManagementTests/bin/Debug/UserManagementTests.dll
