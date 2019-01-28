@@ -28,10 +28,7 @@ namespace Chat
         {
             get
             {
-                lock (messageHistoryLock)
-                {
-                    return messageHistory.Count - messageCountAtLastCheck;
-                }
+                lock (messageHistoryLock) { return messageHistory.Count - messageCountAtLastCheck; }
             }
         }
         /// <summary>
