@@ -21,6 +21,7 @@
     <Phinix_hugslibsettings_acceptingTradesTitle>Accepting trades</Phinix_hugslibsettings_acceptingTradesTitle>
     <Phinix_hugslibsettings_showNameFormatting>Show name formatting</Phinix_hugslibsettings_showNameFormatting>
     <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
+    <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
     
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>

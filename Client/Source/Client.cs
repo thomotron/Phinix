@@ -11,9 +11,11 @@ using HugsLib.Settings;
 using RimWorld;
 using Trading;
 using HugsLib.Utils;
+using UnityEngine;
 using UserManagement;
 using Utils;
 using Verse;
+using Verse.Sound;
 using Thing = Verse.Thing;
 
 namespace PhinixClient
@@ -133,6 +135,27 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> playNoiseOnMessageReceived;
+        public bool PlayNoiseOnMessageReceived
+        {
+            get => playNoiseOnMessageReceived.Value;
+            set
+            {
+                playNoiseOnMessageReceived.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Queue of sounds to play on the next frame.
+        /// Necessary because sounds are only played on the main Unity thread.
+        /// </summary>
+        private Queue<SoundDef> soundQueue = new Queue<SoundDef>();
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing soundQueue.
+        /// </summary>
+        private object soundQueueLock = new object();
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -178,6 +201,12 @@ namespace PhinixClient
             showChatFormatting = Settings.GetHandle(
                 settingName: "showChatFormatting",
                 title: "Phinix_hugslibsettings_showChatFormatting".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            playNoiseOnMessageReceived = Settings.GetHandle(
+                settingName: "playNoiseOnMessageReceived",
+                title: "Phinix_hugslibsettings_playNoiseOnMessageReceived".Translate(),
                 description: null,
                 defaultValue: true
             );
@@ -231,6 +260,17 @@ namespace PhinixClient
             chat.OnChatMessageReceived += (sender, args) =>
             {
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+
+                // Check if we are in-game and whether the user wants to hear chat noises before playing a sound
+                if (Current.Game != null && PlayNoiseOnMessageReceived)
+                {
+                    lock (soundQueueLock)
+                    {
+                        // Add a little tick noise to the sound queue
+                        // (queue is necessary because sounds only play on the main Unity thread)
+                        soundQueue.Enqueue(SoundDefOf.Tick_Tiny);
+                    }
+                }
             };
             
             // Subscribe to trading events
@@ -335,6 +375,20 @@ namespace PhinixClient
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
+        }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            lock (soundQueueLock)
+            {
+                // Check if we have sounds to play
+                while (soundQueue.Count > 0)
+                {
+                    // Dequeue and play a sound
+                    soundQueue.Dequeue().PlayOneShotOnCamera();
+                }
+            }
         }
 
         /// <summary>
