@@ -82,6 +82,9 @@ namespace Chat
             {
                 // Clear message history
                 messageHistory.Clear();
+                
+                // Reset the last message count
+                messageCountAtLastCheck = 0;
             }
         }
 
