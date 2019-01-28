@@ -261,8 +261,8 @@ namespace PhinixClient
             {
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
 
-                // Check if we are in-game and whether the user wants to hear chat noises before playing a sound
-                if (Current.Game != null && PlayNoiseOnMessageReceived)
+                // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
+                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
                 {
                     lock (soundQueueLock)
                     {
