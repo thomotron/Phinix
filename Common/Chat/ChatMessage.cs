@@ -5,9 +5,9 @@ namespace Chat
     public class ChatMessage
     {
         /// <summary>
-        /// Time the message was received.
+        /// Time the message was sent.
         /// </summary>
-        public DateTime ReceivedTime;
+        public DateTime Timestamp;
         
         /// <summary>
         /// UUID of the sender.
@@ -20,7 +20,7 @@ namespace Chat
         public string Message;
         
         /// <summary>
-        /// Creates a new <c>ChatMessage</c> with the given sender UUID and message and sets the time received to now.
+        /// Creates a new <c>ChatMessage</c> with the given sender UUID and message and sets the timestamp to now.
         /// </summary>
         /// <param name="senderUuid">Sender's UUID</param>
         /// <param name="message">Message</param>
@@ -29,17 +29,18 @@ namespace Chat
             this.SenderUuid = senderUuid;
             this.Message = message;
             
-            this.ReceivedTime = DateTime.UtcNow;
+            this.Timestamp = DateTime.UtcNow;
         }
 
         /// <summary>
-        /// Creates a new <c>ChatMessage</c> with the given sender UUID, message, and time received.
+        /// Creates a new <c>ChatMessage</c> with the given sender UUID, message, and timestamp.
         /// </summary>
         /// <param name="senderUuid">Sender's UUID</param>
         /// <param name="message">Message</param>
-        public ChatMessage(string senderUuid, string message, DateTime receivedTime)
+        /// <param name="timestamp">Timestamp</param>
+        public ChatMessage(string senderUuid, string message, DateTime timestamp)
         {
-            this.ReceivedTime = receivedTime;
+            this.Timestamp = timestamp;
             this.SenderUuid = senderUuid;
             this.Message = message;
         }

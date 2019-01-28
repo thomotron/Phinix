@@ -223,7 +223,7 @@ namespace PhinixClient
                 {
                     // Get all chat messages and convert them to widgets
                     ChatMessage[] messages = Instance.GetChatMessages();
-                    ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.ReceivedTime)).ToArray();
+                    ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp)).ToArray();
                     
                     // Create a new flex container from our message list
                     VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);

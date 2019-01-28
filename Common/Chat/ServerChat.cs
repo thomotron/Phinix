@@ -154,7 +154,7 @@ namespace Chat
             {
                 Uuid = chatMessage.SenderUuid,
                 Message = chatMessage.Message,
-                Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+                Timestamp = chatMessage.Timestamp.ToTimestamp()
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
