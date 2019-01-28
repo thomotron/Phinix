@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using NetworkCommsDotNet;
-using NetworkCommsDotNet.Connections;
-using NetworkCommsDotNet.Tools;
+using System.Threading;
+using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace Connections
 {
@@ -12,7 +13,7 @@ namespace Connections
         /// <summary>
         /// Whether the server is currently listening for connections.
         /// </summary>
-        public bool Listening => Connection.Listening(ConnectionType.TCP);
+        public bool Listening => server != null && server.IsRunning;
 
         /// <summary>
         /// <c>IPEndpoint</c> the server is listening on.
@@ -23,15 +24,61 @@ namespace Connections
         /// Raised when a new connection is established.
         /// </summary>
         public event EventHandler<ConnectionEventArgs> OnConnectionEstablished;
-        
         /// <summary>
         /// Raised when an existing connection is closed.
         /// </summary>
         public event EventHandler<ConnectionEventArgs> OnConnectionClosed;
 
-        public NetServer(IPEndPoint endpoint)
+        /// <summary>
+        /// Server that piggy-backs the listener and communicates with clients.
+        /// </summary>
+        private NetManager server;
+        /// <summary>
+        /// Collection of currently-connected peers organised by their connection ID.
+        /// </summary>
+        private Dictionary<string, NetPeer> connectedPeers;
+
+        /// <summary>
+        /// Thread that polls the server backend for incoming packets.
+        /// </summary>
+        private Thread pollThread;
+
+        public NetServer(IPEndPoint endpoint, int maxConnections)
         {
             this.Endpoint = endpoint;
+            
+            this.server = new NetManager(listener, maxConnections, "Phinix")
+            {
+                PingInterval = 5000
+            };
+            this.connectedPeers = new Dictionary<string, NetPeer>();
+            
+            // Forward events
+            listener.PeerConnectedEvent += (peer) =>
+            {
+                // Add or update the peer's connection
+                string connectionId = peer.ConnectId.ToString("X");
+                if (connectedPeers.ContainsKey(connectionId))
+                {
+                    connectedPeers[connectionId] = peer;
+                }
+                else
+                {
+                    connectedPeers.Add(connectionId, peer);
+                }
+                
+                // Raise the connection established event for this peer
+                OnConnectionEstablished?.Invoke(this, new ConnectionEventArgs(connectionId));
+            };
+            listener.PeerDisconnectedEvent += (peer, info) =>
+            {
+                // Remove the peer's connection
+                string connectionId = peer.ConnectId.ToString("X");
+                connectedPeers.Remove(connectionId);
+                
+                // Raise the connection established event for this peer
+                OnConnectionClosed?.Invoke(this, new ConnectionEventArgs(connectionId));
+            };
         }
 
         /// <summary>
@@ -39,15 +86,20 @@ namespace Connections
         /// </summary>
         public void Start()
         {
-            if (!Listening)
+            if (Listening) throw new Exception("Cannot start listening while already doing so.");
+
+            server.Start(Endpoint.Port);
+            
+            // Start a polling thread to check for incoming packets
+            pollThread = new Thread(() =>
             {
-                registerConnectionEvents();
-                Connection.StartListening(ConnectionType.TCP, Endpoint);
-            }
-            else
-            {
-                throw new Exception("Cannot start listening while already doing so.");
-            }
+                while (true)
+                {
+                    server.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
         }
 
         /// <summary>
@@ -55,9 +107,15 @@ namespace Connections
         /// </summary>
         public void Stop()
         {
-            Connection.StopListening();
-            NetworkComms.CloseAllConnections(ConnectionType.TCP);
-            unregisterConnectionEvents();
+            server.Stop();
+            connectedPeers.Clear();
+            
+            // Kill the poll thread and clear the variable
+            if (pollThread != null)
+            {
+                pollThread.Abort();
+                pollThread = null;
+            }
         }
 
         /// <summary>
@@ -76,62 +134,27 @@ namespace Connections
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
             
             // Check the connection exists
-            ShortGuid connectionGuid = new ShortGuid(connectionId);
-            if (!NetworkComms.ConnectionExists(connectionGuid, ConnectionType.TCP))
+            if (!connectedPeers.ContainsKey(connectionId))
             {
                 throw new NotConnectedException();
             }
             
+            
             // Get the connection by it's ID
-            Connection connection = NetworkComms.GetExistingConnection(new ShortGuid(connectionId), ConnectionType.TCP).First();
+            NetPeer peer = connectedPeers[connectionId];
             
             // Make sure the connection is open
-            if (connection.ConnectionInfo.ConnectionState != ConnectionState.Established || !connection.ConnectionAlive())
+            if (peer.ConnectionState != ConnectionState.Connected)
             {
-                throw new NotConnectedException(connection);
+                throw new NotConnectedException(peer);
             }
             
-            // Send the message
-            connection.SendObject(module, serialisedMessage);
-        }
+            // Write the module and message data to a NetDataWriter stream
+            NetDataWriter writer = new NetDataWriter();
+            writer.Put(module);
+            writer.Put(serialisedMessage);
 
-        /// <summary>
-        /// Registers event handler wrappers for connection established and closed into NetworkComms.Net.
-        /// Used to event-ify the callbacks.
-        /// </summary>
-        private void registerConnectionEvents()
-        {
-            NetworkComms.AppendGlobalConnectionEstablishHandler(connectionEstablishWrapperDelegate);
-            NetworkComms.AppendGlobalConnectionCloseHandler(connectionCloseWrapperDelegate);
-        }
-        
-        /// <summary>
-        /// Unregisters the event handler wrappers for connection established and closed.
-        /// </summary>
-        private void unregisterConnectionEvents()
-        {
-            NetworkComms.RemoveGlobalConnectionEstablishHandler(connectionEstablishWrapperDelegate);
-            NetworkComms.RemoveGlobalConnectionCloseHandler(connectionCloseWrapperDelegate);
-        }
-        
-        /// <summary>
-        /// Wraps NetworkComms.Net's <c>ConnectionEstablishShutdownDelegate</c> to something more generic and raises the
-        /// <c>OnConnectionEstablished</c> event.
-        /// </summary>
-        /// <param name="connection">Establishing connection</param>
-        private void connectionEstablishWrapperDelegate(Connection connection)
-        {
-            OnConnectionEstablished?.Invoke(this, new ConnectionEventArgs(connection.ConnectionInfo.NetworkIdentifier));
-        }
-        
-        /// <summary>
-        /// Wraps NetworkComms.Net's <c>ConnectionEstablishShutdownDelegate</c> to something more generic and raises the
-        /// <c>OnConnectionClosed</c> event.
-        /// </summary>
-        /// <param name="connection">Closing connection</param>
-        private void connectionCloseWrapperDelegate(Connection connection)
-        {
-            OnConnectionClosed?.Invoke(this, new ConnectionEventArgs(connection.ConnectionInfo.NetworkIdentifier));
+            peer.Send(writer, SendOptions.ReliableOrdered);
         }
     }
 }

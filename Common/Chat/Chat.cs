@@ -6,7 +6,7 @@ namespace Chat
 {
     public abstract class Chat : ILoggable
     {
-        public const string MODULE_NAME = "chat";
+        public readonly string MODULE_NAME = typeof(Chat).Namespace;
         
         public static readonly Version Version = Assembly.GetAssembly(typeof(Chat)).GetName().Version;
         
