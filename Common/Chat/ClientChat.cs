@@ -20,7 +20,25 @@ namespace Chat
         /// Raised when a chat message is received.
         /// </summary>
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
-        
+
+        /// <summary>
+        /// The number of messages received since <c>GetMessages()</c> was last called.
+        /// </summary>
+        public int UnreadMessages
+        {
+            get
+            {
+                lock (messageHistoryLock)
+                {
+                    return messageHistory.Count - messageCountAtLastCheck;
+                }
+            }
+        }
+        /// <summary>
+        /// The number of messages in history when <c>GetMessages()</c> was last called.
+        /// </summary>
+        private int messageCountAtLastCheck;
+
         /// <summary>
         /// <c>NetClient</c> instance to bind the packet handler to.
         /// </summary>
@@ -52,6 +70,7 @@ namespace Chat
             this.userManager = userManager;
             
             this.messageHistory = new List<ChatMessage>();
+            this.messageCountAtLastCheck = 0;
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netClient.OnDisconnect += disconnectHandler;
@@ -136,6 +155,10 @@ namespace Chat
         {
             lock (messageHistoryLock)
             {
+                // Set the read message count
+                messageCountAtLastCheck = messageHistory.Count;
+                
+                // Return the messages in history
                 return messageHistory.ToArray();
             }
         }

@@ -52,6 +52,7 @@ namespace PhinixClient
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
         public ChatMessage[] GetChatMessages() => chat.GetMessages();
+        public int UnreadMessages => chat.UnreadMessages;
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
@@ -146,6 +147,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> showUnreadMessageCount;
+        public bool ShowUnreadMessageCount
+        {
+            get => showUnreadMessageCount.Value;
+            set
+            {
+                showUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         /// <summary>
         /// Queue of sounds to play on the next frame.
         /// Necessary because sounds are only played on the main Unity thread.
@@ -207,6 +219,12 @@ namespace PhinixClient
             playNoiseOnMessageReceived = Settings.GetHandle(
                 settingName: "playNoiseOnMessageReceived",
                 title: "Phinix_hugslibsettings_playNoiseOnMessageReceived".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            showUnreadMessageCount = Settings.GetHandle(
+                settingName: "showUnreadMessageCount",
+                title: "Phinix_hugslibsettings_showUnreadMessageCount".Translate(),
                 description: null,
                 defaultValue: true
             );
