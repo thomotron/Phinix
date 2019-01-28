@@ -103,6 +103,10 @@ namespace Chat
                     RaiseLogEntry(new LogEventArgs("Got a ChatMessagePacket", LogLevel.DEBUG));
                     chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
                     break;
+                case "ChatHistoryPacket":
+                    RaiseLogEntry(new LogEventArgs("Got a ChatHistoryPacket", LogLevel.DEBUG));
+                    chatHistoryPacketHandler(connectionId, message.Unpack<ChatHistoryPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -177,6 +181,23 @@ namespace Chat
             }
             
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>ChatHistoryPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void chatHistoryPacketHandler(string connectionId, ChatHistoryPacket packet)
+        {
+            lock (messageHistoryLock)
+            {
+                // Store each message in chat history
+                foreach (ChatMessagePacket messagePacket in packet.ChatMessages)
+                {
+                    messageHistory.Add(new ChatMessage(messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
+                }
+            }
         }
     }
 }

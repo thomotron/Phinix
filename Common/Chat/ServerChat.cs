@@ -61,11 +61,28 @@ namespace Chat
         {
             lock (messageHistoryLock)
             {
-                // Send each message in the chat history to the newly logged-in user
+                // Create a chat history packet
+                ChatHistoryPacket packet = new ChatHistoryPacket();
+                
+                // Convert each chat message to their packet counterparts
                 foreach (ChatMessage chatMessage in messageHistory)
                 {
-                    sendChatMessage(args.ConnectionId, chatMessage);
+                    // Create a chat message packet and add it to the history packet
+                    packet.ChatMessages.Add(
+                        new ChatMessagePacket
+                        {
+                            Uuid = chatMessage.SenderUuid,
+                            Message = chatMessage.Message,
+                            Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+                        }
+                    );
                 }
+                
+                // Pack the history packet
+                Any packedPacket = ProtobufPacketHelper.Pack(packet);
+                
+                // Send it on its way
+                netServer.Send(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray());
             }
         }
 
