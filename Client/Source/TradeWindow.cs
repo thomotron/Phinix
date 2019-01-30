@@ -182,6 +182,18 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeUpdated(object sender, TradeUpdateEventArgs args)
         {
+            // Ignore updates for trades other than this one
+            if (args.TradeId != tradeId) return;
+            
+            // Update both our and their offers
+            UpdateOffers();
+        }
+
+        /// <summary>
+        /// Updates <c>ourOfferCache</c> and <c>theirOfferCache</c> with the items on offer for each party respectively.
+        /// </summary>
+        private void UpdateOffers()
+        {
             // Try get our items on offer
             if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> ourItems))
             {
