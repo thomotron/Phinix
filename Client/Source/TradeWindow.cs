@@ -117,6 +117,9 @@ namespace PhinixClient
 
             // Group all items and cache them for later
             this.itemStacks = StackedThings.GroupThings(stockpileItems);
+            
+            // Update both our and their offers
+            UpdateOffers();
         }
 
         public override void Close(bool doCloseSound = true)
