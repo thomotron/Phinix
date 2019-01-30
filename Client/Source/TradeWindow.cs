@@ -93,6 +93,7 @@ namespace PhinixClient
             this.closeOnAccept = false;
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
+            this.forcePause = true;
             this.itemStacks = new List<StackedThings>();
             this.ourOfferCache = new List<StackedThings>();
             this.theirOfferCache = new List<StackedThings>();
