@@ -63,6 +63,25 @@ namespace PhinixClient
         private Vector2 stockpileItemsScrollPos = Vector2.zero;
 
         /// <summary>
+        /// Collection of stacked items in our offer.
+        /// This is updated only as the trade is to avoid chewing up CPU time each frame.
+        /// </summary>
+        private List<StackedThings> ourOfferCache;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>ourOfferCache</c>.
+        /// </summary>
+        private object ourOfferCacheLock = new object();
+        /// <summary>
+        /// Collection of stacked items in the other party's offer.
+        /// This is updated only as the trade is to avoid chewing up CPU time each frame.
+        /// </summary>
+        private List<StackedThings> theirOfferCache;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>theirOfferCache</c>.
+        /// </summary>
+        private object theirOfferCacheLock = new object();
+
+        /// <summary>
         /// Creates a new <c>TradeWindow</c> for the given trade ID.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
@@ -75,9 +94,12 @@ namespace PhinixClient
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
             this.itemStacks = new List<StackedThings>();
+            this.ourOfferCache = new List<StackedThings>();
+            this.theirOfferCache = new List<StackedThings>();
 
             Instance.OnTradeCompleted += OnTradeCompleted;
             Instance.OnTradeCancelled += OnTradeCancelled;
+            Instance.OnTradeUpdated += OnTradeUpdated;
         }
 
         public override void PreOpen()
@@ -103,6 +125,7 @@ namespace PhinixClient
             
             Instance.OnTradeCompleted -= OnTradeCompleted;
             Instance.OnTradeCancelled -= OnTradeCancelled;
+            Instance.OnTradeUpdated -= OnTradeUpdated;
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -150,6 +173,57 @@ namespace PhinixClient
             
             // Close the window
             Close();
+        }
+
+        /// <summary>
+        /// Event handler for the <c>OnTradeUpdated</c> event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void OnTradeUpdated(object sender, TradeUpdateEventArgs args)
+        {
+            // Try get our items on offer
+            if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> ourItems))
+            {
+                // Convert our items to their Verse equivalents
+                Verse.Thing[] verseItems = ourItems.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
+
+                lock (ourOfferCacheLock)
+                {
+                    // Update our cached offer
+                    ourOfferCache = StackedThings.GroupThings(verseItems);
+                }
+            }
+            else
+            {
+                lock (ourOfferCacheLock)
+                {
+                    // Just clear our cached offer
+                    ourOfferCache.Clear();
+                }
+            }
+            
+            // Try get their UUID and items on offer
+            if (Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) &&
+                Instance.TryGetItemsOnOffer(tradeId, otherPartyUuid, out IEnumerable<ProtoThing> theirItems))
+            {
+                // Convert their items to their Verse equivalents
+                Verse.Thing[] verseItems = theirItems.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
+
+                lock (theirOfferCacheLock)
+                {
+                    // Update their cached offer
+                    theirOfferCache = StackedThings.GroupThings(verseItems);
+                }
+            }
+            else
+            {
+                lock (theirOfferCacheLock)
+                {
+                    // Just clear their cached offer
+                    theirOfferCache.Clear();
+                }
+            }
         }
         
         /// <summary>
@@ -327,27 +401,12 @@ namespace PhinixClient
                 )
             );
             
-            // Try get our items on offer
-            if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> items))
+            // Draw our items
+            lock (ourOfferCacheLock)
             {
-                // Convert our items to their Verse equivalents
-                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
-                
-                // Draw our items
                 column.Add(
                     GenerateItemList(
-                        itemStacks: StackedThings.GroupThings(verseItems),
-                        scrollPos: ourOfferScrollPos,
-                        scrollUpdate: newScrollPos => ourOfferScrollPos = newScrollPos
-                    )
-                );
-            }
-            else
-            {
-                // Couldn't get our items, draw a blank array
-                column.Add(
-                    GenerateItemList(
-                        itemStacks: StackedThings.GroupThings(new Thing[0]),
+                        itemStacks: ourOfferCache,
                         scrollPos: ourOfferScrollPos,
                         scrollUpdate: newScrollPos => ourOfferScrollPos = newScrollPos
                     )
@@ -378,28 +437,12 @@ namespace PhinixClient
                 )
             );
             
-            // Try get their UUID and items on offer
-            if (Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) &&
-                Instance.TryGetItemsOnOffer(tradeId, otherPartyUuid, out IEnumerable<ProtoThing> items))
+            // Draw their items
+            lock (theirOfferCacheLock)
             {
-                // Convert their items to their Verse equivalents
-                Verse.Thing[] verseItems = items.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown).ToArray();
-                
-                // Draw their items
                 column.Add(
                     GenerateItemList(
-                        itemStacks: StackedThings.GroupThings(verseItems),
-                        scrollPos: theirOfferScrollPos,
-                        scrollUpdate: newScrollPos => theirOfferScrollPos = newScrollPos
-                    )
-                );
-            }
-            else
-            {
-                // Couldn't get their items, draw a blank array
-                column.Add(
-                    GenerateItemList(
-                        itemStacks: StackedThings.GroupThings(new Thing[0]),
+                        itemStacks: theirOfferCache,
                         scrollPos: theirOfferScrollPos,
                         scrollUpdate: newScrollPos => theirOfferScrollPos = newScrollPos
                     )
