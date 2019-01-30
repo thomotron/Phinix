@@ -278,6 +278,17 @@ namespace PhinixClient
                 )
             );
             
+            // Update button
+            centreColumn.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_trade_updateButton".Translate(),
+                        clickAction: () => Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()))
+                    ),
+                    height: TRADE_BUTTON_HEIGHT
+                )
+            );
+            
             // Reset button
             centreColumn.Add(
                 new Container(
