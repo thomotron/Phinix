@@ -69,6 +69,7 @@ namespace PhinixClient
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -390,6 +391,7 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
+            trading.OnTradeUpdated += (sender, e) => { OnTradeUpdated?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

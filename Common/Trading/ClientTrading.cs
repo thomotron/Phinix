@@ -36,6 +36,11 @@ namespace Trading
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         /// <summary>
+        /// Raised when a trade is updated.
+        /// </summary>
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
+
+        /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
         /// </summary>
         private NetClient netClient;
@@ -444,6 +449,9 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for {1}", packet.Items.Count, otherPartyUuid), LogLevel.DEBUG));
                 }
             }
+            
+            // Raise the trade update event
+            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
         
         /// <summary>
@@ -470,6 +478,9 @@ namespace Trading
                     trade.TrySetAccepted(otherPartyUuid, packet.OtherPartyAccepted);
                 }
             }
+            
+            // Raise the trade update event
+            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
         
         /// <summary>
