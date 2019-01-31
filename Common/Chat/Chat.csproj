@@ -47,11 +47,13 @@
     <Compile Include="ChatMessageEventArgs.cs" />
     <Compile Include="ClientChat.cs" />
     <Compile Include="Packets\compiled\ChatMessagePacket.cs" />
+    <Compile Include="Packets\compiled\ChatMessageResponsePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerChat.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Packets\ChatMessagePacket.proto" />
+    <Content Include="Packets\ChatMessageResponsePacket.proto" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile-proto.sh" />
