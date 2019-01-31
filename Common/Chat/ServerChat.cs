@@ -104,11 +104,14 @@ namespace Chat
             // Clear the session ID for security
             packet.SessionId = "";
             
+            // Generate a unique message ID
+            packet.MessageId = Guid.NewGuid().ToString();
+            
             // Sanitise the message content
             packet.Message = TextHelper.SanitiseRichText(packet.Message);
             
             // Add the message to the message history
-            addMessageToHistory(new ChatMessage(packet.Uuid, packet.Message));
+            addMessageToHistory(new ChatMessage(packet.MessageId, packet.Uuid, packet.Message));
             
             // Set the timestamp
             packet.Timestamp = DateTime.UtcNow.ToTimestamp();
@@ -152,6 +155,7 @@ namespace Chat
             // Create and pack our chat message packet
             ChatMessagePacket packet = new ChatMessagePacket
             {
+                MessageId = chatMessage.MessageId,
                 Uuid = chatMessage.SenderUuid,
                 Message = chatMessage.Message,
                 Timestamp = chatMessage.Timestamp.ToTimestamp()
