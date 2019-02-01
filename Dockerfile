@@ -20,7 +20,7 @@ RUN nuget restore Phinix.sln
 RUN msbuild Phinix.sln /t:Build /p:Configuration=TravisCI
 
 # Move our working directory to the build directory
-WORKDIR /Server/bin/Release/
+WORKDIR /Server/bin/Debug/
 
 # Expose the default port
 EXPOSE 16200
