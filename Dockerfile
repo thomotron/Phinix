@@ -1,26 +1,26 @@
 # Build on top of Mono
 FROM mono:latest
 
-# Set our working directory
-WORKDIR /
+# Set our working directory to build from source
+WORKDIR /src/
 
 # Copy all project directories and files
-COPY Common /Common/
-COPY Server /Server/
-COPY nuget.config /
-COPY Phinix.sln /
+COPY nuget.config ./
+COPY Phinix.sln ./
+COPY Server ./Server/
+COPY Common ./Common/
 
-# Clean out the previous build and make sure we have a clean environment
-RUN msbuild Phinix.sln /t:Clean /p:Configuration=TravisCI
+# Restore NuGet packages and build
+RUN nuget restore Phinix.sln && \
+    msbuild Phinix.sln /t:Build /p:Configuration=TravisCI
 
-# Resotre NuGet packages
-RUN nuget restore Phinix.sln
+# Move out of the src directory and make a spot for the server to sit
+WORKDIR /server/
 
-# Build the server
-RUN msbuild Phinix.sln /t:Build /p:Configuration=TravisCI
-
-# Move our working directory to the build directory
-WORKDIR /Server/bin/Debug/
+# Copy the build result into the server dir and clean up
+RUN cp /src/Server/bin/Debug/*.dll ./ && \
+    cp /src/Server/bin/Debug/PhinixServer.exe ./ && \
+    rm -rf /src/
 
 # Expose the default port
 EXPOSE 16200
