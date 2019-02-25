@@ -5,13 +5,21 @@ import "Packets/Thing.proto";
 
 message UpdateTradeItemsPacket
 {
+    // Session ID of the sender
     string SessionId = 1;
 
+    // UUID of the sender
     string Uuid = 2;
 
+    // ID of the trade this is for
     string TradeId = 3;
 
+    // Unique token used in the result callback to identify which update the result is for
+    string Token = 6;
+
+    // Items the sender is offering
     repeated ProtoThing Items = 4;
     
+    // Items the other party is offering
     repeated ProtoThing OtherPartyItems = 5;
 };
