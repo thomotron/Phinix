@@ -211,7 +211,7 @@ namespace Chat
                 // Store each message in chat history
                 foreach (ChatMessagePacket messagePacket in packet.ChatMessages)
                 {
-                    messageHistory.Add(new ChatMessage(messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
+                    messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
                 }
             }
         }
