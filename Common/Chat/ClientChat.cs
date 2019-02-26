@@ -119,13 +119,24 @@ namespace Chat
 
                 return;
             }
+            
+            // Create a random message ID
+            string messageId = Guid.NewGuid().ToString();
+            
+            // Create and store a chat message locally
+            ClientChatMessage localMessage = new ClientChatMessage(messageId, userManager.Uuid, message);
+            lock (messageHistoryLock)
+            {
+                messageHistory.Add(localMessage);
+            }
 
             // Create and pack the chat message packet
             ChatMessagePacket packet = new ChatMessagePacket
             {
                 SessionId = authenticator.SessionId,
                 Uuid = userManager.Uuid,
-                Message = message,
+                MessageId = messageId,
+                Message = message
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
