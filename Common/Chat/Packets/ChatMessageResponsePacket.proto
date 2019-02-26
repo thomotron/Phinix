@@ -1,0 +1,13 @@
+syntax = "proto3";
+package Chat;
+
+message ChatMessageResponsePacket
+{
+    bool Success = 1;
+    
+    string OriginalMessageId = 2;
+    
+    string NewMessageId = 3;
+    
+    string Message = 4;
+};
