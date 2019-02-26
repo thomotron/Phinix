@@ -73,6 +73,7 @@ namespace Chat
                         new ChatMessagePacket
                         {
                             Uuid = chatMessage.SenderUuid,
+                            MessageId = chatMessage.MessageId,
                             Message = chatMessage.Message,
                             Timestamp = chatMessage.Timestamp.ToTimestamp()
                         }
