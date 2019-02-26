@@ -2,14 +2,15 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using NetworkCommsDotNet;
-using NetworkCommsDotNet.Connections.TCP;
+using System.Threading;
+using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace Connections
 {
     public class NetClient : NetCommon
     {
-        public bool Connected => connection != null && connection.ConnectionInfo.ConnectionState == ConnectionState.Established;
+        public bool Connected => client != null && client.IsRunning && serverPeer != null && serverPeer.ConnectionState == ConnectionState.Connected;
 
         /// <summary>
         /// Raised when connecting to a server.
@@ -18,31 +19,62 @@ namespace Connections
         /// <summary>
         /// Raised when disconnecting from a server.
         /// </summary>
-        public event EventHandler OnDisconnect; 
+        public event EventHandler OnDisconnect;
 
-        private TCPConnection connection;
+        /// <summary>
+        /// Client that piggy-backs the listener and communicates with the server.
+        /// </summary>
+        private NetManager client;
+        /// <summary>
+        /// Peer representing the server's side of the connection.
+        /// </summary>
+        private NetPeer serverPeer;
+
+        /// <summary>
+        /// Thread that polls the client backend for incoming packets.
+        /// </summary>
+        private Thread pollThread;
 
         /// <summary>
         /// Creates a new <c>NetClient</c> instance.
         /// </summary>
         /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
-        public NetClient(int checkInterval = 5)
+        public NetClient(int checkInterval = 5000)
         {
-            TCPConnection.ConnectionKeepAlivePollIntervalSecs = checkInterval;
+            // Set up the client
+            client = new NetManager(listener, "Phinix")
+            {
+                PingInterval = checkInterval
+            };
+
+            // Forward events
+            listener.PeerConnectedEvent += (peer) => { OnConnecting?.Invoke(this, EventArgs.Empty); };
+            listener.PeerDisconnectedEvent += (peer, info) => { OnDisconnect?.Invoke(this, EventArgs.Empty); };
         }
 
         /// <summary>
         /// Attempts to connect to the given endpoint. This will close an existing connection.
         /// </summary>
         /// <param name="endpoint">Endpoint to connect to</param>
-        /// <exception cref="ConnectionSetupException"></exception>
         public void Connect(IPEndPoint endpoint)
         {
             // Close the active connection before we make a new one.
             Disconnect();
 
-            ConnectionInfo connectionInfo = new ConnectionInfo(endpoint);
-            connection = TCPConnection.GetConnection(connectionInfo);
+            // Try to connect
+            client.Start();
+            serverPeer = client.Connect(endpoint.Address.ToString(), endpoint.Port);
+            
+            // Start a polling thread to check for incoming packets
+            pollThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    client.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
         }
 
         /// <summary>
@@ -52,7 +84,6 @@ namespace Connections
         /// <param name="port">Port the server is listening on</param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="InvalidAddressException"></exception>
-        /// <exception cref="ConnectionSetupException"></exception>
         public void Connect(string address, int port)
         {
             // Ensure the port is within the valid range
@@ -125,14 +156,21 @@ namespace Connections
         /// </summary>
         public void Disconnect()
         {
-            // Check if the connection is open
-            if (connection != null)
+            // Check if the client is running
+            if (client.IsRunning)
             {
-                connection.CloseConnection(false);
+                // Stop the client
+                client.Stop();
                 
-                connection = null;
-                
+                // Raise the OnDisconnect event
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
+            }
+            
+            // Kill the poll thread and clear the variable
+            if (pollThread != null)
+            {
+                pollThread.Abort();
+                pollThread = null;
             }
         }
 
@@ -149,9 +187,14 @@ namespace Connections
             if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
 
-            if (!Connected) throw new NotConnectedException(connection);
+            if (!Connected) throw new NotConnectedException(serverPeer);
+            
+            // Write the module and message data to a NetDataWriter stream
+            NetDataWriter writer = new NetDataWriter();
+            writer.Put(module);
+            writer.Put(serialisedMessage);
 
-            connection.SendObject(module, serialisedMessage);
+            serverPeer.Send(writer, SendOptions.ReliableOrdered);
         }
     }
 }

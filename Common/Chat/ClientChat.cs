@@ -21,7 +21,22 @@ namespace Chat
         /// Raised when a chat message is received.
         /// </summary>
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
-        
+
+        /// <summary>
+        /// The number of messages received since <c>GetMessages()</c> was last called.
+        /// </summary>
+        public int UnreadMessages
+        {
+            get
+            {
+                lock (messageHistoryLock) { return messageHistory.Count - messageCountAtLastCheck; }
+            }
+        }
+        /// <summary>
+        /// The number of messages in history when <c>GetMessages()</c> was last called.
+        /// </summary>
+        private int messageCountAtLastCheck;
+
         /// <summary>
         /// <c>NetClient</c> instance to bind the packet handler to.
         /// </summary>
@@ -53,6 +68,7 @@ namespace Chat
             this.userManager = userManager;
             
             this.messageHistory = new List<ClientChatMessage>();
+            this.messageCountAtLastCheck = 0;
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netClient.OnDisconnect += disconnectHandler;
@@ -64,6 +80,9 @@ namespace Chat
             {
                 // Clear message history
                 messageHistory.Clear();
+                
+                // Reset the last message count
+                messageCountAtLastCheck = 0;
             }
         }
 
@@ -88,6 +107,10 @@ namespace Chat
                 case "ChatMessageResponsePacket":
                     RaiseLogEntry(new LogEventArgs("Got a ChatMessageResponsePacket", LogLevel.DEBUG));
                     chatMessageResponsePacketHandler(connectionId, message.Unpack<ChatMessageResponsePacket>());
+					break;
+                case "ChatHistoryPacket":
+                    RaiseLogEntry(new LogEventArgs("Got a ChatHistoryPacket", LogLevel.DEBUG));
+                    chatHistoryPacketHandler(connectionId, message.Unpack<ChatHistoryPacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -152,6 +175,10 @@ namespace Chat
         {
             lock (messageHistoryLock)
             {
+                // Set the read message count
+                messageCountAtLastCheck = messageHistory.Count;
+                
+                // Return the messages in history
                 return messageHistory.ToArray();
             }
         }
@@ -173,6 +200,23 @@ namespace Chat
         }
         
         /// <summary>
+        /// Handles incoming <c>ChatHistoryPacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void chatHistoryPacketHandler(string connectionId, ChatHistoryPacket packet)
+        {
+            lock (messageHistoryLock)
+            {
+                // Store each message in chat history
+                foreach (ChatMessagePacket messagePacket in packet.ChatMessages)
+                {
+                    messageHistory.Add(new ChatMessage(messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
+                }
+            }
+        }
+
+		/// <summary>
         /// Handles incoming <c>ChatMessageResponsePacket</c>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>

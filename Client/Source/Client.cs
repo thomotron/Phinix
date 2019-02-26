@@ -11,9 +11,11 @@ using HugsLib.Settings;
 using RimWorld;
 using Trading;
 using HugsLib.Utils;
+using UnityEngine;
 using UserManagement;
 using Utils;
 using Verse;
+using Verse.Sound;
 using Thing = Verse.Thing;
 
 namespace PhinixClient
@@ -50,6 +52,7 @@ namespace PhinixClient
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
         public ChatMessage[] GetChatMessages() => chat.GetMessages();
+        public int UnreadMessages => chat.UnreadMessages;
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
@@ -66,6 +69,7 @@ namespace PhinixClient
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -133,6 +137,38 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> playNoiseOnMessageReceived;
+        public bool PlayNoiseOnMessageReceived
+        {
+            get => playNoiseOnMessageReceived.Value;
+            set
+            {
+                playNoiseOnMessageReceived.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<bool> showUnreadMessageCount;
+        public bool ShowUnreadMessageCount
+        {
+            get => showUnreadMessageCount.Value;
+            set
+            {
+                showUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Queue of sounds to play on the next frame.
+        /// Necessary because sounds are only played on the main Unity thread.
+        /// </summary>
+        private Queue<SoundDef> soundQueue = new Queue<SoundDef>();
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing soundQueue.
+        /// </summary>
+        private object soundQueueLock = new object();
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -178,6 +214,18 @@ namespace PhinixClient
             showChatFormatting = Settings.GetHandle(
                 settingName: "showChatFormatting",
                 title: "Phinix_hugslibsettings_showChatFormatting".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            playNoiseOnMessageReceived = Settings.GetHandle(
+                settingName: "playNoiseOnMessageReceived",
+                title: "Phinix_hugslibsettings_playNoiseOnMessageReceived".Translate(),
+                description: null,
+                defaultValue: true
+            );
+            showUnreadMessageCount = Settings.GetHandle(
+                settingName: "showUnreadMessageCount",
+                title: "Phinix_hugslibsettings_showUnreadMessageCount".Translate(),
                 description: null,
                 defaultValue: true
             );
@@ -231,6 +279,17 @@ namespace PhinixClient
             chat.OnChatMessageReceived += (sender, args) =>
             {
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+
+                // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
+                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
+                {
+                    lock (soundQueueLock)
+                    {
+                        // Add a little tick noise to the sound queue
+                        // (queue is necessary because sounds only play on the main Unity thread)
+                        soundQueue.Enqueue(SoundDefOf.Tick_Tiny);
+                    }
+                }
             };
             
             // Subscribe to trading events
@@ -332,9 +391,24 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
+            trading.OnTradeUpdated += (sender, e) => { OnTradeUpdated?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
+        }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            lock (soundQueueLock)
+            {
+                // Check if we have sounds to play
+                while (soundQueue.Count > 0)
+                {
+                    // Dequeue and play a sound
+                    soundQueue.Dequeue().PlayOneShotOnCamera();
+                }
+            }
         }
 
         /// <summary>

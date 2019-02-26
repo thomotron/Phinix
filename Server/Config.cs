@@ -33,63 +33,69 @@ namespace PhinixServer
         public int Port = 16200;
 
         /// <summary>
+        /// Maximum number of connections to accept at once.
+        /// </summary>
+        [DataMember(Name = "MaxConnections", Order = 2)]
+        public int MaxConnections = 1000;
+
+        /// <summary>
         /// Path to the log file.
         /// </summary>
-        [DataMember(Name = "LogFile", Order = 2)]
+        [DataMember(Name = "LogFile", Order = 3)]
         public string LogPath = "server.log";
 
         /// <summary>
         /// The minimum verbosity level for a message to be displayed in the console.
         /// </summary>
-        [DataMember(Name = "DisplayVerbosity", Order = 3)]
+        [DataMember(Name = "DisplayVerbosity", Order = 4)]
         public Verbosity DisplayVerbosity = Verbosity.INFO;
 
         /// <summary>
         /// The minimum verbosity level for a message to be recorded in the log file.
         /// </summary>
-        [DataMember(Name = "LogVerbosity", Order = 4)]
+        [DataMember(Name = "LogVerbosity", Order = 5)]
         public Verbosity LogVerbosity = Verbosity.INFO;
 
         /// <summary>
         /// Path to the user database file.
         /// </summary>
-        [DataMember(Name = "UserDatabaseFile", Order = 5)]
+        [DataMember(Name = "UserDatabaseFile", Order = 6)]
         public string UserDatabasePath = "users";
 
         /// <summary>
         /// Path to the credential database file.
         /// </summary>
-        [DataMember(Name = "CredentialDatabaseFile", Order = 6)]
+        [DataMember(Name = "CredentialDatabaseFile", Order = 7)]
         public string CredentialDatabasePath = "credentials";
 
         /// <summary>
         /// Name of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerName", Order = 7)]
+        [DataMember(Name = "ServerName", Order = 8)]
         public string ServerName = "Phinix Server";
         
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerDescription", Order = 8)]
+        [DataMember(Name = "ServerDescription", Order = 9)]
         public string ServerDescription = "A Phinix server.";
         
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
-        [DataMember(Name = "AuthType", Order = 9)]
+        [DataMember(Name = "AuthType", Order = 10)]
         public AuthTypes AuthType = AuthTypes.PhiKey;
 
         /// <summary>
         /// Maximum display name length for users.
         /// </summary>
-        [DataMember(Name = "MaxDisplayNameLength", Order = 10)]
+        [DataMember(Name = "MaxDisplayNameLength", Order = 11)]
         public int MaxDisplayNameLength = 100;
 
         /// <summary>
         /// Maximum number of chat messages to store in the chat history buffer.
         /// </summary>
-        [DataMember(Name = "ChatHistoryLength", Order = 11)]
+        [DataMember(Name = "ChatHistoryLength", Order = 12)]
         public int ChatHistoryLength = 40;
 
         /// <summary>

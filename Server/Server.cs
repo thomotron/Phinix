@@ -33,7 +33,7 @@ namespace PhinixServer
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
             
             // Set up module instances
-            Connections = new NetServer(new IPEndPoint(Config.Address, Config.Port));
+            Connections = new NetServer(new IPEndPoint(Config.Address, Config.Port), Config.MaxConnections);
             Authenticator = new ServerAuthenticator(
                 netServer: Connections,
                 serverName: Config.ServerName,

@@ -12,7 +12,7 @@ namespace UserManagement
     /// </summary>
     public abstract class UserManager : ILoggable
     {
-        public const string MODULE_NAME = "usermgmt";
+        public readonly string MODULE_NAME = typeof(UserManager).Namespace;
         
         public static readonly Version Version = Assembly.GetAssembly(typeof(UserManager)).GetName().Version;
         

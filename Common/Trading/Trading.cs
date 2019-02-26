@@ -8,7 +8,7 @@ namespace Trading
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(Trading)).GetName().Version;
 
-        public const string MODULE_NAME = "trade";
+        public readonly string MODULE_NAME = typeof(Trading).Namespace;
 
         /// <inheritdoc />
         public abstract event EventHandler<LogEventArgs> OnLogEntry;
