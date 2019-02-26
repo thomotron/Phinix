@@ -93,6 +93,12 @@ namespace Chat
             }
         }
 
+        /// <summary>
+        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// </summary>
+        /// <param name="module">Target module</param>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="data">Data payload</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
             // Ignore packets from non-authenticated sessions
