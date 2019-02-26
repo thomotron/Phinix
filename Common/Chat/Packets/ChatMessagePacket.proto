@@ -9,6 +9,8 @@ message ChatMessagePacket
     
     string Uuid = 2;
     
+    string MessageId = 5;
+    
     string Message = 3;
 
     google.protobuf.Timestamp Timestamp = 4;

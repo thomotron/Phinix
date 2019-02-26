@@ -9,7 +9,7 @@ namespace Authentication
     /// </summary>
     public abstract class Authenticator : ILoggable
     {
-        public const string MODULE_NAME = "auth";
+        public readonly string MODULE_NAME = typeof(Authenticator).Namespace;
         
         /// <inheritdoc />
         public abstract event EventHandler<LogEventArgs> OnLogEntry;

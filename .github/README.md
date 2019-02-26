@@ -30,6 +30,12 @@
 2. Extract it wherever, entirely up to you
 3. Edit the `server.conf` file as you see fit with a text editor
 4. Run `PhinixServer.exe`
+### Docker
+There are automated server builds for both the `master` and `dev` branches available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
+The image exposes the default port (16200/udp), so something like  
+`docker run --tty --interactive --publish 16200:16200/udp thomotron/phinix:latest`  
+(or the more terse `docker run -tip 16200:16200/udp thomotron/phinix`)  
+should do the trick.
 
 # Usage
 ## Client
