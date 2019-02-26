@@ -193,7 +193,7 @@ namespace Chat
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
+                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
             }
             
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
@@ -211,7 +211,7 @@ namespace Chat
                 // Store each message in chat history
                 foreach (ChatMessagePacket messagePacket in packet.ChatMessages)
                 {
-                    messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
+                    messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
                 }
             }
         }
