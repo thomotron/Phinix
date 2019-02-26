@@ -171,7 +171,7 @@ namespace Chat
         /// Returns a list of all messages received since connecting to the server.
         /// </summary>
         /// <returns>A list of all messages received since connecting to the server</returns>
-        public ChatMessage[] GetMessages()
+        public ClientChatMessage[] GetMessages()
         {
             lock (messageHistoryLock)
             {

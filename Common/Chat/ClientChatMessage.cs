@@ -6,7 +6,7 @@ namespace Chat
     /// Client variant of <c>ChatMessage</c> featuring a status field to indicate whether the message was received by
     /// the server and if it was accepted.
     /// </summary>
-    class ClientChatMessage : ChatMessage
+    public class ClientChatMessage : ChatMessage
     {
         /// <summary>
         /// The status of the chat message.

@@ -51,7 +51,7 @@ namespace PhinixClient
 
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
-        public ChatMessage[] GetChatMessages() => chat.GetMessages();
+        public ClientChatMessage[] GetChatMessages() => chat.GetMessages();
         public int UnreadMessages => chat.UnreadMessages;
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
