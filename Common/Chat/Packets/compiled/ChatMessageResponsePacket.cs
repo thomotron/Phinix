@@ -23,12 +23,13 @@ namespace Chat {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CidQYWNrZXRzL0NoYXRNZXNzYWdlUmVzcG9uc2VQYWNrZXQucHJvdG8SBENo",
-            "YXQiPwoZQ2hhdE1lc3NhZ2VSZXNwb25zZVBhY2tldBIRCglNZXNzYWdlSWQY",
-            "ASABKAkSDwoHU3VjY2VzcxgCIAEoCGIGcHJvdG8z"));
+            "YXQibgoZQ2hhdE1lc3NhZ2VSZXNwb25zZVBhY2tldBIPCgdTdWNjZXNzGAEg",
+            "ASgIEhkKEU9yaWdpbmFsTWVzc2FnZUlkGAIgASgJEhQKDE5ld01lc3NhZ2VJ",
+            "ZBgDIAEoCRIPCgdNZXNzYWdlGAQgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Chat.ChatMessageResponsePacket), global::Chat.ChatMessageResponsePacket.Parser, new[]{ "MessageId", "Success" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Chat.ChatMessageResponsePacket), global::Chat.ChatMessageResponsePacket.Parser, new[]{ "Success", "OriginalMessageId", "NewMessageId", "Message" }, null, null, null)
           }));
     }
     #endregion
@@ -59,8 +60,10 @@ namespace Chat {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ChatMessageResponsePacket(ChatMessageResponsePacket other) : this() {
-      messageId_ = other.messageId_;
       success_ = other.success_;
+      originalMessageId_ = other.originalMessageId_;
+      newMessageId_ = other.newMessageId_;
+      message_ = other.message_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -68,25 +71,47 @@ namespace Chat {
       return new ChatMessageResponsePacket(this);
     }
 
-    /// <summary>Field number for the "MessageId" field.</summary>
-    public const int MessageIdFieldNumber = 1;
-    private string messageId_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string MessageId {
-      get { return messageId_; }
-      set {
-        messageId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
     /// <summary>Field number for the "Success" field.</summary>
-    public const int SuccessFieldNumber = 2;
+    public const int SuccessFieldNumber = 1;
     private bool success_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool Success {
       get { return success_; }
       set {
         success_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "OriginalMessageId" field.</summary>
+    public const int OriginalMessageIdFieldNumber = 2;
+    private string originalMessageId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string OriginalMessageId {
+      get { return originalMessageId_; }
+      set {
+        originalMessageId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "NewMessageId" field.</summary>
+    public const int NewMessageIdFieldNumber = 3;
+    private string newMessageId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string NewMessageId {
+      get { return newMessageId_; }
+      set {
+        newMessageId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Message" field.</summary>
+    public const int MessageFieldNumber = 4;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -103,16 +128,20 @@ namespace Chat {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (MessageId != other.MessageId) return false;
       if (Success != other.Success) return false;
+      if (OriginalMessageId != other.OriginalMessageId) return false;
+      if (NewMessageId != other.NewMessageId) return false;
+      if (Message != other.Message) return false;
       return true;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (MessageId.Length != 0) hash ^= MessageId.GetHashCode();
       if (Success != false) hash ^= Success.GetHashCode();
+      if (OriginalMessageId.Length != 0) hash ^= OriginalMessageId.GetHashCode();
+      if (NewMessageId.Length != 0) hash ^= NewMessageId.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
       return hash;
     }
 
@@ -123,24 +152,38 @@ namespace Chat {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (MessageId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(MessageId);
-      }
       if (Success != false) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteBool(Success);
+      }
+      if (OriginalMessageId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(OriginalMessageId);
+      }
+      if (NewMessageId.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(NewMessageId);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
       }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (MessageId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(MessageId);
-      }
       if (Success != false) {
         size += 1 + 1;
+      }
+      if (OriginalMessageId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(OriginalMessageId);
+      }
+      if (NewMessageId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(NewMessageId);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
       }
       return size;
     }
@@ -150,11 +193,17 @@ namespace Chat {
       if (other == null) {
         return;
       }
-      if (other.MessageId.Length != 0) {
-        MessageId = other.MessageId;
-      }
       if (other.Success != false) {
         Success = other.Success;
+      }
+      if (other.OriginalMessageId.Length != 0) {
+        OriginalMessageId = other.OriginalMessageId;
+      }
+      if (other.NewMessageId.Length != 0) {
+        NewMessageId = other.NewMessageId;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
       }
     }
 
@@ -166,12 +215,20 @@ namespace Chat {
           default:
             input.SkipLastField();
             break;
-          case 10: {
-            MessageId = input.ReadString();
+          case 8: {
+            Success = input.ReadBool();
             break;
           }
-          case 16: {
-            Success = input.ReadBool();
+          case 18: {
+            OriginalMessageId = input.ReadString();
+            break;
+          }
+          case 26: {
+            NewMessageId = input.ReadString();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
             break;
           }
         }

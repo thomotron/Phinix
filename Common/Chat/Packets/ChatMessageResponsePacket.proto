@@ -3,7 +3,11 @@ package Chat;
 
 message ChatMessageResponsePacket
 {
-    string MessageId = 1;
+    bool Success = 1;
     
-    bool Success = 2;
+    string OriginalMessageId = 2;
+    
+    string NewMessageId = 3;
+    
+    string Message = 4;
 };
