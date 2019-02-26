@@ -124,12 +124,18 @@ namespace Chat
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
+                
+                // Stop here
+                return;
             }
 
             // Refuse packets from non-logged in users
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
+                
+                // Stop here
+                return;
             }
 
             // Get a copy of the packet's original message ID
