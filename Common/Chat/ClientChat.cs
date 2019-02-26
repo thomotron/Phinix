@@ -150,7 +150,7 @@ namespace Chat
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ChatMessage(packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
+                messageHistory.Add(new ChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
             }
             
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
