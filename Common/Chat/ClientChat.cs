@@ -239,12 +239,20 @@ namespace Chat
                     return;
                 }
                 
-                // Update the message ID and content
+                // Update the message ID
                 message.MessageId = packet.NewMessageId;
-                message.Message = packet.Message;
-                
-                // Update the status to reflect the success state
-                message.Status = packet.Success ? ChatMessageStatus.CONFIRMED : ChatMessageStatus.DENIED;
+
+                if (packet.Success)
+                {
+                    // Update the message content and confirm it
+                    message.Message = packet.Message;
+                    message.Status = ChatMessageStatus.CONFIRMED;
+                }
+                else
+                {
+                    // Deny the message but don't overwrite the content
+                    message.Status = ChatMessageStatus.DENIED;
+                }
             }
         }
     }
