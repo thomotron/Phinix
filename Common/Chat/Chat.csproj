@@ -45,7 +45,9 @@
     <Compile Include="Chat.cs" />
     <Compile Include="ChatMessage.cs" />
     <Compile Include="ChatMessageEventArgs.cs" />
+    <Compile Include="ChatMessageStatus.cs" />
     <Compile Include="ClientChat.cs" />
+    <Compile Include="ClientChatMessage.cs" />
     <Compile Include="Packets\compiled\ChatMessagePacket.cs" />
     <Compile Include="Packets\compiled\ChatMessageResponsePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
