@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -39,7 +40,7 @@ namespace Chat
         /// <summary>
         /// List of chat messages received from the server.
         /// </summary>
-        private List<ChatMessage> messageHistory;
+        private List<ClientChatMessage> messageHistory;
         /// <summary>
         /// Lock object to prevent race conditions when accessing <c>messageHistory</c>.
         /// </summary>
@@ -51,7 +52,7 @@ namespace Chat
             this.authenticator = authenticator;
             this.userManager = userManager;
             
-            this.messageHistory = new List<ChatMessage>();
+            this.messageHistory = new List<ClientChatMessage>();
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netClient.OnDisconnect += disconnectHandler;
@@ -83,6 +84,10 @@ namespace Chat
                 case "ChatMessagePacket":
                     RaiseLogEntry(new LogEventArgs("Got a ChatMessagePacket", LogLevel.DEBUG));
                     chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
+                    break;
+                case "ChatMessageResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a ChatMessageResponsePacket", LogLevel.DEBUG));
+                    chatMessageResponsePacketHandler(connectionId, message.Unpack<ChatMessageResponsePacket>());
                     break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
@@ -150,10 +155,42 @@ namespace Chat
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
+                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
             }
             
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>ChatMessageResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void chatMessageResponsePacketHandler(string connectionId, ChatMessageResponsePacket packet)
+        {
+            lock (messageHistoryLock)
+            {
+                ClientChatMessage message;
+                try
+                {
+                    // Try get a message with a corresponding original message ID
+                    message = messageHistory.Single(m => m.MessageId == packet.OriginalMessageId);
+                }
+                catch (InvalidOperationException)
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessageResponsePacket with an unknown original message ID ({0})", packet.OriginalMessageId), LogLevel.WARNING));
+                    
+                    // Stop here
+                    return;
+                }
+                
+                // Update the message ID and content
+                message.MessageId = packet.NewMessageId;
+                message.Message = packet.Message;
+                
+                // Update the status to reflect the success state
+                message.Status = packet.Success ? ChatMessageStatus.CONFIRMED : ChatMessageStatus.DENIED;
+            }
         }
     }
 }
