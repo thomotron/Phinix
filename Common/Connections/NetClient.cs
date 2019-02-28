@@ -44,7 +44,8 @@ namespace Connections
             // Set up the client
             client = new NetManager(listener, "Phinix")
             {
-                PingInterval = checkInterval
+                PingInterval = checkInterval,
+                DisconnectTimeout = 30000
             };
 
             // Forward events
