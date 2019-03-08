@@ -468,7 +468,10 @@ namespace UserManagement
             Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -491,7 +494,10 @@ namespace UserManagement
             Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -510,14 +516,17 @@ namespace UserManagement
 
             lock (connectedUsersLock)
             {
-                // Send it to every logged-in user
-                foreach (string connectionId in connectedUsers.Keys)
+                // Get a local copy of each connection ID
+                string[] connectionIds = new string[connectedUsers.Count];
+                connectedUsers.Keys.CopyTo(connectionIds, 0);
+                
+                // Send the update to each connection ID
+                foreach (string connectionId in connectionIds)
                 {
-                    try
+                    if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                     {
-                        netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+                        RaiseLogEntry(new LogEventArgs("Failed to send UserUpdatePacket to connection " + connectionId, LogLevel.ERROR));
                     }
-                    catch (NotConnectedException) {}
                 }
             }
         }
@@ -549,7 +558,10 @@ namespace UserManagement
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send UserSyncPacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>

@@ -252,8 +252,11 @@ namespace Authentication
             // Pack it into an Any message
             Any packedHello = ProtobufPacketHelper.Pack(hello);
             
-            // Send it
-            netServer.Send(e.ConnectionId, MODULE_NAME, packedHello.ToByteArray());
+            // Try send it
+            if (!netServer.TrySend(e.ConnectionId, MODULE_NAME, packedHello.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send HelloPacket to connection " + e.ConnectionId, LogLevel.ERROR));
+            }
         }
 
         private void ConnectionClosedHandler(object sender, ConnectionEventArgs e)
@@ -439,7 +442,10 @@ namespace Authentication
             Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it
-            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send AuthResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         private void sendFailedAuthResponsePacket(string connectionId, AuthFailureReason failureReason, string failureMessage)
@@ -458,7 +464,10 @@ namespace Authentication
             Any packedResponse = ProtobufPacketHelper.Pack(response);
             
             // Send it
-            netServer.Send(connectionId, MODULE_NAME, packedResponse.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send AuthResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -506,7 +515,10 @@ namespace Authentication
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ExtendSessionResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>
@@ -525,7 +537,10 @@ namespace Authentication
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ExtendSessionResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>

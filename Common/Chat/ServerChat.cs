@@ -84,7 +84,10 @@ namespace Chat
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
                 // Send it on its way
-                netServer.Send(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray());
+                if (!netServer.TrySend(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray()))
+                {
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatHistoryPacket to connection " + args.ConnectionId, LogLevel.ERROR));
+                }
             }
         }
 
@@ -192,15 +195,10 @@ namespace Chat
             // Send it to each of the remaining connection IDs
             foreach (string connectionId in connectionIds)
             {
-                try
+                // Try send the chat message
+                if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
-                    // Try send the chat message
-                    netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
-                }
-                catch (NotConnectedException)
-                {
-                    // Report the failure
-                    RaiseLogEntry(new LogEventArgs(string.Format("Tried sending a chat message to connection {0}, but it is closed", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
                 }
             }
         }
@@ -226,7 +224,10 @@ namespace Chat
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -270,7 +271,10 @@ namespace Chat
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>
