@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Authentication;
 using Connections;
@@ -56,6 +57,47 @@ namespace Chat
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
+        }
+
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
+        {
+            this.netServer = netServer;
+            this.authenticator = authenticator;
+            this.userManager = userManager;
+            this.messageHistoryCapacity = messageHistoryCapacity;
+
+            this.messageHistory = getMessageHistory(messageHistoryStorePath);
+            
+            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginHandler;
+        }
+
+        /// <summary>
+        /// Saves the chat history to the given file, overwriting if it exists.
+        /// </summary>
+        /// <param name="path">Chat history store path</param>
+        public void SaveChatHistory(string path)
+        {
+            lock (messageHistoryLock)
+            {
+                saveMessageHistory(path, messageHistory);
+            }
+            
+            RaiseLogEntry(new LogEventArgs("Saved chat history"));
+        }
+
+        /// <summary>
+        /// Loads the chat history from the given file.
+        /// </summary>
+        /// <param name="path">Chat history store path</param>
+        public void LoadChatHistory(string path)
+        {
+            lock (messageHistoryLock)
+            {
+                messageHistory = getMessageHistory(path);
+            }
+            
+            RaiseLogEntry(new LogEventArgs("Loaded chat history"));
         }
 
         private void loginHandler(object sender, ServerLoginEventArgs args)
@@ -285,6 +327,61 @@ namespace Chat
         private void sendFailedChatMessageResponse(string connectionId, string originalMessageId)
         {
             sendChatMessageResponse(connectionId, false, originalMessageId, "", "");
+        }
+
+        /// <summary>
+        /// Returns the existing message history store from disk or a new one if it doesn't exist.
+        /// </summary>
+        /// <param name="path">Path to the message history file</param>
+        /// <returns>New or existing credential store</returns>
+        private List<ChatMessage> getMessageHistory(string path)
+        {
+            // Create a new store if one doesn't already exist
+            if (!File.Exists(path))
+            {
+                // Save a new store to disk
+                saveMessageHistory(path, new List<ChatMessage>());
+                
+                // Return the new store
+                return new List<ChatMessage>();
+            }
+            
+            // Pull the store from disk
+            ChatHistoryStore store;
+            using (FileStream fs = new FileStream(path, FileMode.Open))
+            {
+                using (CodedInputStream cis = new CodedInputStream(fs))
+                {
+                    store = ChatHistoryStore.Parser.ParseFrom(cis);
+                }
+            }
+
+            // Return the messages contained within the store
+            return store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
+        }
+
+        /// <summary>
+        /// Saves the given messages to disk, overwriting any existing ones.
+        /// </summary>
+        /// <param name="path">Path to the message history file</param>
+        /// <param name="messages">Messages to save</param>
+        private static void saveMessageHistory(string path, List<ChatMessage> messages)
+        {
+            // Create the store from the message list
+            ChatHistoryStore store = new ChatHistoryStore
+            {
+                ChatMessages = { messages.Select(message => message.ToChatMessageStore())}
+            };
+            
+            // Create or truncate the file
+            using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+            {
+                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                {
+                    // Write the store to disk
+                    store.WriteTo(cos);
+                }
+            }
         }
     }
 }

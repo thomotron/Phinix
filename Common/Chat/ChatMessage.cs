@@ -1,4 +1,5 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Chat
 {
@@ -52,6 +53,36 @@ namespace Chat
             this.Timestamp = timestamp;
             this.SenderUuid = senderUuid;
             this.Message = message;
+        }
+
+        /// <summary>
+        /// Convert to a <c>ChatMessageStore</c>.
+        /// </summary>
+        /// <returns>Converted <c>ChatMessageStore</c></returns>
+        public ChatMessageStore ToChatMessageStore()
+        {
+            return new ChatMessageStore
+            {
+                MessageId = MessageId,
+                Timestamp = Timestamp.ToTimestamp(),
+                SenderUuid = SenderUuid,
+                Message = Message
+            };
+        }
+
+        /// <summary>
+        /// Recreates a <c>ChatMessage</c> from a <c>ChatMessageStore</c>.
+        /// </summary>
+        /// <param name="store"><c>ChatMessageStore</c> to create from</param>
+        /// <returns>Recreated <c>ChatMessage</c></returns>
+        public static ChatMessage FromChatMessageStore(ChatMessageStore store)
+        {
+            return new ChatMessage(
+                messageId: store.MessageId,
+                senderUuid: store.SenderUuid,
+                message: store.Message,
+                timestamp: store.Timestamp.ToDateTime()
+            );
         }
     }
 }
