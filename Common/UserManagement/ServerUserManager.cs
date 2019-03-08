@@ -510,8 +510,12 @@ namespace UserManagement
 
             lock (connectedUsersLock)
             {
-                // Send it to every logged-in user
-                foreach (string connectionId in connectedUsers.Keys)
+                // Get a local copy of each connection ID
+                string[] connectionIds = new string[connectedUsers.Count];
+                connectedUsers.Keys.CopyTo(connectionIds, 0);
+                
+                // Send the update to each connection ID
+                foreach (string connectionId in connectionIds)
                 {
                     try
                     {
