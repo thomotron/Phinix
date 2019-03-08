@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Chat;
+
+import "Stores/ChatMessageStore.proto";
+
+message ChatHistoryStore
+{
+    repeated ChatMessageStore ChatMessages = 1;
+};
