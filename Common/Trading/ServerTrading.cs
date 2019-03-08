@@ -246,7 +246,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -269,7 +272,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>
@@ -424,7 +430,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send CompleteTradePacket to connection " + connectionId, LogLevel.ERROR));
+            }   
         }
         
         /// <summary>
@@ -446,7 +455,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeStatusPacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>
@@ -522,7 +534,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
         
         /// <summary>
@@ -575,7 +590,10 @@ namespace Trading
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send SyncTradesPacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
     }
 }
