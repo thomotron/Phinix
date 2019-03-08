@@ -59,6 +59,18 @@ namespace Chat
             userManager.OnLogin += loginHandler;
         }
 
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
+        {
+            this.netServer = netServer;
+            this.authenticator = authenticator;
+            this.userManager = userManager;
+            this.messageHistoryCapacity = messageHistoryCapacity;
+
+            this.messageHistory = getMessageHistory(messageHistoryStorePath);
+            
+            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginHandler;
+        }
 
         /// <summary>
         /// Saves the chat history to the given file, overwriting if it exists.
