@@ -285,6 +285,9 @@ namespace Trading
 
             lock (activeTradesLock)
             {
+                // Make sure the trade exists, returning on failure
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+                
                 Trade trade = activeTrades[packet.TradeId];
                 
                 // Try to get the other party's UUID, returning on failure
@@ -459,6 +462,9 @@ namespace Trading
 
             lock (activeTradesLock)
             {
+                // Make sure trade exists, returning on failure
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+                
                 Trade trade = activeTrades[packet.TradeId];
 
                 bool success;
