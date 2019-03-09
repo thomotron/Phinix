@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Chat;
 using UnityEngine;
 using Utils;
 using Verse;
@@ -25,6 +26,11 @@ namespace PhinixClient.GUI
         /// The message itself.
         /// </summary>
         public string Message;
+
+        /// <summary>
+        /// The status of the chat message.
+        /// </summary>
+        public ChatMessageStatus Status;
         
         public ChatMessageWidget(string senderUuid, string message)
         {
@@ -32,13 +38,15 @@ namespace PhinixClient.GUI
             this.Message = message;
             
             this.ReceivedTime = DateTime.UtcNow;
+            this.Status = ChatMessageStatus.PENDING;
         }
 
-        public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime)
+        public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
         {
             this.ReceivedTime = receivedTime;
             this.SenderUuid = senderUuid;
             this.Message = message;
+            this.Status = status;
         }
 
         public string Format()
@@ -70,8 +78,24 @@ namespace PhinixClient.GUI
 //                // Draw a context menu with user-specific actions
 //                drawContextMenu();
 //            }
+
+            // Get the formatted chat message
+            string formattedText = Format();
             
-            Widgets.Label(container, Format());
+            // Change the colour of the message to reflect the sent status
+            switch (Status)
+            {
+                case ChatMessageStatus.PENDING:
+                    formattedText = string.Format("<color=#ffffff80>{0}</color>", TextHelper.StripRichText(formattedText));
+                    break;
+                case ChatMessageStatus.DENIED:
+                    formattedText = string.Format("<color=#f04747>{0}</color>", TextHelper.StripRichText(formattedText));
+                    break;
+                default:
+                    break;
+            }
+            
+            Widgets.Label(container, formattedText);
         }
 
         /// <inheritdoc />

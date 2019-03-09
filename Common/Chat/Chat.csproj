@@ -45,15 +45,23 @@
     <Compile Include="Chat.cs" />
     <Compile Include="ChatMessage.cs" />
     <Compile Include="ChatMessageEventArgs.cs" />
+    <Compile Include="ChatMessageStatus.cs" />
     <Compile Include="ClientChat.cs" />
     <Compile Include="Packets\compiled\ChatHistoryPacket.cs" />
+    <Compile Include="ClientChatMessage.cs" />
     <Compile Include="Packets\compiled\ChatMessagePacket.cs" />
+    <Compile Include="Packets\compiled\ChatMessageResponsePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerChat.cs" />
+    <Compile Include="Stores\compiled\ChatHistoryStore.cs" />
+    <Compile Include="Stores\compiled\ChatMessageStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Packets\ChatHistoryPacket.proto" />
     <Content Include="Packets\ChatMessagePacket.proto" />
+    <Content Include="Packets\ChatMessageResponsePacket.proto" />
+    <Content Include="Stores\ChatHistoryStore.proto" />
+    <Content Include="Stores\ChatMessageStore.proto" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile-proto.sh" />

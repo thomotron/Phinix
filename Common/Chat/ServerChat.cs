@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -57,6 +59,47 @@ namespace Chat
             userManager.OnLogin += loginHandler;
         }
 
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
+        {
+            this.netServer = netServer;
+            this.authenticator = authenticator;
+            this.userManager = userManager;
+            this.messageHistoryCapacity = messageHistoryCapacity;
+
+            this.messageHistory = getMessageHistory(messageHistoryStorePath);
+            
+            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
+            userManager.OnLogin += loginHandler;
+        }
+
+        /// <summary>
+        /// Saves the chat history to the given file, overwriting if it exists.
+        /// </summary>
+        /// <param name="path">Chat history store path</param>
+        public void SaveChatHistory(string path)
+        {
+            lock (messageHistoryLock)
+            {
+                saveMessageHistory(path, messageHistory);
+            }
+            
+            RaiseLogEntry(new LogEventArgs("Saved chat history"));
+        }
+
+        /// <summary>
+        /// Loads the chat history from the given file.
+        /// </summary>
+        /// <param name="path">Chat history store path</param>
+        public void LoadChatHistory(string path)
+        {
+            lock (messageHistoryLock)
+            {
+                messageHistory = getMessageHistory(path);
+            }
+            
+            RaiseLogEntry(new LogEventArgs("Loaded chat history"));
+        }
+
         private void loginHandler(object sender, ServerLoginEventArgs args)
         {
             lock (messageHistoryLock)
@@ -72,8 +115,9 @@ namespace Chat
                         new ChatMessagePacket
                         {
                             Uuid = chatMessage.SenderUuid,
+                            MessageId = chatMessage.MessageId,
                             Message = chatMessage.Message,
-                            Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+                            Timestamp = chatMessage.Timestamp.ToTimestamp()
                         }
                     );
                 }
@@ -82,7 +126,10 @@ namespace Chat
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
                 // Send it on its way
-                netServer.Send(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray());
+                if (!netServer.TrySend(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray()))
+                {
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatHistoryPacket to connection " + args.ConnectionId, LogLevel.ERROR));
+                }
             }
         }
 
@@ -110,73 +157,119 @@ namespace Chat
             }
         }
 
+        /// <summary>
+        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// </summary>
+        /// <param name="module">Target module</param>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="data">Data payload</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
-            // Ignore packets from non-authenticated sessions
-            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+            // Refuse packets from non-authenticated sessions
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
+            {
+                sendFailedChatMessageResponse(connectionId, packet.MessageId);
+                
+                // Stop here
+                return;
+            }
 
-            // Ignore packets from non-logged in users
-            if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
+            // Refuse packets from non-logged in users
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
+            {
+                sendFailedChatMessageResponse(connectionId, packet.MessageId);
+                
+                // Stop here
+                return;
+            }
+
+            // Get a copy of the packet's original message ID
+            string originalMessageId = packet.MessageId;
             
-            // Clear the session ID for security
-            packet.SessionId = "";
+            // Generate a new, guaranteed-to-be-unique message ID
+            string newMessageId = Guid.NewGuid().ToString();
             
             // Sanitise the message content
-            packet.Message = TextHelper.SanitiseRichText(packet.Message);
+            string sanitisedMessage = TextHelper.SanitiseRichText(packet.Message);
+            
+            // Get the current time
+            DateTime timestamp = DateTime.UtcNow;
             
             // Add the message to the message history
-            addMessageToHistory(new ChatMessage(packet.Uuid, packet.Message));
+            addMessageToHistory(new ChatMessage(newMessageId, packet.Uuid, sanitisedMessage, timestamp));
             
-            // Set the timestamp
-            packet.Timestamp = DateTime.UtcNow.ToTimestamp();
+            // Send a response to the sender
+            sendChatMessageResponse(connectionId, true, originalMessageId, newMessageId, sanitisedMessage);
                     
-            // Broadcast the chat packet to everyone
-            broadcastChatMessage(packet);
+            // Broadcast the chat packet to everyone but the sender
+            broadcastChatMessage(packet.Uuid, newMessageId, sanitisedMessage, timestamp, new[]{connectionId});
         }
 
         /// <summary>
-        /// Broadcasts the given <c>ChatMessagePacket</c> to all currently logged-in users.
+        /// Broadcasts a <c>ChatMessagePacket</c> to all currently logged-in users.
         /// </summary>
-        /// <param name="packet"><c>ChatMessagePacket</c> to broadcast</param>
-        private void broadcastChatMessage(ChatMessagePacket packet)
+        /// <param name="senderUuid">Sender's UUID</param>
+        /// <param name="messageId">Message ID</param>
+        /// <param name="message">Message content</param>
+        /// <param name="timestamp">Timestamp</param>
+        /// <param name="excludedConnectionIds">Array of connection IDs to be excluded from the broadcast</param>
+        private void broadcastChatMessage(string senderUuid, string messageId, string message, DateTime timestamp, string[] excludedConnectionIds = null)
         {
-            // Pack the packet
-            Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
-            // Send it to each logged in user
-            foreach (string connectionId in userManager.GetConnections())
+            // Create and pack a ChatMessagePacket
+            ChatMessagePacket packet = new ChatMessagePacket
             {
-                try
+                Uuid = senderUuid,
+                MessageId = messageId,
+                Message = message,
+                Timestamp = timestamp.ToTimestamp()
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+
+            // Get an array of connection IDs for each logged in user
+            string[] connectionIds = userManager.GetConnections();
+            
+            // Remove the connection IDs to be excluded from the broadcast (if any)
+            if (excludedConnectionIds != null)
+            {
+                connectionIds = connectionIds.Except(excludedConnectionIds).ToArray();
+            }
+            
+            // Send it to each of the remaining connection IDs
+            foreach (string connectionId in connectionIds)
+            {
+                // Try send the chat message
+                if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
-                    // Try send the chat message
-                    netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
-                }
-                catch (NotConnectedException)
-                {
-                    // Report the failure
-                    RaiseLogEntry(new LogEventArgs(string.Format("Tried sending a chat message to connection {0}, but it is closed", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
                 }
             }
         }
 
         /// <summary>
-        /// Sends the given <c>ChatMessage</c> to the user.
+        /// Sends a <c>ChatMessagePacket</c> to the user.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
-        /// <param name="chatMessage"><c>ChatMessage</c> to send</param>
-        private void sendChatMessage(string connectionId, ChatMessage chatMessage)
+        /// <param name="senderUuid">Sender's UUID</param>
+        /// <param name="messageId">Message ID</param>
+        /// <param name="message">Message content</param>
+        /// <param name="timestamp">Timestamp</param>
+        private void sendChatMessage(string connectionId, string senderUuid, string messageId, string message, DateTime timestamp)
         {
             // Create and pack our chat message packet
             ChatMessagePacket packet = new ChatMessagePacket
             {
-                Uuid = chatMessage.SenderUuid,
-                Message = chatMessage.Message,
-                Timestamp = chatMessage.ReceivedTime.ToTimestamp()
+                MessageId = messageId,
+                Uuid = senderUuid,
+                Message = message,
+                Timestamp = timestamp.ToTimestamp()
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
             // Send it on its way
-            netServer.Send(connectionId, MODULE_NAME, packedPacket.ToByteArray());
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
+            }
         }
 
         /// <summary>
@@ -195,6 +288,98 @@ namespace Chat
                 {
                     // Remove the oldest message
                     messageHistory.RemoveAt(0);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates and sends a <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="success">Whether the chat message was processed successfully</param>
+        /// <param name="originalMessageId">Original message ID</param>
+        /// <param name="newMessageId">Newly-generated message ID</param>
+        /// <param name="message">Message content</param>
+        private void sendChatMessageResponse(string connectionId, bool success, string originalMessageId, string newMessageId, string message)
+        {
+            // Prepare and pack a ChatMessageResponsePacket
+            ChatMessageResponsePacket packet = new ChatMessageResponsePacket
+            {
+                Success = success,
+                OriginalMessageId = originalMessageId,
+                NewMessageId = newMessageId,
+                Message = message
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
+        }
+        
+        /// <summary>
+        /// Creates and sends a failed <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="originalMessageId">The original message ID</param>
+        private void sendFailedChatMessageResponse(string connectionId, string originalMessageId)
+        {
+            sendChatMessageResponse(connectionId, false, originalMessageId, "", "");
+        }
+
+        /// <summary>
+        /// Returns the existing message history store from disk or a new one if it doesn't exist.
+        /// </summary>
+        /// <param name="path">Path to the message history file</param>
+        /// <returns>New or existing credential store</returns>
+        private List<ChatMessage> getMessageHistory(string path)
+        {
+            // Create a new store if one doesn't already exist
+            if (!File.Exists(path))
+            {
+                // Save a new store to disk
+                saveMessageHistory(path, new List<ChatMessage>());
+                
+                // Return the new store
+                return new List<ChatMessage>();
+            }
+            
+            // Pull the store from disk
+            ChatHistoryStore store;
+            using (FileStream fs = new FileStream(path, FileMode.Open))
+            {
+                using (CodedInputStream cis = new CodedInputStream(fs))
+                {
+                    store = ChatHistoryStore.Parser.ParseFrom(cis);
+                }
+            }
+
+            // Return the messages contained within the store
+            return store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
+        }
+
+        /// <summary>
+        /// Saves the given messages to disk, overwriting any existing ones.
+        /// </summary>
+        /// <param name="path">Path to the message history file</param>
+        /// <param name="messages">Messages to save</param>
+        private static void saveMessageHistory(string path, List<ChatMessage> messages)
+        {
+            // Create the store from the message list
+            ChatHistoryStore store = new ChatHistoryStore
+            {
+                ChatMessages = { messages.Select(message => message.ToChatMessageStore())}
+            };
+            
+            // Create or truncate the file
+            using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+            {
+                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                {
+                    // Write the store to disk
+                    store.WriteTo(cos);
                 }
             }
         }

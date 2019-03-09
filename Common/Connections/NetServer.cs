@@ -49,7 +49,8 @@ namespace Connections
             
             this.server = new NetManager(listener, maxConnections, "Phinix")
             {
-                PingInterval = 5000
+                PingInterval = 5000,
+                DisconnectTimeout = 30000
             };
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
@@ -155,6 +156,33 @@ namespace Connections
             writer.Put(serialisedMessage);
 
             peer.Send(writer, SendOptions.ReliableOrdered);
+        }
+
+        /// <summary>
+        /// Tries to send a message to a module through the given connection.
+        /// </summary>
+        /// <param name="connectionId">Connection ID of recipient</param>
+        /// <param name="module">Target module</param>
+        /// <param name="serialisedMessage">Serialised message</param>
+        /// <returns>Whether the message was sent successfully</returns>
+        public bool TrySend(string connectionId, string module, byte[] serialisedMessage)
+        {
+            try
+            {
+                // Try to send the message
+                Send(connectionId, module, serialisedMessage);
+                return true;
+            }
+            catch (NotConnectedException)
+            {
+                // Catch connection exceptions
+                return false;
+            }
+            catch (ArgumentNullException)
+            {
+                // Catch argument exceptions
+                return false;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Authentication;
 using Connections;
 using Google.Protobuf;
@@ -54,7 +55,7 @@ namespace Chat
         /// <summary>
         /// List of chat messages received from the server.
         /// </summary>
-        private List<ChatMessage> messageHistory;
+        private List<ClientChatMessage> messageHistory;
         /// <summary>
         /// Lock object to prevent race conditions when accessing <c>messageHistory</c>.
         /// </summary>
@@ -66,7 +67,7 @@ namespace Chat
             this.authenticator = authenticator;
             this.userManager = userManager;
             
-            this.messageHistory = new List<ChatMessage>();
+            this.messageHistory = new List<ClientChatMessage>();
             this.messageCountAtLastCheck = 0;
             
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
@@ -103,6 +104,10 @@ namespace Chat
                     RaiseLogEntry(new LogEventArgs("Got a ChatMessagePacket", LogLevel.DEBUG));
                     chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
                     break;
+                case "ChatMessageResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a ChatMessageResponsePacket", LogLevel.DEBUG));
+                    chatMessageResponsePacketHandler(connectionId, message.Unpack<ChatMessageResponsePacket>());
+					break;
                 case "ChatHistoryPacket":
                     RaiseLogEntry(new LogEventArgs("Got a ChatHistoryPacket", LogLevel.DEBUG));
                     chatHistoryPacketHandler(connectionId, message.Unpack<ChatHistoryPacket>());
@@ -137,13 +142,24 @@ namespace Chat
 
                 return;
             }
+            
+            // Create a random message ID
+            string messageId = Guid.NewGuid().ToString();
+            
+            // Create and store a chat message locally
+            ClientChatMessage localMessage = new ClientChatMessage(messageId, userManager.Uuid, message);
+            lock (messageHistoryLock)
+            {
+                messageHistory.Add(localMessage);
+            }
 
             // Create and pack the chat message packet
             ChatMessagePacket packet = new ChatMessagePacket
             {
                 SessionId = authenticator.SessionId,
                 Uuid = userManager.Uuid,
-                Message = message,
+                MessageId = messageId,
+                Message = message
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
                 
@@ -155,7 +171,7 @@ namespace Chat
         /// Returns a list of all messages received since connecting to the server.
         /// </summary>
         /// <returns>A list of all messages received since connecting to the server</returns>
-        public ChatMessage[] GetMessages()
+        public ClientChatMessage[] GetMessages()
         {
             lock (messageHistoryLock)
             {
@@ -177,7 +193,7 @@ namespace Chat
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ChatMessage(packet.Uuid, packet.Message, packet.Timestamp.ToDateTime()));
+                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
             }
             
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
@@ -195,7 +211,47 @@ namespace Chat
                 // Store each message in chat history
                 foreach (ChatMessagePacket messagePacket in packet.ChatMessages)
                 {
-                    messageHistory.Add(new ChatMessage(messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime()));
+                    messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
+                }
+            }
+        }
+
+		/// <summary>
+        /// Handles incoming <c>ChatMessageResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void chatMessageResponsePacketHandler(string connectionId, ChatMessageResponsePacket packet)
+        {
+            lock (messageHistoryLock)
+            {
+                ClientChatMessage message;
+                try
+                {
+                    // Try get a message with a corresponding original message ID
+                    message = messageHistory.Single(m => m.MessageId == packet.OriginalMessageId);
+                }
+                catch (InvalidOperationException)
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessageResponsePacket with an unknown original message ID ({0})", packet.OriginalMessageId), LogLevel.WARNING));
+                    
+                    // Stop here
+                    return;
+                }
+                
+                // Update the message ID
+                message.MessageId = packet.NewMessageId;
+
+                if (packet.Success)
+                {
+                    // Update the message content and confirm it
+                    message.Message = packet.Message;
+                    message.Status = ChatMessageStatus.CONFIRMED;
+                }
+                else
+                {
+                    // Deny the message but don't overwrite the content
+                    message.Status = ChatMessageStatus.DENIED;
                 }
             }
         }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package Chat;
+
+import "google/protobuf/timestamp.proto";
+
+message ChatMessageStore
+{
+    string MessageId = 1;
+    
+    google.protobuf.Timestamp Timestamp = 2;
+
+    string SenderUuid = 3;
+
+    string Message = 4;
+};
