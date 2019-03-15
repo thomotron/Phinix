@@ -1,8 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using RimWorld;
 using Trading;
 using Verse;
+using Type = System.Type;
 
 namespace PhinixClient
 {
@@ -33,6 +40,45 @@ namespace PhinixClient
             {
                 // Set protoThing's stuff def
                 protoThing.StuffDefName = verseThing.Stuff.defName;
+            }
+            
+            // Get a collection of comp types this thing has
+            IEnumerable<Type> compTypes = verseThing.def.comps.Select(props => props.compClass);
+            
+            // Create a new type-safe serialiser and stream to store the result in
+            DataContractSerializer dcs = new DataContractSerializer(typeof(ThingComp));
+            MemoryStream ms = new MemoryStream();
+            
+            ThingComp
+            
+            // Collect and serialise all available comps
+            List<byte[]> serialisedComps = new List<byte[]>();
+            foreach (Type type in compTypes)
+            {
+                // Get the comp
+                object comp = typeof(Thing)
+                    .GetMethod("TryGetComp")?  // Try get the TryGetComp<T>() method
+                    .MakeGenericMethod(type)   // Make a generic version of it for this type
+                    .Invoke(verseThing, null); // Invoke it on verseThing with no parameters
+
+                // Make sure we have the comp before serialising it
+                if (comp != null)
+                {
+                    // Pass it through the serialiser
+                    dcs.WriteObject(ms, (ThingComp) comp);
+                    
+                    // Add the resulting bytes to the serialised comps list
+                    serialisedComps.Add(ms.ToArray());
+                }
+                
+                // Clear out the memory stream for the next comp
+                ms.SetLength(0);
+            }
+            
+            // Add the serialised comps to protoThing
+            foreach (byte[] serialisedComp in serialisedComps)
+            {
+                protoThing.Comps.Add(ByteString.CopyFrom(serialisedComp));
             }
 
             // Check if verseThing is minified

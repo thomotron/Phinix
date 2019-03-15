@@ -23,15 +23,15 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChNQYWNrZXRzL1RoaW5nLnByb3RvEgdUcmFkaW5nGhVQYWNrZXRzL1F1YWxp",
-            "dHkucHJvdG8iqwEKClByb3RvVGhpbmcSDwoHRGVmTmFtZRgBIAEoCRISCgpT",
+            "dHkucHJvdG8iugEKClByb3RvVGhpbmcSDwoHRGVmTmFtZRgBIAEoCRISCgpT",
             "dGFja0NvdW50GAIgASgFEhQKDFN0dWZmRGVmTmFtZRgDIAEoCRIhCgdRdWFs",
             "aXR5GAQgASgOMhAuVHJhZGluZy5RdWFsaXR5EhEKCUhpdFBvaW50cxgFIAEo",
-            "BRIsCg9Jbm5lclByb3RvVGhpbmcYBiABKAsyEy5UcmFkaW5nLlByb3RvVGhp",
-            "bmdiBnByb3RvMw=="));
+            "BRINCgVDb21wcxgHIAMoDBIsCg9Jbm5lclByb3RvVGhpbmcYBiABKAsyEy5U",
+            "cmFkaW5nLlByb3RvVGhpbmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.QualityReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoThing), global::Trading.ProtoThing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerProtoThing" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoThing), global::Trading.ProtoThing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "Comps", "InnerProtoThing" }, null, null, null)
           }));
     }
     #endregion
@@ -67,6 +67,7 @@ namespace Trading {
       stuffDefName_ = other.stuffDefName_;
       quality_ = other.quality_;
       hitPoints_ = other.hitPoints_;
+      comps_ = other.comps_.Clone();
       InnerProtoThing = other.innerProtoThing_ != null ? other.InnerProtoThing.Clone() : null;
     }
 
@@ -130,6 +131,16 @@ namespace Trading {
       }
     }
 
+    /// <summary>Field number for the "Comps" field.</summary>
+    public const int CompsFieldNumber = 7;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_comps_codec
+        = pb::FieldCodec.ForBytes(58);
+    private readonly pbc::RepeatedField<pb::ByteString> comps_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<pb::ByteString> Comps {
+      get { return comps_; }
+    }
+
     /// <summary>Field number for the "InnerProtoThing" field.</summary>
     public const int InnerProtoThingFieldNumber = 6;
     private global::Trading.ProtoThing innerProtoThing_;
@@ -159,6 +170,7 @@ namespace Trading {
       if (StuffDefName != other.StuffDefName) return false;
       if (Quality != other.Quality) return false;
       if (HitPoints != other.HitPoints) return false;
+      if(!comps_.Equals(other.comps_)) return false;
       if (!object.Equals(InnerProtoThing, other.InnerProtoThing)) return false;
       return true;
     }
@@ -171,6 +183,7 @@ namespace Trading {
       if (StuffDefName.Length != 0) hash ^= StuffDefName.GetHashCode();
       if (Quality != 0) hash ^= Quality.GetHashCode();
       if (HitPoints != 0) hash ^= HitPoints.GetHashCode();
+      hash ^= comps_.GetHashCode();
       if (innerProtoThing_ != null) hash ^= InnerProtoThing.GetHashCode();
       return hash;
     }
@@ -206,6 +219,7 @@ namespace Trading {
         output.WriteRawTag(50);
         output.WriteMessage(InnerProtoThing);
       }
+      comps_.WriteTo(output, _repeated_comps_codec);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -226,6 +240,7 @@ namespace Trading {
       if (HitPoints != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(HitPoints);
       }
+      size += comps_.CalculateSize(_repeated_comps_codec);
       if (innerProtoThing_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(InnerProtoThing);
       }
@@ -252,6 +267,7 @@ namespace Trading {
       if (other.HitPoints != 0) {
         HitPoints = other.HitPoints;
       }
+      comps_.Add(other.comps_);
       if (other.innerProtoThing_ != null) {
         if (innerProtoThing_ == null) {
           innerProtoThing_ = new global::Trading.ProtoThing();
@@ -293,6 +309,10 @@ namespace Trading {
               innerProtoThing_ = new global::Trading.ProtoThing();
             }
             input.ReadMessage(innerProtoThing_);
+            break;
+          }
+          case 58: {
+            comps_.AddEntriesFrom(input, _repeated_comps_codec);
             break;
           }
         }
