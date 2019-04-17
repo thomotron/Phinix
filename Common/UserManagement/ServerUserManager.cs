@@ -589,7 +589,7 @@ namespace UserManagement
             if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
 
             // Update the user
-            UpdateUser(user.Uuid, user.DisplayName, user.AcceptingTrades);
+            UpdateUser(user.Uuid, TextHelper.SanitiseRichText(user.DisplayName), user.AcceptingTrades);
         }
     }
 }
