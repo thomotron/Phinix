@@ -49,8 +49,6 @@ namespace PhinixClient
             DataContractSerializer dcs = new DataContractSerializer(typeof(ThingComp));
             MemoryStream ms = new MemoryStream();
             
-            ThingComp
-            
             // Collect and serialise all available comps
             List<byte[]> serialisedComps = new List<byte[]>();
             foreach (Type type in compTypes)
