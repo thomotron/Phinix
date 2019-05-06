@@ -75,9 +75,10 @@ namespace PhinixClient
             );
             
             // Item name
+            string labelTemplate = itemStack.Count > 1 ? "{} ({})" : "{}";
             row.Add(
                 new TextWidget(
-                    text: itemStack.Things.First().Label.CapitalizeFirst(),
+                    text: string.Format(labelTemplate, itemStack.Things.First().LabelCapNoCount, itemStack.Count),
                     anchor: TextAnchor.MiddleLeft
                 )
             );
