@@ -22,14 +22,14 @@ namespace Trading {
     static TradeProtoReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChhQYWNrZXRzL1RyYWRlUHJvdG8ucHJvdG8SB1RyYWRpbmcaE1BhY2tldHMv",
-            "VGhpbmcucHJvdG8itQEKClRyYWRlUHJvdG8SDwoHVHJhZGVJZBgBIAEoCRIW",
-            "Cg5PdGhlclBhcnR5VXVpZBgCIAEoCRIiCgVJdGVtcxgDIAMoCzITLlRyYWRp",
-            "bmcuUHJvdG9UaGluZxIsCg9PdGhlclBhcnR5SXRlbXMYBCADKAsyEy5UcmFk",
-            "aW5nLlByb3RvVGhpbmcSEAoIQWNjZXB0ZWQYBSABKAgSGgoST3RoZXJQYXJ0",
-            "eUFjY2VwdGVkGAYgASgIYgZwcm90bzM="));
+            "ChhQYWNrZXRzL1RyYWRlUHJvdG8ucHJvdG8SB1RyYWRpbmcaGFBhY2tldHMv",
+            "UHJvdG9UaGluZy5wcm90byK1AQoKVHJhZGVQcm90bxIPCgdUcmFkZUlkGAEg",
+            "ASgJEhYKDk90aGVyUGFydHlVdWlkGAIgASgJEiIKBUl0ZW1zGAMgAygLMhMu",
+            "VHJhZGluZy5Qcm90b1RoaW5nEiwKD090aGVyUGFydHlJdGVtcxgEIAMoCzIT",
+            "LlRyYWRpbmcuUHJvdG9UaGluZxIQCghBY2NlcHRlZBgFIAEoCBIaChJPdGhl",
+            "clBhcnR5QWNjZXB0ZWQYBiABKAhiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Trading.ProtoThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.TradeProto), global::Trading.TradeProto.Parser, new[]{ "TradeId", "OtherPartyUuid", "Items", "OtherPartyItems", "Accepted", "OtherPartyAccepted" }, null, null, null)
           }));

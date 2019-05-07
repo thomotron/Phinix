@@ -23,12 +23,12 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiFQYWNrZXRzL0NvbXBsZXRlVHJhZGVQYWNrZXQucHJvdG8SB1RyYWRpbmca",
-            "E1BhY2tldHMvVGhpbmcucHJvdG8icwoTQ29tcGxldGVUcmFkZVBhY2tldBIP",
-            "CgdUcmFkZUlkGAEgASgJEhYKDk90aGVyUGFydHlVdWlkGAIgASgJEg8KB1N1",
-            "Y2Nlc3MYAyABKAgSIgoFSXRlbXMYBCADKAsyEy5UcmFkaW5nLlByb3RvVGhp",
-            "bmdiBnByb3RvMw=="));
+            "GFBhY2tldHMvUHJvdG9UaGluZy5wcm90byJzChNDb21wbGV0ZVRyYWRlUGFj",
+            "a2V0Eg8KB1RyYWRlSWQYASABKAkSFgoOT3RoZXJQYXJ0eVV1aWQYAiABKAkS",
+            "DwoHU3VjY2VzcxgDIAEoCBIiCgVJdGVtcxgEIAMoCzITLlRyYWRpbmcuUHJv",
+            "dG9UaGluZ2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Trading.ProtoThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.CompleteTradePacket), global::Trading.CompleteTradePacket.Parser, new[]{ "TradeId", "OtherPartyUuid", "Success", "Items" }, null, null, null)
           }));

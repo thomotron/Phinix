@@ -23,13 +23,13 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiRQYWNrZXRzL1VwZGF0ZVRyYWRlSXRlbXNQYWNrZXQucHJvdG8SB1RyYWRp",
-            "bmcaE1BhY2tldHMvVGhpbmcucHJvdG8iqwEKFlVwZGF0ZVRyYWRlSXRlbXNQ",
-            "YWNrZXQSEQoJU2Vzc2lvbklkGAEgASgJEgwKBFV1aWQYAiABKAkSDwoHVHJh",
-            "ZGVJZBgDIAEoCRINCgVUb2tlbhgGIAEoCRIiCgVJdGVtcxgEIAMoCzITLlRy",
-            "YWRpbmcuUHJvdG9UaGluZxIsCg9PdGhlclBhcnR5SXRlbXMYBSADKAsyEy5U",
-            "cmFkaW5nLlByb3RvVGhpbmdiBnByb3RvMw=="));
+            "bmcaGFBhY2tldHMvUHJvdG9UaGluZy5wcm90byKrAQoWVXBkYXRlVHJhZGVJ",
+            "dGVtc1BhY2tldBIRCglTZXNzaW9uSWQYASABKAkSDAoEVXVpZBgCIAEoCRIP",
+            "CgdUcmFkZUlkGAMgASgJEg0KBVRva2VuGAYgASgJEiIKBUl0ZW1zGAQgAygL",
+            "MhMuVHJhZGluZy5Qcm90b1RoaW5nEiwKD090aGVyUGFydHlJdGVtcxgFIAMo",
+            "CzITLlRyYWRpbmcuUHJvdG9UaGluZ2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Trading.ProtoThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.UpdateTradeItemsPacket), global::Trading.UpdateTradeItemsPacket.Parser, new[]{ "SessionId", "Uuid", "TradeId", "Token", "Items", "OtherPartyItems" }, null, null, null)
           }));

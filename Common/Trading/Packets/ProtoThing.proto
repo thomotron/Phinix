@@ -15,7 +15,7 @@ message ProtoThing
     
     int32 HitPoints = 5;
     
-    repeated bytes Comps = 7;
+    repeated bytes CompProps = 7;
 
     ProtoThing InnerProtoThing = 6;
 };
