@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using RimWorld;
 using Trading;
 using Verse;
@@ -42,41 +41,41 @@ namespace PhinixClient
                 protoThing.StuffDefName = verseThing.Stuff.defName;
             }
             
-            // Get a collection of comp types this thing has
-            IEnumerable<Type> compTypes = verseThing.def.comps.Select(props => props.compClass);
-            
             // Create a new type-safe serialiser and stream to store the result in
-            DataContractSerializer dcs = new DataContractSerializer(typeof(ThingComp));
+            DataContractSerializer dcs = new DataContractSerializer(typeof(CompProperties), knownTypes);
             MemoryStream ms = new MemoryStream();
             
-            // Collect and serialise all available comps
-            List<byte[]> serialisedComps = new List<byte[]>();
-            foreach (Type type in compTypes)
-            {
-                // Get the comp
-                object comp = typeof(Thing)
-                    .GetMethod("TryGetComp")?  // Try get the TryGetComp<T>() method
-                    .MakeGenericMethod(type)   // Make a generic version of it for this type
-                    .Invoke(verseThing, null); // Invoke it on verseThing with no parameters
-
-                // Make sure we have the comp before serialising it
-                if (comp != null)
+            // Collect and serialise all available comp properties, if there are any
+            List<byte[]> serialisedProps = new List<byte[]>();
+            List<ThingComp> comps = (verseThing as ThingWithComps)?.AllComps;
+            if (comps != null)
+                foreach (ThingComp comp in comps)
                 {
-                    // Pass it through the serialiser
-                    dcs.WriteObject(ms, (ThingComp) comp);
+                    // Get props
+                    CompProperties props = comp.props;
                     
-                    // Add the resulting bytes to the serialised comps list
-                    serialisedComps.Add(ms.ToArray());
+                    // Make sure we have the props before serialising them
+                    if (props != null)
+                    {
+                        // Pass it through the serialiser
+                        dcs.WriteObject(ms, props);
+
+                        // Add the resulting bytes to the serialised props list
+                        serialisedProps.Add(ms.ToArray());
+                        
+                        Log.Message(string.Format("Serialised props for {0} ({1})", comp, serialisedProps.Last().Length));
+                    }
+
+                    // Clear out the memory stream for the next set of props
+                    ms.SetLength(0);
                 }
-                
-                // Clear out the memory stream for the next comp
-                ms.SetLength(0);
-            }
-            
+
             // Add the serialised comps to protoThing
-            foreach (byte[] serialisedComp in serialisedComps)
+            foreach (byte[] serialisedProp in serialisedProps)
             {
-                protoThing.Comps.Add(ByteString.CopyFrom(serialisedComp));
+                protoThing.CompProps.Add(ByteString.CopyFrom(serialisedProp));
+                
+                Log.Message(string.Format("Added prop to CompProps ({0})", serialisedProp.Length));
             }
 
             // Check if verseThing is minified
@@ -137,6 +136,45 @@ namespace PhinixClient
                 // Set verseThing's quality if it is capable of having a quality
                 // Art generation should be that of an outsider given that this is a traded item
                 verseThing.TryGetComp<CompQuality>()?.SetQuality((QualityCategory) protoThing.Quality, ArtGenerationContext.Outsider);
+            }
+            
+            // Check if verseThing has comps to apply
+            if (protoThing.CompProps.Count > 0)
+            {
+                // Set up a deserialiser and memory stream
+                DataContractSerializer dcs = new DataContractSerializer(typeof(CompProperties), knownTypes);
+                
+                // Iterate over each set of comp props
+                foreach (ByteString serialisedProps in protoThing.CompProps)
+                {
+                    Log.Message(string.Format("byte string is {0} long ({1})", serialisedProps.Length,
+                        serialisedProps.ToBase64()));
+
+                    // Skip zero-length props
+                    if (serialisedProps.Length == 0) continue;
+                    
+                    // Deserialise the props
+                    object deserialisedObject = dcs.ReadObject(new MemoryStream(serialisedProps.ToByteArray()));
+                    
+                    Log.Message("Deserialised");
+                    
+                    // Move on if the props didn't deserialise properly
+                    if (deserialisedObject == null) continue;
+                    
+                    Log.Message("Actually did it the absolute madman");
+                    
+                    // Cast the props
+                    CompProperties deserialisedProps = deserialisedObject as CompProperties;
+                    
+                    Log.Message("Casted");
+                    
+                    // Find the comp that these props apply to, skipping if one can't be found
+                    ThingComp comp = (verseThing as ThingWithComps)?.AllComps.Single(c => c.GetType() == deserialisedProps.compClass);
+                    if (comp == null) continue;
+                    
+                    // Apply the props to the comp
+                    comp.Initialize(deserialisedProps);
+                }
             }
             
             // Check if verseThing is minified
