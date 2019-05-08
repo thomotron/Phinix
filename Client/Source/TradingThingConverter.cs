@@ -15,6 +15,39 @@ namespace PhinixClient
     public static class TradingThingConverter
     {
         /// <summary>
+        /// Whether the known types for <c>DataContractSerializer</c> to use have been enumerated.
+        /// Enumeration is expensive and should only need to be done once, hence this flag.
+        /// </summary>
+        private static bool typesEnumerated = false;
+
+        /// <summary>
+        /// Types known to the <c>DataContractSerializer</c> for (de)serialisation.
+        /// Initialised once on first use.
+        /// </summary>
+        private static List<Type> knownTypes;
+
+        /// <summary>
+        /// Enumerates all inheritors of <c>CompProperties</c> and adds them to the known types list.
+        /// This only needs to happen once.
+        /// </summary>
+        private static void checkAndEnumerateTypes()
+        {
+            // No need to run if we have already enumerated
+            if (typesEnumerated) return;
+            
+            // Gather all inheritors of CompProperties and add them to the known types list
+            knownTypes = Assembly.GetAssembly(typeof(CompProperties))
+                                 .GetTypes()
+                                 .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(CompProperties)))
+                                 .ToList();
+            
+            Log.Message(string.Format("Got {0} types", knownTypes.Count));
+
+            // Set the enumerated flag so we don't have to do this again
+            typesEnumerated = true;
+        }
+        
+        /// <summary>
         /// Converts a <c>Verse.Thing</c> into a <c>Trading.Thing</c>.
         /// Used for preparing a <c>Verse.Thing</c> for transport.
         /// </summary>
@@ -22,6 +55,9 @@ namespace PhinixClient
         /// <returns>Converted thing</returns>
         public static Trading.ProtoThing ConvertThingFromVerse(Verse.Thing verseThing)
         {
+            // Make sure the known types list is populated
+            checkAndEnumerateTypes();
+            
             // Try get the quality of the thing, failure defaulting to none
             Quality quality = verseThing.TryGetQuality(out QualityCategory gottenQuality) ? (Quality) gottenQuality : Quality.None;
             
@@ -99,6 +135,9 @@ namespace PhinixClient
         /// <exception cref="InvalidOperationException">Could not find a single def that matches Trading.Thing stuff def name</exception>
         public static Verse.Thing ConvertThingFromProto(Trading.ProtoThing protoThing)
         {
+            // Make sure the known types list is populated
+            checkAndEnumerateTypes();
+            
             // Try to get the ThingDef for protoThing
             ThingDef thingDef;
             try
