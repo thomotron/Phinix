@@ -85,6 +85,7 @@
     <Compile Include="GUI\TradeRow.cs" />
     <Compile Include="GUI\VerticalFlexContainer.cs" />
     <Compile Include="GUI\WidthContainer.cs" />
+    <Compile Include="PendingThings.cs" />
     <Compile Include="PlaceholderWidget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerTab.cs" />
