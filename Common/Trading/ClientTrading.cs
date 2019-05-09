@@ -284,7 +284,7 @@ namespace Trading
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="items">Items on offer</param>
-        public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items)
+        public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items, string token = "")
         {
             // Do nothing if not online
             if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
@@ -295,7 +295,8 @@ namespace Trading
                 SessionId = authenticator.SessionId,
                 Uuid = userManager.Uuid,
                 TradeId = tradeId,
-                Items = {items}
+                Items = {items},
+                Token = token
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
