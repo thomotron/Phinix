@@ -71,7 +71,8 @@ namespace PhinixClient
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -378,6 +379,23 @@ namespace PhinixClient
                 
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
             };
+            trading.OnTradeUpdateFailure += (sender, args) =>
+            {
+                // Try get the other party's display name
+                if (trading.TryGetOtherPartyUuid(args.TradeId, out string otherPartyUuid) &&
+                    userManager.TryGetDisplayName(otherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
+            };
             
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
@@ -391,7 +409,8 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
-            trading.OnTradeUpdated += (sender, e) => { OnTradeUpdated?.Invoke(sender, e); };
+            trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
+            trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

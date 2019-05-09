@@ -100,7 +100,8 @@ namespace PhinixClient
 
             Instance.OnTradeCompleted += OnTradeCompleted;
             Instance.OnTradeCancelled += OnTradeCancelled;
-            Instance.OnTradeUpdated += OnTradeUpdated;
+            Instance.OnTradeUpdateSuccess += OnTradeUpdated;
+            Instance.OnTradeUpdateFailure += OnTradeUpdated;
         }
 
         public override void PreOpen()
@@ -129,7 +130,8 @@ namespace PhinixClient
             
             Instance.OnTradeCompleted -= OnTradeCompleted;
             Instance.OnTradeCancelled -= OnTradeCancelled;
-            Instance.OnTradeUpdated -= OnTradeUpdated;
+            Instance.OnTradeUpdateSuccess -= OnTradeUpdated;
+            Instance.OnTradeUpdateFailure -= OnTradeUpdated;
         }
 
         public override void DoWindowContents(Rect inRect)

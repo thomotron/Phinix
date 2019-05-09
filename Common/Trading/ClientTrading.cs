@@ -36,9 +36,13 @@ namespace Trading
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         /// <summary>
-        /// Raised when a trade is updated.
+        /// Raised when a trade is updated successfully.
         /// </summary>
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
+        /// <summary>
+        /// Raised when a trade fails to update.
+        /// </summary>
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
@@ -481,7 +485,7 @@ namespace Trading
             }
             
             // Raise the trade update event
-            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+            OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
         
         /// <summary>
