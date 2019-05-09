@@ -22,11 +22,11 @@ namespace Trading {
     static TradeFailureReasonReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CiBQYWNrZXRzL1RyYWRlRmFpbHVyZVJlYXNvbi5wcm90bxIHVHJhZGluZyqN",
+            "CiBQYWNrZXRzL1RyYWRlRmFpbHVyZVJlYXNvbi5wcm90bxIHVHJhZGluZyqk",
             "AQoSVHJhZGVGYWlsdXJlUmVhc29uEg0KCVNlc3Npb25JZBAAEggKBFV1aWQQ",
             "ARIXChNJbnRlcm5hbFNlcnZlckVycm9yEAISFQoRT3RoZXJQYXJ0eU9mZmxp",
             "bmUQAxIaChZPdGhlclBhcnR5RG9lc05vdEV4aXN0EAQSEgoOQWxyZWFkeVRy",
-            "YWRpbmcQBWIGcHJvdG8z"));
+            "YWRpbmcQBRIVChFUcmFkZURvZXNOb3RFeGlzdBAGYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Trading.TradeFailureReason), }, null));
@@ -42,6 +42,7 @@ namespace Trading {
     [pbr::OriginalName("OtherPartyOffline")] OtherPartyOffline = 3,
     [pbr::OriginalName("OtherPartyDoesNotExist")] OtherPartyDoesNotExist = 4,
     [pbr::OriginalName("AlreadyTrading")] AlreadyTrading = 5,
+    [pbr::OriginalName("TradeDoesNotExist")] TradeDoesNotExist = 6,
   }
 
   #endregion
