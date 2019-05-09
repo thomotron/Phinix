@@ -102,17 +102,21 @@ namespace PhinixClient
                 if (thing.stackCount > remainingThings)
                 {
                     // Just split off the amount we need from this stack
-                    remainingThings = 0;
                     poppedThings.Add(thing.SplitOff(remainingThings));
+                    remainingThings = 0;
                 }
                 else
                 {
-                    // Subtract this thing's stack size from the remaining count, drop it from the stack list, and add
-                    // it to the popped list
-                    remainingThings -= thing.stackCount;
-                    Things.Remove(thing);
+                    // Subtract this thing's stack size from the remaining count and add it to the popped list
                     poppedThings.Add(thing);
+                    remainingThings -= thing.stackCount;
                 }
+            }
+            
+            // Remove the things we popped
+            foreach (Thing thing in poppedThings)
+            {
+                Things.Remove(thing);
             }
 
             return poppedThings;
