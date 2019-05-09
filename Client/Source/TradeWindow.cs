@@ -613,7 +613,7 @@ namespace PhinixClient
                     alternateBackground: iterations++ % 2 != 0, // Be careful of the positioning of ++ here, this should increment /after/ the operation
                     onSelectedChanged: _ =>                     // We don't need the value, so we can just assign it to _
                     {
-                        Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
+                        //Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
                     }
                 );
                 
