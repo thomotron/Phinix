@@ -24,6 +24,7 @@ namespace PhinixClient
     {
         public static Client Instance;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Client)).GetName().Version;
+        public void Log(LogEventArgs e) => ILoggableHandler(null, e);
 
         public override string ModIdentifier => "Phinix";
 
