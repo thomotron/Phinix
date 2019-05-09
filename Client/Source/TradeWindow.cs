@@ -45,6 +45,10 @@ namespace PhinixClient
         /// </summary>
         private List<StackedThings> itemStacks;
         /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>itemStacks</c>.
+        /// </summary>
+        private object itemStacksLock = new object();
+        /// <summary>
         /// Collection of stacked items we have sent to the server and are awaiting confirmation for.
         /// Depending on the server's response, these will be spawned or removed.
         /// </summary>
@@ -345,28 +349,54 @@ namespace PhinixClient
                             // Do all of this in a new thread to keep the UI running smoothly
                             new Thread(() =>
                             {
-                                // Create a new token
-                                string token = Guid.NewGuid().ToString();
+                                try
+                                {
+                                    // Create a new token
+                                    string token = Guid.NewGuid().ToString();
 
-                                // Collect our items and despawn them all
-                                Thing[] selectedThings = itemStacks.SelectMany(stack => stack.PopSelected()).ToArray();
-                                foreach (Thing thing in selectedThings)
-                                {
-                                    thing.DeSpawn();
-                                }
-                                
-                                lock (pendingItemStacksLock)
-                                {
-                                    // Add the items to the pending dictionary
-                                    pendingItemStacks.Add(token, new PendingThings
+                                    List<Thing> selectedThings = new List<Thing>();
+                                    lock (itemStacksLock)
                                     {
-                                        Things = selectedThings,
-                                        Timestamp = DateTime.UtcNow
-                                    });
+                                        // Collect all our things and despawn them all
+                                        foreach (StackedThings itemStack in itemStacks)
+                                        {
+                                            // Pop the selected things from the stack
+                                            Thing[] things = itemStack.PopSelected().ToArray();
+
+                                            // Despawn each thing
+                                            foreach (Thing thing in things)
+                                            {
+                                                thing.DeSpawn();
+                                            }
+
+                                            // Add them to the selected things list
+                                            selectedThings.AddRange(things);
+                                        }
+                                    }
+
+                                    lock (pendingItemStacksLock)
+                                    {
+                                        // Add the items to the pending dictionary
+                                        pendingItemStacks.Add(token, new PendingThings
+                                        {
+                                            Things = selectedThings.ToArray(),
+                                            Timestamp = DateTime.UtcNow
+                                        });
+                                        Log.Message("Added items to pending");
+                                    }
+
+                                    // Get the items we have on offer and splice in the selected items
+                                    Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> itemsOnOffer);
+                                    IEnumerable<ProtoThing> actualOffer = itemsOnOffer.Union(selectedThings.Select(TradingThingConverter.ConvertThingFromVerse));
+
+                                    // Send an update to the server
+                                    Instance.UpdateTradeItems(tradeId, actualOffer, token);
+                                    Log.Message("Sent update");
                                 }
-                                
-                                // Send an update to the server
-                                Instance.UpdateTradeItems(tradeId, selectedThings.Select(TradingThingConverter.ConvertThingFromVerse), token);
+                                catch (Exception e)
+                                {
+                                    Log.Message(e.ToString());
+                                }
                             }).Start();
                         }),
                     height: TRADE_BUTTON_HEIGHT
