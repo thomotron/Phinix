@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using PhinixClient.GUI;
 using RimWorld;
 using Trading;
@@ -43,6 +44,15 @@ namespace PhinixClient
         /// Collection of stacked items we have available and on offer.
         /// </summary>
         private List<StackedThings> itemStacks;
+        /// <summary>
+        /// Collection of stacked items we have sent to the server and are awaiting confirmation for.
+        /// Depending on the server's response, these will be spawned or removed.
+        /// </summary>
+        private Dictionary<string, PendingThings> pendingItemStacks;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>pendingItemStacks</c>.
+        /// </summary>
+        private object pendingItemStacksLock = new object();
 
         /// <summary>
         /// Search text for filtering available items.
@@ -95,6 +105,7 @@ namespace PhinixClient
             this.closeOnClickedOutside = false;
             this.forcePause = true;
             this.itemStacks = new List<StackedThings>();
+            this.pendingItemStacks = new Dictionary<string, PendingThings>();
             this.ourOfferCache = new List<StackedThings>();
             this.theirOfferCache = new List<StackedThings>();
 
@@ -193,6 +204,35 @@ namespace PhinixClient
             
             // Update both our and their offers
             UpdateOffers();
+            
+            // Check if there is a token we can process
+            if (!string.IsNullOrEmpty(args.Token))
+            {
+                lock (pendingItemStacksLock)
+                {
+                    // Check if there are pending item stacks for this token
+                    if (pendingItemStacks.ContainsKey(args.Token))
+                    {
+                        if (args.Success)
+                        {
+                            // Destroy and remove the pending items, they have been received by the server
+                            foreach (Thing thing in pendingItemStacks[args.Token].Things)
+                            {
+                                thing.Destroy();
+                            }
+                            
+                            pendingItemStacks.Remove(args.Token);
+                        }
+                        else
+                        {
+                            // Server failed to update the trade
+                            // Get all of the selected things from the item stacks and drop them
+                            IEnumerable<Thing> things = pendingItemStacks[args.Token].Things;
+                            Instance.DropPods(things);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -300,8 +340,35 @@ namespace PhinixClient
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_trade_updateButton".Translate(),
-                        clickAction: () => Instance.UpdateTradeItems(tradeId, itemStacks.SelectMany(itemStack => itemStack.GetSelectedThingsAsProto()))
-                    ),
+                        clickAction: () =>
+                        {
+                            // Do all of this in a new thread to keep the UI running smoothly
+                            new Thread(() =>
+                            {
+                                // Create a new token
+                                string token = Guid.NewGuid().ToString();
+
+                                // Collect our items and despawn them all
+                                Thing[] selectedThings = itemStacks.SelectMany(stack => stack.PopSelected()).ToArray();
+                                foreach (Thing thing in selectedThings)
+                                {
+                                    thing.DeSpawn();
+                                }
+                                
+                                lock (pendingItemStacksLock)
+                                {
+                                    // Add the items to the pending dictionary
+                                    pendingItemStacks.Add(token, new PendingThings
+                                    {
+                                        Things = selectedThings,
+                                        Timestamp = DateTime.UtcNow
+                                    });
+                                }
+                                
+                                // Send an update to the server
+                                Instance.UpdateTradeItems(tradeId, selectedThings.Select(TradingThingConverter.ConvertThingFromVerse), token);
+                            }).Start();
+                        }),
                     height: TRADE_BUTTON_HEIGHT
                 )
             );
