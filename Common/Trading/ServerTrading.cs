@@ -474,8 +474,15 @@ namespace Trading
 
             lock (activeTradesLock)
             {
-                // Make sure trade exists, returning on failure
-                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+                // Make sure trade exists
+                if (!activeTrades.ContainsKey(packet.TradeId))
+                {
+                    // Send a failed response
+                    sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.TradeDoesNotExist, "The trade does not exist.");
+                    
+                    // Stop here
+                    return;
+                };
                 
                 Trade trade = activeTrades[packet.TradeId];
 
@@ -500,8 +507,8 @@ namespace Trading
                     // Try to get the other party's items on offer, returning on failure
                     if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
                     
-                    // Send an update to the sender
-                    sendUpdateTradeItemsPacket(connectionId, trade.TradeId, packet.Items, otherPartyItems);
+                    // Send a successful response to the sender
+                    sendSuccessfulUpdateTradeItemsResponsePacket(connectionId, trade.TradeId, packet.Token, packet.Items);
                     
                     // Check if the other party is logged in
                     if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
@@ -511,6 +518,20 @@ namespace Trading
                     
                     // Send an update to the other party
                     sendUpdateTradeItemsPacket(otherPartyConnectionId, trade.TradeId, otherPartyItems, packet.Items);
+                }
+                else
+                {
+                    // Try get the sender's items
+                    if (trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items))
+                    {
+                        // Send a failed response with their current items on offer
+                        sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, items, TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
+                    }
+                    else
+                    {
+                        // Send a failed response with no items (gotta be having a bad day to get this far)
+                        sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
+                    }
                 }
             }
         }
@@ -537,6 +558,62 @@ namespace Trading
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId, LogLevel.ERROR));
+            }
+        }
+        
+        /// <summary>
+        /// Sends a successful <see cref="UpdateTradeItemsResponsePacket"/> with the given items of the sender for the given trade and token.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="token">Token sent with the request</param>
+        /// <param name="items">Sender's items</param>
+        private void sendSuccessfulUpdateTradeItemsResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items)
+        {
+            // Create and pack a response
+            UpdateTradeItemsResponsePacket packet = new UpdateTradeItemsResponsePacket
+            {
+                TradeId = tradeId,
+                Token = token,
+                Success = true,
+                Items = {items}
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId, LogLevel.ERROR));
+            }
+        }
+
+        /// <summary>
+        /// Sends a failed <see cref="UpdateTradeItemsResponsePacket"/> with the given items of the sender for the given trade and token.
+        /// </summary>
+        /// <param name="connectionId">Destination connection ID</param>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="token">Token sent with the request</param>
+        /// <param name="items">Sender's items</param>
+        /// <param name="failureReason">Failure reason</param>
+        /// <param name="failureMessage">Failure message</param>
+        private void sendFailedUpdateTradeItemsResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items, TradeFailureReason failureReason, string failureMessage)
+        {
+            // Create and pack a response
+            UpdateTradeItemsResponsePacket packet = new UpdateTradeItemsResponsePacket
+            {
+                TradeId = tradeId,
+                Token = token,
+                Success = false,
+                Items = {items},
+                FailureReason = failureReason,
+                FailureMessage = failureMessage
+            };
+            Any packedPacket = ProtobufPacketHelper.Pack(packet);
+            
+            // Send it on its way
+            if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
         
