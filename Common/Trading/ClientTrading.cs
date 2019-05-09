@@ -360,6 +360,10 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsPacket", LogLevel.DEBUG));
                     updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
                     break;
+                case "UpdateTradeItemsResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsResponsePacket", LogLevel.DEBUG));
+                    updateTradeItemsResponsePacketHandler(connectionId, message.Unpack<UpdateTradeItemsResponsePacket>());
+                    break;
                 case "UpdateTradeStatusPacket":
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeStatusPacket", LogLevel.DEBUG));
                     updateTradeStatusPacketHandler(connectionId, message.Unpack<UpdateTradeStatusPacket>());
@@ -456,7 +460,39 @@ namespace Trading
             }
             
             // Raise the trade update event
-            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+            OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UpdateTradeItemsResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UpdateTradeItemsResponsePacket</c></param>
+        private void updateTradeItemsResponsePacketHandler(string connectionId, UpdateTradeItemsResponsePacket packet)
+        {
+            lock (activeTradesLock)
+            {
+                // Ignore packets from trades we don't have
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+
+                Trade trade = activeTrades[packet.TradeId];
+
+                if (packet.Success)
+                {
+                    // Set our items on offer
+                    trade.TrySetItemsOnOffer(userManager.Uuid, packet.Items);
+                
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for us", packet.Items.Count), LogLevel.DEBUG));
+                    
+                    // Raise the successful trade update event
+                    OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.Token));
+                }
+                else
+                {
+                    // Raise the failed trade update event
+                    OnTradeUpdateFailure?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.FailureReason, packet.FailureMessage, packet.Token));
+                }
+            }
         }
         
         /// <summary>
