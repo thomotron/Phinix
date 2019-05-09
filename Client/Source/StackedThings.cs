@@ -85,6 +85,40 @@ namespace PhinixClient
         }
 
         /// <summary>
+        /// Removes the selected things from the stack and returns them.
+        /// </summary>
+        /// <returns>Selected things</returns>
+        public IEnumerable<Thing> PopSelected()
+        {
+            List<Thing> poppedThings = new List<Thing>();
+            
+            int remainingThings = Selected;
+            foreach (Thing thing in Things)
+            {
+                // Check if we have popped all the necessary things, exiting the loop if so
+                if (remainingThings == 0) break;
+                
+                // Check if this thing has more in its stack than we need to take
+                if (thing.stackCount > remainingThings)
+                {
+                    // Just split off the amount we need from this stack
+                    remainingThings = 0;
+                    poppedThings.Add(thing.SplitOff(remainingThings));
+                }
+                else
+                {
+                    // Subtract this thing's stack size from the remaining count, drop it from the stack list, and add
+                    // it to the popped list
+                    remainingThings -= thing.stackCount;
+                    Things.Remove(thing);
+                    poppedThings.Add(thing);
+                }
+            }
+
+            return poppedThings;
+        }
+
+        /// <summary>
         /// Deletes the selected amount of things from the thing list.
         /// </summary>
         public void DeleteSelected()
