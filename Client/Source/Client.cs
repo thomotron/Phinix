@@ -66,6 +66,7 @@ namespace PhinixClient
         public bool TryGetItemsOnOffer(string tradeId, string uuid, out IEnumerable<Trading.ProtoThing> items) => trading.TryGetItemsOnOffer(tradeId, uuid, out items);
         public void UpdateTradeItems(string tradeId, IEnumerable<ProtoThing> items) => trading.UpdateItems(tradeId, items);
         public void UpdateTradeStatus(string tradeId, bool? accepted = null, bool? cancelled = null) => trading.UpdateStatus(tradeId, accepted, cancelled);
+        public LookTargets DropPods(IEnumerable<Thing> verseThings) => dropPods(verseThings);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
@@ -349,13 +350,11 @@ namespace PhinixClient
                 
 
                 // Launch drop pods to a trade spot on a home tile
-                Map map = Find.AnyPlayerHomeMap;
-                IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-                DropPodUtility.DropThingsNear(dropSpot, map, verseItems, canRoofPunch: false);
+                LookTargets dropSpotLookTarget = dropPods(verseItems);
             
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
-                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
+                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, dropSpotLookTarget);
                 
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
@@ -500,6 +499,21 @@ namespace PhinixClient
                 AuthType = authType,
                 CredentialsCallback = callback
             });
+        }
+        
+        /// <summary>
+        /// Launches the given <see cref="Thing"/>s in drop pods to a trade spot at the home colony.
+        /// </summary>
+        /// <param name="things">Collection of <see cref="Thing"/>s to drop</param>
+        /// <returns>LookTarget for the drop location</returns>
+        private LookTargets dropPods(IEnumerable<Thing> things)
+        {
+            // Launch drop pods to a trade spot on a home tile
+            Map map = Find.AnyPlayerHomeMap;
+            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+            DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false);
+            
+            return new LookTargets(dropSpot, map);
         }
     }
 }
