@@ -387,7 +387,7 @@ namespace PhinixClient
 
                                     // Get the items we have on offer and splice in the selected items
                                     Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> itemsOnOffer);
-                                    IEnumerable<ProtoThing> actualOffer = itemsOnOffer.Union(selectedThings.Select(TradingThingConverter.ConvertThingFromVerse));
+                                    IEnumerable<ProtoThing> actualOffer = itemsOnOffer.Concat(selectedThings.Select(TradingThingConverter.ConvertThingFromVerse));
 
                                     // Send an update to the server
                                     Instance.UpdateTradeItems(tradeId, actualOffer, token);
