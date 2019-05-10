@@ -410,6 +410,18 @@ namespace PhinixClient
                         label: "Phinix_trade_resetButton".Translate(),
                         clickAction: () =>
                         {
+                            // Try to get our offer
+                            if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> protoThings))
+                            {
+                                // Convert and drop our items in pods
+                                Instance.DropPods(protoThings.Select(TradingThingConverter.ConvertThingFromProto));
+                            }
+                            else
+                            {
+                                // Report a failure
+                                Instance.Log(new LogEventArgs("Failed to get our offer when resetting trade! Cannot spawn back items!", LogLevel.ERROR));
+                            }
+
                             // Reset all selected counts to zero
                             foreach (StackedThings itemStack in itemStacks)
                             {
