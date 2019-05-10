@@ -363,8 +363,8 @@ namespace PhinixClient
                                             // Pop the selected things from the stack
                                             Thing[] things = itemStack.PopSelected().ToArray();
 
-                                            // Despawn each thing
-                                            foreach (Thing thing in things)
+                                            // Despawn each spawned thing
+                                            foreach (Thing thing in things.Where(t => t.Spawned))
                                             {
                                                 thing.DeSpawn();
                                             }
