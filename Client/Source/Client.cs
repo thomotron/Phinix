@@ -355,7 +355,7 @@ namespace PhinixClient
             
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
-                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, dropSpotLookTarget);
+                Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCompletedLetter_label".Translate(), "Phinix_trade_tradeCompletedLetter_description".Translate(displayName), letterDef, dropSpotLookTarget);
                 
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
@@ -387,8 +387,8 @@ namespace PhinixClient
 
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCancelled");
-                Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled.\n\nYour items have been shipped back to you.", displayName), letterDef, dropSpotLookTarget);
-                
+                Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCancelled_label".Translate(), "Phinix_trade_tradeCancelled_description".Translate(displayName), letterDef, dropSpotLookTarget);
+
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
             };
             trading.OnTradeUpdateFailure += (sender, args) =>

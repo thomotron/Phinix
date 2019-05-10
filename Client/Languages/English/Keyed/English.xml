@@ -41,6 +41,10 @@
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>
+    <Phinix_trade_tradeCompletedLetter_description>Your trade with {0} was successful.</Phinix_trade_tradeCompletedLetter_description>
+    <Phinix_trade_tradeCancelled_label>Trade cancelled</Phinix_trade_tradeCancelled_label>
+    <Phinix_trade_tradeCancelled_description>Your trade with {0} was cancelled.\n\nYour items have been shipped back to you.</Phinix_trade_tradeCancelled_description>
     <Phinix_trade_noActiveTradesPlaceholder>You have no active trades.</Phinix_trade_noActiveTradesPlaceholder>
     <Phinix_trade_activeTrade_tradeWithLabel>Trade with {0}</Phinix_trade_activeTrade_tradeWithLabel>
     <Phinix_trade_activeTrade_theyHaveAccepted>They have accepted</Phinix_trade_activeTrade_theyHaveAccepted>
