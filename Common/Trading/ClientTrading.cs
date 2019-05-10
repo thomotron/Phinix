@@ -491,6 +491,18 @@ namespace Trading
                 {
                     // Raise the failed trade update event
                     OnTradeUpdateFailure?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.FailureReason, packet.FailureMessage, packet.Token));
+
+                    // Check the failure reason
+                    switch (packet.FailureReason)
+                    {
+                        case TradeFailureReason.TradeDoesNotExist:
+                            lock (activeTradesLock)
+                            {
+                                // Remove the trade since it doesn't exist
+                                activeTrades.Remove(packet.TradeId);
+                            }
+                            break;
+                    }
                 }
             }
         }
