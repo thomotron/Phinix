@@ -118,6 +118,7 @@ namespace Trading
                 // Get all completed trades where the user is pending notification
                 IEnumerable<CompletedTrade> _completedTrades = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
+                List<string> tradesToRemove = new List<string>();
                 foreach (CompletedTrade completedTrade in _completedTrades)
                 {
                     Trade trade = completedTrade.Trade;
@@ -134,11 +135,17 @@ namespace Trading
                     // Check them off the pending notification list
                     completedTrade.PendingNotification.Remove(args.Uuid);
                         
-                    // Remove the cancelled trade if this was the last user pending notification
+                    // Queue the cancelled trade for removal if this was the last user pending notification
                     if (completedTrade.PendingNotification.Count == 0)
                     {
-                        completedTrades.Remove(trade.TradeId);
+                        tradesToRemove.Add(trade.TradeId);
                     }
+                }
+
+                // Remove all of the completed trades pending removal
+                foreach (string tradeId in tradesToRemove)
+                {
+                    completedTrades.Remove(tradeId);
                 }
             }
         }
