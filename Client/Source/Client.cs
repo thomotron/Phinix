@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Channels;
 using Authentication;
 using Chat;
 using Connections;
@@ -11,7 +10,6 @@ using HugsLib.Settings;
 using RimWorld;
 using Trading;
 using HugsLib.Utils;
-using UnityEngine;
 using UserManagement;
 using Utils;
 using Verse;
@@ -24,6 +22,7 @@ namespace PhinixClient
     {
         public static Client Instance;
         public static readonly Version Version = Assembly.GetAssembly(typeof(Client)).GetName().Version;
+        public void Log(LogEventArgs e) => ILoggableHandler(null, e);
 
         public override string ModIdentifier => "Phinix";
 
@@ -63,13 +62,15 @@ namespace PhinixClient
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
         public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted) => trading.TryGetPartyAccepted(tradeId, partyUuid, out accepted);
         public bool TryGetItemsOnOffer(string tradeId, string uuid, out IEnumerable<Trading.ProtoThing> items) => trading.TryGetItemsOnOffer(tradeId, uuid, out items);
-        public void UpdateTradeItems(string tradeId, IEnumerable<ProtoThing> items) => trading.UpdateItems(tradeId, items);
+        public void UpdateTradeItems(string tradeId, IEnumerable<ProtoThing> items, string token = "") => trading.UpdateItems(tradeId, items, token);
         public void UpdateTradeStatus(string tradeId, bool? accepted = null, bool? cancelled = null) => trading.UpdateStatus(tradeId, accepted, cancelled);
+        public LookTargets DropPods(IEnumerable<Thing> verseThings) => dropPods(verseThings);
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
         public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -348,13 +349,11 @@ namespace PhinixClient
                 
 
                 // Launch drop pods to a trade spot on a home tile
-                Map map = Find.AnyPlayerHomeMap;
-                IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-                DropPodUtility.DropThingsNear(dropSpot, map, verseItems, canRoofPunch: false);
+                LookTargets dropSpotLookTarget = dropPods(verseItems);
             
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
-                Find.LetterStack.ReceiveLetter("Trade success", string.Format("The trade with {0} was successful", displayName), letterDef, new LookTargets(dropSpot, map));
+                Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCompletedLetter_label".Translate(), "Phinix_trade_tradeCompletedLetter_description".Translate(displayName), letterDef, dropSpotLookTarget);
                 
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
@@ -372,11 +371,40 @@ namespace PhinixClient
                     displayName = "???";
                 }
 
+                // Convert all the received items into their Verse counterparts and strip out any unknown ones
+                //// While it would be less computationally-expensive to strip out unknown items beforehand, we would
+                //// have no idea whether we could actually make the item without another check, so we just piggy-back
+                //// off of the converter's checks and strip them out afterward.
+                Verse.Thing[] verseItems = args.Items
+                                                .Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)
+                                                .Where(thing => thing.def.defName != "UnknownItem")
+                                                .ToArray();
+
+                // Launch drop pods to a trade spot on a home tile
+                LookTargets dropSpotLookTarget = dropPods(verseItems);
+
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCancelled");
-                Find.LetterStack.ReceiveLetter("Trade cancelled", string.Format("The trade with {0} was cancelled", displayName), letterDef);
-                
+                Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCancelled_label".Translate(), "Phinix_trade_tradeCancelled_description".Translate(displayName), letterDef, dropSpotLookTarget);
+
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
+            };
+            trading.OnTradeUpdateFailure += (sender, args) =>
+            {
+                // Try get the other party's display name
+                if (trading.TryGetOtherPartyUuid(args.TradeId, out string otherPartyUuid) &&
+                    userManager.TryGetDisplayName(otherPartyUuid, out string displayName))
+                {
+                    // Strip formatting
+                    displayName = TextHelper.StripRichText(displayName);
+                }
+                else
+                {
+                    // Unknown display name, default to ???
+                    displayName = "???";
+                }
+
+                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
             
             // Forward events so the UI can handle them
@@ -391,7 +419,8 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
-            trading.OnTradeUpdated += (sender, e) => { OnTradeUpdated?.Invoke(sender, e); };
+            trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
+            trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
             
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
@@ -499,6 +528,21 @@ namespace PhinixClient
                 AuthType = authType,
                 CredentialsCallback = callback
             });
+        }
+        
+        /// <summary>
+        /// Launches the given <see cref="Thing"/>s in drop pods to a trade spot at the home colony.
+        /// </summary>
+        /// <param name="things">Collection of <see cref="Thing"/>s to drop</param>
+        /// <returns>LookTarget for the drop location</returns>
+        private LookTargets dropPods(IEnumerable<Thing> things)
+        {
+            // Launch drop pods to a trade spot on a home tile
+            Map map = Find.AnyPlayerHomeMap;
+            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+            DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false);
+            
+            return new LookTargets(dropSpot, map);
         }
     }
 }

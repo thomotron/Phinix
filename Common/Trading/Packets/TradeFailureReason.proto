@@ -9,4 +9,5 @@ enum TradeFailureReason
     OtherPartyOffline = 3;
     OtherPartyDoesNotExist = 4;
     AlreadyTrading = 5;
+    TradeDoesNotExist = 6;
 };

@@ -36,9 +36,13 @@ namespace Trading
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         /// <summary>
-        /// Raised when a trade is updated.
+        /// Raised when a trade is updated successfully.
         /// </summary>
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdated; 
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
+        /// <summary>
+        /// Raised when a trade fails to update.
+        /// </summary>
+        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         /// <summary>
         /// <c>NetClient</c> instance to bind events and send data through.
@@ -284,7 +288,7 @@ namespace Trading
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="items">Items on offer</param>
-        public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items)
+        public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items, string token = "")
         {
             // Do nothing if not online
             if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
@@ -295,7 +299,8 @@ namespace Trading
                 SessionId = authenticator.SessionId,
                 Uuid = userManager.Uuid,
                 TradeId = tradeId,
-                Items = {items}
+                Items = {items},
+                Token = token
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
@@ -354,6 +359,10 @@ namespace Trading
                 case "UpdateTradeItemsPacket":
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsPacket", LogLevel.DEBUG));
                     updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
+                    break;
+                case "UpdateTradeItemsResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsResponsePacket", LogLevel.DEBUG));
+                    updateTradeItemsResponsePacketHandler(connectionId, message.Unpack<UpdateTradeItemsResponsePacket>());
                     break;
                 case "UpdateTradeStatusPacket":
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeStatusPacket", LogLevel.DEBUG));
@@ -451,7 +460,51 @@ namespace Trading
             }
             
             // Raise the trade update event
-            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+            OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+        }
+        
+        /// <summary>
+        /// Handles incoming <c>UpdateTradeItemsResponsePacket</c>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <c>UpdateTradeItemsResponsePacket</c></param>
+        private void updateTradeItemsResponsePacketHandler(string connectionId, UpdateTradeItemsResponsePacket packet)
+        {
+            lock (activeTradesLock)
+            {
+                // Ignore packets from trades we don't have
+                if (!activeTrades.ContainsKey(packet.TradeId)) return;
+
+                Trade trade = activeTrades[packet.TradeId];
+
+                if (packet.Success)
+                {
+                    // Set our items on offer
+                    trade.TrySetItemsOnOffer(userManager.Uuid, packet.Items);
+                
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for us", packet.Items.Count), LogLevel.DEBUG));
+                    
+                    // Raise the successful trade update event
+                    OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.Token));
+                }
+                else
+                {
+                    // Raise the failed trade update event
+                    OnTradeUpdateFailure?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.FailureReason, packet.FailureMessage, packet.Token));
+
+                    // Check the failure reason
+                    switch (packet.FailureReason)
+                    {
+                        case TradeFailureReason.TradeDoesNotExist:
+                            lock (activeTradesLock)
+                            {
+                                // Remove the trade since it doesn't exist
+                                activeTrades.Remove(packet.TradeId);
+                            }
+                            break;
+                    }
+                }
+            }
         }
         
         /// <summary>
@@ -480,7 +533,7 @@ namespace Trading
             }
             
             // Raise the trade update event
-            OnTradeUpdated?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
+            OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
         
         /// <summary>

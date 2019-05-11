@@ -23,15 +23,15 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiRQYWNrZXRzL1VwZGF0ZVRyYWRlSXRlbXNQYWNrZXQucHJvdG8SB1RyYWRp",
-            "bmcaE1BhY2tldHMvVGhpbmcucHJvdG8inAEKFlVwZGF0ZVRyYWRlSXRlbXNQ",
+            "bmcaE1BhY2tldHMvVGhpbmcucHJvdG8iqwEKFlVwZGF0ZVRyYWRlSXRlbXNQ",
             "YWNrZXQSEQoJU2Vzc2lvbklkGAEgASgJEgwKBFV1aWQYAiABKAkSDwoHVHJh",
-            "ZGVJZBgDIAEoCRIiCgVJdGVtcxgEIAMoCzITLlRyYWRpbmcuUHJvdG9UaGlu",
-            "ZxIsCg9PdGhlclBhcnR5SXRlbXMYBSADKAsyEy5UcmFkaW5nLlByb3RvVGhp",
-            "bmdiBnByb3RvMw=="));
+            "ZGVJZBgDIAEoCRINCgVUb2tlbhgGIAEoCRIiCgVJdGVtcxgEIAMoCzITLlRy",
+            "YWRpbmcuUHJvdG9UaGluZxIsCg9PdGhlclBhcnR5SXRlbXMYBSADKAsyEy5U",
+            "cmFkaW5nLlByb3RvVGhpbmdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.ThingReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.UpdateTradeItemsPacket), global::Trading.UpdateTradeItemsPacket.Parser, new[]{ "SessionId", "Uuid", "TradeId", "Items", "OtherPartyItems" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.UpdateTradeItemsPacket), global::Trading.UpdateTradeItemsPacket.Parser, new[]{ "SessionId", "Uuid", "TradeId", "Token", "Items", "OtherPartyItems" }, null, null, null)
           }));
     }
     #endregion
@@ -65,6 +65,7 @@ namespace Trading {
       sessionId_ = other.sessionId_;
       uuid_ = other.uuid_;
       tradeId_ = other.tradeId_;
+      token_ = other.token_;
       items_ = other.items_.Clone();
       otherPartyItems_ = other.otherPartyItems_.Clone();
     }
@@ -77,6 +78,9 @@ namespace Trading {
     /// <summary>Field number for the "SessionId" field.</summary>
     public const int SessionIdFieldNumber = 1;
     private string sessionId_ = "";
+    /// <summary>
+    /// Session ID of the sender
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string SessionId {
       get { return sessionId_; }
@@ -88,6 +92,9 @@ namespace Trading {
     /// <summary>Field number for the "Uuid" field.</summary>
     public const int UuidFieldNumber = 2;
     private string uuid_ = "";
+    /// <summary>
+    /// UUID of the sender
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string Uuid {
       get { return uuid_; }
@@ -99,6 +106,9 @@ namespace Trading {
     /// <summary>Field number for the "TradeId" field.</summary>
     public const int TradeIdFieldNumber = 3;
     private string tradeId_ = "";
+    /// <summary>
+    /// ID of the trade this is for
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string TradeId {
       get { return tradeId_; }
@@ -107,11 +117,28 @@ namespace Trading {
       }
     }
 
+    /// <summary>Field number for the "Token" field.</summary>
+    public const int TokenFieldNumber = 6;
+    private string token_ = "";
+    /// <summary>
+    /// Unique token used in the result callback to identify which update the result is for
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Token {
+      get { return token_; }
+      set {
+        token_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     /// <summary>Field number for the "Items" field.</summary>
     public const int ItemsFieldNumber = 4;
     private static readonly pb::FieldCodec<global::Trading.ProtoThing> _repeated_items_codec
         = pb::FieldCodec.ForMessage(34, global::Trading.ProtoThing.Parser);
     private readonly pbc::RepeatedField<global::Trading.ProtoThing> items_ = new pbc::RepeatedField<global::Trading.ProtoThing>();
+    /// <summary>
+    /// Items the sender is offering
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::Trading.ProtoThing> Items {
       get { return items_; }
@@ -122,6 +149,9 @@ namespace Trading {
     private static readonly pb::FieldCodec<global::Trading.ProtoThing> _repeated_otherPartyItems_codec
         = pb::FieldCodec.ForMessage(42, global::Trading.ProtoThing.Parser);
     private readonly pbc::RepeatedField<global::Trading.ProtoThing> otherPartyItems_ = new pbc::RepeatedField<global::Trading.ProtoThing>();
+    /// <summary>
+    /// Items the other party is offering
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::Trading.ProtoThing> OtherPartyItems {
       get { return otherPartyItems_; }
@@ -143,6 +173,7 @@ namespace Trading {
       if (SessionId != other.SessionId) return false;
       if (Uuid != other.Uuid) return false;
       if (TradeId != other.TradeId) return false;
+      if (Token != other.Token) return false;
       if(!items_.Equals(other.items_)) return false;
       if(!otherPartyItems_.Equals(other.otherPartyItems_)) return false;
       return true;
@@ -154,6 +185,7 @@ namespace Trading {
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
       if (Uuid.Length != 0) hash ^= Uuid.GetHashCode();
       if (TradeId.Length != 0) hash ^= TradeId.GetHashCode();
+      if (Token.Length != 0) hash ^= Token.GetHashCode();
       hash ^= items_.GetHashCode();
       hash ^= otherPartyItems_.GetHashCode();
       return hash;
@@ -180,6 +212,10 @@ namespace Trading {
       }
       items_.WriteTo(output, _repeated_items_codec);
       otherPartyItems_.WriteTo(output, _repeated_otherPartyItems_codec);
+      if (Token.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Token);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -193,6 +229,9 @@ namespace Trading {
       }
       if (TradeId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(TradeId);
+      }
+      if (Token.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Token);
       }
       size += items_.CalculateSize(_repeated_items_codec);
       size += otherPartyItems_.CalculateSize(_repeated_otherPartyItems_codec);
@@ -212,6 +251,9 @@ namespace Trading {
       }
       if (other.TradeId.Length != 0) {
         TradeId = other.TradeId;
+      }
+      if (other.Token.Length != 0) {
+        Token = other.Token;
       }
       items_.Add(other.items_);
       otherPartyItems_.Add(other.otherPartyItems_);
@@ -243,6 +285,10 @@ namespace Trading {
           }
           case 42: {
             otherPartyItems_.AddEntriesFrom(input, _repeated_otherPartyItems_codec);
+            break;
+          }
+          case 50: {
+            Token = input.ReadString();
             break;
           }
         }

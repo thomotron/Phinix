@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using PhinixClient.GUI;
 using RimWorld;
 using Trading;
@@ -43,6 +44,19 @@ namespace PhinixClient
         /// Collection of stacked items we have available and on offer.
         /// </summary>
         private List<StackedThings> itemStacks;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>itemStacks</c>.
+        /// </summary>
+        private object itemStacksLock = new object();
+        /// <summary>
+        /// Collection of stacked items we have sent to the server and are awaiting confirmation for.
+        /// Depending on the server's response, these will be spawned or removed.
+        /// </summary>
+        private Dictionary<string, PendingThings> pendingItemStacks;
+        /// <summary>
+        /// Lock object to prevent race conditions when accessing <c>pendingItemStacks</c>.
+        /// </summary>
+        private object pendingItemStacksLock = new object();
 
         /// <summary>
         /// Search text for filtering available items.
@@ -93,13 +107,16 @@ namespace PhinixClient
             this.closeOnAccept = false;
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
+            this.forcePause = true;
             this.itemStacks = new List<StackedThings>();
+            this.pendingItemStacks = new Dictionary<string, PendingThings>();
             this.ourOfferCache = new List<StackedThings>();
             this.theirOfferCache = new List<StackedThings>();
 
             Instance.OnTradeCompleted += OnTradeCompleted;
             Instance.OnTradeCancelled += OnTradeCancelled;
-            Instance.OnTradeUpdated += OnTradeUpdated;
+            Instance.OnTradeUpdateSuccess += OnTradeUpdated;
+            Instance.OnTradeUpdateFailure += OnTradeUpdated;
         }
 
         public override void PreOpen()
@@ -128,7 +145,8 @@ namespace PhinixClient
             
             Instance.OnTradeCompleted -= OnTradeCompleted;
             Instance.OnTradeCancelled -= OnTradeCancelled;
-            Instance.OnTradeUpdated -= OnTradeUpdated;
+            Instance.OnTradeUpdateSuccess -= OnTradeUpdated;
+            Instance.OnTradeUpdateFailure -= OnTradeUpdated;
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -190,6 +208,35 @@ namespace PhinixClient
             
             // Update both our and their offers
             UpdateOffers();
+            
+            // Check if there is a token we can process
+            if (!string.IsNullOrEmpty(args.Token))
+            {
+                lock (pendingItemStacksLock)
+                {
+                    // Check if there are pending item stacks for this token
+                    if (pendingItemStacks.ContainsKey(args.Token))
+                    {
+                        if (args.Success)
+                        {
+                            // Destroy and remove the pending items, they have been received by the server
+                            foreach (Thing thing in pendingItemStacks[args.Token].Things)
+                            {
+                                thing.Destroy();
+                            }
+                            
+                            pendingItemStacks.Remove(args.Token);
+                        }
+                        else
+                        {
+                            // Server failed to update the trade
+                            // Get all of the selected things from the item stacks and drop them
+                            IEnumerable<Thing> things = pendingItemStacks[args.Token].Things;
+                            Instance.DropPods(things);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -292,6 +339,70 @@ namespace PhinixClient
                 )
             );
             
+            // Update button
+            centreColumn.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_trade_updateButton".Translate(),
+                        clickAction: () =>
+                        {
+                            // Do all of this in a new thread to keep the UI running smoothly
+                            new Thread(() =>
+                            {
+                                try
+                                {
+                                    // Create a new token
+                                    string token = Guid.NewGuid().ToString();
+
+                                    List<Thing> selectedThings = new List<Thing>();
+                                    lock (itemStacksLock)
+                                    {
+                                        // Collect all our things and despawn them all
+                                        foreach (StackedThings itemStack in itemStacks)
+                                        {
+                                            // Pop the selected things from the stack
+                                            Thing[] things = itemStack.PopSelected().ToArray();
+
+                                            // Despawn each spawned thing
+                                            foreach (Thing thing in things.Where(t => t.Spawned))
+                                            {
+                                                thing.DeSpawn();
+                                            }
+
+                                            // Add them to the selected things list
+                                            selectedThings.AddRange(things);
+                                        }
+                                    }
+
+                                    lock (pendingItemStacksLock)
+                                    {
+                                        // Add the items to the pending dictionary
+                                        pendingItemStacks.Add(token, new PendingThings
+                                        {
+                                            Things = selectedThings.ToArray(),
+                                            Timestamp = DateTime.UtcNow
+                                        });
+                                        Log.Message("Added items to pending");
+                                    }
+
+                                    // Get the items we have on offer and splice in the selected items
+                                    Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> itemsOnOffer);
+                                    IEnumerable<ProtoThing> actualOffer = itemsOnOffer.Concat(selectedThings.Select(TradingThingConverter.ConvertThingFromVerse));
+
+                                    // Send an update to the server
+                                    Instance.UpdateTradeItems(tradeId, actualOffer, token);
+                                    Log.Message("Sent update");
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Message(e.ToString());
+                                }
+                            }).Start();
+                        }),
+                    height: TRADE_BUTTON_HEIGHT
+                )
+            );
+            
             // Reset button
             centreColumn.Add(
                 new Container(
@@ -299,6 +410,18 @@ namespace PhinixClient
                         label: "Phinix_trade_resetButton".Translate(),
                         clickAction: () =>
                         {
+                            // Try to get our offer
+                            if (Instance.TryGetItemsOnOffer(tradeId, Instance.Uuid, out IEnumerable<ProtoThing> protoThings))
+                            {
+                                // Convert and drop our items in pods
+                                Instance.DropPods(protoThings.Select(TradingThingConverter.ConvertThingFromProto));
+                            }
+                            else
+                            {
+                                // Report a failure
+                                Instance.Log(new LogEventArgs("Failed to get our offer when resetting trade! Cannot spawn back items!", LogLevel.ERROR));
+                            }
+
                             // Reset all selected counts to zero
                             foreach (StackedThings itemStack in itemStacks)
                             {
@@ -599,7 +722,7 @@ namespace PhinixClient
                     alternateBackground: iterations++ % 2 != 0, // Be careful of the positioning of ++ here, this should increment /after/ the operation
                     onSelectedChanged: _ =>                     // We don't need the value, so we can just assign it to _
                     {
-                        Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
+                        //Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
                     }
                 );
                 
