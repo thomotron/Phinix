@@ -112,25 +112,36 @@ namespace Trading
                 }
             }
 
-            // Notify the user of cancelled trades they were not notified of earlier
+            // Notify the user of trades they were not notified of earlier
             lock (completedTradesLock)
             {
-                // Get all completed trades where the user is pending notification
+                // Get all trades where the user is pending notification
                 IEnumerable<CompletedTrade> _completedTrades = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
                 List<string> tradesToRemove = new List<string>();
                 foreach (CompletedTrade completedTrade in _completedTrades)
                 {
                     Trade trade = completedTrade.Trade;
-                        
+                    
                     // Try get the other party's UUID, continuing on failure
                     if (!trade.TryGetOtherParty(args.Uuid, out string otherPartyUuid)) continue;
+
+                    if (completedTrade.Cancelled)
+                    {
+                        // Try get the user's items, continuing on failure
+                        if (!trade.TryGetItemsOnOffer(args.Uuid, out ProtoThing[] things)) continue;
                         
-                    // Try get the user's items, continuing on failure
-                    if (!trade.TryGetItemsOnOffer(args.Uuid, out ProtoThing[] things)) continue;
+                        // Send a cancelled trade completion packet
+                        sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, true, otherPartyUuid, things);
+                    }
+                    else
+                    {
+                        // Try get the other party's items, continuing on failure
+                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] things)) continue;
                         
-                    // Send a cancelled trade completion packet
-                    sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, completedTrade.Cancelled, otherPartyUuid, things);
+                        // Send a successful trade completion packet
+                        sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, false, otherPartyUuid, things);
+                    }
                         
                     // Check them off the pending notification list
                     completedTrade.PendingNotification.Remove(args.Uuid);
