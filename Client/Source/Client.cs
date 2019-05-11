@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Channels;
 using Authentication;
 using Chat;
 using Connections;
@@ -11,7 +10,6 @@ using HugsLib.Settings;
 using RimWorld;
 using Trading;
 using HugsLib.Utils;
-using UnityEngine;
 using UserManagement;
 using Utils;
 using Verse;
