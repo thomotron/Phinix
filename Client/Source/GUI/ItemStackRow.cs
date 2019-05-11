@@ -18,6 +18,7 @@ namespace PhinixClient
         private const float ICON_WIDTH = 30f;
         private const float BUTTON_WIDTH = 40f;
         private const float COUNT_FIELD_WIDTH = 70f;
+        private const float AVAILABLE_COUNT_WIDTH = 50f;
         
         /// <summary>
         /// The item stack this row will display.
@@ -77,7 +78,7 @@ namespace PhinixClient
             // Item name
             row.Add(
                 new TextWidget(
-                    text: itemStack.Things.First().Label.CapitalizeFirst(),
+                    text: itemStack.Things.First().LabelCapNoCount,
                     anchor: TextAnchor.MiddleLeft
                 )
             );
@@ -167,6 +168,17 @@ namespace PhinixClient
                             }
                         ),
                         width: COUNT_FIELD_WIDTH
+                    )
+                );
+                
+                // Available count
+                row.Add(
+                    new Container(
+                        new TextWidget(
+                            text: "/ " + itemStack.Count,
+                            anchor: TextAnchor.MiddleLeft
+                        ),
+                        width: AVAILABLE_COUNT_WIDTH
                     )
                 );
                 

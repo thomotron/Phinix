@@ -1,0 +1,26 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Thing.proto";
+import "Packets/TradeFailureReason.proto";
+
+message UpdateTradeItemsResponsePacket
+{
+    // ID of the trade this is for
+    string TradeId = 1;
+    
+    // Unique token used in the result callback to identify which update the result is for
+    string Token = 2;
+    
+    // Whether the update was successful
+    bool Success = 3;
+    
+    // Enumerable failure reason
+    TradeFailureReason FailureReason = 4;
+    
+    // Human-readable failure reason
+    string FailureMessage = 5;
+
+    // Items the sender is offering
+    repeated ProtoThing Items = 6;
+};

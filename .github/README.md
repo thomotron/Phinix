@@ -57,3 +57,8 @@ We are building the foundation and core functionality of the mod
 
 **How long until there is a functional alpha?**  
 It's here!
+
+# Developers
+## Setting up your environment
+The project will be expecting `Assembly-CSharp.dll` and `UnityEngine.dll` to be present in `GameDlls/` just so we don't redistribute RimWorld's assemblies.
+They can both be found in `<Path-to-RimWorld>/RimWorldWin64_Data/Managed/`. Either copy them in or make a symbolic link.
