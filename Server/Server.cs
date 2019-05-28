@@ -109,7 +109,7 @@ namespace PhinixServer
         }
 
         /// <summary>
-        /// Handler for <c>ILoggable</c> <c>OnLogEvent</c> events.
+        /// Handler for <see cref="ILoggable"/> <c>OnLogEvent</c> events.
         /// Raised by modules as a way to hook into the server log.
         /// </summary>
         /// <param name="sender">Object that raised the event</param>

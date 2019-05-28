@@ -16,7 +16,7 @@ namespace Connections
         public bool Listening => server != null && server.IsRunning;
 
         /// <summary>
-        /// <c>IPEndpoint</c> the server is listening on.
+        /// <see cref="IPEndPoint"/> the server is listening on.
         /// </summary>
         public readonly IPEndPoint Endpoint;
         

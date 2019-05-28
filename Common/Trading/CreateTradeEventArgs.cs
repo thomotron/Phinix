@@ -30,7 +30,7 @@ namespace Trading
         public string FailureMessage;
 
         /// <summary>
-        /// Creates a successful <c>CreateTradeResponseArgs</c> with the given trade ID and UUID.
+        /// Creates a successful <see cref="CreateTradeEventArgs"/> with the given trade ID and UUID.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="otherPartyUuid">Other party's UUID</param>
@@ -42,7 +42,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Creates a failed <c>CreateTradeResponseArgs</c> with the given failure reason and message.
+        /// Creates a failed <see cref="CreateTradeEventArgs"/> with the given failure reason and message.
         /// </summary>
         /// <param name="failureReason">Reason the trade failed to create</param>
         /// <param name="failureMessage">Message from the server</param>

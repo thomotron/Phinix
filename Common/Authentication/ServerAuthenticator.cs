@@ -23,7 +23,7 @@ namespace Authentication
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
         /// <summary>
-        /// <c>NetServer</c> to send packets and bind events to.
+        /// <see cref="NetServer"/> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
 
@@ -45,7 +45,7 @@ namespace Authentication
         /// </summary>
         private Dictionary<string, Session> sessions;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>sessions</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="sessions"/>.
         /// </summary>
         private object sessionsLock = new object();
         /// <summary>
@@ -62,7 +62,7 @@ namespace Authentication
         /// </summary>
         private CredentialStore credentialStore;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>credentialStore</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="credentialStore"/>.
         /// </summary>
         private object credentialStoreLock = new object();
         
@@ -300,7 +300,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Handles incoming <c>AuthenticatePacket</c>s from clients trying to authenticate.
+        /// Handles incoming <see cref="AuthenticatePacket"/>s from clients trying to authenticate.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
@@ -471,10 +471,10 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Handles incoming <c>ExtendSessionPacket</c>s from clients trying to extend their session expiry.
+        /// Handles incoming <see cref="ExtendSessionPacket"/>s from clients trying to extend their session expiry.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>ExtendSessionPacket</c></param>
+        /// <param name="packet">Incoming <see cref="ExtendSessionPacket"/></param>
         private void extendSessionPacketHandler(string connectionId, ExtendSessionPacket packet)
         {
             // Lock the sessions dictionary to prevent other threads from messing with it
@@ -498,7 +498,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Sends a successful <c>ExtendSessionResponsePacket</c> to a connection with the given expiry.
+        /// Sends a successful <see cref="ExtendSessionResponsePacket"/> to a connection with the given expiry.
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         /// <param name="expiry">New session expiry</param>
@@ -522,7 +522,7 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Sends a failed <c>ExtendSessionResponsePacket</c> to a connection.
+        /// Sends a failed <see cref="ExtendSessionResponsePacket"/> to a connection.
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         private void sendFailedExtendSessionResponsePacket(string connectionId)

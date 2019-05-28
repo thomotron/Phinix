@@ -36,7 +36,7 @@ namespace Connections
         private Thread pollThread;
 
         /// <summary>
-        /// Creates a new <c>NetClient</c> instance.
+        /// Creates a new <see cref="NetClient"/> instance.
         /// </summary>
         /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
         public NetClient(int checkInterval = 5000)
@@ -115,7 +115,7 @@ namespace Connections
         }
 
         /// <summary>
-        /// Attempts to parse or resolve the given string to an <c>IPAddress</c>. Returns true if parsing or resolution was successful.
+        /// Attempts to parse or resolve the given string to an <see cref="IPAddress"/>. Returns true if parsing or resolution was successful.
         /// </summary>
         /// <param name="hostname">Hostname or IP address to parse</param>
         /// <param name="address">Parsed address</param>
@@ -128,7 +128,7 @@ namespace Connections
         }
 
         /// <summary>
-        /// Attempts to resolve the given string to an <c>IPAddress</c>. Returns true if resolution was successful.
+        /// Attempts to resolve the given string to an <see cref="IPAddress"/>. Returns true if resolution was successful.
         /// </summary>
         /// <param name="hostname">Hostname to resolve</param>
         /// <param name="address">Resolved address</param>

@@ -20,7 +20,7 @@ namespace UserManagement
         public string FailureMessage;
 
         /// <summary>
-        /// Creates a new successful <c>LoginEventArgs</c>.
+        /// Creates a new successful <see cref="LoginEventArgs"/>.
         /// </summary>
         public LoginEventArgs()
         {
@@ -28,7 +28,7 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Creates a new failed <c>LoginEventArgs</c> with the given failure reason and message.
+        /// Creates a new failed <see cref="LoginEventArgs"/> with the given failure reason and message.
         /// </summary>
         /// <param name="failureReason">Field that caused login failure</param>
         /// <param name="failureMessage">Message from the server</param>

@@ -4,7 +4,7 @@ namespace PhinixServer
 {
     /// <inheritdoc />
     /// <summary>
-    /// Command handler for the help command. This is only implemented to be displayed by the help command, all processing for the help command occurs in the <c>CommandInterpreter</c> class.
+    /// Command handler for the help command. This is only implemented to be displayed by the help command, all processing for the help command occurs in the <see cref="CommandInterpreter"/> class.
     /// </summary>
     public class HelpCommand : Command
     {

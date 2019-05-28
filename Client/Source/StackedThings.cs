@@ -30,8 +30,8 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Gets the selected amount of things as their <c>ProtoThing</c> equivalents.
-        /// Does some hacky-feeling stuff to get just the right amount of stacks set in stone as <c>ProtoThing</c>s.
+        /// Gets the selected amount of things as their <see cref="ProtoThing"/> equivalents.
+        /// Does some hacky-feeling stuff to get just the right amount of stacks set in stone as <see cref="ProtoThing"/>s.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<ProtoThing> GetSelectedThingsAsProto()

@@ -4,7 +4,7 @@ namespace PhinixServer
 {
     /// <inheritdoc />
     /// <summary>
-    /// Command handler for the exit command. This is only implemented to be displayed by the help command, all processing for the exit command occurs in the <c>Server</c> class.
+    /// Command handler for the exit command. This is only implemented to be displayed by the help command, all processing for the exit command occurs in the <see cref="Server"/> class.
     /// </summary>
     public class ExitCommand : Command
     {

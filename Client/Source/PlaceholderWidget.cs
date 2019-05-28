@@ -12,7 +12,7 @@ namespace PhinixClient
         private string text;
         
         /// <summary>
-        /// Creates a <c>PlaceholderWidget</c> with the given text.
+        /// Creates a <see cref="PlaceholderWidget"/> with the given text.
         /// </summary>
         /// <param name="text">Text to display</param>
         public PlaceholderWidget(string text = null)

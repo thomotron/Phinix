@@ -19,17 +19,17 @@ namespace Chat
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
         /// <summary>
-        /// <c>NetServer</c> instance to bind the packet handler to.
+        /// <see cref="NetServer"/> instance to bind the packet handler to.
         /// </summary>
         private NetServer netServer;
 
         /// <summary>
-        /// <c>ServerAuthenticator</c> instance used to check session validity.
+        /// <see cref="ServerAuthenticator"/> instance used to check session validity.
         /// </summary>
         private ServerAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ServerUserManager</c> instance used to check login state and source UUID validity.
+        /// <see cref="ServerUserManager"/> instance used to check login state and source UUID validity.
         /// </summary>
         private ServerUserManager userManager;
 
@@ -38,7 +38,7 @@ namespace Chat
         /// </summary>
         private List<ChatMessage> messageHistory;
         /// <summary>
-        /// Lock file to prevent race conditions when accessing <c>messageHistory</c>.
+        /// Lock file to prevent race conditions when accessing <see cref="messageHistory"/>.
         /// </summary>
         private object messageHistoryLock = new object();
         /// <summary>
@@ -158,11 +158,10 @@ namespace Chat
         }
 
         /// <summary>
-        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// Handles incoming <see cref="ChatMessagePacket"/>s.
         /// </summary>
-        /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="data">Data payload</param>
+        /// <param name="packet">Incoming <see cref="ChatMessagePacket"/></param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
             // Refuse packets from non-authenticated sessions
@@ -206,7 +205,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Broadcasts a <c>ChatMessagePacket</c> to all currently logged-in users.
+        /// Broadcasts a <see cref="ChatMessagePacket"/> to all currently logged-in users.
         /// </summary>
         /// <param name="senderUuid">Sender's UUID</param>
         /// <param name="messageId">Message ID</param>
@@ -246,7 +245,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Sends a <c>ChatMessagePacket</c> to the user.
+        /// Sends a <see cref="ChatMessagePacket"/> to the user.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="senderUuid">Sender's UUID</param>
@@ -273,9 +272,9 @@ namespace Chat
         }
 
         /// <summary>
-        /// Adds the given <c>ChatMessage</c> to the message history.
+        /// Adds the given <see cref="ChatMessage"/> to the message history.
         /// </summary>
-        /// <param name="chatMessage"><c>ChatMessage</c> to store</param>
+        /// <param name="chatMessage"><see cref="ChatMessage"/> to store</param>
         private void addMessageToHistory(ChatMessage chatMessage)
         {
             lock (messageHistoryLock)
@@ -293,7 +292,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Creates and sends a <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// Creates and sends a <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="success">Whether the chat message was processed successfully</param>
@@ -320,7 +319,7 @@ namespace Chat
         }
         
         /// <summary>
-        /// Creates and sends a failed <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// Creates and sends a failed <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="originalMessageId">The original message ID</param>

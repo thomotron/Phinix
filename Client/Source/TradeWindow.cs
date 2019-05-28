@@ -45,7 +45,7 @@ namespace PhinixClient
         /// </summary>
         private List<StackedThings> itemStacks;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>itemStacks</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="itemStacks"/>.
         /// </summary>
         private object itemStacksLock = new object();
         /// <summary>
@@ -54,7 +54,7 @@ namespace PhinixClient
         /// </summary>
         private Dictionary<string, PendingThings> pendingItemStacks;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>pendingItemStacks</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="pendingItemStacks"/>.
         /// </summary>
         private object pendingItemStacksLock = new object();
 
@@ -82,7 +82,7 @@ namespace PhinixClient
         /// </summary>
         private List<StackedThings> ourOfferCache;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>ourOfferCache</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="ourOfferCache"/>.
         /// </summary>
         private object ourOfferCacheLock = new object();
         /// <summary>
@@ -91,12 +91,12 @@ namespace PhinixClient
         /// </summary>
         private List<StackedThings> theirOfferCache;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>theirOfferCache</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="theirOfferCache"/>.
         /// </summary>
         private object theirOfferCacheLock = new object();
 
         /// <summary>
-        /// Creates a new <c>TradeWindow</c> for the given trade ID.
+        /// Creates a new <see cref="TradeWindow"/> for the given trade ID.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         public TradeWindow(string tradeId)
@@ -169,7 +169,7 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Event handler for the <c>OnTradeCancelled</c> event.
+        /// Event handler for the <see cref="OnTradeCancelled"/> event.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
@@ -180,7 +180,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Event handler for the <c>OnTradeCompleted</c> event.
+        /// Event handler for the <see cref="OnTradeCompleted"/> event.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
@@ -197,7 +197,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Event handler for the <c>OnTradeUpdated</c> event.
+        /// Event handler for the <see cref="OnTradeUpdated"/> event.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
@@ -240,7 +240,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Updates <c>ourOfferCache</c> and <c>theirOfferCache</c> with the items on offer for each party respectively.
+        /// Updates <see cref="ourOfferCache"/> and <see cref="theirOfferCache"/> with the items on offer for each party respectively.
         /// </summary>
         private void UpdateOffers()
         {
@@ -310,9 +310,9 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> with the offer windows and confirmation statuses.
+        /// Generates a <see cref="VerticalFlexContainer"/> with the offer windows and confirmation statuses.
         /// </summary>
-        /// <returns><c>VerticalFlexContainer</c> with the offer windows and confirmation statuses</returns>
+        /// <returns><see cref="VerticalFlexContainer"/> with the offer windows and confirmation statuses</returns>
         private VerticalFlexContainer GenerateOffers()
         {
             // Create a new flex container as the main column to store everything in
@@ -520,9 +520,9 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> containing our offer.
+        /// Generates a <see cref="VerticalFlexContainer"/> containing our offer.
         /// </summary>
-        /// <returns><c>VerticalFlexContainer</c> containing our offer</returns>
+        /// <returns><see cref="VerticalFlexContainer"/> containing our offer</returns>
         private VerticalFlexContainer GenerateOurOffer()
         {
             // Create a flex container as our 'column' to store elements in
@@ -556,9 +556,9 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> containing their offer.
+        /// Generates a <see cref="VerticalFlexContainer"/> containing their offer.
         /// </summary>
-        /// <returns><c>VerticalFlexContainer</c> containing their offer</returns>
+        /// <returns><see cref="VerticalFlexContainer"/> containing their offer</returns>
         private VerticalFlexContainer GenerateTheirOffer()
         {
             // Create a flex container as our 'column' to store elements in
@@ -592,7 +592,7 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> containing our available items.
+        /// Generates a <see cref="VerticalFlexContainer"/> containing our available items.
         /// </summary>
         private VerticalFlexContainer GenerateAvailableItems()
         {
@@ -700,7 +700,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>ScrollContainer</c> containing an item list within the given container.
+        /// Generates a <see cref="ScrollContainer"/> containing an item list within the given container.
         /// </summary>
         /// <param name="itemStacks">Item stacks to draw in the list</param>
         /// <param name="scrollPos">List scroll position</param>
