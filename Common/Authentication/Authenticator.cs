@@ -5,7 +5,7 @@ using Utils;
 namespace Authentication
 {
     /// <summary>
-    /// Provides some common properties for <c>ClientAuthenticator</c> and <c>ServerAuthenticator</c> classes.
+    /// Provides some common properties for <see cref="ClientAuthenticator"/> and <see cref="ServerAuthenticator"/> classes.
     /// </summary>
     public abstract class Authenticator : ILoggable
     {

@@ -68,7 +68,7 @@ namespace Authentication
         
         /// <summary>
         /// Session identifier used by the server to confirm we are allowed to speak to it.
-        /// Use only if <c>Authenticated</c> is true.
+        /// Use only if <see cref="Authenticated"/> is true.
         /// </summary>
         public string SessionId { get; private set; }
         
@@ -96,7 +96,7 @@ namespace Authentication
         private static readonly object credentialStoreLock = new object();
 
         /// <summary>
-        /// <c>NetClient</c> to send packets and bind events to.
+        /// <see cref="NetClient"/> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;
         
@@ -278,11 +278,11 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Handler for incoming <c>HelloPacket</c>s.
-        /// Responds with an <c>AuthenticatePacket</c>, requesting new credentials if necessary.
+        /// Handler for incoming <see cref="HelloPacket"/>s.
+        /// Responds with an <see cref="AuthenticatePacket"/>, requesting new credentials if necessary.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>HelloPacket</c></param>
+        /// <param name="packet">Incoming <see cref="HelloPacket"/></param>
         private void helloPacketHandler(string connectionId, HelloPacket packet)
         {
             // Nullify authenticated state
@@ -347,7 +347,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Creates and sends an <c>AuthenticatePacket</c>.
+        /// Creates and sends an <see cref="AuthenticatePacket"/>.
         /// </summary>
         /// <param name="sessionId">Session ID</param>
         /// <param name="credential">Credentials</param>
@@ -400,7 +400,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Sends an <c>ExtentSessionPacket</c> to the server to extend the current session.
+        /// Sends an <see cref="ExtendSessionPacket"/> to the server to extend the current session.
         /// </summary>
         /// <param name="sessionId">Session ID</param>
         private void sendExtendSessionPacket(string sessionId)
@@ -419,10 +419,10 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Handles incoming <c>ExtendSessionResponsePacket</c>s.
+        /// Handles incoming <see cref="ExtendSessionResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>ExtendSessionResponsePacket</c></param>
+        /// <param name="packet">Incoming <see cref="ExtendSessionResponsePacket"/></param>
         private void extendSessionResponsePacketHandler(string connectionId, ExtendSessionResponsePacket packet)
         {
             if (packet.Success)
@@ -438,7 +438,7 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Handles the OnDisconnect event from <c>NetClient</c> and invalidates any connection-specific fields.
+        /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

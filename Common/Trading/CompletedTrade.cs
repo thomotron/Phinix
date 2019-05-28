@@ -4,7 +4,7 @@ using System.Linq;
 namespace Trading
 {
     /// <summary>
-    /// A wrapper around a <c>Trade</c> that keeps track of who else needs to be notified that the trade was completed.
+    /// A wrapper around a <see cref="Trade"/> that keeps track of who else needs to be notified that the trade was completed.
     /// </summary>
     public class CompletedTrade
     {

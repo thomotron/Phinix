@@ -12,7 +12,7 @@ namespace UserManagement
 {
     /// <inheritdoc />
     /// <summary>
-    /// Client-side variant of <c>UserManager</c>.
+    /// Client-side variant of <see cref="UserManager"/>.
     /// Used to store states of other users for easy lookup with other modules.
     /// </summary>
     public class ClientUserManager : UserManager
@@ -47,12 +47,12 @@ namespace UserManagement
         public string Uuid { get; private set; }
 
         /// <summary>
-        /// <c>NetClient</c> to send packets through and bind events to.
+        /// <see cref="NetClient"/> to send packets through and bind events to.
         /// </summary>
         private NetClient netClient;
 
         /// <summary>
-        /// <c>ClientAuthenticator</c> to retrieve session ID from.
+        /// <see cref="ClientAuthenticator"/> to retrieve session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
         
@@ -201,10 +201,10 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Handles incoming <c>LoginResponsePacket</c>s.
+        /// Handles incoming <see cref="LoginResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>LoginResponsePacket</c></param>
+        /// <param name="packet">Incoming <see cref="LoginResponsePacket"/></param>
         private void loginResponsePacketHandler(string connectionId, LoginResponsePacket packet)
         {
             if (packet.Success)
@@ -228,10 +228,10 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Handles incoming <c>UserUpdatePacket</c>s.
+        /// Handles incoming <see cref="UserUpdatePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UserUpdatePacket</c></param>
+        /// <param name="packet">Incoming <see cref="UserUpdatePacket"/></param>
         private void userUpdatePacketHandler(string connectionId, UserUpdatePacket packet)
         {
             User user = packet.User;
@@ -254,10 +254,10 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Handles incoming <c>UserSyncPacket</c>s.
+        /// Handles incoming <see cref="UserSyncPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UserSyncPacket</c></param>
+        /// <param name="packet">Incoming <see cref="UserSyncPacket"/></param>
         private void userSyncPacketHandler(string connectionId, UserSyncPacket packet)
         {
             lock (userStoreLock)
@@ -279,7 +279,7 @@ namespace UserManagement
         }
         
         /// <summary>
-        /// Handles the OnDisconnect event from <c>NetClient</c> and invalidates any connection-specific fields.
+        /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

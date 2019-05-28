@@ -15,7 +15,7 @@ namespace Trading
         public string FailureMessage;
 
         /// <summary>
-        /// Creates a successful <c>TradeUpdateEventArgs</c> with the given trade ID and token.
+        /// Creates a successful <see cref="TradeUpdateEventArgs"/> with the given trade ID and token.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="token">Item update token</param>
@@ -27,7 +27,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Creates a failed <c>TradeUpdateEventArgs</c> with the given trade ID, token, reason, and message.
+        /// Creates a failed <see cref="TradeUpdateEventArgs"/> with the given trade ID, token, reason, and message.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="failureReason">Failure reason</param>

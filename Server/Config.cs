@@ -105,10 +105,10 @@ namespace PhinixServer
         public int ChatHistoryLength = 40;
 
         /// <summary>
-        /// Loads a <c>Config</c> object from the given file path. Will return a default <c>Config</c> if the file does not exist.
+        /// Loads a <see cref="Config"/> object from the given file path. Will return a default <see cref="Config"/> if the file does not exist.
         /// </summary>
         /// <param name="filePath">Config file path</param>
-        /// <returns>Loaded <c>Config</c> object</returns>
+        /// <returns>Loaded <see cref="Config"/> object</returns>
         public static Config Load(string filePath)
         {
             // Give a fresh new config if the given file doesn't exist
@@ -130,7 +130,7 @@ namespace PhinixServer
         }
 
         /// <summary>
-        /// Saves the <c>Config</c> object to an XML document at the given path.
+        /// Saves the <see cref="Config"/> object to an XML document at the given path.
         /// This will overwrite the file if it already exists.
         /// </summary>
         /// <param name="filePath">Destination file path</param>
@@ -144,7 +144,7 @@ namespace PhinixServer
         }
         
         /// <summary>
-        /// Called before the <c>Config</c> is serialised.
+        /// Called before the <see cref="Config"/> is serialised.
         /// Used to convert complex types to something easier to edit by hand.
         /// </summary>
         /// <param name="context"></param>
@@ -155,7 +155,7 @@ namespace PhinixServer
         }
         
         /// <summary>
-        /// Called after the <c>Config</c> is deserialised.
+        /// Called after the <see cref="Config"/> is deserialised.
         /// Used to convert easy-to-edit types back into their complex counterparts.
         /// </summary>
         /// <param name="context"></param>

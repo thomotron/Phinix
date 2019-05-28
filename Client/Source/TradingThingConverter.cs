@@ -138,9 +138,9 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Recursively gets the def name of the given <c>ProtoThing</c>.
+        /// Recursively gets the def name of the given <see cref="ProtoThing"/>.
         /// </summary>
-        /// <param name="protoThing"><c>ProtoThing</c> to get the def name from</param>
+        /// <param name="protoThing"><see cref="ProtoThing"/> to get the def name from</param>
         /// <returns>Def name</returns>
         private static string getInnerDefName(ProtoThing protoThing)
         {

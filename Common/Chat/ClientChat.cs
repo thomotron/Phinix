@@ -38,17 +38,17 @@ namespace Chat
         private int messageCountAtLastCheck;
 
         /// <summary>
-        /// <c>NetClient</c> instance to bind the packet handler to.
+        /// <see cref="NetClient"/> instance to bind the packet handler to.
         /// </summary>
         private NetClient netClient;
 
         /// <summary>
-        /// <c>ClientAuthenticator</c> to get the session ID from.
+        /// <see cref="ClientAuthenticator"/> to get the session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ClientUserManager</c> used for user lookup and display name rendering.
+        /// <see cref="ClientUserManager"/> used for user lookup and display name rendering.
         /// </summary>
         private ClientUserManager userManager;
 
@@ -57,7 +57,7 @@ namespace Chat
         /// </summary>
         private List<ClientChatMessage> messageHistory;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>messageHistory</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="messageHistory"/>.
         /// </summary>
         private object messageHistoryLock = new object();
         
@@ -184,7 +184,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// Handles incoming <see cref="ChatMessagePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
@@ -200,7 +200,7 @@ namespace Chat
         }
         
         /// <summary>
-        /// Handles incoming <c>ChatHistoryPacket</c>s.
+        /// Handles incoming <see cref="ChatHistoryPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
@@ -217,7 +217,7 @@ namespace Chat
         }
 
 		/// <summary>
-        /// Handles incoming <c>ChatMessageResponsePacket</c>s.
+        /// Handles incoming <see cref="ChatMessageResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
