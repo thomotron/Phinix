@@ -9,6 +9,9 @@
   <a href="https://travis-ci.org/PhinixTeam/Phinix">
     <img src="https://img.shields.io/travis/PhinixTeam/Phinix.svg?style=flat-square" alt="Travis CI">
   </a>
+  <a href="https://hub.docker.com/r/phinixteam/phinix">
+    <img alt="Docker Build Status" src="https://img.shields.io/docker/cloud/build/phinixteam/phinix.svg?label=docker&style=flat-square">
+  </a>
   <a href="https://discord.gg/d4Y5xks">
     <img src="https://img.shields.io/discord/363547745564360704.svg?colorB=7289DA&label=Discord&style=flat-square" alt="Discord">
   </a>
