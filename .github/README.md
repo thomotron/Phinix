@@ -29,10 +29,7 @@
 4. Load **HugsLib first**, *then* Phinix
 5. Restart your game and you should be good to go
 ## Server
-1. Download `PhinixServer.zip` from the [releases page](https://github.com/PhinixTeam/Phinix/releases/latest)
-2. Extract it wherever, entirely up to you
-3. Edit the `server.conf` file as you see fit with a text editor
-4. Run `PhinixServer.exe`
+See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server) for server installation.
 ### Docker
 There are automated server builds for both the `master` and `dev` branches available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
 The image exposes the default port (16200/udp), so something like  
@@ -49,7 +46,6 @@ should do the trick.
 The chat panel should change from being greyed-out to a blue background and the user list on the right of the panel will update to show you and anyone else that is online.
 ## Server
 1. Run `PhiServer.exe`
-2. Refer to step 1
 
 # FAQ
 **Why are you rewriting Phi instead of updating it?**  
