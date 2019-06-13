@@ -31,11 +31,8 @@
 ## Server
 See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server) for server installation.
 ### Docker
-There are automated server builds for both the `master` and `dev` branches available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
-The image exposes the default port (16200/udp), so something like  
-`docker run --tty --interactive --publish 16200:16200/udp thomotron/phinix:latest`  
-(or the more terse `docker run -tip 16200:16200/udp thomotron/phinix`)  
-should do the trick.
+There are automated server builds available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
+See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server#docker-container) for more details.
 
 # Usage
 ## Client
