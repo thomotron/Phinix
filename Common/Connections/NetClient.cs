@@ -80,6 +80,9 @@ namespace Connections
                 }
             });
             pollThread.Start();
+            
+            // Raise the connection event
+            OnConnecting?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -109,8 +112,6 @@ namespace Connections
             if (TryParseHostnameOrAddress(address, out resolvedAddress))
             {
                 Connect(new IPEndPoint(resolvedAddress, port));
-                
-                OnConnecting?.Invoke(this, EventArgs.Empty);
             }
             else
             {
