@@ -122,22 +122,25 @@ namespace Connections
         /// <param name="hostname">Hostname to resolve</param>
         /// <param name="address">Resolved address</param>
         /// <returns>Resolved successfully</returns>
-        private bool TryResolveHostname(string hostname, out IPAddress address)
+        private static bool TryResolveHostname(string hostname, out IPAddress address)
         {
             IPAddress[] addresses;
             try
             {
+                // Query DNS for a list of addresses
                 addresses = Dns.GetHostAddresses(hostname);
             }
             catch (SocketException)
             {
-                address = IPAddress.None;
+                // Couldn't contact a DNS server, set output to nothing and return a failure
+                address = null;
                 return false;
             }
 
-            // TODO: Get some creamy IPv6 support up in here
-            address = addresses.First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+            // Use the first address if we got one, otherwise set the output to null
+            address = addresses.Length > 0 ? addresses[0] : null;
 
+            // Return if we got an address
             return address != null;
         }
 
