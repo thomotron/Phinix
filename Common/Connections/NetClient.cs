@@ -104,9 +104,6 @@ namespace Connections
                 );
             }
 
-            // Close the active connection before we make a new one.
-            Disconnect();
-
             // Parse the given hostname
             IPAddress resolvedAddress;
             if (TryParseHostnameOrAddress(address, out resolvedAddress))
