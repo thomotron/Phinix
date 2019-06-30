@@ -8,7 +8,7 @@ namespace Connections
     /// </summary>
     public class NotConnectedException : Exception
     {
-        public override string Message => "Connection for message to be sent through is not open.";
+        public override string Message => "No open connection to send message through.";
         public NetPeer Peer;
 
         public NotConnectedException()
