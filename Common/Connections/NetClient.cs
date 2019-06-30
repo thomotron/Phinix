@@ -170,16 +170,18 @@ namespace Connections
         /// <summary>
         /// Sends a message to a module through the current connection.
         /// </summary>
-        /// <param name="module">Target module. Cannot be null or empty.</param>
-        /// <param name="serialisedMessage">Serialised message. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NotConnectedException"></exception>
+        /// <param name="module">Target module</param>
+        /// <param name="serialisedMessage">Serialised message</param>
+        /// <exception cref="ArgumentNullException"><see cref="module"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null or empty</exception>
+        /// <exception cref="NotConnectedException">Must be connected to send a message</exception>
         public void Send(string module, byte[] serialisedMessage)
         {
             // Disallow null parameters
-            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
-            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+            if (string.IsNullOrEmpty(module)) throw new ArgumentException("Module cannot be null or empty.", nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage), "Serialised message cannot be null.");
 
+            // Make sure we are connected before attempting to send anything
             if (!Connected) throw new NotConnectedException(serverPeer);
             
             // Write the module and message data to a NetDataWriter stream
@@ -187,6 +189,7 @@ namespace Connections
             writer.Put(module);
             writer.Put(serialisedMessage);
 
+            // Send the message in a reliable and ordered fashion
             serverPeer.Send(writer, SendOptions.ReliableOrdered);
         }
     }
