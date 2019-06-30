@@ -86,13 +86,13 @@ namespace Connections
         }
 
         /// <summary>
-        /// Attempts to connect to the given address and port. This will close an existing connection.
+        /// Attempts to connect to the given host on the given port. This will close an existing connection.
         /// </summary>
-        /// <param name="address">Address to connect to</param>
+        /// <param name="host">Address or hostname of the server</param>
         /// <param name="port">Port the server is listening on</param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="InvalidAddressException"></exception>
-        public void Connect(string address, int port)
+        public void Connect(string host, int port)
         {
             // Ensure the port is within the valid range
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
@@ -108,11 +108,12 @@ namespace Connections
             IPAddress resolvedAddress;
             if (TryParseHostnameOrAddress(address, out resolvedAddress))
             {
+                // Try to connect using the resolved address
                 Connect(new IPEndPoint(resolvedAddress, port));
             }
             else
             {
-                throw new InvalidAddressException(address);
+                throw new InvalidAddressException(host);
             }
         }
 
