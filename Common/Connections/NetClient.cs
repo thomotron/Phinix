@@ -41,14 +41,15 @@ namespace Connections
         /// <summary>
         /// Creates a new <see cref="NetClient"/> instance.
         /// </summary>
-        /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
-        public NetClient(int checkInterval = 5000)
+        /// <param name="checkInterval">Interval in milliseconds between keepalive transmissions</param>
+        /// <param name="timeout">Duration in milliseconds after which the connection will be terminated if no response is received</param>
+        public NetClient(int checkInterval = 5000, int timeout = 30000)
         {
             // Set up the client
             clientNetManager = new NetManager(listener, "Phinix")
             {
                 PingInterval = checkInterval,
-                DisconnectTimeout = 30000
+                DisconnectTimeout = timeout
             };
 
             // Forward events
