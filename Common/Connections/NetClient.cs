@@ -10,7 +10,10 @@ namespace Connections
 {
     public class NetClient : NetCommon
     {
-        public bool Connected => client != null && client.IsRunning && serverPeer != null && serverPeer.ConnectionState == ConnectionState.Connected;
+        public bool Connected => clientNetManager != null &&                              // We have a NetManager
+                                 clientNetManager.IsRunning &&                            // The NetManager is running
+                                 serverPeer != null &&                                    // We have connection info about the server
+                                 serverPeer.ConnectionState == ConnectionState.Connected; // The connection info identifies as connected
 
         /// <summary>
         /// Raised when connecting to a server.
@@ -24,7 +27,7 @@ namespace Connections
         /// <summary>
         /// Client that piggy-backs the listener and communicates with the server.
         /// </summary>
-        private NetManager client;
+        private NetManager clientNetManager;
         /// <summary>
         /// Peer representing the server's side of the connection.
         /// </summary>
@@ -42,7 +45,7 @@ namespace Connections
         public NetClient(int checkInterval = 5000)
         {
             // Set up the client
-            client = new NetManager(listener, "Phinix")
+            clientNetManager = new NetManager(listener, "Phinix")
             {
                 PingInterval = checkInterval,
                 DisconnectTimeout = 30000
@@ -63,15 +66,15 @@ namespace Connections
             Disconnect();
 
             // Try to connect
-            client.Start();
-            serverPeer = client.Connect(endpoint.Address.ToString(), endpoint.Port);
+            clientNetManager.Start();
+            serverPeer = clientNetManager.Connect(endpoint.Address.ToString(), endpoint.Port);
             
             // Start a polling thread to check for incoming packets
             pollThread = new Thread(() =>
             {
                 while (true)
                 {
-                    client.PollEvents();
+                    clientNetManager.PollEvents();
                     Thread.Sleep(10);
                 }
             });
@@ -158,10 +161,10 @@ namespace Connections
         public void Disconnect()
         {
             // Check if the client is running
-            if (client.IsRunning)
+            if (clientNetManager.IsRunning)
             {
                 // Stop the client
-                client.Stop();
+                clientNetManager.Stop();
                 
                 // Raise the OnDisconnect event
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
