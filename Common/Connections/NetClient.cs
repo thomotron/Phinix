@@ -105,8 +105,7 @@ namespace Connections
             }
 
             // Parse the given hostname
-            IPAddress resolvedAddress;
-            if (TryParseHostnameOrAddress(address, out resolvedAddress))
+            if (TryResolveHostname(host, out IPAddress resolvedAddress))
             {
                 // Try to connect using the resolved address
                 Connect(new IPEndPoint(resolvedAddress, port));
@@ -115,19 +114,6 @@ namespace Connections
             {
                 throw new InvalidAddressException(host);
             }
-        }
-
-        /// <summary>
-        /// Attempts to parse or resolve the given string to an <see cref="IPAddress"/>. Returns true if parsing or resolution was successful.
-        /// </summary>
-        /// <param name="hostname">Hostname or IP address to parse</param>
-        /// <param name="address">Parsed address</param>
-        /// <returns>Parsed successfully</returns>
-        private bool TryParseHostnameOrAddress(string hostname, out IPAddress address)
-        {
-            if (IPAddress.TryParse(hostname, out address)) return true;
-            if (TryResolveHostname(hostname, out address)) return true;
-            return false;
         }
 
         /// <summary>
