@@ -148,7 +148,6 @@ namespace Connections
                 throw new NotConnectedException();
             }
             
-            
             // Get the connection by it's ID
             NetPeer peer = connectedPeers[connectionId];
             
@@ -163,6 +162,7 @@ namespace Connections
             writer.Put(module);
             writer.Put(serialisedMessage);
 
+            // Send the message in a reliable and ordered fashion
             peer.Send(writer, SendOptions.ReliableOrdered);
         }
 
@@ -179,6 +179,7 @@ namespace Connections
             {
                 // Try to send the message
                 Send(connectionId, module, serialisedMessage);
+                
                 return true;
             }
             catch (NotConnectedException)
