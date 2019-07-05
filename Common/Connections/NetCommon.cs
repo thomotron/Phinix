@@ -9,9 +9,14 @@ using Utils;
 
 namespace Connections
 {
-    public class NetCommon
+    public abstract class NetCommon : ILoggable
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(NetCommon)).GetName().Version;
+        
+        /// <inheritdoc />
+        public abstract event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public abstract void RaiseLogEntry(LogEventArgs e);
         
         /// <summary>
         /// Listener that handles communications over the wire.

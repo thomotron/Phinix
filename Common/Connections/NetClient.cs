@@ -5,11 +5,17 @@ using System.Net.Sockets;
 using System.Threading;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Utils;
 
 namespace Connections
 {
     public class NetClient : NetCommon
     {
+        /// <inheritdoc />
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+        
         public bool Connected => clientNetManager != null &&                              // We have a NetManager
                                  clientNetManager.IsRunning &&                            // The NetManager is running
                                  serverPeer != null &&                                    // We have connection info about the server

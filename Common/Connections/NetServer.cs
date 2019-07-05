@@ -5,11 +5,17 @@ using System.Net;
 using System.Threading;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Utils;
 
 namespace Connections
 {
     public class NetServer : NetCommon
     {
+        /// <inheritdoc />
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+        
         /// <summary>
         /// Whether the server is currently listening for connections.
         /// </summary>
