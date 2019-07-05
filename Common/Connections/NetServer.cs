@@ -60,7 +60,7 @@ namespace Connections
             };
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
-            // Forward events
+            // Subscribe to events
             listener.PeerConnectedEvent += (peer) =>
             {
                 // Add or update the peer's connection
