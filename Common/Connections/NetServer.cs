@@ -182,14 +182,32 @@ namespace Connections
                 
                 return true;
             }
-            catch (NotConnectedException)
+            catch (NotConnectedException e)
             {
                 // Catch connection exceptions
+                RaiseLogEntry(new LogEventArgs("Cannot send message, " + e.Message, LogLevel.ERROR));
+                
                 return false;
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException e)
             {
                 // Catch argument exceptions
+                RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
+                
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                // Catch more argument exceptions
+                RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
+                
+                return false;
+            }
+            catch (Exception e)
+            {
+                // Catch anything else
+                RaiseLogEntry(new LogEventArgs("Got an unusual exception when sending a message\n" + e, LogLevel.ERROR));
+
                 return false;
             }
         }
