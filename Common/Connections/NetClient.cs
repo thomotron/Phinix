@@ -179,7 +179,7 @@ namespace Connections
         /// <param name="module">Target module</param>
         /// <param name="serialisedMessage">Serialised message</param>
         /// <exception cref="ArgumentNullException"><see cref="module"/> cannot be null or empty</exception>
-        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null</exception>
         /// <exception cref="NotConnectedException">Must be connected to send a message</exception>
         public void Send(string module, byte[] serialisedMessage)
         {

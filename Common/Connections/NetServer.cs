@@ -131,14 +131,16 @@ namespace Connections
         /// <param name="connectionId">Connection ID of recipient</param>
         /// <param name="module">Target module</param>
         /// <param name="serialisedMessage">Serialised message</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NotConnectedException"></exception>
+        /// <exception cref="ArgumentException"><see cref="connectionId"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentException"><see cref="module"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null</exception>
+        /// <exception cref="NotConnectedException">Recipient must be connected to send a message</exception>
         public void Send(string connectionId, string module, byte[] serialisedMessage)
         {
             // Disallow null parameters
-            if (connectionId == null) throw new ArgumentNullException(nameof(connectionId));
-            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
-            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+            if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
+            if (string.IsNullOrEmpty(module)) throw new ArgumentException("Module cannot be null or empty", nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage), "Serialised message cannot be null");
             
             // Check the connection exists
             if (!connectedPeers.ContainsKey(connectionId))
