@@ -55,7 +55,13 @@ namespace Authentication
         /// <param name="authType">Authentication type</param>
         /// <param name="username">Username</param>
         /// <param name="password">Password</param>
-        public delegate void ReturnCredentialsDelegate(bool credentialsProvided, string sessionId, AuthTypes authType, string username, string password);
+        public delegate void ReturnCredentialsDelegate(
+            bool credentialsProvided,
+            string sessionId,
+            AuthTypes authType,
+            string username,
+            string password
+        );
         /// <summary>
         /// Delegate called when new credentials are required for authentication.
         /// </summary>
