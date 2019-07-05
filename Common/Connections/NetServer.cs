@@ -93,8 +93,10 @@ namespace Connections
         /// </summary>
         public void Start()
         {
-            if (Listening) throw new Exception("Cannot start listening while already doing so.");
+            // Stop listening
+            Stop();
 
+            // Start listening
             server.Start(Endpoint.Port);
             
             // Start a polling thread to check for incoming packets
