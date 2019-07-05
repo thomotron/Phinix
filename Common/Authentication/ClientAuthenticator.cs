@@ -85,7 +85,7 @@ namespace Authentication
         /// <summary>
         /// Path to the credential store file.
         /// </summary>
-        private const string CREDENTIAL_STORE_PATH = "PhinixCredentials.bin";
+        public readonly string CredentialStorePath;
         /// <summary>
         /// Stores credentials for each server.
         /// </summary>
@@ -100,10 +100,11 @@ namespace Authentication
         /// </summary>
         private NetClient netClient;
         
-        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate)
+        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string credentialStorePath = "PhinixCredentials.bin")
         {
             this.netClient = netClient;
             this.getCredentials = getCredentialsDelegate;
+            this.CredentialStorePath = credentialStorePath;
             
             // Prevent other threads from modifying the credential store while it is read in
             lock (credentialStoreLock) this.credentialStore = getCredentialStore();
@@ -214,10 +215,10 @@ namespace Authentication
         /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <returns>New or existing credential store</returns>
-        private static CredentialStore getCredentialStore()
+        private CredentialStore getCredentialStore()
         {
             // Create a new credential store if one doesn't already exist
-            if (!File.Exists(CREDENTIAL_STORE_PATH))
+            if (!File.Exists(CredentialStorePath))
             {
                 // Generate a random PhiKey for this instance
                 CredentialStore newCredentialStore = new CredentialStore
@@ -234,7 +235,7 @@ namespace Authentication
             
             // Pull the store from disk as a pre-packed Any.
             CredentialStore credentialStore;
-            using (FileStream fs = new FileStream(CREDENTIAL_STORE_PATH, FileMode.Open))
+            using (FileStream fs = new FileStream(CredentialStorePath, FileMode.Open))
             {
                 using (CodedInputStream cis = new CodedInputStream(fs))
                 {
@@ -251,10 +252,10 @@ namespace Authentication
         /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <param name="credentialStore">Credential store to save</param>
-        private static void saveCredentialStore(CredentialStore credentialStore)
+        private void saveCredentialStore(CredentialStore credentialStore)
         {
             // Create or truncate the credentials file
-            using (FileStream fs = File.Open(CREDENTIAL_STORE_PATH, FileMode.Create, FileAccess.Write))
+            using (FileStream fs = File.Open(CredentialStorePath, FileMode.Create, FileAccess.Write))
             {
                 using (CodedOutputStream cos = new CodedOutputStream(fs))
                 {
