@@ -100,6 +100,13 @@ namespace Authentication
         /// </summary>
         private NetClient netClient;
         
+        /// <summary>
+        /// Creates a new <see cref="ClientAuthenticator"/> bound to the given <see cref="NetClient"/> with credentials stored in <see cref="CredentialStorePath"/>.
+        /// The <see cref="getCredentialsDelegate"/> is called when credentials are requested.
+        /// </summary>
+        /// <param name="netClient"><see cref="NetClient"/> to bind to</param>
+        /// <param name="getCredentialsDelegate"><see cref="GetCredentialsDelegate"/> to call when credentials are required from the user</param>
+        /// <param name="credentialStorePath">Path to the credential store file</param>
         public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string credentialStorePath = "PhinixCredentials.bin")
         {
             this.netClient = netClient;
