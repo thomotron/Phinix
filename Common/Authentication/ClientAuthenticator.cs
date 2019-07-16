@@ -289,7 +289,6 @@ namespace Authentication
                     extendSessionResponsePacketHandler(connectionId, message.Unpack<ExtendSessionResponsePacket>());
                     break;
                 default:
-                    // TODO: Discard packet
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
