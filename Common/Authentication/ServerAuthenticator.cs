@@ -353,12 +353,12 @@ namespace Authentication
                     if (!credentialStore.Credentials.ContainsKey(packet.Username))
                     {
                         // Exception for PhiKey, it should be a 'zero-configuration' solution
-                        if (authType == AuthTypes.PhiKey)
+                        if (authType == AuthTypes.ClientKey)
                         {
                             // Create a new credential and add it to the credential store
                             Credential newCredential = new Credential
                             {
-                                AuthType = AuthTypes.PhiKey,
+                                AuthType = AuthTypes.ClientKey,
                                 Username = packet.Username,
                                 Password = packet.Password
                             };
@@ -398,7 +398,8 @@ namespace Authentication
                     }
                     
                     // Check if the password does not match the stored credential
-                    if (packet.Password != credential.Password)
+                    // This check is ignored if the auth type is 'ClientKey' as the password does not matter
+                    if (authType == AuthTypes.ClientKey && packet.Password != credential.Password)
                     {
                         // Fail the authentication attempt due to mismatching password
                         sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, "Invalid password provided.");

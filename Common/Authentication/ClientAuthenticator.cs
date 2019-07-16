@@ -208,7 +208,7 @@ namespace Authentication
                     // Generate a random PhiKey for this instance
                     CredentialStore newCredentialStore = new CredentialStore
                     {
-                        PhiKey = generatePhiKey()
+                        ClientKey = generateClientKey()
                     };
                 
                     // Save the store to disk
@@ -255,10 +255,10 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Generates a new PhiKey as a random Base64 string.
+        /// Generates a a random 512-bit client key encoded in Base64.
         /// </summary>
-        /// <returns>Random PhiKey</returns>
-        private static string generatePhiKey()
+        /// <returns>Random Base64-encoded 512-bit client key</returns>
+        private static string generateClientKey()
         {
             byte[] randomBytes = new byte[64];
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
@@ -311,14 +311,14 @@ namespace Authentication
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
             {
-                // Exception for PhiKey authentication, it should be a 'zero-configuration' solution
-                if (packet.AuthType == AuthTypes.PhiKey)
+                // Exception for client key authentication, it should be a 'zero-configuration' solution
+                if (packet.AuthType == AuthTypes.ClientKey)
                 {
                     credential = new Credential
                     {
-                        AuthType = AuthTypes.PhiKey,
-                        Username = credentialStore.PhiKey,
-                        Password = credentialStore.PhiKey
+                        AuthType = AuthTypes.ClientKey,
+                        Username = credentialStore.ClientKey,
+                        Password = null
                     };
                 }
                 else

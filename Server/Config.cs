@@ -90,7 +90,7 @@ namespace PhinixServer
         /// Authentication type clients must use when connecting.
         /// </summary>
         [DataMember(Name = "AuthType", Order = 11)]
-        public AuthTypes AuthType = AuthTypes.PhiKey;
+        public AuthTypes AuthType = AuthTypes.ClientKey;
 
         /// <summary>
         /// Maximum display name length for users.
