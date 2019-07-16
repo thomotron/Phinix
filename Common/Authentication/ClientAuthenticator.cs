@@ -118,9 +118,7 @@ namespace Authentication
             this.netClient = netClient;
             this.getCredentials = getCredentialsDelegate;
             this.CredentialStorePath = credentialStorePath;
-            
-            // Prevent other threads from modifying the credential store while it is read in
-            lock (credentialStoreLock) this.credentialStore = getCredentialStore();
+            this.credentialStore = getCredentialStore();
             
             // Set up the session extension timer
             sessionExtendTimer = new Timer
@@ -194,6 +192,80 @@ namespace Authentication
             // Couldn't find the credential you're looking for
             return false;
         }
+        
+        /// <summary>
+        /// Returns the existing credential store from disk or a new one if it doesn't exist.
+        /// </summary>
+        /// <returns>New or existing credential store</returns>
+        private CredentialStore getCredentialStore()
+        {
+            // Prevent other threads from modifying the credential store while we're using it
+            lock (credentialStoreLock)
+            {
+                // Create a new credential store if one doesn't already exist
+                if (!File.Exists(CredentialStorePath))
+                {
+                    // Generate a random PhiKey for this instance
+                    CredentialStore newCredentialStore = new CredentialStore
+                    {
+                        PhiKey = generatePhiKey()
+                    };
+                
+                    // Save the store to disk
+                    saveCredentialStore(newCredentialStore);
+                
+                    // Finally return the new store
+                    return newCredentialStore;
+                }
+            
+                // Pull the store from disk as a pre-packed Any.
+                CredentialStore credentialStore;
+                using (FileStream fs = new FileStream(CredentialStorePath, FileMode.Open))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    }
+                }
+                
+                // Return the credential store
+                return credentialStore;
+            }
+        }
+
+        /// <summary>
+        /// Saves the given credential store to disk, overwriting an existing one.
+        /// </summary>
+        /// <param name="credentialStore">Credential store to save</param>
+        private void saveCredentialStore(CredentialStore credentialStore)
+        {
+            // Prevent other threads from modifying the credential store while we're using it
+            lock (credentialStoreLock)
+            {
+                // Create or truncate the credentials file
+                using (FileStream fs = File.Open(CredentialStorePath, FileMode.Create, FileAccess.Write))
+                {
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        // Write the credential store to disk.
+                        credentialStore.WriteTo(cos);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Generates a new PhiKey as a random Base64 string.
+        /// </summary>
+        /// <returns>Random PhiKey</returns>
+        private static string generatePhiKey()
+        {
+            byte[] randomBytes = new byte[64];
+            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(randomBytes);
+
+            return Convert.ToBase64String(randomBytes);
+        }
 
         /// <inheritdoc />
         protected override void packetHandler(string module, string connectionId, byte[] data)
@@ -221,74 +293,6 @@ namespace Authentication
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
-        }
-
-        /// <summary>
-        /// Returns the existing credential store from disk or a new one if it doesn't exist.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
-        /// </summary>
-        /// <returns>New or existing credential store</returns>
-        private CredentialStore getCredentialStore()
-        {
-            // Create a new credential store if one doesn't already exist
-            if (!File.Exists(CredentialStorePath))
-            {
-                // Generate a random PhiKey for this instance
-                CredentialStore newCredentialStore = new CredentialStore
-                {
-                    PhiKey = generatePhiKey()
-                };
-                
-                // Save the store to disk
-                saveCredentialStore(newCredentialStore);
-                
-                // Finally return the new store
-                return newCredentialStore;
-            }
-            
-            // Pull the store from disk as a pre-packed Any.
-            CredentialStore credentialStore;
-            using (FileStream fs = new FileStream(CredentialStorePath, FileMode.Open))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
-                {
-                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
-                }
-            }
-
-            // Return the credential store
-            return credentialStore;
-        }
-
-        /// <summary>
-        /// Saves the given credential store to disk, overwriting an existing one.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
-        /// </summary>
-        /// <param name="credentialStore">Credential store to save</param>
-        private void saveCredentialStore(CredentialStore credentialStore)
-        {
-            // Create or truncate the credentials file
-            using (FileStream fs = File.Open(CredentialStorePath, FileMode.Create, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    // Write the credential store to disk.
-                    credentialStore.WriteTo(cos);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Generates a new PhiKey as a random Base64 string.
-        /// </summary>
-        /// <returns>Random PhiKey</returns>
-        private static string generatePhiKey()
-        {
-            byte[] randomBytes = new byte[64];
-            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(randomBytes);
-
-            return Convert.ToBase64String(randomBytes);
         }
         
         /// <summary>
