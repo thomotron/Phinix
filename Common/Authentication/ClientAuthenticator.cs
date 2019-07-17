@@ -314,12 +314,15 @@ namespace Authentication
                 // Exception for client key authentication, it should be a 'zero-configuration' solution
                 if (packet.AuthType == AuthTypes.ClientKey)
                 {
-                    credential = new Credential
+                    lock (credentialStore)
                     {
-                        AuthType = AuthTypes.ClientKey,
-                        Username = credentialStore.ClientKey,
-                        Password = null
-                    };
+                        credential = new Credential
+                        {
+                            AuthType = AuthTypes.ClientKey,
+                            Username = credentialStore.ClientKey,
+                            Password = null
+                        };
+                    }
                 }
                 else
                 {
