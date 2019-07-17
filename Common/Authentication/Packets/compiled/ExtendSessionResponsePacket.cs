@@ -23,14 +23,13 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CilQYWNrZXRzL0V4dGVuZFNlc3Npb25SZXNwb25zZVBhY2tldC5wcm90bxIO",
-            "QXV0aGVudGljYXRpb24aH2dvb2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJv",
-            "dG8iXQobRXh0ZW5kU2Vzc2lvblJlc3BvbnNlUGFja2V0Eg8KB1N1Y2Nlc3MY",
-            "ASABKAgSLQoJTmV3RXhwaXJ5GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRp",
-            "bWVzdGFtcGIGcHJvdG8z"));
+            "QXV0aGVudGljYXRpb24iUgobRXh0ZW5kU2Vzc2lvblJlc3BvbnNlUGFja2V0",
+            "Eg8KB1N1Y2Nlc3MYASABKAgSEQoJRXhwaXJlc0luGAMgASgFSgQIAhADUglO",
+            "ZXdFeHBpcnliBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
+          new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ExtendSessionResponsePacket), global::Authentication.ExtendSessionResponsePacket.Parser, new[]{ "Success", "NewExpiry" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ExtendSessionResponsePacket), global::Authentication.ExtendSessionResponsePacket.Parser, new[]{ "Success", "ExpiresIn" }, null, null, null)
           }));
     }
     #endregion
@@ -62,7 +61,7 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ExtendSessionResponsePacket(ExtendSessionResponsePacket other) : this() {
       success_ = other.success_;
-      NewExpiry = other.newExpiry_ != null ? other.NewExpiry.Clone() : null;
+      expiresIn_ = other.expiresIn_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -73,6 +72,9 @@ namespace Authentication {
     /// <summary>Field number for the "Success" field.</summary>
     public const int SuccessFieldNumber = 1;
     private bool success_;
+    /// <summary>
+    ///  Whether the session extension was successful
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool Success {
       get { return success_; }
@@ -81,14 +83,17 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "NewExpiry" field.</summary>
-    public const int NewExpiryFieldNumber = 2;
-    private global::Google.Protobuf.WellKnownTypes.Timestamp newExpiry_;
+    /// <summary>Field number for the "ExpiresIn" field.</summary>
+    public const int ExpiresInFieldNumber = 3;
+    private int expiresIn_;
+    /// <summary>
+    ///  Milliseconds until the next expiry
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Google.Protobuf.WellKnownTypes.Timestamp NewExpiry {
-      get { return newExpiry_; }
+    public int ExpiresIn {
+      get { return expiresIn_; }
       set {
-        newExpiry_ = value;
+        expiresIn_ = value;
       }
     }
 
@@ -106,7 +111,7 @@ namespace Authentication {
         return true;
       }
       if (Success != other.Success) return false;
-      if (!object.Equals(NewExpiry, other.NewExpiry)) return false;
+      if (ExpiresIn != other.ExpiresIn) return false;
       return true;
     }
 
@@ -114,7 +119,7 @@ namespace Authentication {
     public override int GetHashCode() {
       int hash = 1;
       if (Success != false) hash ^= Success.GetHashCode();
-      if (newExpiry_ != null) hash ^= NewExpiry.GetHashCode();
+      if (ExpiresIn != 0) hash ^= ExpiresIn.GetHashCode();
       return hash;
     }
 
@@ -129,9 +134,9 @@ namespace Authentication {
         output.WriteRawTag(8);
         output.WriteBool(Success);
       }
-      if (newExpiry_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(NewExpiry);
+      if (ExpiresIn != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(ExpiresIn);
       }
     }
 
@@ -141,8 +146,8 @@ namespace Authentication {
       if (Success != false) {
         size += 1 + 1;
       }
-      if (newExpiry_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(NewExpiry);
+      if (ExpiresIn != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ExpiresIn);
       }
       return size;
     }
@@ -155,11 +160,8 @@ namespace Authentication {
       if (other.Success != false) {
         Success = other.Success;
       }
-      if (other.newExpiry_ != null) {
-        if (newExpiry_ == null) {
-          newExpiry_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
-        }
-        NewExpiry.MergeFrom(other.NewExpiry);
+      if (other.ExpiresIn != 0) {
+        ExpiresIn = other.ExpiresIn;
       }
     }
 
@@ -175,11 +177,8 @@ namespace Authentication {
             Success = input.ReadBool();
             break;
           }
-          case 18: {
-            if (newExpiry_ == null) {
-              newExpiry_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
-            }
-            input.ReadMessage(newExpiry_);
+          case 24: {
+            ExpiresIn = input.ReadInt32();
             break;
           }
         }

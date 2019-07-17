@@ -391,6 +391,11 @@ namespace Authentication
             netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());
         }
         
+        /// <summary>
+        /// Handler for incoming <see cref="AuthResponsePacket"/>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <see cref="AuthResponsePacket"/></param>
         private void authResponsePacketHandler(string connectionId, AuthResponsePacket packet)
         {
             // Was authentication successful?
@@ -448,11 +453,11 @@ namespace Authentication
             if (packet.Success)
             {
                 // Update the expiry with the newly-extended one
-                sessionExpiry = packet.NewExpiry.ToDateTime();
+                sessionExpiry = DateTime.UtcNow + TimeSpan.FromMilliseconds(packet.ExpiresIn);
                 
-                // Reset the session extension timer for halfway between now and the expiry
+                // Reset the session extension timer to halfway between now and the expiry
                 sessionExtendTimer.Stop();
-                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Interval = (double) packet.ExpiresIn / 2;
                 sessionExtendTimer.Start();
             }
         }

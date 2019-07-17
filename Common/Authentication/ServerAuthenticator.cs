@@ -511,7 +511,7 @@ namespace Authentication
             ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
             {
                 Success = true,
-                NewExpiry = expiry.ToTimestamp()
+                ExpiresIn = (int) (expiry - DateTime.UtcNow).TotalMilliseconds
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
