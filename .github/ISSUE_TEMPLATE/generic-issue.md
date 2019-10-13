@@ -2,6 +2,9 @@
 name: Generic Issue
 about: A generic issue template. Has a description, steps for reproduction, and further
   detail.
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
