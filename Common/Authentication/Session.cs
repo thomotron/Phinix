@@ -27,12 +27,6 @@ namespace Authentication
         /// Set after successful authentication.
         /// </summary>
         public string Username;
-
-        /// <summary>
-        /// UUID of  the user this session is assigned to.
-        /// Set after successful login.
-        /// </summary>
-        public string Uuid;
         
         /// <summary>
         /// Whether this session is authenticated.
