@@ -185,7 +185,7 @@ namespace Chat
             // Get a copy of the packet's original message ID
             string originalMessageId = packet.MessageId;
             
-            // Generate a new, guaranteed-to-be-unique message ID
+            // Generate a new, guaranteed-to-be-unique message ID since we can't trust clients
             string newMessageId = Guid.NewGuid().ToString();
             
             // Sanitise the message content
