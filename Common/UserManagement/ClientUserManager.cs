@@ -146,10 +146,10 @@ namespace UserManagement
                 // Clone the user to avoid editing properties by reference
                 User user = userStore.Users[Uuid].Clone();
 
-                // Set the users display name if it is present
+                // Set the user's display name if it is present
                 if (displayName != null) user.DisplayName = displayName;
 
-                // Set the users trade acceptance if it is present
+                // Set the user's trade acceptance if it is present
                 if (acceptingTrades.HasValue) user.AcceptingTrades = acceptingTrades.Value;
                 
                 // Create and pack a user update packet
