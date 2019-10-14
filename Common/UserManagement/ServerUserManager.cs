@@ -513,12 +513,8 @@ namespace UserManagement
 
             lock (connectedUsersLock)
             {
-                // Get a local copy of each connection ID
-                string[] connectionIds = new string[connectedUsers.Count];
-                connectedUsers.Keys.CopyTo(connectionIds, 0);
-                
                 // Send the update to each connection ID
-                foreach (string connectionId in connectionIds)
+                foreach (string connectionId in connectedUsers.Keys)
                 {
                     if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                     {
