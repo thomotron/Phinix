@@ -201,10 +201,7 @@ namespace UserManagement
             {
                 using (CodedOutputStream cos = new CodedOutputStream(fs))
                 {
-                    lock (userStoreLock)
-                    {
-                        userStore.WriteTo(cos);
-                    }
+                    lock (userStoreLock) userStore.WriteTo(cos);
                 }
             }
         }
