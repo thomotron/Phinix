@@ -74,9 +74,8 @@ namespace Authentication
             this.authType = authType;
             this.credentialStorePath = credentialStorePath;
 
-            // Prevent other threads from modifying the credential store while it is read in
-            lock (credentialStoreLock) this.credentialStore = getCredentialStore();
-
+            this.credentialStore = getCredentialStore();
+            
             this.sessions = new Dictionary<string, Session>();
             this.sessionCleanupTimer = new Timer
             {
@@ -580,7 +579,6 @@ namespace Authentication
 
         /// <summary>
         /// Returns the existing credential store from disk or a new one if it doesn't exist.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <returns>New or existing credential store</returns>
         private CredentialStore getCredentialStore()
@@ -604,7 +602,10 @@ namespace Authentication
             {
                 using (CodedInputStream cis = new CodedInputStream(fs))
                 {
-                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    lock (credentialStoreLock)
+                    {
+                        credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    }
                 }
             }
 
@@ -614,7 +615,6 @@ namespace Authentication
 
         /// <summary>
         /// Saves the given credential store to disk, overwriting an existing one.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <param name="credentialStore">Credential store to save</param>
         private void saveCredentialStore(CredentialStore credentialStore)
@@ -624,8 +624,11 @@ namespace Authentication
             {
                 using (CodedOutputStream cos = new CodedOutputStream(fs))
                 {
-                    // Write the credential store to disk
-                    credentialStore.WriteTo(cos);
+                    lock (credentialStoreLock)
+                    {
+                        // Write the credential store to disk
+                        credentialStore.WriteTo(cos);
+                    }
                 }
             }
         }
