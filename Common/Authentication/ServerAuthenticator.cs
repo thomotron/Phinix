@@ -426,6 +426,12 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Sends a successful <see cref="AuthResponsePacket"/> to a connection.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        /// <param name="sessionId">New session ID</param>
+        /// <param name="expiry">Session expiry</param>
         private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, DateTime expiry)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
@@ -448,6 +454,12 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Sends a failed <see cref="AuthResponsePacket"/> to a connection.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        /// <param name="failureReason">Failure reason enum</param>
+        /// <param name="failureMessage">Failure reason message</param>
         private void sendFailedAuthResponsePacket(string connectionId, AuthFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
