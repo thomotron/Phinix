@@ -14,8 +14,12 @@ namespace PhinixServer
 {
     class Server
     {
+        // Default config file constant
         private const string CONFIG_FILE = "server.conf";
-
+        
+        public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
+        
+        // Module instance variables
         public static Config Config;
         public static Logger Logger;
         public static NetServer Connections;
@@ -23,12 +27,13 @@ namespace PhinixServer
         public static ServerUserManager UserManager;
         public static ServerChat Chat;
         public static ServerTrading Trading;
-        public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
-
+        
+        // Exiting flag to stop the main run loop
         private static bool exiting = false;
 
         static void Main()
         {
+            // Read in the config and initialise the logging module
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
             
@@ -51,31 +56,40 @@ namespace PhinixServer
             Chat.OnLogEntry += ILoggableHandler;
             Trading.OnLogEntry += ILoggableHandler;
             
+            // Start listening for connections
             Connections.Start();
 
+            // State our auth type and where we're listening from
             Logger.Log(Verbosity.INFO, string.Format("Accepting auth type \"{0}\"", Config.AuthType.ToString()));
             Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, Connections.Endpoint.Port));
 
-            // Set up an exit condition
+            // Set up an exit condition on SIGINT/Ctrl+C
             Console.CancelKeyPress += shutdownHandler;
             
+            // Start interpreting commands
             CommandInterpreter interpreter = new CommandInterpreter();
             while (!exiting)
             {
+                // Wait until we've got a command to interpret
                 string line = Console.ReadLine();
 
+                // Don't do anything if the command is empty
                 if (string.IsNullOrEmpty(line)) continue;
 
+                // Break the line down into the command and its arguments
                 List<string> arguments = new List<string>(line.Split(' '));
                 string command = arguments.First();
                 arguments.RemoveAt(0); // Remove the command from the argument list
 
-                if (command == "exit") // Check this here to avoid other weird workarounds
+                // Check if we've been given the exit command
+                // This is checked here to avoid weird workarounds from the interpreter
+                if (command == "exit")
                 {
                     shutdownHandler();
                 }
                 else
                 {
+                    // Interpret the command and its arguments
                     interpreter.Run(command, arguments);
                 }
             }
