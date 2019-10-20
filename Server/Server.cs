@@ -86,12 +86,11 @@ namespace PhinixServer
                 if (command == "exit")
                 {
                     shutdownHandler();
+                    break;
                 }
-                else
-                {
-                    // Interpret the command and its arguments
-                    interpreter.Run(command, arguments);
-                }
+
+                // Interpret the command and its arguments
+                interpreter.Run(command, arguments);
             }
         }
 
