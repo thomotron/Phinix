@@ -61,7 +61,7 @@ namespace PhinixServer
 
             // State our auth type and where we're listening from
             Logger.Log(Verbosity.INFO, string.Format("Accepting auth type \"{0}\"", Config.AuthType.ToString()));
-            Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on port {1}", Version, Connections.Endpoint.Port));
+            Logger.Log(Verbosity.INFO, string.Format("Phinix server version {0} listening on {1}:{2}", Version, Connections.Endpoint.Address, Connections.Endpoint.Port));
 
             // Set up an exit condition on SIGINT/Ctrl+C
             Console.CancelKeyPress += shutdownHandler;
