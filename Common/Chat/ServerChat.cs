@@ -81,7 +81,7 @@ namespace Chat
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
 
-            this.messageHistory = getMessageHistory(messageHistoryStorePath);
+            this.LoadChatHistory(messageHistoryStorePath);
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
