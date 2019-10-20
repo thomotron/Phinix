@@ -116,10 +116,10 @@ namespace Trading
             lock (completedTradesLock)
             {
                 // Get all trades where the user is pending notification
-                IEnumerable<CompletedTrade> _completedTrades = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
+                IEnumerable<CompletedTrade> tradesPendingNotification = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
                 List<string> tradesToRemove = new List<string>();
-                foreach (CompletedTrade completedTrade in _completedTrades)
+                foreach (CompletedTrade completedTrade in tradesPendingNotification)
                 {
                     Trade trade = completedTrade.Trade;
                     
