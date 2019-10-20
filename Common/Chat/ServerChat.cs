@@ -46,6 +46,13 @@ namespace Chat
         /// </summary>
         private int messageHistoryCapacity;
         
+        /// <summary>
+        /// Initialises a new <see cref="ServerChat"/> instance.
+        /// </summary>
+        /// <param name="netServer"></param>
+        /// <param name="authenticator"></param>
+        /// <param name="userManager"></param>
+        /// <param name="messageHistoryCapacity"></param>
         public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity)
         {
             this.netServer = netServer;
@@ -59,6 +66,14 @@ namespace Chat
             userManager.OnLogin += loginHandler;
         }
 
+        /// <summary>
+        /// Initialises a new <see cref="ServerChat"/> instance and loads the chat history from the given file.
+        /// </summary>
+        /// <param name="netServer"></param>
+        /// <param name="authenticator"></param>
+        /// <param name="userManager"></param>
+        /// <param name="messageHistoryCapacity"></param>
+        /// <param name="messageHistoryStorePath"></param>
         public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
         {
             this.netServer = netServer;
