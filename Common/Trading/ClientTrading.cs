@@ -491,6 +491,7 @@ namespace Trading
                 else
                 {
                     // Raise the failed trade update event
+                    // Do this before removing the trade so its state is preserved for anything that needs handle it
                     OnTradeUpdateFailure?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.FailureReason, packet.FailureMessage, packet.Token));
 
                     // Check the failure reason
