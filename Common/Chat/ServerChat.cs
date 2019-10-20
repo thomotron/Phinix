@@ -369,7 +369,7 @@ namespace Chat
             // Create the store from the message list
             ChatHistoryStore store = new ChatHistoryStore
             {
-                ChatMessages = { messages.Select(message => message.ToChatMessageStore())}
+                ChatMessages = { messages.Select(message => message.ToChatMessageStore()) }
             };
             
             // Create or truncate the file
