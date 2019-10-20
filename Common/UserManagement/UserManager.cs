@@ -71,18 +71,16 @@ namespace UserManagement
         /// <param name="displayName">Display name of the user</param>
         /// <param name="loggedIn">Whether the user should be logged in</param>
         /// <returns>UUID of created user</returns>
-        /// <exception cref="ArgumentException">Username cannot be null or empty</exception>
         /// <exception cref="ArgumentException">Display name cannot be null or empty</exception>
         public string CreateUser(string username, string displayName, bool loggedIn = false)
         {
-            if (string.IsNullOrEmpty(username)) throw new ArgumentException("Username cannot be null or empty.", nameof(username));
             if (string.IsNullOrEmpty(displayName)) throw new ArgumentException("Display name cannot be null or empty.", nameof(displayName));
 
             User user = new User
             {
                 Uuid = Guid.NewGuid().ToString(),
                 Username = username,
-                DisplayName = displayName,
+                DisplayName = string.IsNullOrEmpty(displayName) ? "" : displayName,
                 LoggedIn = loggedIn
             };
 
