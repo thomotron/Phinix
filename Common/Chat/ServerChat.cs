@@ -19,17 +19,17 @@ namespace Chat
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
         /// <summary>
-        /// <c>NetServer</c> instance to bind the packet handler to.
+        /// <see cref="NetServer"/> instance to bind the packet handler to.
         /// </summary>
         private NetServer netServer;
 
         /// <summary>
-        /// <c>ServerAuthenticator</c> instance used to check session validity.
+        /// <see cref="ServerAuthenticator"/> instance used to check session validity.
         /// </summary>
         private ServerAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ServerUserManager</c> instance used to check login state and source UUID validity.
+        /// <see cref="ServerUserManager"/> instance used to check login state and source UUID validity.
         /// </summary>
         private ServerUserManager userManager;
 
@@ -38,7 +38,7 @@ namespace Chat
         /// </summary>
         private List<ChatMessage> messageHistory;
         /// <summary>
-        /// Lock file to prevent race conditions when accessing <c>messageHistory</c>.
+        /// Lock file to prevent race conditions when accessing <see cref="messageHistory"/>.
         /// </summary>
         private object messageHistoryLock = new object();
         /// <summary>
@@ -46,6 +46,13 @@ namespace Chat
         /// </summary>
         private int messageHistoryCapacity;
         
+        /// <summary>
+        /// Initialises a new <see cref="ServerChat"/> instance.
+        /// </summary>
+        /// <param name="netServer"></param>
+        /// <param name="authenticator"></param>
+        /// <param name="userManager"></param>
+        /// <param name="messageHistoryCapacity"></param>
         public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity)
         {
             this.netServer = netServer;
@@ -59,6 +66,14 @@ namespace Chat
             userManager.OnLogin += loginHandler;
         }
 
+        /// <summary>
+        /// Initialises a new <see cref="ServerChat"/> instance and loads the chat history from the given file.
+        /// </summary>
+        /// <param name="netServer"></param>
+        /// <param name="authenticator"></param>
+        /// <param name="userManager"></param>
+        /// <param name="messageHistoryCapacity"></param>
+        /// <param name="messageHistoryStorePath"></param>
         public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
         {
             this.netServer = netServer;
@@ -66,7 +81,7 @@ namespace Chat
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
 
-            this.messageHistory = getMessageHistory(messageHistoryStorePath);
+            this.LoadChatHistory(messageHistoryStorePath);
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
@@ -158,11 +173,10 @@ namespace Chat
         }
 
         /// <summary>
-        /// Handles incoming <c>ChatMessagePacket</c>s.
+        /// Handles incoming <see cref="ChatMessagePacket"/>s.
         /// </summary>
-        /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="data">Data payload</param>
+        /// <param name="packet">Incoming <see cref="ChatMessagePacket"/></param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
             // Refuse packets from non-authenticated sessions
@@ -186,7 +200,7 @@ namespace Chat
             // Get a copy of the packet's original message ID
             string originalMessageId = packet.MessageId;
             
-            // Generate a new, guaranteed-to-be-unique message ID
+            // Generate a new, guaranteed-to-be-unique message ID since we can't trust clients
             string newMessageId = Guid.NewGuid().ToString();
             
             // Sanitise the message content
@@ -206,7 +220,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Broadcasts a <c>ChatMessagePacket</c> to all currently logged-in users.
+        /// Broadcasts a <see cref="ChatMessagePacket"/> to all currently logged-in users.
         /// </summary>
         /// <param name="senderUuid">Sender's UUID</param>
         /// <param name="messageId">Message ID</param>
@@ -246,7 +260,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Sends a <c>ChatMessagePacket</c> to the user.
+        /// Sends a <see cref="ChatMessagePacket"/> to the user.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="senderUuid">Sender's UUID</param>
@@ -273,9 +287,9 @@ namespace Chat
         }
 
         /// <summary>
-        /// Adds the given <c>ChatMessage</c> to the message history.
+        /// Adds the given <see cref="ChatMessage"/> to the message history.
         /// </summary>
-        /// <param name="chatMessage"><c>ChatMessage</c> to store</param>
+        /// <param name="chatMessage"><see cref="ChatMessage"/> to store</param>
         private void addMessageToHistory(ChatMessage chatMessage)
         {
             lock (messageHistoryLock)
@@ -293,7 +307,7 @@ namespace Chat
         }
 
         /// <summary>
-        /// Creates and sends a <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// Creates and sends a <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="success">Whether the chat message was processed successfully</param>
@@ -320,7 +334,7 @@ namespace Chat
         }
         
         /// <summary>
-        /// Creates and sends a failed <c>ChatMessageResponsePacket</c> to the given connection ID.
+        /// Creates and sends a failed <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="originalMessageId">The original message ID</param>
@@ -370,7 +384,7 @@ namespace Chat
             // Create the store from the message list
             ChatHistoryStore store = new ChatHistoryStore
             {
-                ChatMessages = { messages.Select(message => message.ToChatMessageStore())}
+                ChatMessages = { messages.Select(message => message.ToChatMessageStore()) }
             };
             
             // Create or truncate the file

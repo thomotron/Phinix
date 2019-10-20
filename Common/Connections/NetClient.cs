@@ -5,12 +5,21 @@ using System.Net.Sockets;
 using System.Threading;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Utils;
 
 namespace Connections
 {
     public class NetClient : NetCommon
     {
-        public bool Connected => client != null && client.IsRunning && serverPeer != null && serverPeer.ConnectionState == ConnectionState.Connected;
+        /// <inheritdoc />
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+        
+        public bool Connected => clientNetManager != null &&                              // We have a NetManager
+                                 clientNetManager.IsRunning &&                            // The NetManager is running
+                                 serverPeer != null &&                                    // We have connection info about the server
+                                 serverPeer.ConnectionState == ConnectionState.Connected; // The connection info identifies as connected
 
         /// <summary>
         /// Raised when connecting to a server.
@@ -24,7 +33,7 @@ namespace Connections
         /// <summary>
         /// Client that piggy-backs the listener and communicates with the server.
         /// </summary>
-        private NetManager client;
+        private NetManager clientNetManager;
         /// <summary>
         /// Peer representing the server's side of the connection.
         /// </summary>
@@ -36,16 +45,17 @@ namespace Connections
         private Thread pollThread;
 
         /// <summary>
-        /// Creates a new <c>NetClient</c> instance.
+        /// Creates a new <see cref="NetClient"/> instance.
         /// </summary>
-        /// <param name="checkInterval">Interval in seconds between keepalive transmissions</param>
-        public NetClient(int checkInterval = 5000)
+        /// <param name="checkInterval">Interval in milliseconds between keepalive transmissions</param>
+        /// <param name="timeout">Duration in milliseconds after which the connection will be terminated if no response is received</param>
+        public NetClient(int checkInterval = 5000, int timeout = 30000)
         {
             // Set up the client
-            client = new NetManager(listener, "Phinix")
+            clientNetManager = new NetManager(listener, "Phinix")
             {
                 PingInterval = checkInterval,
-                DisconnectTimeout = 30000
+                DisconnectTimeout = timeout
             };
 
             // Forward events
@@ -63,29 +73,32 @@ namespace Connections
             Disconnect();
 
             // Try to connect
-            client.Start();
-            serverPeer = client.Connect(endpoint.Address.ToString(), endpoint.Port);
+            clientNetManager.Start();
+            serverPeer = clientNetManager.Connect(endpoint.Address.ToString(), endpoint.Port);
             
             // Start a polling thread to check for incoming packets
             pollThread = new Thread(() =>
             {
                 while (true)
                 {
-                    client.PollEvents();
+                    clientNetManager.PollEvents();
                     Thread.Sleep(10);
                 }
             });
             pollThread.Start();
+            
+            // Raise the connection event
+            OnConnecting?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
-        /// Attempts to connect to the given address and port. This will close an existing connection.
+        /// Attempts to connect to the given host on the given port. This will close an existing connection.
         /// </summary>
-        /// <param name="address">Address to connect to</param>
+        /// <param name="host">Address or hostname of the server</param>
         /// <param name="port">Port the server is listening on</param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="InvalidAddressException"></exception>
-        public void Connect(string address, int port)
+        public void Connect(string host, int port)
         {
             // Ensure the port is within the valid range
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
@@ -97,58 +110,43 @@ namespace Connections
                 );
             }
 
-            // Close the active connection before we make a new one.
-            Disconnect();
-
             // Parse the given hostname
-            IPAddress resolvedAddress;
-            if (TryParseHostnameOrAddress(address, out resolvedAddress))
+            if (TryResolveHostname(host, out IPAddress resolvedAddress))
             {
+                // Try to connect using the resolved address
                 Connect(new IPEndPoint(resolvedAddress, port));
-                
-                OnConnecting?.Invoke(this, EventArgs.Empty);
             }
             else
             {
-                throw new InvalidAddressException(address);
+                throw new InvalidAddressException(host);
             }
         }
 
         /// <summary>
-        /// Attempts to parse or resolve the given string to an <c>IPAddress</c>. Returns true if parsing or resolution was successful.
-        /// </summary>
-        /// <param name="hostname">Hostname or IP address to parse</param>
-        /// <param name="address">Parsed address</param>
-        /// <returns>Parsed successfully</returns>
-        private bool TryParseHostnameOrAddress(string hostname, out IPAddress address)
-        {
-            if (IPAddress.TryParse(hostname, out address)) return true;
-            if (TryResolveHostname(hostname, out address)) return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to resolve the given string to an <c>IPAddress</c>. Returns true if resolution was successful.
+        /// Attempts to resolve the given string to an <see cref="IPAddress"/>. Returns true if resolution was successful.
         /// </summary>
         /// <param name="hostname">Hostname to resolve</param>
         /// <param name="address">Resolved address</param>
         /// <returns>Resolved successfully</returns>
-        private bool TryResolveHostname(string hostname, out IPAddress address)
+        private static bool TryResolveHostname(string hostname, out IPAddress address)
         {
             IPAddress[] addresses;
             try
             {
+                // Query DNS for a list of addresses
                 addresses = Dns.GetHostAddresses(hostname);
             }
             catch (SocketException)
             {
-                address = IPAddress.None;
+                // Couldn't contact a DNS server, set output to nothing and return a failure
+                address = null;
                 return false;
             }
 
-            // TODO: Get some creamy IPv6 support up in here
-            address = addresses.First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+            // Use the first address if we got one, otherwise set the output to null
+            address = addresses.Length > 0 ? addresses[0] : null;
 
+            // Return if we got an address
             return address != null;
         }
 
@@ -158,10 +156,10 @@ namespace Connections
         public void Disconnect()
         {
             // Check if the client is running
-            if (client.IsRunning)
+            if (clientNetManager.IsRunning)
             {
                 // Stop the client
-                client.Stop();
+                clientNetManager.Stop();
                 
                 // Raise the OnDisconnect event
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
@@ -178,16 +176,18 @@ namespace Connections
         /// <summary>
         /// Sends a message to a module through the current connection.
         /// </summary>
-        /// <param name="module">Target module. Cannot be null or empty.</param>
-        /// <param name="serialisedMessage">Serialised message. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NotConnectedException"></exception>
+        /// <param name="module">Target module</param>
+        /// <param name="serialisedMessage">Serialised message</param>
+        /// <exception cref="ArgumentNullException"><see cref="module"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null</exception>
+        /// <exception cref="NotConnectedException">Must be connected to send a message</exception>
         public void Send(string module, byte[] serialisedMessage)
         {
             // Disallow null parameters
-            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
-            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+            if (string.IsNullOrEmpty(module)) throw new ArgumentException("Module cannot be null or empty.", nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage), "Serialised message cannot be null.");
 
+            // Make sure we are connected before attempting to send anything
             if (!Connected) throw new NotConnectedException(serverPeer);
             
             // Write the module and message data to a NetDataWriter stream
@@ -195,6 +195,7 @@ namespace Connections
             writer.Put(module);
             writer.Put(serialisedMessage);
 
+            // Send the message in a reliable and ordered fashion
             serverPeer.Send(writer, SendOptions.ReliableOrdered);
         }
     }

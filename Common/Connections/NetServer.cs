@@ -5,18 +5,24 @@ using System.Net;
 using System.Threading;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Utils;
 
 namespace Connections
 {
     public class NetServer : NetCommon
     {
+        /// <inheritdoc />
+        public override event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
+        
         /// <summary>
         /// Whether the server is currently listening for connections.
         /// </summary>
         public bool Listening => server != null && server.IsRunning;
 
         /// <summary>
-        /// <c>IPEndpoint</c> the server is listening on.
+        /// <see cref="IPEndPoint"/> the server is listening on.
         /// </summary>
         public readonly IPEndPoint Endpoint;
         
@@ -54,7 +60,7 @@ namespace Connections
             };
             this.connectedPeers = new Dictionary<string, NetPeer>();
             
-            // Forward events
+            // Subscribe to events
             listener.PeerConnectedEvent += (peer) =>
             {
                 // Add or update the peer's connection
@@ -87,8 +93,10 @@ namespace Connections
         /// </summary>
         public void Start()
         {
-            if (Listening) throw new Exception("Cannot start listening while already doing so.");
+            // Stop listening
+            Stop();
 
+            // Start listening
             server.Start(Endpoint.Port);
             
             // Start a polling thread to check for incoming packets
@@ -125,21 +133,22 @@ namespace Connections
         /// <param name="connectionId">Connection ID of recipient</param>
         /// <param name="module">Target module</param>
         /// <param name="serialisedMessage">Serialised message</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NotConnectedException"></exception>
+        /// <exception cref="ArgumentException"><see cref="connectionId"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentException"><see cref="module"/> cannot be null or empty</exception>
+        /// <exception cref="ArgumentNullException"><see cref="serialisedMessage"/> cannot be null</exception>
+        /// <exception cref="NotConnectedException">Recipient must be connected to send a message</exception>
         public void Send(string connectionId, string module, byte[] serialisedMessage)
         {
             // Disallow null parameters
-            if (connectionId == null) throw new ArgumentNullException(nameof(connectionId));
-            if (string.IsNullOrEmpty(module)) throw new ArgumentNullException(nameof(module));
-            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage));
+            if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
+            if (string.IsNullOrEmpty(module)) throw new ArgumentException("Module cannot be null or empty", nameof(module));
+            if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage), "Serialised message cannot be null");
             
             // Check the connection exists
             if (!connectedPeers.ContainsKey(connectionId))
             {
                 throw new NotConnectedException();
             }
-            
             
             // Get the connection by it's ID
             NetPeer peer = connectedPeers[connectionId];
@@ -155,6 +164,7 @@ namespace Connections
             writer.Put(module);
             writer.Put(serialisedMessage);
 
+            // Send the message in a reliable and ordered fashion
             peer.Send(writer, SendOptions.ReliableOrdered);
         }
 
@@ -171,16 +181,35 @@ namespace Connections
             {
                 // Try to send the message
                 Send(connectionId, module, serialisedMessage);
+                
                 return true;
             }
-            catch (NotConnectedException)
+            catch (NotConnectedException e)
             {
                 // Catch connection exceptions
+                RaiseLogEntry(new LogEventArgs("Cannot send message, " + e.Message, LogLevel.ERROR));
+                
                 return false;
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException e)
             {
                 // Catch argument exceptions
+                RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
+                
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                // Catch more argument exceptions
+                RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
+                
+                return false;
+            }
+            catch (Exception e)
+            {
+                // Catch anything else
+                RaiseLogEntry(new LogEventArgs("Got an unusual exception when sending a message\n" + e, LogLevel.ERROR));
+
                 return false;
             }
         }

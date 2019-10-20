@@ -176,7 +176,6 @@ namespace UserManagement
                 userStore.Users[uuid].LoggedIn = false;
             }
 
-            // TODO: Broadcast the state change
             return true;
         }
 

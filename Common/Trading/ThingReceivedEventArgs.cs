@@ -5,7 +5,7 @@ namespace Trading
     public class ThingReceivedEventArgs : EventArgs
     {
         /// <summary>
-        /// Incoming <c>Thing</c>
+        /// Incoming <see cref="Thing"/>
         /// </summary>
         public ProtoThing Thing;
 

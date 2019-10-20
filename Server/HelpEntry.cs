@@ -3,7 +3,7 @@
 namespace PhinixServer
 {
     /// <summary>
-    /// A help entry read by the <c>CommandInterpreter</c> to help with consistent formatting.
+    /// A help entry read by the <see cref="CommandInterpreter"/> to help with consistent formatting.
     /// </summary>
     public class HelpEntry
     {
@@ -23,7 +23,7 @@ namespace PhinixServer
         public string Text { get; }
 
         /// <summary>
-        /// Constructs a new <c>HelpEntry</c> without any arguments.
+        /// Constructs a new <see cref="HelpEntry"/> without any arguments.
         /// </summary>
         /// <param name="commandName">Name of the command as typed by the user</param>
         /// <param name="text">Description of what the command does</param>
@@ -35,7 +35,7 @@ namespace PhinixServer
         }
 
         /// <summary>
-        /// Constructs a new <c>HelpEntry</c> without any arguments.
+        /// Constructs a new <see cref="HelpEntry"/> without any arguments.
         /// </summary>
         /// <param name="commandName">Name of the command as typed by the user</param>
         /// <param name="arguments">List of arguments required to run this combination</param>

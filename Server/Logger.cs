@@ -25,7 +25,7 @@ namespace PhinixServer
         private string logPath;
 
         /// <summary>
-        /// Creates a new <c>Logger</c> instance.
+        /// Creates a new <see cref="Logger"/> instance.
         /// </summary>
         /// <param name="logPath">Log file path including extension</param>
         /// <param name="displayVerbosity">Minimum verbosity level for a message to be displayed in console</param>

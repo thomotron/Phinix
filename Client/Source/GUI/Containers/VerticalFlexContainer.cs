@@ -20,7 +20,7 @@ namespace PhinixClient.GUI
         private float spacing;
 
         /// <summary>
-        /// Creates a new <c>VerticalFlexContainer</c> with the given width.
+        /// Creates a new <see cref="VerticalFlexContainer"/> with the given width.
         /// </summary>
         public VerticalFlexContainer(float spacing = 10f)
         {
@@ -28,11 +28,12 @@ namespace PhinixClient.GUI
             
             this.Contents = new List<Displayable>();
         }
-        
+
         /// <summary>
-        /// Creates a new <c>VerticalFlexContainer</c> with the given width and contents.
+        /// Creates a new <see cref="VerticalFlexContainer"/> with the given width and contents.
         /// </summary>
         /// <param name="contents">Drawable contents</param>
+        /// <param name="spacing">Spacing between elements</param>
         public VerticalFlexContainer(IEnumerable<Displayable> contents, float spacing = 10f)
         {
             this.Contents = contents.ToList();
@@ -105,7 +106,7 @@ namespace PhinixClient.GUI
         }
 
         /// <summary>
-        /// Adds an <c>IDrawable</c> item to the container.
+        /// Adds an <see cref="Displayable"/> item to the container.
         /// </summary>
         /// <param name="item">Drawable item to add</param>
         public void Add(Displayable item)

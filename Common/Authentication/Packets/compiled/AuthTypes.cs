@@ -22,8 +22,8 @@ namespace Authentication {
     static AuthTypesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChdQYWNrZXRzL0F1dGhUeXBlcy5wcm90bxIOQXV0aGVudGljYXRpb24qFwoJ",
-            "QXV0aFR5cGVzEgoKBlBoaUtleRAAYgZwcm90bzM="));
+            "ChdQYWNrZXRzL0F1dGhUeXBlcy5wcm90bxIOQXV0aGVudGljYXRpb24qGgoJ",
+            "QXV0aFR5cGVzEg0KCUNsaWVudEtleRAAYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.AuthTypes), }, null));
@@ -33,7 +33,7 @@ namespace Authentication {
   }
   #region Enums
   public enum AuthTypes {
-    [pbr::OriginalName("PhiKey")] PhiKey = 0,
+    [pbr::OriginalName("ClientKey")] ClientKey = 0,
   }
 
   #endregion

@@ -9,9 +9,14 @@ using Utils;
 
 namespace Connections
 {
-    public class NetCommon
+    public abstract class NetCommon : ILoggable
     {
         public static readonly Version Version = Assembly.GetAssembly(typeof(NetCommon)).GetName().Version;
+        
+        /// <inheritdoc />
+        public abstract event EventHandler<LogEventArgs> OnLogEntry;
+        /// <inheritdoc />
+        public abstract void RaiseLogEntry(LogEventArgs e);
         
         /// <summary>
         /// Listener that handles communications over the wire.
@@ -19,8 +24,8 @@ namespace Connections
         internal EventBasedNetListener listener = new EventBasedNetListener();
 
         /// <summary>
-        /// Packet handler callback delegate. Used when registering packet handlers as the callback method.
-        /// Exposes basic information about the incoming packet.
+        /// Packet handler callback delegate. Used as a callback when registering packet handlers.
+        /// Exposes basic information about the incoming packet and a copy of the data.
         /// </summary>
         /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
@@ -70,12 +75,7 @@ namespace Connections
         /// </summary>
         public void UnregisterAllPacketHandlers()
         {
-            // Get a local snapshot to avoid issues when updating the collection
-            string[] registeredPacketTypes = registeredPacketHandlers.Keys.ToArray();
-            foreach (string packetType in registeredPacketTypes)
-            {
-                UnregisterPacketHandler(packetType);
-            }
+            registeredPacketHandlers.Clear();
         }
         
         /// <summary>

@@ -28,7 +28,7 @@ namespace Trading
         public readonly List<string> AcceptedParties;
 
         /// <summary>
-        /// Creates a new <c>Trade</c> between the given parties.
+        /// Creates a new <see cref="Trade"/> between the given parties.
         /// </summary>
         /// <param name="partyUuids">UUIDs of each party</param>
         public Trade(IEnumerable<string> partyUuids)
@@ -41,7 +41,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Creates a new <c>Trade</c> between the given parties with the given trade ID.
+        /// Creates a new <see cref="Trade"/> between the given parties with the given trade ID.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="partyUuids">UUIDs of each party</param>
