@@ -291,8 +291,8 @@ namespace PhinixClient
         /// <summary>
         /// Adds each logged in user to a scrollable container.
         /// </summary>
-        /// <returns>A <see cref="ScrollContainer"/> containing the user list</returns>
-        private ScrollContainer GenerateUserList()
+        /// <returns>A <see cref="VerticalScrollContainer"/> containing the user list</returns>
+        private VerticalScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
             VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
@@ -319,10 +319,10 @@ namespace PhinixClient
             }
 
             // Wrap the flex container in a scroll container
-            ScrollContainer scrollContainer = new ScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
+            VerticalScrollContainer verticalScrollContainer = new VerticalScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
 
             // Return the scroll container
-            return scrollContainer;
+            return verticalScrollContainer;
         }
 
         /// <summary>
@@ -356,7 +356,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <see cref="ScrollContainer"/> containing a series of available trades.
+        /// Generates a <see cref="VerticalScrollContainer"/> containing a series of available trades.
         /// </summary>
         /// <returns></returns>
         private Displayable GenerateTradeRows()
@@ -387,7 +387,7 @@ namespace PhinixClient
             }
 
             // Return the generated column wrapped in a scroll container
-            return new ScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
+            return new VerticalScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
         }
     }
 }
