@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="GUI\Basic Widgets\AdapterWidget.cs" />
+    <Compile Include="GUI\Basic Widgets\BlankWidget.cs" />
     <Compile Include="GUI\Basic Widgets\ButtonWidget.cs" />
     <Compile Include="GUI\Basic Widgets\CheckboxLabeledWidget.cs" />
     <Compile Include="GUI\Basic Widgets\FittedTextureWidget.cs" />
