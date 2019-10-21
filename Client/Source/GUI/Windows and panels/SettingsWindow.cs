@@ -179,13 +179,16 @@ namespace PhinixClient
         /// Generates an editable display name field and a button to apply the changes.
         /// </summary>
         /// <returns><see cref="HorizontalFlexContainer"/> containing an editable display name field and a button to apply the changes</returns>
-        private HorizontalFlexContainer GenerateEditableDisplayName()
+        private VerticalFlexContainer GenerateEditableDisplayName()
         {
-            // Create a flex container as our 'row' to store elements in
-            HorizontalFlexContainer row = new HorizontalFlexContainer();
+            // Create a flex container as our 'column' to store rows in
+            VerticalFlexContainer column = new VerticalFlexContainer();
+
+            // Create a flex container as our 'row' to store the editable name field in
+            HorizontalFlexContainer editableRow = new HorizontalFlexContainer();
 
             // Editable display name text box
-            row.Add(
+            editableRow.Add(
                 new TextFieldWidget(
                     text: Client.Instance.DisplayName,
                     onChange: newDisplayName => Client.Instance.DisplayName = newDisplayName
@@ -193,7 +196,7 @@ namespace PhinixClient
             );
 
             // Set display name button
-            row.Add(
+            editableRow.Add(
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_settings_setDisplayNameButton".Translate(),
@@ -202,9 +205,24 @@ namespace PhinixClient
                     width: DISPLAY_NAME_SET_BUTTON_WIDTH
                 )
             );
+            
+            // Add the editable row to the column container
+            column.Add(editableRow);
+
+            // Create a flex container as our 'row' to store the name preview in
+            HorizontalFlexContainer previewRow = new HorizontalFlexContainer();
+
+            previewRow.Add(
+                new TextWidget(
+                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName)
+                )
+            );
+
+            // Add the preview row to the column container
+            column.Add(previewRow);
 
             // Return the generated row
-            return row;
+            return column;
         }
     }
 }
