@@ -324,7 +324,7 @@ namespace Authentication
                         {
                             AuthType = AuthTypes.ClientKey,
                             Username = credentialStore.ClientKey,
-                            Password = null
+                            Password = ""
                         };
                     }
                 }
