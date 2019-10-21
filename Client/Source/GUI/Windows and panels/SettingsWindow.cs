@@ -27,6 +27,8 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
+        private static Vector2 namePreviewScrollPos;
+
         public override void DoWindowContents(Rect inRect)
         {
             doCloseX = true;
@@ -219,8 +221,12 @@ namespace PhinixClient
 
             // Add the name preview
             row.Add(
-                new TextWidget(
-                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName)
+                new HorizontalScrollContainer(
+                    new TextWidget(
+                        text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName)
+                    ),
+                    scrollPosition: namePreviewScrollPos,
+                    onScroll: (newPos) => namePreviewScrollPos = newPos
                 )
             );
 
