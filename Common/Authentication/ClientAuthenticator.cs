@@ -367,13 +367,9 @@ namespace Authentication
                     return;
                 }
             }
-            
-            RaiseLogEntry(new LogEventArgs("Sending AuthenticatePacketResponse", LogLevel.DEBUG));
 
             // Send an AuthenticatePacket as a response
             sendAuthenticatePacket(packet.SessionId, credential);
-
-            RaiseLogEntry(new LogEventArgs("Sent AuthenticatePacketResponse", LogLevel.DEBUG));
         }
 
         /// <summary>
