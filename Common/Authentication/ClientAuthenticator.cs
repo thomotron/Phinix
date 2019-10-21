@@ -311,9 +311,13 @@ namespace Authentication
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
             {
+                RaiseLogEntry(new LogEventArgs(string.Format("No existing credential found for {0} auth type", packet.AuthType), LogLevel.DEBUG));
+
                 // Exception for client key authentication, it should be a 'zero-configuration' solution
                 if (packet.AuthType == AuthTypes.ClientKey)
                 {
+                    RaiseLogEntry(new LogEventArgs("Creating new ClientKey credential", LogLevel.DEBUG));
+
                     lock (credentialStore)
                     {
                         credential = new Credential
@@ -326,6 +330,8 @@ namespace Authentication
                 }
                 else
                 {
+                    RaiseLogEntry(new LogEventArgs("Requesting credentials from user...", LogLevel.DEBUG));
+
                     // Request for credentials
                     getCredentials(
                         packet.SessionId,
@@ -362,8 +368,12 @@ namespace Authentication
                 }
             }
             
+            RaiseLogEntry(new LogEventArgs("Sending AuthenticatePacketResponse", LogLevel.DEBUG));
+
             // Send an AuthenticatePacket as a response
             sendAuthenticatePacket(packet.SessionId, credential);
+
+            RaiseLogEntry(new LogEventArgs("Sent AuthenticatePacketResponse", LogLevel.DEBUG));
         }
 
         /// <summary>
