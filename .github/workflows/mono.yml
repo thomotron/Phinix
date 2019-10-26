@@ -39,10 +39,10 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: PhinixClient-${{ steps.init.outputs.sha8 }}
-        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'Client') }}
+        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'PhinixClient') }}
           
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
         name: PhinixServer-${{ steps.init.outputs.sha8 }}
-        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'Server') }}
+        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'PhinixServer') }}
