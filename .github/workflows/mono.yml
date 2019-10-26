@@ -30,10 +30,9 @@ jobs:
     - name: Grab artifacts
       run: |
         rm ./Server/bin/Release/*.pdb
-        mv ./Client/ ./Phinix/
+        mv ./Client/ ./PhinixClient/
         mv ./Server/bin/Release/ ./PhinixServer/
-        zip -r Client.zip ./Phinix/
-        zip -r Server.zip ./PhinixServer/
+        pwd
 
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
