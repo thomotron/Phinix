@@ -6,11 +6,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      SHA8: ${GITHUB_SHA:0:8}
     steps:
     - uses: actions/checkout@v1
-    
-    - name: Set environment variables
-      env: SHA8: ${GITHUB_SHA:0:8}
 
     - name: Grab required files
       run: |
@@ -34,3 +33,12 @@ jobs:
         zip -r PhinixServer-${SHA8}.zip ./PhinixServer/
         zip -r PhinixClient-${SHA8}.zip ./Phinix/
         ls
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      - with:
+        name: Client
+        path: PhinixClient-${SHA8}.zip
+      - with:
+        name: Server
+        path: PhinixServer-${SHA8}.zip
