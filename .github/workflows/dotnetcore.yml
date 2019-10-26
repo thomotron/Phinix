@@ -14,15 +14,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
-      
-    - name: Install mono
-      run: sudo apt-get -y install mono-complete
-      
-    - name: Setup Nuget
-      uses: warrenbuckley/Setup-Nuget@v1
+
+    - name: Fetch Nuget
+      run: wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
       
     - name: Restore project via Nuget 
-      run: nuget restore ./Phinix.sln
+      run: mono nuget.exe restore ./Phinix.sln
       
     - name: Build project
       run: xbuild /property:Configuration=TravisCI ./Phinix.sln
