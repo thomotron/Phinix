@@ -30,20 +30,19 @@ jobs:
     - name: Grab artifacts
       run: |
         rm ./Server/bin/Release/*.pdb
-        mv ./Server/bin/Release/ ./PhinixServer/
         mv ./Client/ ./Phinix/
-        zip -r PhinixServer-${GITHUB_SHA:0:8}.zip ./PhinixServer/
-        zip -r PhinixClient-${GITHUB_SHA:0:8}.zip ./Phinix/
-        ls
+        mv ./Server/bin/Release/ ./PhinixServer/
+        zip -r Client.zip ./Phinix/
+        zip -r Server.zip ./PhinixServer/
 
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Client
-        path: PhinixClient-${{ steps.init.outputs.sha8 }}.zip
+        name: PhinixClient-${{ steps.init.outputs.sha8 }}
+        path: Client.zip
           
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Server
-        path: PhinixServer-${{ steps.init.outputs.sha8 }}.zip
+        name: PhinixServer-${{ steps.init.outputs.sha8 }}
+        path: Server.zip
