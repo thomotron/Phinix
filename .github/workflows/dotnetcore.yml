@@ -16,7 +16,7 @@ jobs:
         dotnet-version: 2.2.108
       
     - name: Install mono
-      run: apt -y install mono-complete
+      run: sudo apt-get -y install mono-complete
       
     - name: Setup Nuget
       uses: warrenbuckley/Setup-Nuget@v1
