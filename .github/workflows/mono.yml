@@ -11,7 +11,7 @@ jobs:
 
     - name: Grab required files
       run: |
-        curl {{ $secrets.RIMWORLD_DLLS }} -o rimworld-dlls.zip
+        curl ${{ secrets.RIMWORLD_DLLS }} -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
         
     - name: Fetch Nuget
