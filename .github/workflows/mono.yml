@@ -10,6 +10,10 @@ jobs:
       SHA8: ${GITHUB_SHA:0:8}
     steps:
     - uses: actions/checkout@v1
+      
+    - name: Set variables needed
+      run: echo "##[set-output name=sha8;]$(echo $SHA8)"
+      id: init
 
     - name: Grab required files
       run: |
@@ -38,10 +42,10 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Client
-        path: PhinixClient-${SHA8}.zip
+        path: PhinixClient-${{ steps.init.outputs.sha8 }}.zip
           
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
         name: Server
-        path: PhinixServer-${SHA8}.zip
+        path: PhinixServer-${{ steps.init.outputs.sha8 }}.zip
