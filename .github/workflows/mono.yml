@@ -31,6 +31,7 @@ jobs:
       id: artifacts
       run: |
         rm ./Server/bin/Release/*.pdb
+        rm -rf ./Client/Source/
         mv ./Client/ ./PhinixClient/
         mv ./Server/bin/Release/ ./PhinixServer/
         echo "##[set-output name=dir;]$(pwd)"
