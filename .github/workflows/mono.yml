@@ -33,7 +33,7 @@ jobs:
         rm ./Server/bin/Release/*.pdb
         mv ./Client/ ./PhinixClient/
         mv ./Server/bin/Release/ ./PhinixServer/
-        echo "##[set-output name=dir;]$(pwd)
+        echo "##[set-output name=dir;]$(pwd)"
 
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
