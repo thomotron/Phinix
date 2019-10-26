@@ -34,11 +34,14 @@ jobs:
         zip -r PhinixClient-${SHA8}.zip ./Phinix/
         ls
 
-    - name: Upload artifacts
+    - name: Upload client artifact
       uses: actions/upload-artifact@v1
-      - with:
+      with:
         name: Client
         path: PhinixClient-${SHA8}.zip
-      - with:
+          
+    - name: Upload server artifact
+      uses: actions/upload-artifact@v1
+      with:
         name: Server
         path: PhinixServer-${SHA8}.zip
