@@ -1,4 +1,4 @@
-name: .NET Core
+name: Mono on Ubuntu Latest
 
 on: [push]
 
@@ -9,14 +9,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.2.108
 
     - name: Fetch Nuget
-      run: wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+      run: wget -nv https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
       
     - name: Restore project via Nuget 
       run: mono nuget.exe restore ./Phinix.sln
