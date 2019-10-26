@@ -13,7 +13,7 @@ jobs:
       run: echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
       id: init
 
-    - name: Grab required files
+    - name: Grab Rimworld DLLs
       run: |
         curl ${{ secrets.RIMWORLD_DLLS }} -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
@@ -21,27 +21,28 @@ jobs:
     - name: Fetch Nuget
       run: curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
       
-    - name: Restore project via Nuget 
+    - name: Restore project via Nuget
       run: mono nuget.exe restore ./Phinix.sln
       
-    - name: Build project
+    - name: Build Phinix
       run: msbuild /property:Configuration=Release ./Phinix.sln
     
-    - name: Grab artifacts
+    - name: Prepare artifacts
+      id: artifacts
       run: |
         rm ./Server/bin/Release/*.pdb
         mv ./Client/ ./PhinixClient/
         mv ./Server/bin/Release/ ./PhinixServer/
-        pwd
+        echo "##[set-output name=dir;]$(pwd)
 
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
       with:
         name: PhinixClient-${{ steps.init.outputs.sha8 }}
-        path: Client.zip
+        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'Client' }}
           
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
         name: PhinixServer-${{ steps.init.outputs.sha8 }}
-        path: Server.zip
+        path: ${{ format('{0}/{1}', steps.artifacts.outputs.dir, 'Server' }}
