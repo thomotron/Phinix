@@ -9,15 +9,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      
     - name: Setup .NET Core
       uses: actions/setup-mono
       with:
         dotnet-version: 2.2.108
+      
     - name: Install mono
       run: apt -y install mono-complete
+      
     - name: Setup Nuget
-      uses: warrenbuckley/Setup-Nuget@v1
+      uses: warrenbuckley/Setup-Nuget
+      
     - name: Restore project via Nuget 
       run: nuget restore ./Phinix.sln
+      
     - name: Build project
       run: xbuild /property:Configuration=TravisCI ./Phinix.sln
