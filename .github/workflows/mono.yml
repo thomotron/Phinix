@@ -9,17 +9,13 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       
-    - name: Set variables needed
-      run: echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
-      id: init
-
-    - name: Grab Rimworld DLLs
+    - name: Setup build environment
       run: |
+	    echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
+        echo "##[set-output name=dir;]$(pwd)"
         curl ${{ secrets.RIMWORLD_DLLS }} -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
-        
-    - name: Fetch Nuget
-      run: curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
+        curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
       
     - name: Restore project via Nuget
       run: mono nuget.exe restore ./Phinix.sln
@@ -34,7 +30,6 @@ jobs:
         rm -rf ./Client/Source/
         mv ./Client/ ./PhinixClient/
         mv ./Server/bin/Release/ ./PhinixServer/
-        echo "##[set-output name=dir;]$(pwd)"
 
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
