@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    
+    - name: Set environment variables
+      env: SHA8: ${GITHUB_SHA:0:8}
 
     - name: Grab required files
       run: |
@@ -28,6 +31,6 @@ jobs:
         rm ./Server/bin/Release/*.pdb
         mv ./Server/bin/Release/ ./PhinixServer/
         mv ./Client/ ./Phinix/
-        zip -r PhinixServer-${GITHUB_SHA:0:7}.zip ./PhinixServer/
-        zip -r PhinixClient-${GITHUB_SHA:0:7}%.zip ./Phinix/
+        zip -r PhinixServer-${SHA8}.zip ./PhinixServer/
+        zip -r PhinixClient-${SHA8}.zip ./Phinix/
         ls
