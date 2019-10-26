@@ -6,13 +6,11 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      SHA8: ${GITHUB_SHA:0:8}
     steps:
     - uses: actions/checkout@v1
       
     - name: Set variables needed
-      run: echo "##[set-output name=sha8;]$(echo $SHA8)"
+      run: echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
       id: init
 
     - name: Grab required files
@@ -34,8 +32,8 @@ jobs:
         rm ./Server/bin/Release/*.pdb
         mv ./Server/bin/Release/ ./PhinixServer/
         mv ./Client/ ./Phinix/
-        zip -r PhinixServer-${SHA8}.zip ./PhinixServer/
-        zip -r PhinixClient-${SHA8}.zip ./Phinix/
+        zip -r PhinixServer-${GITHUB_SHA:0:8}.zip ./PhinixServer/
+        zip -r PhinixClient-${GITHUB_SHA:0:8}.zip ./Phinix/
         ls
 
     - name: Upload client artifact
