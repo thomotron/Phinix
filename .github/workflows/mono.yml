@@ -11,7 +11,7 @@ jobs:
       
     - name: Setup build environment
       run: |
-	    echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
+        echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
         echo "##[set-output name=dir;]$(pwd)"
         curl ${{ secrets.RIMWORLD_DLLS }} -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
