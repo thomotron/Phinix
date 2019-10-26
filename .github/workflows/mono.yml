@@ -25,9 +25,9 @@ jobs:
     
     - name: Grab artifacts
       run: |
-        rm .\Server\bin\Release\*.pdb
-        mv .\Server\bin\Release\ .\PhinixServer\
-        mv .\Client .\Phinix\
-        zip -r PhinixServer-${GITHUB_SHA:0:7}.zip .\PhinixServer\
-        zip -r PhinixClient-${GITHUB_SHA:0:7}%.zip .\Phinix\
+        rm ./Server/bin/Release/*.pdb
+        mv ./Server/bin/Release/ ./PhinixServer/
+        mv ./Client/ ./Phinix/
+        zip -r PhinixServer-${GITHUB_SHA:0:7}.zip ./PhinixServer/
+        zip -r PhinixClient-${GITHUB_SHA:0:7}%.zip ./Phinix/
         ls
