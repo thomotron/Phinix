@@ -22,3 +22,7 @@ jobs:
       
     - name: Build project
       run: msbuild /property:Configuration=Release ./Phinix.sln
+    
+    - name: Grab artifacts
+      run: |
+        echo ${GITHUB_SHA:7}
