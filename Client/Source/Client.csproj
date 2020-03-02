@@ -37,9 +37,6 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="$HugsLibChecker, Version=0.5.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLibChecker.5.0.0\lib\net35\$HugsLibChecker.dll</HintPath>
-    </Reference>
     <Reference Include="0Harmony, Version=2.0.0.6, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\.nuget\Lib.Harmony.2.0.0.6\lib\net472\0Harmony.dll</HintPath>
       <Private>True</Private>
@@ -169,7 +166,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(TargetDir)\$HugsLibChecker.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\0-HugsLibChecker.dll" />
     <Copy SourceFiles="$(TargetDir)\LiteNetLib.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-LiteNetLib.dll" />
     <Copy SourceFiles="$(TargetDir)\Google.Protobuf.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
     <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Utils.dll" />
