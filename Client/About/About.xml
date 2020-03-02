@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ModMetaData>
     <name>Phinix</name>
+    <packageId>Thomotron.Phinix</packageId>
     <author>Thomotron and The Phinix Team</author>
     <url>https://github.com/PhinixTeam/Phinix</url>
-    <supportedVersions>
-        <li>1.0</li>
-    </supportedVersions>
     <description>
 A total rewrite of Longwelwind's Phi multiplayer mod for RimWorld.
 
 Phinix is still in its early stages so please report any issues you have through the GitHub page.
     </description>
+    <supportedVersions>
+        <li>1.1</li>
+    </supportedVersions>
+    <modDependencies>
+        <li>
+            <packageId>UnlimitedHugs.HugsLib</packageId>
+            <displayName>HugsLib</displayName>
+            <steamWorkshopUrl>steam://url/CommunityFilePage/818773962</steamWorkshopUrl>
+            <downloadUrl>https://ludeon.com/forums/index.php?topic=28066.0</downloadUrl>
+        </li>
+    </modDependencies>
+    <loadAfter>
+        <li>UnlimitedHugs.HugsLib</li>
+    </loadAfter>
 </ModMetaData>
