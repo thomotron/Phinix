@@ -65,7 +65,7 @@ namespace PhinixClient
         /// <summary>
         /// Generates a non-editable server address and disconnect button.
         /// </summary>
-        /// <returns><c>HorizontalFlexContainer</c> containing connected server details</returns>
+        /// <returns><see cref="HorizontalFlexContainer"/> containing connected server details</returns>
         private HorizontalFlexContainer GenerateConnectedServerDetails()
         {
             // Create a flex container as our 'row' to store elements in
@@ -97,7 +97,7 @@ namespace PhinixClient
         /// <summary>
         /// Generates an editable server address, editable server port, and connect button.
         /// </summary>
-        /// <returns><c>HorizontalFlexContainer</c> containing an editable server address, editable server port, and connect button</returns>
+        /// <returns><see cref="HorizontalFlexContainer"/> containing an editable server address, editable server port, and connect button</returns>
         private HorizontalFlexContainer GenerateDisconnectedServerDetails()
         {
             // Create a flex container as our 'row' to store elements in
@@ -178,7 +178,7 @@ namespace PhinixClient
         /// <summary>
         /// Generates an editable display name field and a button to apply the changes.
         /// </summary>
-        /// <returns><c>HorizontalFlexContainer</c> containing an editable display name field and a button to apply the changes</returns>
+        /// <returns><see cref="HorizontalFlexContainer"/> containing an editable display name field and a button to apply the changes</returns>
         private HorizontalFlexContainer GenerateEditableDisplayName()
         {
             // Create a flex container as our 'row' to store elements in

@@ -10,7 +10,7 @@ namespace Utils
         public string Type;
         
         /// <summary>
-        /// Creates a <c>TypeUrl</c> object from a valid TypeUrl string.
+        /// Creates a <see cref="TypeUrl"/> object from a valid TypeUrl string.
         /// For example, given 'Phinix/Namespace.SubNamespace.ClassName' it would yield:
         ///   1. Phinix - The prefix
         ///   2. Namespace.SubNamespace - The namespace

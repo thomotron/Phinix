@@ -262,7 +262,8 @@ __pycache__/
 *.pyc
 
 # Phinix Client Binaries
-Client/Assemblies/*.dll
+Client/Common/Assemblies/*.dll
+Client/1.*/Assemblies/*.dll
 
 # Git rubbish
 *.orig

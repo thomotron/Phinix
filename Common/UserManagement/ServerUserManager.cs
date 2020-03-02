@@ -12,7 +12,7 @@ namespace UserManagement
 {
     /// <inheritdoc />
     /// <summary>
-    /// Server-side variant of <c>UserManager</c>.
+    /// Server-side variant of <see cref="UserManager"/>.
     /// Used to store details of each user and oversees user login.
     /// </summary>
     public class ServerUserManager : UserManager
@@ -28,12 +28,12 @@ namespace UserManagement
         public event EventHandler<ServerLoginEventArgs> OnLogin;
 
         /// <summary>
-        /// <c>NetServer</c> to send packets and bind events to.
+        /// <see cref="NetServer"/> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
 
         /// <summary>
-        /// <c>ServerAuthenticator</c> to check session validity with.
+        /// <see cref="ServerAuthenticator"/> to check session validity with.
         /// </summary>
         private ServerAuthenticator authenticator;
 
@@ -61,10 +61,10 @@ namespace UserManagement
         private int maxDisplayNameLength;
 
         /// <summary>
-        /// Creates a new <c>ServerUserManager</c> instance.
+        /// Creates a new <see cref="ServerUserManager"/> instance.
         /// </summary>
-        /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
-        /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
+        /// <param name="netServer"><see cref="NetServer"/> instance to bind packet handlers to</param>
+        /// <param name="authenticator"><see cref="ServerAuthenticator"/> to check session validity with</param>
         /// <param name="maxDisplayNameLength">Maximum number of non-format characters users may have in their display name</param>
         public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, int maxDisplayNameLength = 100)
         {
@@ -80,10 +80,10 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Creates a new <c>ServerUserManager</c> instance and loads in the user store from the given path.
+        /// Creates a new <see cref="ServerUserManager"/> instance and loads in the user store from the given path.
         /// </summary>
-        /// <param name="netServer"><c>NetServer</c> instance to bind packet handlers to</param>
-        /// <param name="authenticator"><c>ServerAuthenticator</c> to check session validity with</param>
+        /// <param name="netServer"><see cref="NetServer"/> instance to bind packet handlers to</param>
+        /// <param name="authenticator"><see cref="ServerAuthenticator"/> to check session validity with</param>
         /// <param name="userStorePath">Path to user store</param>
         /// <param name="maxDisplayNameLength">Maximum number of non-format characters users may have in their display name</param>
         public ServerUserManager(NetServer netServer, ServerAuthenticator authenticator, string userStorePath, int maxDisplayNameLength = 100)
@@ -201,10 +201,7 @@ namespace UserManagement
             {
                 using (CodedOutputStream cos = new CodedOutputStream(fs))
                 {
-                    lock (userStoreLock)
-                    {
-                        userStore.WriteTo(cos);
-                    }
+                    lock (userStoreLock) userStore.WriteTo(cos);
                 }
             }
         }
@@ -346,7 +343,7 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Handles incoming <c>LoginPacket</c>s, attempting to log in users.
+        /// Handles incoming <see cref="LoginPacket"/>s, attempting to log in users.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
@@ -449,7 +446,7 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Sends a successful <c>LoginResponsePacket</c> with the given UUID and display name.
+        /// Sends a successful <see cref="LoginResponsePacket"/> with the given UUID and display name.
         /// </summary>
         /// <param name="connectionId">Connection ID</param>
         /// <param name="uuid">User's UUID</param>
@@ -475,7 +472,7 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Sends a failed <c>LoginResponsePacket</c> with the given reason and message.
+        /// Sends a failed <see cref="LoginResponsePacket"/> with the given reason and message.
         /// </summary>
         /// <param name="connectionId">Connection ID</param>
         /// <param name="failureReason">Failure reason</param>
@@ -516,12 +513,8 @@ namespace UserManagement
 
             lock (connectedUsersLock)
             {
-                // Get a local copy of each connection ID
-                string[] connectionIds = new string[connectedUsers.Count];
-                connectedUsers.Keys.CopyTo(connectionIds, 0);
-                
                 // Send the update to each connection ID
-                foreach (string connectionId in connectionIds)
+                foreach (string connectionId in connectedUsers.Keys)
                 {
                     if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                     {
@@ -532,7 +525,7 @@ namespace UserManagement
         }
 
         /// <summary>
-        /// Sends a <c>UserSyncPacket</c> containing all users to the given connection.
+        /// Sends a <see cref="UserSyncPacket"/> containing all users to the given connection.
         /// Usernames are stripped from users for security.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
@@ -565,7 +558,7 @@ namespace UserManagement
         }
         
         /// <summary>
-        /// Handles incoming <c>UserUpdatePacket</c>s.
+        /// Handles incoming <see cref="UserUpdatePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>

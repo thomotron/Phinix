@@ -18,17 +18,17 @@ namespace Trading
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
-        /// <c>NetServer</c> instance to bind events and send data through.
+        /// <see cref="NetServer"/> instance to bind events and send data through.
         /// </summary>
         private NetServer netServer;
 
         /// <summary>
-        /// <c>ServerAuthenticator</c> instance to check session validity.
+        /// <see cref="ServerAuthenticator"/> instance to check session validity.
         /// </summary>
         private ServerAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ServerUserManager</c> instance to check login state and trade preferences through.
+        /// <see cref="ServerUserManager"/> instance to check login state and trade preferences through.
         /// </summary>
         private ServerUserManager userManager;
 
@@ -37,7 +37,7 @@ namespace Trading
         /// </summary>
         private Dictionary<string, Trade> activeTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>activeTrades</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="activeTrades"/>.
         /// </summary>
         private object activeTradesLock = new object();
 
@@ -47,7 +47,7 @@ namespace Trading
         /// </summary>
         private Dictionary<string, CompletedTrade> completedTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>completedTrades</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="completedTrades"/>.
         /// </summary>
         private object completedTradesLock = new object();
 
@@ -65,7 +65,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming packets from <c>NetCommon</c>.
+        /// Handles incoming packets from <see cref="NetCommon"/>.
         /// </summary>
         /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
@@ -116,10 +116,10 @@ namespace Trading
             lock (completedTradesLock)
             {
                 // Get all trades where the user is pending notification
-                IEnumerable<CompletedTrade> _completedTrades = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
+                IEnumerable<CompletedTrade> tradesPendingNotification = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
                 List<string> tradesToRemove = new List<string>();
-                foreach (CompletedTrade completedTrade in _completedTrades)
+                foreach (CompletedTrade completedTrade in tradesPendingNotification)
                 {
                     Trade trade = completedTrade.Trade;
                     
@@ -162,10 +162,10 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <c>CreateTradePacket</c>s.
+        /// Handles incoming <see cref="CreateTradePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>CreateTradePacket</c></param>
+        /// <param name="packet">Incoming <see cref="CreateTradePacket"/></param>
         private void createTradePacketHandler(string connectionId, CreateTradePacket packet)
         {
             // Make sure the session is valid
@@ -245,7 +245,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Sends a successful <c>CreateTradeResponsePacket</c> with the given trade ID and UUID of the other party.
+        /// Sends a successful <see cref="CreateTradeResponsePacket"/> with the given trade ID and UUID of the other party.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
@@ -271,7 +271,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Sends a failed <c>CreateTradeResponsePacket</c> with the given failure reason and message.
+        /// Sends a failed <see cref="CreateTradeResponsePacket"/> with the given failure reason and message.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="failureReason">Failure reason</param>
@@ -297,10 +297,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>UpdateTradeStatusPacket</c>s.
+        /// Handles incoming <see cref="UpdateTradeStatusPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UpdateTradeStatusPacket</c></param>
+        /// <param name="packet">Incoming <see cref="UpdateTradeStatusPacket"/></param>
         private void updateTradeStatusPacketHandler(string connectionId, UpdateTradeStatusPacket packet)
         {
             // Ignore packets from non-authenticated and non-logged in users
@@ -428,7 +428,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Sends a <c>CompleteTradePacket</c> to the given connection ID.
+        /// Sends a <see cref="CompleteTradePacket"/> to the given connection ID.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
@@ -455,7 +455,7 @@ namespace Trading
         }
         
         /// <summary>
-        /// Sends an <c>UpdateTradeStatusPacket</c> with the given trade ID and both accepted states to the given connection.
+        /// Sends an <see cref="UpdateTradeStatusPacket"/> with the given trade ID and both accepted states to the given connection.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
@@ -480,10 +480,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>UpdateTradeItemsPacket</c>s.
+        /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UpdateTradeItemsPacket</c></param>
+        /// <param name="packet">Incoming <see cref="UpdateTradeItemsPacket"/></param>
         private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
         {
             // Ignore packets from non-authenticated and non-logged in users
@@ -555,7 +555,7 @@ namespace Trading
         }
         
         /// <summary>
-        /// Sends an <c>UpdateTradeItemsPacket</c> with the given items of both parties for the given trade.
+        /// Sends an <see cref="UpdateTradeItemsPacket"/> with the given items of both parties for the given trade.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
@@ -636,7 +636,7 @@ namespace Trading
         }
         
         /// <summary>
-        /// Sends a <c>SyncTradesPacket</c> containing the given trades from the given party's perspective.
+        /// Sends a <see cref="SyncTradesPacket"/> containing the given trades from the given party's perspective.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="trades">Collection of trades toi send</param>

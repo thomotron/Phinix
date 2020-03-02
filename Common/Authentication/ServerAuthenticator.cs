@@ -23,7 +23,7 @@ namespace Authentication
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
         
         /// <summary>
-        /// <c>NetServer</c> to send packets and bind events to.
+        /// <see cref="NetServer"/> to send packets and bind events to.
         /// </summary>
         private NetServer netServer;
 
@@ -45,7 +45,7 @@ namespace Authentication
         /// </summary>
         private Dictionary<string, Session> sessions;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>sessions</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="sessions"/>.
         /// </summary>
         private object sessionsLock = new object();
         /// <summary>
@@ -62,7 +62,7 @@ namespace Authentication
         /// </summary>
         private CredentialStore credentialStore;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>credentialStore</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="credentialStore"/>.
         /// </summary>
         private object credentialStoreLock = new object();
         
@@ -74,9 +74,8 @@ namespace Authentication
             this.authType = authType;
             this.credentialStorePath = credentialStorePath;
 
-            // Prevent other threads from modifying the credential store while it is read in
-            lock (credentialStoreLock) this.credentialStore = getCredentialStore();
-
+            this.credentialStore = getCredentialStore();
+            
             this.sessions = new Dictionary<string, Session>();
             this.sessionCleanupTimer = new Timer
             {
@@ -300,7 +299,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Handles incoming <c>AuthenticatePacket</c>s from clients trying to authenticate.
+        /// Handles incoming <see cref="AuthenticatePacket"/>s from clients trying to authenticate.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
         /// <param name="packet">Incoming packet</param>
@@ -353,12 +352,12 @@ namespace Authentication
                     if (!credentialStore.Credentials.ContainsKey(packet.Username))
                     {
                         // Exception for PhiKey, it should be a 'zero-configuration' solution
-                        if (authType == AuthTypes.PhiKey)
+                        if (authType == AuthTypes.ClientKey)
                         {
                             // Create a new credential and add it to the credential store
                             Credential newCredential = new Credential
                             {
-                                AuthType = AuthTypes.PhiKey,
+                                AuthType = AuthTypes.ClientKey,
                                 Username = packet.Username,
                                 Password = packet.Password
                             };
@@ -398,7 +397,8 @@ namespace Authentication
                     }
                     
                     // Check if the password does not match the stored credential
-                    if (packet.Password != credential.Password)
+                    // This check is ignored if the auth type is 'ClientKey' as the password does not matter
+                    if (authType == AuthTypes.ClientKey && packet.Password != credential.Password)
                     {
                         // Fail the authentication attempt due to mismatching password
                         sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, "Invalid password provided.");
@@ -426,6 +426,12 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Sends a successful <see cref="AuthResponsePacket"/> to a connection.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        /// <param name="sessionId">New session ID</param>
+        /// <param name="expiry">Session expiry</param>
         private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, DateTime expiry)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
@@ -448,6 +454,12 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Sends a failed <see cref="AuthResponsePacket"/> to a connection.
+        /// </summary>
+        /// <param name="connectionId">Recipient's connection ID</param>
+        /// <param name="failureReason">Failure reason enum</param>
+        /// <param name="failureMessage">Failure reason message</param>
         private void sendFailedAuthResponsePacket(string connectionId, AuthFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
@@ -471,10 +483,10 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Handles incoming <c>ExtendSessionPacket</c>s from clients trying to extend their session expiry.
+        /// Handles incoming <see cref="ExtendSessionPacket"/>s from clients trying to extend their session expiry.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>ExtendSessionPacket</c></param>
+        /// <param name="packet">Incoming <see cref="ExtendSessionPacket"/></param>
         private void extendSessionPacketHandler(string connectionId, ExtendSessionPacket packet)
         {
             // Lock the sessions dictionary to prevent other threads from messing with it
@@ -498,7 +510,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Sends a successful <c>ExtendSessionResponsePacket</c> to a connection with the given expiry.
+        /// Sends a successful <see cref="ExtendSessionResponsePacket"/> to a connection with the given expiry.
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         /// <param name="expiry">New session expiry</param>
@@ -510,7 +522,7 @@ namespace Authentication
             ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
             {
                 Success = true,
-                NewExpiry = expiry.ToTimestamp()
+                ExpiresIn = (int) (expiry - DateTime.UtcNow).TotalMilliseconds
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
             
@@ -522,7 +534,7 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Sends a failed <c>ExtendSessionResponsePacket</c> to a connection.
+        /// Sends a failed <see cref="ExtendSessionResponsePacket"/> to a connection.
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         private void sendFailedExtendSessionResponsePacket(string connectionId)
@@ -579,7 +591,6 @@ namespace Authentication
 
         /// <summary>
         /// Returns the existing credential store from disk or a new one if it doesn't exist.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <returns>New or existing credential store</returns>
         private CredentialStore getCredentialStore()
@@ -603,7 +614,10 @@ namespace Authentication
             {
                 using (CodedInputStream cis = new CodedInputStream(fs))
                 {
-                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    lock (credentialStoreLock)
+                    {
+                        credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    }
                 }
             }
 
@@ -613,7 +627,6 @@ namespace Authentication
 
         /// <summary>
         /// Saves the given credential store to disk, overwriting an existing one.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
         /// </summary>
         /// <param name="credentialStore">Credential store to save</param>
         private void saveCredentialStore(CredentialStore credentialStore)
@@ -623,8 +636,11 @@ namespace Authentication
             {
                 using (CodedOutputStream cos = new CodedOutputStream(fs))
                 {
-                    // Write the credential store to disk
-                    credentialStore.WriteTo(cos);
+                    lock (credentialStoreLock)
+                    {
+                        // Write the credential store to disk
+                        credentialStore.WriteTo(cos);
+                    }
                 }
             }
         }

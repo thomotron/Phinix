@@ -55,7 +55,13 @@ namespace Authentication
         /// <param name="authType">Authentication type</param>
         /// <param name="username">Username</param>
         /// <param name="password">Password</param>
-        public delegate void ReturnCredentialsDelegate(bool credentialsProvided, string sessionId, AuthTypes authType, string username, string password);
+        public delegate void ReturnCredentialsDelegate(
+            bool credentialsProvided,
+            string sessionId,
+            AuthTypes authType,
+            string username,
+            string password
+        );
         /// <summary>
         /// Delegate called when new credentials are required for authentication.
         /// </summary>
@@ -68,7 +74,7 @@ namespace Authentication
         
         /// <summary>
         /// Session identifier used by the server to confirm we are allowed to speak to it.
-        /// Use only if <c>Authenticated</c> is true.
+        /// Use only if <see cref="Authenticated"/> is true.
         /// </summary>
         public string SessionId { get; private set; }
         
@@ -85,7 +91,7 @@ namespace Authentication
         /// <summary>
         /// Path to the credential store file.
         /// </summary>
-        private const string CREDENTIAL_STORE_PATH = "PhinixCredentials.bin";
+        public readonly string CredentialStorePath;
         /// <summary>
         /// Stores credentials for each server.
         /// </summary>
@@ -96,17 +102,23 @@ namespace Authentication
         private static readonly object credentialStoreLock = new object();
 
         /// <summary>
-        /// <c>NetClient</c> to send packets and bind events to.
+        /// <see cref="NetClient"/> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;
         
-        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate)
+        /// <summary>
+        /// Creates a new <see cref="ClientAuthenticator"/> bound to the given <see cref="NetClient"/> with credentials stored in <see cref="CredentialStorePath"/>.
+        /// The <see cref="getCredentialsDelegate"/> is called when credentials are requested.
+        /// </summary>
+        /// <param name="netClient"><see cref="NetClient"/> to bind to</param>
+        /// <param name="getCredentialsDelegate"><see cref="GetCredentialsDelegate"/> to call when credentials are required from the user</param>
+        /// <param name="credentialStorePath">Path to the credential store file</param>
+        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string credentialStorePath = "PhinixCredentials.bin")
         {
             this.netClient = netClient;
             this.getCredentials = getCredentialsDelegate;
-            
-            // Prevent other threads from modifying the credential store while it is read in
-            lock (credentialStoreLock) this.credentialStore = getCredentialStore();
+            this.CredentialStorePath = credentialStorePath;
+            this.credentialStore = getCredentialStore();
             
             // Set up the session extension timer
             sessionExtendTimer = new Timer
@@ -180,6 +192,80 @@ namespace Authentication
             // Couldn't find the credential you're looking for
             return false;
         }
+        
+        /// <summary>
+        /// Returns the existing credential store from disk or a new one if it doesn't exist.
+        /// </summary>
+        /// <returns>New or existing credential store</returns>
+        private CredentialStore getCredentialStore()
+        {
+            // Prevent other threads from modifying the credential store while we're using it
+            lock (credentialStoreLock)
+            {
+                // Create a new credential store if one doesn't already exist
+                if (!File.Exists(CredentialStorePath))
+                {
+                    // Generate a random PhiKey for this instance
+                    CredentialStore newCredentialStore = new CredentialStore
+                    {
+                        ClientKey = generateClientKey()
+                    };
+                
+                    // Save the store to disk
+                    saveCredentialStore(newCredentialStore);
+                
+                    // Finally return the new store
+                    return newCredentialStore;
+                }
+            
+                // Pull the store from disk as a pre-packed Any.
+                CredentialStore credentialStore;
+                using (FileStream fs = new FileStream(CredentialStorePath, FileMode.Open))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                    }
+                }
+                
+                // Return the credential store
+                return credentialStore;
+            }
+        }
+
+        /// <summary>
+        /// Saves the given credential store to disk, overwriting an existing one.
+        /// </summary>
+        /// <param name="credentialStore">Credential store to save</param>
+        private void saveCredentialStore(CredentialStore credentialStore)
+        {
+            // Prevent other threads from modifying the credential store while we're using it
+            lock (credentialStoreLock)
+            {
+                // Create or truncate the credentials file
+                using (FileStream fs = File.Open(CredentialStorePath, FileMode.Create, FileAccess.Write))
+                {
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        // Write the credential store to disk.
+                        credentialStore.WriteTo(cos);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Generates a a random 512-bit client key encoded in Base64.
+        /// </summary>
+        /// <returns>Random Base64-encoded 512-bit client key</returns>
+        private static string generateClientKey()
+        {
+            byte[] randomBytes = new byte[64];
+            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(randomBytes);
+
+            return Convert.ToBase64String(randomBytes);
+        }
 
         /// <inheritdoc />
         protected override void packetHandler(string module, string connectionId, byte[] data)
@@ -203,86 +289,17 @@ namespace Authentication
                     extendSessionResponsePacketHandler(connectionId, message.Unpack<ExtendSessionResponsePacket>());
                     break;
                 default:
-                    // TODO: Discard packet
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
             }
         }
-
-        /// <summary>
-        /// Returns the existing credential store from disk or a new one if it doesn't exist.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
-        /// </summary>
-        /// <returns>New or existing credential store</returns>
-        private static CredentialStore getCredentialStore()
-        {
-            // Create a new credential store if one doesn't already exist
-            if (!File.Exists(CREDENTIAL_STORE_PATH))
-            {
-                // Generate a random PhiKey for this instance
-                CredentialStore newCredentialStore = new CredentialStore
-                {
-                    PhiKey = generatePhiKey()
-                };
-                
-                // Save the store to disk
-                saveCredentialStore(newCredentialStore);
-                
-                // Finally return the new store
-                return newCredentialStore;
-            }
-            
-            // Pull the store from disk as a pre-packed Any.
-            CredentialStore credentialStore;
-            using (FileStream fs = new FileStream(CREDENTIAL_STORE_PATH, FileMode.Open))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
-                {
-                    credentialStore = CredentialStore.Parser.ParseFrom(cis);
-                }
-            }
-
-            // Return the credential store
-            return credentialStore;
-        }
-
-        /// <summary>
-        /// Saves the given credential store to disk, overwriting an existing one.
-        /// NOTE: This method does not feature an internal lock, care should be taken to lock it externally.
-        /// </summary>
-        /// <param name="credentialStore">Credential store to save</param>
-        private static void saveCredentialStore(CredentialStore credentialStore)
-        {
-            // Create or truncate the credentials file
-            using (FileStream fs = File.Open(CREDENTIAL_STORE_PATH, FileMode.Create, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    // Write the credential store to disk.
-                    credentialStore.WriteTo(cos);
-                }
-            }
-        }
         
         /// <summary>
-        /// Generates a new PhiKey as a random Base64 string.
-        /// </summary>
-        /// <returns>Random PhiKey</returns>
-        private static string generatePhiKey()
-        {
-            byte[] randomBytes = new byte[64];
-            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(randomBytes);
-
-            return Convert.ToBase64String(randomBytes);
-        }
-        
-        /// <summary>
-        /// Handler for incoming <c>HelloPacket</c>s.
-        /// Responds with an <c>AuthenticatePacket</c>, requesting new credentials if necessary.
+        /// Handler for incoming <see cref="HelloPacket"/>s.
+        /// Responds with an <see cref="AuthenticatePacket"/>, requesting new credentials if necessary.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>HelloPacket</c></param>
+        /// <param name="packet">Incoming <see cref="HelloPacket"/></param>
         private void helloPacketHandler(string connectionId, HelloPacket packet)
         {
             // Nullify authenticated state
@@ -294,18 +311,27 @@ namespace Authentication
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
             {
-                // Exception for PhiKey authentication, it should be a 'zero-configuration' solution
-                if (packet.AuthType == AuthTypes.PhiKey)
+                RaiseLogEntry(new LogEventArgs(string.Format("No existing credential found for {0} auth type", packet.AuthType), LogLevel.DEBUG));
+
+                // Exception for client key authentication, it should be a 'zero-configuration' solution
+                if (packet.AuthType == AuthTypes.ClientKey)
                 {
-                    credential = new Credential
+                    RaiseLogEntry(new LogEventArgs("Creating new ClientKey credential", LogLevel.DEBUG));
+
+                    lock (credentialStore)
                     {
-                        AuthType = AuthTypes.PhiKey,
-                        Username = credentialStore.PhiKey,
-                        Password = credentialStore.PhiKey
-                    };
+                        credential = new Credential
+                        {
+                            AuthType = AuthTypes.ClientKey,
+                            Username = credentialStore.ClientKey,
+                            Password = ""
+                        };
+                    }
                 }
                 else
                 {
+                    RaiseLogEntry(new LogEventArgs("Requesting credentials from user...", LogLevel.DEBUG));
+
                     // Request for credentials
                     getCredentials(
                         packet.SessionId,
@@ -341,13 +367,13 @@ namespace Authentication
                     return;
                 }
             }
-            
+
             // Send an AuthenticatePacket as a response
             sendAuthenticatePacket(packet.SessionId, credential);
         }
 
         /// <summary>
-        /// Creates and sends an <c>AuthenticatePacket</c>.
+        /// Creates and sends an <see cref="AuthenticatePacket"/>.
         /// </summary>
         /// <param name="sessionId">Session ID</param>
         /// <param name="credential">Credentials</param>
@@ -371,6 +397,11 @@ namespace Authentication
             netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());
         }
         
+        /// <summary>
+        /// Handler for incoming <see cref="AuthResponsePacket"/>s.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <see cref="AuthResponsePacket"/></param>
         private void authResponsePacketHandler(string connectionId, AuthResponsePacket packet)
         {
             // Was authentication successful?
@@ -400,7 +431,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Sends an <c>ExtentSessionPacket</c> to the server to extend the current session.
+        /// Sends an <see cref="ExtendSessionPacket"/> to the server to extend the current session.
         /// </summary>
         /// <param name="sessionId">Session ID</param>
         private void sendExtendSessionPacket(string sessionId)
@@ -419,26 +450,26 @@ namespace Authentication
         }
         
         /// <summary>
-        /// Handles incoming <c>ExtendSessionResponsePacket</c>s.
+        /// Handles incoming <see cref="ExtendSessionResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>ExtendSessionResponsePacket</c></param>
+        /// <param name="packet">Incoming <see cref="ExtendSessionResponsePacket"/></param>
         private void extendSessionResponsePacketHandler(string connectionId, ExtendSessionResponsePacket packet)
         {
             if (packet.Success)
             {
                 // Update the expiry with the newly-extended one
-                sessionExpiry = packet.NewExpiry.ToDateTime();
+                sessionExpiry = DateTime.UtcNow + TimeSpan.FromMilliseconds(packet.ExpiresIn);
                 
-                // Reset the session extension timer for halfway between now and the expiry
+                // Reset the session extension timer to halfway between now and the expiry
                 sessionExtendTimer.Stop();
-                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Interval = (double) packet.ExpiresIn / 2;
                 sessionExtendTimer.Start();
             }
         }
         
         /// <summary>
-        /// Handles the OnDisconnect event from <c>NetClient</c> and invalidates any connection-specific fields.
+        /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

@@ -41,7 +41,7 @@ namespace PhinixClient
         private Action<int> onSelectedChanged;
 
         /// <summary>
-        /// Creates an <c>ItemRow</c> for the given stack of items.
+        /// Creates an <see cref="ItemStackRow"/> for the given stack of items.
         /// </summary>
         /// <param name="itemStack">Item stack the row is for</param>
         /// <param name="interactive">Whether to display buttons for altering the item stack's selected count</param>

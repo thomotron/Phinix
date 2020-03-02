@@ -3,5 +3,5 @@ package Authentication;
 
 enum AuthTypes
 {
-    PhiKey = 0;
+    ClientKey = 0;
 }

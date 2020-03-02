@@ -45,17 +45,17 @@ namespace Trading
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         /// <summary>
-        /// <c>NetClient</c> instance to bind events and send data through.
+        /// <see cref="NetClient"/> instance to bind events and send data through.
         /// </summary>
         private NetClient netClient;
 
         /// <summary>
-        /// <c>ClientAuthenticator</c> instance to get a session ID from.
+        /// <see cref="ClientAuthenticator"/> instance to get a session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
 
         /// <summary>
-        /// <c>ClientUserManager</c> instance to get a UUID from.
+        /// <see cref="ClientUserManager"/> instance to get a UUID from.
         /// </summary>
         private ClientUserManager userManager;
 
@@ -64,7 +64,7 @@ namespace Trading
         /// </summary>
         private Dictionary<string, Trade> activeTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <c>activeTrades</c>.
+        /// Lock object to prevent race conditions when accessing <see cref="activeTrades"/>.
         /// </summary>
         private object activeTradesLock = new object();
 
@@ -288,6 +288,7 @@ namespace Trading
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="items">Items on offer</param>
+        /// <param name="token">Unique request token</param>
         public void UpdateItems(string tradeId, IEnumerable<ProtoThing> items, string token = "")
         {
             // Do nothing if not online
@@ -335,7 +336,7 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming packets from <c>NetCommon</c>.
+        /// Handles incoming packets from <see cref="NetCommon"/>.
         /// </summary>
         /// <param name="module">Target module</param>
         /// <param name="connectionId">Original connection ID</param>
@@ -379,10 +380,10 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <c>CreateTradeResponsePacket</c>s.
+        /// Handles incoming <see cref="CreateTradeResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>CreateTradeResponsePacket</c></param>
+        /// <param name="packet">Incoming <see cref="CreateTradeResponsePacket"/></param>
         private void createTradeResponsePacketHandler(string connectionId, CreateTradeResponsePacket packet)
         {
             if (packet.Success)
@@ -407,10 +408,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>CompleteTradePacket</c>s.
+        /// Handles incoming <see cref="CompleteTradePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>CompleteTradePacket</c></param>
+        /// <param name="packet">Incoming <see cref="CompleteTradePacket"/></param>
         private void completeTradePacketHandler(string connectionId, CompleteTradePacket packet)
         {
             // Raise finalised trade events
@@ -431,10 +432,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>UpdateTradeItemsPacket</c>s.
+        /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UpdateTradeItemsPacket</c></param>
+        /// <param name="packet">Incoming <see cref="UpdateTradeItemsPacket"/></param>
         private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
         {
             lock (activeTradesLock)
@@ -464,10 +465,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>UpdateTradeItemsResponsePacket</c>s.
+        /// Handles incoming <see cref="UpdateTradeItemsResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UpdateTradeItemsResponsePacket</c></param>
+        /// <param name="packet">Incoming <see cref="UpdateTradeItemsResponsePacket"/></param>
         private void updateTradeItemsResponsePacketHandler(string connectionId, UpdateTradeItemsResponsePacket packet)
         {
             lock (activeTradesLock)
@@ -490,6 +491,7 @@ namespace Trading
                 else
                 {
                     // Raise the failed trade update event
+                    // Do this before removing the trade so its state is preserved for anything that needs handle it
                     OnTradeUpdateFailure?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.FailureReason, packet.FailureMessage, packet.Token));
 
                     // Check the failure reason
@@ -508,10 +510,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>UpdateTradeStatusPacket</c>s.
+        /// Handles incoming <see cref="UpdateTradeStatusPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>UpdateTradeStatusPacket</c></param>
+        /// <param name="packet">Incoming <see cref="UpdateTradeStatusPacket"/></param>
         private void updateTradeStatusPacketHandler(string connectionId, UpdateTradeStatusPacket packet)
         {
             lock (activeTradesLock)
@@ -537,10 +539,10 @@ namespace Trading
         }
         
         /// <summary>
-        /// Handles incoming <c>SyncTradesPacket</c>s.
+        /// Handles incoming <see cref="SyncTradesPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <c>SyncTradesPacket</c></param>
+        /// <param name="packet">Incoming <see cref="SyncTradesPacket"/></param>
         private void syncTradesPacketHandler(string connectionId, SyncTradesPacket packet)
         {
             lock (activeTradesLock)

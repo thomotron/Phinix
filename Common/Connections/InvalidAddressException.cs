@@ -4,7 +4,7 @@ namespace Connections
 {
     public class InvalidAddressException : Exception
     {
-        public override string Message => $"The address \'{Address}\' could not be resolved as an IP address or hostname.";
+        public override string Message => $"\'{Address}\' could not be resolved as an IP address or hostname.";
 
         public readonly string Address;
 

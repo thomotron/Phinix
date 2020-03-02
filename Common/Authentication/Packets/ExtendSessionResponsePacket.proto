@@ -1,11 +1,14 @@
 syntax = "proto3";
 package Authentication;
 
-import "google/protobuf/timestamp.proto";
-
 message ExtendSessionResponsePacket
 {
+    reserved 2;
+    reserved "NewExpiry";
+    
+    // Whether the session extension was successful
     bool Success = 1;
     
-    google.protobuf.Timestamp NewExpiry = 2;
+    // Milliseconds until the next expiry
+    int32 ExpiresIn = 3;
 }

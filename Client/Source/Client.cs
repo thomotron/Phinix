@@ -481,7 +481,7 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Handler for <c>ILoggable</c> <c>OnLogEvent</c> events.
+        /// Handler for <see cref="ILoggable"/> <c>OnLogEvent</c> events.
         /// Raised by modules as a way to hook into the HugsLib log.
         /// </summary>
         /// <param name="sender">Object that raised the event</param>
@@ -508,7 +508,7 @@ namespace PhinixClient
         }
         
         /// <summary>
-        /// Handles credential requests from the <c>ClientAuthenticator</c> module.
+        /// Handles credential requests from the <see cref="ClientAuthenticator"/> module.
         /// This forwards the server details and a callback to the GUI for user input.
         /// </summary>
         /// <param name="sessionId">Session ID</param>

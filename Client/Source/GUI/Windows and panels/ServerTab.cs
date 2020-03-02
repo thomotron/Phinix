@@ -103,7 +103,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> containing a settings button, user search box, and a user list.
+        /// Generates a <see cref="VerticalFlexContainer"/> containing a settings button, user search box, and a user list.
         /// </summary>
         private VerticalFlexContainer GenerateRightColumn()
         {
@@ -147,7 +147,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>VerticalFlexContainer</c> the chat window consisting of a message list, message entry box, and a send button.
+        /// Generates a <see cref="VerticalFlexContainer"/> the chat window consisting of a message list, message entry box, and a send button.
         /// </summary>
         private VerticalFlexContainer GenerateChat()
         {
@@ -291,7 +291,7 @@ namespace PhinixClient
         /// <summary>
         /// Adds each logged in user to a scrollable container.
         /// </summary>
-        /// <returns>A <c>ScrollContainer</c> containing the user list</returns>
+        /// <returns>A <see cref="ScrollContainer"/> containing the user list</returns>
         private ScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
@@ -356,7 +356,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <c>ScrollContainer</c> containing a series of available trades.
+        /// Generates a <see cref="ScrollContainer"/> containing a series of available trades.
         /// </summary>
         /// <returns></returns>
         private Displayable GenerateTradeRows()

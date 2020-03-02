@@ -20,7 +20,7 @@ namespace Authentication
         public string FailureMessage;
 
         /// <summary>
-        /// Creates a new successful <c>AuthenticationEventArgs</c> instance.
+        /// Creates a new successful <see cref="AuthenticationEventArgs"/> instance.
         /// </summary>
         public AuthenticationEventArgs()
         {
@@ -28,7 +28,7 @@ namespace Authentication
         }
 
         /// <summary>
-        /// Creates a new failed <c>AuthenticationEventArgs</c> instance with the given reason and message.
+        /// Creates a new failed <see cref="AuthenticationEventArgs"/> instance with the given reason and message.
         /// </summary>
         /// <param name="failureReason">Field that caused failure</param>
         /// <param name="failureMessage">Message provided by server</param>

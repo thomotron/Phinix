@@ -16,7 +16,7 @@ namespace Utils
         /// <param name="module">Module the packet is handled in</param>
         /// <param name="targetModule">Target module of the packet</param>
         /// <param name="data">Serialised packet</param>
-        /// <param name="parsedMessage">Parsed packet as an <c>Any</c> message</param>
+        /// <param name="parsedMessage">Parsed packet as an <see cref="Any"/> message</param>
         /// <param name="typeUrl">Parsed TypeUrl</param>
         /// <returns>Packet was validated successfully</returns>
         public static bool ValidatePacket(string _namespace, string module, string targetModule, byte[] data, out Any parsedMessage, out TypeUrl typeUrl)
@@ -52,7 +52,7 @@ namespace Utils
         }
 
         /// <summary>
-        /// Packs the given packet into an <c>Any</c> with the Phinix prefix.
+        /// Packs the given packet into an <see cref="Any"/> with the Phinix prefix.
         /// </summary>
         /// <param name="packet">Packet to pack</param>
         /// <returns>Packed packet</returns>
