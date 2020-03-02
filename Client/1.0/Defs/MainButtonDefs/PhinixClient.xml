@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <MainButtonDef>
+    <defName>Chat</defName>
+    <label>chat</label>
+    <description>Open the Phinix chat</description>
+    <workerClass>PhinixClient.ServerTabButtonWorker</workerClass>
+    <tabWindowClass>PhinixClient.ServerTab</tabWindowClass>
+    <order>100</order>
+    <defaultHotKey>F12</defaultHotKey>
+  </MainButtonDef>
+</Defs>

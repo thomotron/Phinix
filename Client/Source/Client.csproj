@@ -128,10 +128,10 @@
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
-    <Content Include="..\Defs\**">
+    <Content Include="..\Common\Defs\**">
       <Link>Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
-    <Content Include="..\Languages\**">
+    <Content Include="..\Common\Languages\**">
       <Link>Languages\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
   </ItemGroup>
@@ -166,14 +166,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(TargetDir)\LiteNetLib.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\1-LiteNetLib.dll" />
-    <Copy SourceFiles="$(TargetDir)\Google.Protobuf.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\2-Protobuf.dll" />
-    <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\3-Utils.dll" />
-    <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\4-Connections.dll" />
-    <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\5-Authentication.dll" />
-    <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\6-UserManagement.dll" />
-    <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\7-Chat.dll" />
-    <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\8-Trading.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\Assemblies\9-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\LiteNetLib.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\1-LiteNetLib.dll" />
+    <Copy SourceFiles="$(TargetDir)\Google.Protobuf.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\2-Protobuf.dll" />
+    <Copy SourceFiles="$(TargetDir)\Utils.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\3-Utils.dll" />
+    <Copy SourceFiles="$(TargetDir)\Connections.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\4-Connections.dll" />
+    <Copy SourceFiles="$(TargetDir)\Authentication.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\5-Authentication.dll" />
+    <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\6-UserManagement.dll" />
+    <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\7-Chat.dll" />
+    <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\8-Trading.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\1.1\Assemblies\9-PhinixClient.dll" />
   </Target>
 </Project>

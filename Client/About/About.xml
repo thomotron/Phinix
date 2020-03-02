@@ -10,6 +10,7 @@ A total rewrite of Longwelwind's Phi multiplayer mod for RimWorld.
 Phinix is still in its early stages so please report any issues you have through the GitHub page.
     </description>
     <supportedVersions>
+		<li>1.0</li>
         <li>1.1</li>
     </supportedVersions>
     <modDependencies>
