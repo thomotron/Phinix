@@ -6,7 +6,7 @@
     <description>Open the Phinix chat</description>
     <workerClass>PhinixClient.ServerTabButtonWorker</workerClass>
     <tabWindowClass>PhinixClient.ServerTab</tabWindowClass>
-    <order>100</order>
+    <order>70</order>
     <defaultHotKey>F12</defaultHotKey>
   </MainButtonDef>
 </Defs>
