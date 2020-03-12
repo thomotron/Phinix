@@ -43,7 +43,7 @@ It boasts improvements such as:
 See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server) for server installation.
 
 ### Docker
-There are automated server builds available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
+There are automated server builds available through [Docker Hub](https://hub.docker.com/r/phinixteam/phinix).  
 See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server#docker-container) for more details.
 
 # Usage
