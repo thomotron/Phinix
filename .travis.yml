@@ -1,8 +1,15 @@
 language: csharp
 solution: Phinix.sln
 
+# Workaround for submodules not being initialised by default
+# We'll tell Travis to bugger off and we'll handle them ourselves
+git:
+  submodules: false
+before_install:
+  - git submodule update --init --recursive
+
 install:
   - nuget restore ./Phinix.sln
  
 script:
-  - xbuild /property:Configuration=TravisCI ./Phinix.sln
+  - msbuild /property:Configuration=TravisCI ./Phinix.sln

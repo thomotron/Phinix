@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat", "Common\Chat\Chat.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trading", "Common\Trading\Trading.csproj", "{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Protobuf", "Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj", "{D5BBFA59-DB31-40F8-A8BF-7333BE984316}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{B71A3D38-D467-465C-B749-0B9F23D0362F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +79,12 @@ Global
 		{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB}.TravisCI|Any CPU.ActiveCfg = Debug|Any CPU
 		{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB}.TravisCI|Any CPU.Build.0 = Debug|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.TravisCI|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316}.TravisCI|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +95,7 @@ Global
 		{E983D5C7-A573-44E4-A8BB-D5A9D78EA538} = {25425468-EE4B-48F3-866C-4498EEDA5417}
 		{C6B36F14-16E8-4EEB-B1B3-5E8E96FA8DEC} = {25425468-EE4B-48F3-866C-4498EEDA5417}
 		{B63EDE99-90E5-47B5-8411-0D1D3EB97ADB} = {25425468-EE4B-48F3-866C-4498EEDA5417}
+		{D5BBFA59-DB31-40F8-A8BF-7333BE984316} = {B71A3D38-D467-465C-B749-0B9F23D0362F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5754AA9C-707A-4C66-8A4D-AEF82F282F77}

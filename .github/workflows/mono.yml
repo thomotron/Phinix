@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Pull repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@master
+      with:
+        submodules: recursive
       
     - name: Setup build environment
       id: init
