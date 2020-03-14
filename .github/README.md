@@ -1,6 +1,6 @@
 <h1 align="center">PHINIX</h1>
 <h4 align="center"><i>A RimWorld chat and trading mod</i></h4>
-<p align="center"><img src="https://i.imgur.com/uXnIeua.png"></img></p>
+<p align="center"><img src="../Client/About/Preview.png"></img></p>
 <br><br>
 <p align="center">
   <a href="https://github.com/PhinixTeam/Phinix/issues">
