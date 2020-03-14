@@ -1,0 +1,4 @@
+#!/bin/bash
+# Docker hub doesn't initialise submodules by default, so
+# we need to do it ourselves with a post-checkout hook.
+git submodule update --init
