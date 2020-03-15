@@ -9,7 +9,7 @@ namespace PhinixClient.GUI
 
         /// <inheritdoc />
         public override bool IsFluidWidth => true;
-        
+
         /// <summary>
         /// Contents of the container.
         /// </summary>
@@ -19,7 +19,7 @@ namespace PhinixClient.GUI
         /// Height of the container.
         /// </summary>
         private float height;
-        
+
         public HorizontalPaddedContainer(Displayable child, float height)
         {
             this.child = child;
@@ -40,12 +40,12 @@ namespace PhinixClient.GUI
             {
                 // Create a flex container to hold the child and spacers
                 HorizontalFlexContainer row = new HorizontalFlexContainer(0f);
-                
+
                 // Sandwich the child between two spacers
                 row.Add(new SpacerWidget());
                 row.Add(child);
                 row.Add(new SpacerWidget());
-                
+
                 // Draw the container
                 row.Draw(inRect);
             }

@@ -8,7 +8,7 @@ namespace PhinixClient.GUI
     public abstract class Displayable
     {
         public const float FLUID = -1;
-        
+
         /// <summary>
         /// Whether the object will fill any horizontal space it's given.
         /// </summary>

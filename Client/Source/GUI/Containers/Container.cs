@@ -13,22 +13,22 @@ namespace PhinixClient.GUI
 
         /// <inheritdoc />
         public override bool IsFluidWidth => width.Equals(FLUID);
-        
+
         /// <summary>
         /// Width of the container.
         /// </summary>
         private float width;
-        
+
         /// <summary>
         /// Height of the container.
         /// </summary>
         private float height;
-        
+
         /// <summary>
         /// Contents of the container.
         /// </summary>
         private Displayable child;
-        
+
         public Container(Displayable child, float width = FLUID, float height = FLUID)
         {
             this.child = child;

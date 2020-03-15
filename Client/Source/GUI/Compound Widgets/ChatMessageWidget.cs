@@ -15,12 +15,12 @@ namespace PhinixClient.GUI
         /// Time message was received.
         /// </summary>
         public DateTime ReceivedTime;
-        
+
         /// <summary>
         /// UUID of the sender.
         /// </summary>
         public string SenderUuid;
-        
+
         /// <summary>
         /// The message itself.
         /// </summary>
@@ -40,7 +40,7 @@ namespace PhinixClient.GUI
         {
             this.SenderUuid = senderUuid;
             this.Message = message;
-            
+
             this.ReceivedTime = DateTime.UtcNow;
             this.Status = ChatMessageStatus.PENDING;
         }
@@ -75,7 +75,7 @@ namespace PhinixClient.GUI
 
             // Format the message if we haven't already done so
             if (formattedMessage == null) formattedMessage = format();
-            
+
             // Change the colour of the message to reflect the sent status
             switch (Status)
             {
@@ -88,7 +88,7 @@ namespace PhinixClient.GUI
                 default:
                     break;
             }
-            
+
             Widgets.Label(container, formattedMessage);
         }
 
@@ -114,6 +114,8 @@ namespace PhinixClient.GUI
 
         private string format()
         {
+            Client.Instance.Log(new LogEventArgs("A chat message just got formatted"));
+
             // Get a local copy of the message
             string message = Message;
 
@@ -134,14 +136,14 @@ namespace PhinixClient.GUI
         {
             // Do nothing if this is our UUID
             if (SenderUuid == Client.Instance.Uuid) return;
-            
+
             // Try to get the display name of this message's sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
-            
+
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
             items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
-            
+
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
         }
