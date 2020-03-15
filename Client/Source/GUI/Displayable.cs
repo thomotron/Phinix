@@ -22,6 +22,10 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Draws the object within the given container.
         /// </summary>
+        /// <remarks>
+        /// Only put logic pertinent to drawing in here; the element should be generated and ready to draw before this method is called.
+        /// This is to reduce lag since elements are drawn on the main Unity thread.
+        /// </remarks>
         /// <param name="inRect">Container to draw within</param>
         public abstract void Draw(Rect inRect);
 
