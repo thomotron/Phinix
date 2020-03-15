@@ -175,11 +175,23 @@ namespace Chat
         {
             lock (messageHistoryLock)
             {
-                // Set the read message count
-                messageCountAtLastCheck = messageHistory.Count;
+                // Mark all messages as read
+                MarkAsRead();
 
                 // Return the messages in history
                 return messageHistory.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Marks all chat messages as read.
+        /// </summary>
+        public void MarkAsRead()
+        {
+            lock (messageHistoryLock)
+            {
+                // Set the read message count
+                messageCountAtLastCheck = messageHistory.Count;
             }
         }
 

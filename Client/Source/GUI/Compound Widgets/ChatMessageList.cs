@@ -139,6 +139,9 @@ namespace PhinixClient.GUI
                 // Recreate the list
                 chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
             }
+
+            // Mark the message as read
+            Client.Instance.MarkAsRead();
         }
     }
 }
