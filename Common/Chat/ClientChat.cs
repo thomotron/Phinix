@@ -225,9 +225,9 @@ namespace Chat
         /// <param name="packet">Incoming packet</param>
         private void chatMessageResponsePacketHandler(string connectionId, ChatMessageResponsePacket packet)
         {
+            ClientChatMessage message;
             lock (messageHistoryLock)
             {
-                ClientChatMessage message;
                 try
                 {
                     // Try get a message with a corresponding original message ID
@@ -256,6 +256,8 @@ namespace Chat
                     message.Status = ChatMessageStatus.DENIED;
                 }
             }
+
+            OnChatMessageReceived?.Invoke(this, new ClientChatMessageEventArgs(message));
         }
     }
 }
