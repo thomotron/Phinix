@@ -52,7 +52,7 @@ namespace PhinixClient
         public void SendMessage(string message) => chat.Send(message);
         public ClientChatMessage[] GetChatMessages() => chat.GetMessages();
         public int UnreadMessages => chat.UnreadMessages;
-        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
@@ -279,10 +279,10 @@ namespace PhinixClient
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
             {
-                Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+                Logger.Trace("Received chat message from UUID " + args.Message.SenderUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
+                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
                 {
                     lock (soundQueueLock)
                     {

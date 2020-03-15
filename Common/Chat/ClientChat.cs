@@ -20,7 +20,7 @@ namespace Chat
         /// <summary>
         /// Raised when a chat message is received.
         /// </summary>
-        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
 
         /// <summary>
         /// The number of messages received since <c>GetMessages()</c> was last called.
@@ -190,13 +190,15 @@ namespace Chat
         /// <param name="packet">Incoming packet</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
+            ClientChatMessage message = new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED);
+
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
+                messageHistory.Add(message);
             }
-            
-            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
+
+            OnChatMessageReceived?.Invoke(this, new ClientChatMessageEventArgs(message));
         }
         
         /// <summary>

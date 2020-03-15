@@ -53,6 +53,14 @@ namespace PhinixClient.GUI
             this.Status = status;
         }
 
+        public ChatMessageWidget(ClientChatMessage message)
+        {
+            this.ReceivedTime = message.Timestamp;
+            this.SenderUuid = message.SenderUuid;
+            this.Message = message.Message;
+            this.Status = message.Status;
+        }
+
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
