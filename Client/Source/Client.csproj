@@ -80,6 +80,7 @@
     <Compile Include="GUI\Basic Widgets\TextFieldWidget.cs" />
     <Compile Include="GUI\Basic Widgets\TextWidget.cs" />
     <Compile Include="GUI\Basic Widgets\ThingIconWidget.cs" />
+    <Compile Include="GUI\Compound Widgets\ChatMessageList.cs" />
     <Compile Include="GUI\Compound Widgets\ChatMessageWidget.cs" />
     <Compile Include="GUI\Compound Widgets\ItemStackRow.cs" />
     <Compile Include="GUI\Compound Widgets\TradeRow.cs" />

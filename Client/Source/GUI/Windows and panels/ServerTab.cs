@@ -38,17 +38,14 @@ namespace PhinixClient
 
         private static int currentTabIndex;
 
-        private static Vector2 chatScroll = new Vector2(0, 0);
-        private static float oldHeight = 0f;
-        private static bool scrollToBottom = false;
-        private static bool stickyScroll = true;
-
         private static Vector2 userListScroll = new Vector2(0, 0);
 
         private static string message = "";
         private static string userSearch = "";
 
         private static Vector2 activeTradesScroll = new Vector2(0, 0);
+
+        private static ChatMessageList chatMessageList = new ChatMessageList();
 
         ///<inheritdoc/>
         /// <summary>
@@ -157,9 +154,7 @@ namespace PhinixClient
             // Chat message area
             if (Instance.Online)
             {
-                column.Add(
-                    GenerateMessages()
-                );
+                column.Add(chatMessageList);
             }
             else
             {
@@ -188,7 +183,7 @@ namespace PhinixClient
                         Instance.SendMessage(message);
 
                         message = "";
-                        scrollToBottom = true;
+                        chatMessageList.ScrollToBottom();
                     }
                 }
             );
@@ -211,81 +206,6 @@ namespace PhinixClient
 
             // Return the generated column
             return column;
-        }
-
-        /// <summary>
-        /// Draws each chat message within a scrollable container.
-        /// </summary>
-        private AdapterWidget GenerateMessages()
-        {
-            return new AdapterWidget(
-                drawCallback: container =>
-                {
-                    // Get all chat messages and convert them to widgets
-                    ClientChatMessage[] messages = Instance.GetChatMessages();
-                    ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp, message.Status)).ToArray();
-                    
-                    // Create a new flex container from our message list
-                    VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
-
-                    // Set up the scrollable container
-                    Rect innerContainer = new Rect(
-                        x: container.xMin,
-                        y: container.yMin,
-                        width: container.width - SCROLLBAR_WIDTH,
-                        height: chatFlexContainer.CalcHeight(container.width - SCROLLBAR_WIDTH)
-                    );
-
-                    // Get a copy of the old scroll position
-                    Vector2 oldChatScroll = new Vector2(chatScroll.x, chatScroll.y);
-
-                    // Start scrolling
-                    Widgets.BeginScrollView(container, ref chatScroll, innerContainer);
-
-                    // Draw the flex container
-                    chatFlexContainer.Draw(innerContainer);
-
-                    // Stop scrolling
-                    Widgets.EndScrollView();
-
-                    // Enter the logic to get sticky scrolling to work
-
-                    #region Sticky scroll logic
-
-                    // Credit to Aze for figuring out how to get the bottom scroll pos
-                    bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - container.height);
-                    bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
-                    float heightDifference = oldHeight - innerContainer.height;
-
-                    if (scrollChanged)
-                    {
-                        if (scrolledToBottom)
-                        {
-                            // Enable sticky scroll
-                            stickyScroll = true;
-                        }
-                        else
-                        {
-                            // Not at bottom, disable sticky scroll
-                            stickyScroll = false;
-                        }
-                    }
-                    else if (!heightDifference.Equals(0f))
-                    {
-                        if (stickyScroll || scrollToBottom)
-                        {
-                            // Scroll to bottom
-                            chatScroll.y = innerContainer.height - container.height;
-                            scrollToBottom = false;
-                        }
-                    }
-
-                    // Update old height for the next pass
-                    oldHeight = innerContainer.height;
-
-                    #endregion
-                }
-            );
         }
 
         /// <summary>
