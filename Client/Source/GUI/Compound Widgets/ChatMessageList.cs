@@ -133,7 +133,11 @@ namespace PhinixClient.GUI
 
             lock (messageWidgetsLock)
             {
+                // Append the new message to the list
                 messageWidgets.Add(new ChatMessageWidget(args.Message));
+
+                // Recreate the list
+                chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
             }
         }
     }
