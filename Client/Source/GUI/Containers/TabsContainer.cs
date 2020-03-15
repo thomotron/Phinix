@@ -77,6 +77,15 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
+        public override void Update()
+        {
+            foreach (TabEntry tab in tabs)
+            {
+                tab.displayable.Update();
+            }
+        }
+
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
             return TabDrawer.TabHeight;

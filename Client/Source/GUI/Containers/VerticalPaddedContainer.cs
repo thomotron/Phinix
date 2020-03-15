@@ -55,5 +55,11 @@ namespace PhinixClient.GUI
                 child.Draw(inRect);
             }
         }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            child.Update();
+        }
     }
 }

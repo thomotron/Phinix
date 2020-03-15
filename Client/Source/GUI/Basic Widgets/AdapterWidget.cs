@@ -28,7 +28,7 @@ namespace PhinixClient.GUI
         /// </summary>
         private Func<float, float> getHeightCallback;
         
-        public AdapterWidget(Action<Rect> drawCallback, Func<float, float> getWidthCallback = null, Func<float, float> getHeightCallback = null)
+        public AdapterWidget(Action<Rect> drawCallback, Action updateCallback = null, Func<float, float> getWidthCallback = null, Func<float, float> getHeightCallback = null)
         {
             this.drawCallback = drawCallback;
             this.getWidthCallback = getWidthCallback;

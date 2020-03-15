@@ -106,6 +106,15 @@ namespace PhinixClient.GUI
             return Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height));
         }
 
+        /// <inheritdoc />
+        public override void Update()
+        {
+            foreach (Displayable item in Contents)
+            {
+                item.Update();
+            }
+        }
+
         /// <summary>
         /// Adds an <see cref="Displayable"/> item to the container.
         /// </summary>

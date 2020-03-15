@@ -66,5 +66,11 @@ namespace PhinixClient.GUI
             // Draw the container's contents
             child.Draw(inRect);
         }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            child.Update();
+        }
     }
 }

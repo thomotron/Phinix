@@ -26,6 +26,11 @@ namespace PhinixClient.GUI
         public abstract void Draw(Rect inRect);
 
         /// <summary>
+        /// Refreshes the object's data.
+        /// </summary>
+        public virtual void Update() {}
+
+        /// <summary>
         /// Calculates the object's width when constrained within the given height.
         /// </summary>
         /// <param name="height">Height to constrain within</param>

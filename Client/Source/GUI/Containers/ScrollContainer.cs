@@ -64,5 +64,11 @@ namespace PhinixClient.GUI
             // Stop scrolling
             Widgets.EndScrollView();
         }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            child.Update();
+        }
     }
 }
