@@ -47,7 +47,7 @@ namespace PhinixClient
 
         private static string message = "";
         private static string userSearch = "";
-        
+
         private static Vector2 activeTradesScroll = new Vector2(0, 0);
 
         ///<inheritdoc/>
@@ -72,10 +72,10 @@ namespace PhinixClient
         public override void DoWindowContents(Rect inRect)
         {
             base.DoWindowContents(inRect);
-            
+
             // Create a tab container to hold the chat and trade list
             TabsContainer tabContainer = new TabsContainer(newTabIndex => currentTabIndex = newTabIndex, currentTabIndex);
-            
+
             // Create a flex container to hold the chat tab content
             HorizontalFlexContainer chatRow = new HorizontalFlexContainer(DEFAULT_SPACING);
 
@@ -91,13 +91,13 @@ namespace PhinixClient
                     width: RIGHT_COLUMN_CONTAINER_WIDTH
                 )
             );
-            
+
             // Add the chat row as a tab
             tabContainer.AddTab("Phinix_tabs_chat".Translate(), chatRow);
-            
+
             // Add the active trades tab
             tabContainer.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
-            
+
             // Draw the tabs
             tabContainer.Draw(inRect);
         }
@@ -153,7 +153,7 @@ namespace PhinixClient
         {
             // Create a flex container to hold the column elements
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
-            
+
             // Chat message area
             if (Instance.Online)
             {
@@ -208,7 +208,7 @@ namespace PhinixClient
                     height: CHAT_TEXTBOX_HEIGHT
                 )
             );
-            
+
             // Return the generated column
             return column;
         }
@@ -224,7 +224,7 @@ namespace PhinixClient
                     // Get all chat messages and convert them to widgets
                     ClientChatMessage[] messages = Instance.GetChatMessages();
                     ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp, message.Status)).ToArray();
-                    
+
                     // Create a new flex container from our message list
                     VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
 
@@ -305,7 +305,7 @@ namespace PhinixClient
 
                 // Skip the user if they don't contain the search text
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
-                
+
                 // Strip name formatting if the user wishes not to see it
                 if (!Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
 
@@ -336,7 +336,7 @@ namespace PhinixClient
 
             placeholder.Draw(container);
         }
-        
+
         /// <summary>
         /// Draws a context menu with user-specific actions.
         /// </summary>
@@ -346,11 +346,11 @@ namespace PhinixClient
         {
             // Do nothing if this is our UUID
             if (uuid == Instance.Uuid) return;
-            
+
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
             items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
-            
+
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
         }
@@ -370,7 +370,7 @@ namespace PhinixClient
             {
                 return new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate());
             }
-            
+
             // Create a column to store everything in
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 

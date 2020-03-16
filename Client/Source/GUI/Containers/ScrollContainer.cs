@@ -15,12 +15,12 @@ namespace PhinixClient.GUI
         /// Contents of the container.
         /// </summary>
         private Displayable child;
-        
+
         /// <summary>
         /// Callback invoked when the scroll position is changed.
         /// </summary>
         private Action<Vector2> onScroll;
-        
+
         /// <summary>
         /// Scroll position of the container.
         /// </summary>
