@@ -160,6 +160,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> allItemsTradable;
+        public bool AllItemsTradable
+        {
+            get => allItemsTradable.Value;
+            set
+            {
+                allItemsTradable.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         /// <summary>
         /// Queue of sounds to play on the next frame.
         /// Necessary because sounds are only played on the main Unity thread.
@@ -229,6 +240,12 @@ namespace PhinixClient
                 title: "Phinix_hugslibsettings_showUnreadMessageCount".Translate(),
                 description: null,
                 defaultValue: true
+            );
+            allItemsTradable = Settings.GetHandle(
+                settingName: "allItemsTradable",
+                title: "Phinix_hugslibsettings_allItemsTradable".Translate(),
+                description: null,
+                defaultValue: false
             );
 
             // Set up our module instances

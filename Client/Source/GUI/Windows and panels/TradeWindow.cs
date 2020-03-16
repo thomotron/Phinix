@@ -126,14 +126,24 @@ namespace PhinixClient
             // Select all maps that are player homes
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
 
-            // From each map, select all haul destinations
-            IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
+            // Check whether we're configured to get everything or just grab from storage
+            IEnumerable<Thing> things;
+            if (Instance.AllItemsTradable)
+            {
+                // Get *everything*
+                things = homeMaps.SelectMany(map => map.listerThings.AllThings);
+            }
+            else
+            {
+                // From each map, select all haul destinations
+                IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
 
-            // From each haul destination, select all things that are an item
-            IEnumerable<Thing> mapItems = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
+                // From each haul destination, select everything stored there
+                things = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
+            }
 
             // Group all items and cache them for later
-            this.itemStacks = StackedThings.GroupThings(mapItems);
+            this.itemStacks = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
 
             // Update both our and their offers
             UpdateOffers();
