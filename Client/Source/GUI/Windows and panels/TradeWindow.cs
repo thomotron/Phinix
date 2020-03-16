@@ -125,16 +125,16 @@ namespace PhinixClient
             
             // Select all maps that are player homes
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
-            
-            // From each map, select all zones that are stockpiles
-            IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile));
-            
-            // From each stockpile, select all things that are an item
-            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
+
+            // From each map, select all haul destinations
+            IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
+
+            // From each haul destination, select all things that are an item
+            IEnumerable<Thing> mapItems = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
 
             // Group all items and cache them for later
-            this.itemStacks = StackedThings.GroupThings(stockpileItems);
-            
+            this.itemStacks = StackedThings.GroupThings(mapItems);
+
             // Update both our and their offers
             UpdateOffers();
         }
