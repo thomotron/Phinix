@@ -42,7 +42,7 @@ namespace PhinixClient
         public bool LoggedIn => userManager.LoggedIn;
         public string Uuid => userManager.Uuid;
         public bool TryGetDisplayName(string uuid, out string displayName) => userManager.TryGetDisplayName(uuid, out displayName);
-        public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn); 
+        public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn);
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 
@@ -126,7 +126,7 @@ namespace PhinixClient
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
-        
+
         private SettingHandle<bool> showChatFormatting;
         public bool ShowChatFormatting
         {
@@ -156,6 +156,17 @@ namespace PhinixClient
             set
             {
                 showUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<bool> allItemsTradable;
+        public bool AllItemsTradable
+        {
+            get => allItemsTradable.Value;
+            set
+            {
+                allItemsTradable.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
@@ -230,6 +241,12 @@ namespace PhinixClient
                 description: null,
                 defaultValue: true
             );
+            allItemsTradable = Settings.GetHandle(
+                settingName: "allItemsTradable",
+                title: "Phinix_hugslibsettings_allItemsTradable".Translate(),
+                description: null,
+                defaultValue: false
+            );
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -237,13 +254,13 @@ namespace PhinixClient
             this.userManager = new ClientUserManager(netClient, authenticator);
             this.chat = new ClientChat(netClient, authenticator, userManager);
             this.trading = new ClientTrading(netClient, authenticator, userManager);
-            
+
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
             userManager.OnLogEntry += ILoggableHandler;
             chat.OnLogEntry += ILoggableHandler;
             trading.OnLogEntry += ILoggableHandler;
-            
+
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
@@ -256,12 +273,12 @@ namespace PhinixClient
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
                 Logger.Message("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
-                
+
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_authFailedTitle".Translate(), "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
-                
+
                 Disconnect();
             };
-            
+
             // Subscribe to user management events
             userManager.OnLoginSuccess += (sender, args) =>
             {
@@ -270,12 +287,12 @@ namespace PhinixClient
             userManager.OnLoginFailure += (sender, args) =>
             {
                 Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
-                
+
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_loginFailedTitle".Translate(), "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
-                
+
                 Disconnect();
             };
-            
+
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
             {
@@ -292,12 +309,12 @@ namespace PhinixClient
                     }
                 }
             };
-            
+
             // Subscribe to trading events
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
                 Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
-                
+
                 // Try get the other party's display name
                 if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -309,7 +326,7 @@ namespace PhinixClient
                     // Unknown display name, default to ???
                     displayName = "???";
                 }
-                
+
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCreated");
                 Find.LetterStack.ReceiveLetter(
@@ -321,7 +338,7 @@ namespace PhinixClient
             trading.OnTradeCreationFailure += (sender, args) =>
             {
                 Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
-                
+
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
             };
             trading.OnTradeCompleted += (sender, args) =>
@@ -337,7 +354,7 @@ namespace PhinixClient
                     // Unknown display name, default to ???
                     displayName = "???";
                 }
-            
+
                 // Convert all the received items into their Verse counterparts and strip out any unknown ones
                 //// While it would be less computationally-expensive to strip out unknown items beforehand, we would
                 //// have no idea whether we could actually make the item without another check, so we just piggy-back
@@ -346,15 +363,15 @@ namespace PhinixClient
                                                 .Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)
                                                 .Where(thing => thing.def.defName != "UnknownItem")
                                                 .ToArray();
-                
+
 
                 // Launch drop pods to a trade spot on a home tile
                 LookTargets dropSpotLookTarget = dropPods(verseItems);
-            
+
                 // Generate a letter
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
                 Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCompletedLetter_label".Translate(), "Phinix_trade_tradeCompletedLetter_description".Translate(displayName), letterDef, dropSpotLookTarget);
-                
+
                 Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
             trading.OnTradeCancelled += (sender, args) =>
@@ -406,7 +423,7 @@ namespace PhinixClient
 
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
-            
+
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
             netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
@@ -421,7 +438,7 @@ namespace PhinixClient
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
             trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
             trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
-            
+
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
         }
@@ -457,7 +474,7 @@ namespace PhinixClient
             catch
             {
                 Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
-                
+
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_connectionFailedTitle".Translate(), "Phinix_error_connectionFailedMessage".Translate(ServerAddress, ServerPort)));
             }
         }
@@ -479,7 +496,7 @@ namespace PhinixClient
             // Try to update within the user manager
             userManager.UpdateSelf(displayName);
         }
-        
+
         /// <summary>
         /// Handler for <see cref="ILoggable"/> <c>OnLogEvent</c> events.
         /// Raised by modules as a way to hook into the HugsLib log.
@@ -506,7 +523,7 @@ namespace PhinixClient
                     break;
             }
         }
-        
+
         /// <summary>
         /// Handles credential requests from the <see cref="ClientAuthenticator"/> module.
         /// This forwards the server details and a callback to the GUI for user input.
@@ -519,7 +536,7 @@ namespace PhinixClient
         private void getCredentials(string sessionId, string serverName, string serverDescription, AuthTypes authType, ClientAuthenticator.ReturnCredentialsDelegate callback)
         {
             Logger.Trace("Authentication needs more credentials for the server \"{0}\" with authentication type \"{1}\"", serverName, authType.ToString());
-            
+
             Find.WindowStack.Add(new CredentialsWindow
             {
                 SessionId = sessionId,
@@ -529,7 +546,7 @@ namespace PhinixClient
                 CredentialsCallback = callback
             });
         }
-        
+
         /// <summary>
         /// Launches the given <see cref="Thing"/>s in drop pods to a trade spot at the home colony.
         /// </summary>
@@ -541,7 +558,7 @@ namespace PhinixClient
             Map map = Find.AnyPlayerHomeMap;
             IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
             DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false);
-            
+
             return new LookTargets(dropSpot, map);
         }
     }
