@@ -36,30 +36,27 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            // Create a container for the 'view' (i.e. the window we look at scrollable content through)
-            Rect viewRect = inRect.LeftPartPixels(inRect.width - SCROLL_BAR_WIDTH);
-
-            // We calculate the overflowed size the children will take
+            // Calculate the overflowed size the children will take
             // Only supports y-overflow at the moment
-            float widthChild = viewRect.width;
-            float heightChild = child.CalcHeight(viewRect.width);
+            float widthChild = inRect.width - SCROLL_BAR_WIDTH;
+            float heightChild = child.CalcHeight(widthChild);
             if (heightChild == FLUID)
             {
-                // If the child is height-fluid, we attribute the available space
-                heightChild = viewRect.height;
+                // If the child is height-fluid, we attribute all available space
+                heightChild = inRect.height;
             }
-            
+
             // Create an inner container that will hold the scrollable content
-            Rect childRect = new Rect(0, 0, widthChild, heightChild);
-            
+            Rect viewRect = new Rect(inRect.xMin, inRect.yMin, widthChild, heightChild);
+
             // Begin scrolling
-            Widgets.BeginScrollView(inRect, ref scrollPosition, childRect);
-            
+            Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect);
+
             // Invoke the scroll callback
             onScroll?.Invoke(scrollPosition);
-            
+
             // Draw the contents
-            child.Draw(childRect);
+            child.Draw(viewRect);
 
             // Stop scrolling
             Widgets.EndScrollView();
