@@ -102,8 +102,8 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcWidth(float height)
         {
-            // Return the sum of each item's width, ignoring fluid items
-            return Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height));
+            // Return the sum of each item's width, ignoring fluid items, and the spacing between each
+            return Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(height)) + (spacing * (Contents.Count - 1));
         }
 
         /// <summary>
