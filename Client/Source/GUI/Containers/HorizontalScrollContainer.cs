@@ -18,12 +18,12 @@ namespace PhinixClient.GUI
         /// Contents of the container.
         /// </summary>
         private Displayable child;
-        
+
         /// <summary>
         /// Callback invoked when the scroll position is changed.
         /// </summary>
         private Action<Vector2> onScroll;
-        
+
         /// <summary>
         /// Scroll position of the container.
         /// </summary>
@@ -48,7 +48,7 @@ namespace PhinixClient.GUI
                 // If the child is width-fluid, we attribute all available space
                 widthChild = inRect.width;
             }
-            
+
             // Create an inner container that will hold the scrollable content
             Rect viewRect = new Rect(inRect.xMin, inRect.yMin, widthChild, heightChild);
 

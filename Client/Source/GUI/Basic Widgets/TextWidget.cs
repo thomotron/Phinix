@@ -17,12 +17,12 @@ namespace PhinixClient.GUI
         /// The label's text content.
         /// </summary>
         private string text;
-        
+
         /// <summary>
         /// Font of the text.
         /// </summary>
         private GameFont font;
-        
+
         /// <summary>
         /// Where the text should be anchored.
         /// </summary>
