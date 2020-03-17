@@ -25,7 +25,7 @@ namespace PhinixClient.GUI
         public VerticalFlexContainer(float spacing = 10f)
         {
             this.spacing = spacing;
-            
+
             this.Contents = new List<Displayable>();
         }
 
@@ -39,19 +39,19 @@ namespace PhinixClient.GUI
             this.Contents = contents.ToList();
             this.spacing = spacing;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
             // Get the height taken up by fixed-height elements
-            float fixedHeight = Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(container.width));
+            float fixedHeight = CalcHeight(container.width);
 
             // Divvy out the remaining height to each fluid element
             float remainingHeight = container.height - fixedHeight;
             remainingHeight -= (Contents.Count - 1) * spacing; // Remove spacing between each element
             int fluidItems = Contents.Count(item => item.IsFluidHeight);
             float heightPerFluid = remainingHeight / fluidItems;
-            
+
             // Draw each item
             float yOffset = 0f;
             for (int i = 0; i < Contents.Count; i++)
@@ -86,7 +86,7 @@ namespace PhinixClient.GUI
 
                 // Increment the y offset by the item's height
                 yOffset += rect.height;
-                
+
                 // Add spacing to the y offset if applicable
                 if (i < Contents.Count - 1) yOffset += spacing;
             }
@@ -95,8 +95,8 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            // Return the sum of each item's height, ignoring fluid items
-            return Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(width));
+            // Return the sum of each item's height, ignoring fluid items, and the spacing between each
+            return Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(width)) + (spacing * (Contents.Count - 1));
         }
 
         /// <inheritdoc />
