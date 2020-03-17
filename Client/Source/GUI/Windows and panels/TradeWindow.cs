@@ -710,13 +710,13 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <see cref="ScrollContainer"/> containing an item list within the given container.
+        /// Generates a <see cref="VerticalScrollContainer"/> containing an item list within the given container.
         /// </summary>
         /// <param name="itemStacks">Item stacks to draw in the list</param>
         /// <param name="scrollPos">List scroll position</param>
         /// <param name="scrollUpdate">Action invoked with the scroll position of the item list when it is drawn</param>
         /// <param name="interactive">Whether the item counts should be modifiable by the user</param>
-        private ScrollContainer GenerateItemList(IEnumerable<StackedThings> itemStacks, Vector2 scrollPos, Action<Vector2> scrollUpdate, bool interactive = false)
+        private VerticalScrollContainer GenerateItemList(IEnumerable<StackedThings> itemStacks, Vector2 scrollPos, Action<Vector2> scrollUpdate, bool interactive = false)
         {
             // Create a new flex container as our 'column' to hold each element
             VerticalFlexContainer column = new VerticalFlexContainer(0f);
@@ -747,7 +747,7 @@ namespace PhinixClient
             }
 
             // Return the flex container wrapped in a scroll container
-            return new ScrollContainer(column, scrollPos, scrollUpdate);
+            return new VerticalScrollContainer(column, scrollPos, scrollUpdate);
         }
     }
 }

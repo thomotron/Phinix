@@ -7,7 +7,7 @@ using Verse;
 
 namespace PhinixClient.GUI
 {
-    internal class ScrollContainer : Displayable
+    internal class VerticalScrollContainer : Displayable
     {
         private const float SCROLL_BAR_WIDTH = 16f;
 
@@ -26,7 +26,7 @@ namespace PhinixClient.GUI
         /// </summary>
         private Vector2 scrollPosition = Vector2.zero;
 
-        public ScrollContainer(Displayable child, Vector2 scrollPosition, Action<Vector2> onScroll)
+        public VerticalScrollContainer(Displayable child, Vector2 scrollPosition, Action<Vector2> onScroll)
         {
             this.scrollPosition = scrollPosition;
             this.child = child;

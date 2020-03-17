@@ -22,10 +22,12 @@ namespace PhinixClient
 
         private const float DISPLAY_NAME_SET_BUTTON_WIDTH = 120f;
 
-        public override Vector2 InitialSize => new Vector2(600f, 120f);
+        public override Vector2 InitialSize => new Vector2(600f, 150f);
 
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
+
+        private static Vector2 namePreviewScrollPos;
 
         public override void DoWindowContents(Rect inRect)
         {
@@ -46,16 +48,17 @@ namespace PhinixClient
                 flexContainer.Add(GenerateDisconnectedServerDetails());
             }
 
-            // Display name
+            // Display name and preview
             if (Client.Instance.Online)
             {
                 flexContainer.Add(GenerateEditableDisplayName());
+                flexContainer.Add(GenerateNamePreview());
             };
 
             // Constrain the flex container within another container to avoid widgets becoming excessively large
-            Container container = new Container(
+            HeightContainer container = new HeightContainer(
                 child: flexContainer,
-                height: ROW_HEIGHT * flexContainer.Contents.Count + DEFAULT_SPACING * (flexContainer.Contents.Count - 1)
+                height: 130f // For some reason the rect we're given is tiny and barely fits our content, so we just draw outside of it anyway.
             );
 
             // Draw the container with 5f padding at the top to avoid clipping with the close button
@@ -181,7 +184,7 @@ namespace PhinixClient
         /// <returns><see cref="HorizontalFlexContainer"/> containing an editable display name field and a button to apply the changes</returns>
         private HorizontalFlexContainer GenerateEditableDisplayName()
         {
-            // Create a flex container as our 'row' to store elements in
+            // Create a flex container as our 'row' to store the editable name field in
             HorizontalFlexContainer row = new HorizontalFlexContainer();
 
             // Editable display name text box
@@ -201,6 +204,26 @@ namespace PhinixClient
                     ),
                     width: DISPLAY_NAME_SET_BUTTON_WIDTH
                 )
+            );
+
+            // Return the generated row
+            return row;
+        }
+
+        /// <summary>
+        /// Generates a display name preview label.
+        /// </summary>
+        /// <returns></returns>
+        private HorizontalScrollContainer GenerateNamePreview()
+        {
+            // Create a scroll container to store the text widget in
+            HorizontalScrollContainer row = new HorizontalScrollContainer(
+                new TextWidget(
+                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
+                    wrap: false
+                ),
+                scrollPosition: namePreviewScrollPos,
+                onScroll: (newPos) => namePreviewScrollPos = newPos
             );
 
             // Return the generated row

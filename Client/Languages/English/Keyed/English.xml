@@ -14,6 +14,7 @@
     <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
     <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
+    <Phinix_settings_displayNamePreview>Your name will look like: {0}</Phinix_settings_displayNamePreview>
     
     <Phinix_hugslibsettings_serverAddressTitle>Server address</Phinix_hugslibsettings_serverAddressTitle>
     <Phinix_hugslibsettings_serverPortTitle>Server port</Phinix_hugslibsettings_serverPortTitle>
