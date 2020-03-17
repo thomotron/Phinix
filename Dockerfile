@@ -9,6 +9,7 @@ COPY nuget.config ./
 COPY Phinix.sln ./
 COPY Server ./Server/
 COPY Common ./Common/
+COPY Dependencies ./Dependencies/
 
 # Restore NuGet packages and build
 RUN nuget restore Phinix.sln && \

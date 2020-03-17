@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+    <Phinix_tabs_chat>Chat</Phinix_tabs_chat>
+    <Phinix_tabs_trades>Trades</Phinix_tabs_trades>
+
+    <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
+    <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
+    <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
+    <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
+
+    <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
+    <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
+    <Phinix_settings_connectedToLabel>Connected to {0}</Phinix_settings_connectedToLabel>
+    <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
+    <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
+    <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
+
+    <Phinix_hugslibsettings_serverAddressTitle>Server address</Phinix_hugslibsettings_serverAddressTitle>
+    <Phinix_hugslibsettings_serverPortTitle>Server port</Phinix_hugslibsettings_serverPortTitle>
+    <Phinix_hugslibsettings_displayNameTitle>Display name</Phinix_hugslibsettings_displayNameTitle>
+    <Phinix_hugslibsettings_acceptingTradesTitle>Accepting trades</Phinix_hugslibsettings_acceptingTradesTitle>
+    <Phinix_hugslibsettings_showNameFormatting>Show name formatting</Phinix_hugslibsettings_showNameFormatting>
+    <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
+    <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
+    <Phinix_hugslibsettings_showUnreadMessageCount>Show unread message count</Phinix_hugslibsettings_showUnreadMessageCount>
+    <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
+
+    <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
+    <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
+
+    <Phinix_trade_tradeTitle>Trade with {0}</Phinix_trade_tradeTitle>
+    <Phinix_trade_ourOfferLabel>Our offer</Phinix_trade_ourOfferLabel>
+    <Phinix_trade_theirOfferLabel>Their offer</Phinix_trade_theirOfferLabel>
+    <Phinix_trade_confirmOurTradeCheckboxChecked>You have confirmed</Phinix_trade_confirmOurTradeCheckboxChecked>
+    <Phinix_trade_confirmOurTradeCheckboxUnchecked>You have not confirmed</Phinix_trade_confirmOurTradeCheckboxUnchecked>
+    <Phinix_trade_confirmTheirTradeCheckboxChecked>{0} has confirmed</Phinix_trade_confirmTheirTradeCheckboxChecked>
+    <Phinix_trade_confirmTheirTradeCheckboxUnchecked>{0} has not confirmed</Phinix_trade_confirmTheirTradeCheckboxUnchecked>
+    <Phinix_trade_updateButton>Update</Phinix_trade_updateButton>
+    <Phinix_trade_resetButton>Reset</Phinix_trade_resetButton>
+    <Phinix_trade_cancelButton>Cancel</Phinix_trade_cancelButton>
+    <Phinix_trade_sortByLabel>Sort by</Phinix_trade_sortByLabel>
+    <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
+    <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
+    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>
+    <Phinix_trade_tradeCompletedLetter_description>Your trade with {0} was successful.</Phinix_trade_tradeCompletedLetter_description>
+    <Phinix_trade_tradeCancelled_label>Trade cancelled</Phinix_trade_tradeCancelled_label>
+    <Phinix_trade_tradeCancelled_description>Your trade with {0} was cancelled.\n\nYour items have been shipped back to you.</Phinix_trade_tradeCancelled_description>
+    <Phinix_trade_noActiveTradesPlaceholder>You have no active trades.</Phinix_trade_noActiveTradesPlaceholder>
+    <Phinix_trade_activeTrade_tradeWithLabel>Trade with {0}</Phinix_trade_activeTrade_tradeWithLabel>
+    <Phinix_trade_activeTrade_theyHaveAccepted>They have accepted</Phinix_trade_activeTrade_theyHaveAccepted>
+    <Phinix_trade_activeTrade_theyHaveNotAccepted>They have not accepted</Phinix_trade_activeTrade_theyHaveNotAccepted>
+    <Phinix_trade_activeTrade_openButton>Open</Phinix_trade_activeTrade_openButton>
+
+    <Phinix_error_loginFailedTitle>Login failed</Phinix_error_loginFailedTitle>
+    <Phinix_error_loginFailedMessage>Failed to log in to the server: {0} ({1})</Phinix_error_loginFailedMessage>
+    <Phinix_error_authFailedTitle>Authentication failed</Phinix_error_authFailedTitle>
+    <Phinix_error_authFailedMessage>Failed to authenticate with the server: {0} ({1})</Phinix_error_authFailedMessage>
+    <Phinix_error_connectionFailedTitle>Connecting failed</Phinix_error_connectionFailedTitle>
+    <Phinix_error_connectionFailedMessage>Could not connect to a server at {0}:{1}</Phinix_error_connectionFailedMessage>
+    <Phinix_error_tradeCreationFailedTitle>Trade creation failed</Phinix_error_tradeCreationFailedTitle>
+    <Phinix_error_tradeCreationFailedMessage>Could not start a trade: {0} ({1})</Phinix_error_tradeCreationFailedMessage>
+    <Phinix_error_tradeUpdateFailedTitle>Trade update failed</Phinix_error_tradeUpdateFailedTitle>
+    <Phinix_error_tradeUpdateFailedMessage>Could not update your trade with {0}: {1} ({2})\nYour items have been shipped back to you.</Phinix_error_tradeUpdateFailedMessage>
+</LanguageData>

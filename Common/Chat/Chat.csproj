@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Chat</RootNamespace>
     <AssemblyName>Chat</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -32,14 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="protobuf3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ab50b488852587ac">
-      <HintPath>..\..\.nuget\protobuf3.3.1.0\lib\net35\protobuf3.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chat.cs" />
@@ -65,9 +60,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="compile-proto.sh" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj">
+      <Project>{d5bbfa59-db31-40f8-a8bf-7333be984316}</Project>
+      <Name>Google.Protobuf</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Authentication\Authentication.csproj">
       <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
       <Name>Authentication</Name>

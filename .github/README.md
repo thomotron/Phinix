@@ -1,6 +1,6 @@
 <h1 align="center">PHINIX</h1>
 <h4 align="center"><i>A RimWorld chat and trading mod</i></h4>
-<p align="center"><img src="https://i.imgur.com/uXnIeua.png"></img></p>
+<p align="center"><img src="../Client/About/Preview.png"></img></p>
 <br><br>
 <p align="center">
   <a href="https://github.com/PhinixTeam/Phinix/issues">
@@ -43,7 +43,7 @@ It boasts improvements such as:
 See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server) for server installation.
 
 ### Docker
-There are automated server builds available through [Docker Hub](https://hub.docker.com/r/thomotron/phinix).  
+There are automated server builds available through [Docker Hub](https://hub.docker.com/r/phinixteam/phinix).  
 See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/Hosting-a-server#docker-container) for more details.
 
 # Usage
@@ -65,8 +65,16 @@ See the [wiki page](https://github.com/PhinixTeam/Phinix/wiki/FAQ) for a list of
 # Developers
 ## Setting up your environment
 ### Game DLLs
-The project expects `Assembly-CSharp.dll` and `UnityEngine.dll` to be present in `GameDlls/` just so we don't redistribute RimWorld's assemblies.
-They can both be found in `<Path-to-RimWorld>/RimWorldWin64_Data/Managed/`. Either copy them in or make a symbolic link to them.
+The client project depends on several assemblies from RimWorld's data directory (they can be found in `<RimWorldDir>/RimWorldXXX_Data/Managed/`):
+- `Assembly-CSharp.dll`
+- `UnityEngine.dll`
+- `UnityEngine.CoreModule.dll`
+- `UnityEngine.IMGUIModule.dll`
+- `UnityEngine.TextRenderingModule.dll`
+
+All of these need to be present in the `GameDlls/` directory to build the client project. Either copy them in directly or make a symbolic link.
+
+If you only want to build the common projects and/or the server project, you can build the solution using the `TravisCI` build profile which does not require the game assemblies.
 
 ### Protobuf for Packet Compilation
-Network data packets are defined in Protobuf, a structured, language-neutral de/serialisation framework designed by Google. If you want to make any changes to these packets, you will need a copy of [protoc](https://github.com/protocolbuffers/protobuf/releases/tag/v3.1.0) with C# support. Phinix uses Protobuf v3.1.0 due to limitations imposed by both RimWorld and Google.
+Network data packets are defined in [Protobuf](https://developers.google.com/protocol-buffers/), a structured, language-neutral de/serialisation framework designed by Google. If you want to make any changes to these packets, you will need a copy of [protoc](https://github.com/protocolbuffers/protobuf/releases/tag/v3.11.4) with C# support. As of March 3rd 2020, Phinix uses Protobuf v3.11.4.

@@ -15,7 +15,7 @@ namespace PhinixClient
     public class TradeWindow : Window
     {
         public override Vector2 InitialSize => new Vector2(1000f, 750f);
-        
+
         private const float DEFAULT_SPACING = 10f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
@@ -122,19 +122,29 @@ namespace PhinixClient
         public override void PreOpen()
         {
             base.PreOpen();
-            
+
             // Select all maps that are player homes
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
-            
-            // From each map, select all zones that are stockpiles
-            IEnumerable<Zone> stockpiles = homeMaps.SelectMany(map => map.zoneManager.AllZones.Where(zone => zone is Zone_Stockpile));
-            
-            // From each stockpile, select all things that are an item
-            IEnumerable<Thing> stockpileItems = stockpiles.SelectMany(zone => zone.AllContainedThings.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
+
+            // Check whether we're configured to get everything or just grab from storage
+            IEnumerable<Thing> things;
+            if (Instance.AllItemsTradable)
+            {
+                // Get *everything*
+                things = homeMaps.SelectMany(map => map.listerThings.AllThings);
+            }
+            else
+            {
+                // From each map, select all haul destinations
+                IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
+
+                // From each haul destination, select everything stored there
+                things = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
+            }
 
             // Group all items and cache them for later
-            this.itemStacks = StackedThings.GroupThings(stockpileItems);
-            
+            this.itemStacks = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
+
             // Update both our and their offers
             UpdateOffers();
         }
@@ -142,7 +152,7 @@ namespace PhinixClient
         public override void Close(bool doCloseSound = true)
         {
             base.Close(doCloseSound);
-            
+
             Instance.OnTradeCompleted -= OnTradeCompleted;
             Instance.OnTradeCancelled -= OnTradeCancelled;
             Instance.OnTradeUpdateSuccess -= OnTradeUpdated;
@@ -153,21 +163,21 @@ namespace PhinixClient
         {
             // Get the other party's display name
             string displayName = GetOtherPartyDisplayName();
-            
+
             // Title
             new TextWidget(
                 text: "Phinix_trade_tradeTitle".Translate(TextHelper.StripRichText(displayName)),
                 font: GameFont.Medium,
                 anchor: TextAnchor.MiddleCenter
             ).Draw(inRect.TopPartPixels(TITLE_HEIGHT));
-            
+
             // Offers
             GenerateOffers().Draw(inRect.BottomPartPixels(inRect.height - TITLE_HEIGHT).TopHalf());
-            
+
             // Available items
             GenerateAvailableItems().Draw(inRect.BottomPartPixels(inRect.height - TITLE_HEIGHT).BottomHalf());
         }
-        
+
         /// <summary>
         /// Event handler for the <see cref="OnTradeCancelled"/> event.
         /// </summary>
@@ -191,7 +201,7 @@ namespace PhinixClient
             {
                 itemStack.DeleteSelected();
             }
-            
+
             // Close the window
             Close();
         }
@@ -205,10 +215,10 @@ namespace PhinixClient
         {
             // Ignore updates for trades other than this one
             if (args.TradeId != tradeId) return;
-            
+
             // Update both our and their offers
             UpdateOffers();
-            
+
             // Check if there is a token we can process
             if (!string.IsNullOrEmpty(args.Token))
             {
@@ -224,7 +234,7 @@ namespace PhinixClient
                             {
                                 thing.Destroy();
                             }
-                            
+
                             pendingItemStacks.Remove(args.Token);
                         }
                         else
@@ -264,7 +274,7 @@ namespace PhinixClient
                     ourOfferCache.Clear();
                 }
             }
-            
+
             // Try get their UUID and items on offer
             if (Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) &&
                 Instance.TryGetItemsOnOffer(tradeId, otherPartyUuid, out IEnumerable<ProtoThing> theirItems))
@@ -287,7 +297,7 @@ namespace PhinixClient
                 }
             }
         }
-        
+
         /// <summary>
         /// Gets the display name of the other party of this trade.
         /// Defaults to '???' if any part of the process fails.
@@ -308,7 +318,7 @@ namespace PhinixClient
 
             return displayName;
         }
-        
+
         /// <summary>
         /// Generates a <see cref="VerticalFlexContainer"/> with the offer windows and confirmation statuses.
         /// </summary>
@@ -317,10 +327,10 @@ namespace PhinixClient
         {
             // Create a new flex container as the main column to store everything in
             VerticalFlexContainer theAllEncompassingColumnOfOmnipotence = new VerticalFlexContainer(DEFAULT_SPACING);
-            
+
             // Create a new flex container as our 'row' to store the offers and the centre column in
             HorizontalFlexContainer offerRow = new HorizontalFlexContainer(DEFAULT_SPACING);
-            
+
             // Our offer
             offerRow.Add(
                 new Container(
@@ -328,17 +338,17 @@ namespace PhinixClient
                     width: OFFER_WINDOW_WIDTH
                 )
             );
-            
+
             // Create a new flex container as a 'column' to store the trade arrows and buttons in
             VerticalFlexContainer centreColumn = new VerticalFlexContainer(DEFAULT_SPACING);
-            
+
             // Arrows
             centreColumn.Add(
                 new FittedTextureWidget(
                     texture: ContentFinder<Texture2D>.Get("tradeArrows")
                 )
             );
-            
+
             // Update button
             centreColumn.Add(
                 new Container(
@@ -402,7 +412,7 @@ namespace PhinixClient
                     height: TRADE_BUTTON_HEIGHT
                 )
             );
-            
+
             // Reset button
             centreColumn.Add(
                 new Container(
@@ -427,7 +437,7 @@ namespace PhinixClient
                             {
                                 itemStack.Selected = 0;
                             }
-                
+
                             // Update trade items
                             Instance.UpdateTradeItems(tradeId, new ProtoThing[0]);
                         }
@@ -435,7 +445,7 @@ namespace PhinixClient
                     height: TRADE_BUTTON_HEIGHT
                 )
             );
-            
+
             // Cancel button
             centreColumn.Add(
                 new Container(
@@ -446,10 +456,10 @@ namespace PhinixClient
                     height: TRADE_BUTTON_HEIGHT
                 )
             );
-            
+
             // Add the centre column to the row
             offerRow.Add(centreColumn);
-            
+
             // Their offer
             offerRow.Add(
                 new Container(
@@ -457,20 +467,20 @@ namespace PhinixClient
                     width: OFFER_WINDOW_WIDTH
                 )
             );
-            
+
             // Add the offer row to the main column
             theAllEncompassingColumnOfOmnipotence.Add(offerRow);
-            
+
             // Create a new row to hold the confirmation checkboxes in
             HorizontalFlexContainer offerAcceptanceRow = new HorizontalFlexContainer(DEFAULT_SPACING);
-            
+
             // Check if the backend has updated before we let the user change their offer checkbox
             if (Instance.TryGetPartyAccepted(tradeId, Instance.Uuid, out bool accepted) && tradeAccepted != accepted)
             {
                 // Update the GUI's status to match the backend
                 tradeAccepted = accepted;
             }
-            
+
             // Our confirmation
             // TODO: Ellipsise display name length if it's going to spill over
             offerAcceptanceRow.Add(
@@ -487,12 +497,12 @@ namespace PhinixClient
                     width: OFFER_WINDOW_WIDTH
                 )
             );
-            
+
             // Spacer
             offerAcceptanceRow.Add(
                 new SpacerWidget()
             );
-            
+
             // Their confirmation
             // TODO: Ellipsise display name length if it's going to spill over
             Instance.TryGetOtherPartyAccepted(tradeId, out bool otherPartyAccepted);
@@ -506,7 +516,7 @@ namespace PhinixClient
                     width: OFFER_WINDOW_WIDTH
                 )
             );
-            
+
             // Add the offer acceptance row to the main column
             theAllEncompassingColumnOfOmnipotence.Add(
                 new Container(
@@ -527,7 +537,7 @@ namespace PhinixClient
         {
             // Create a flex container as our 'column' to store elements in
             VerticalFlexContainer column = new VerticalFlexContainer(0f);
-            
+
             // Title
             column.Add(
                 new Container(
@@ -538,7 +548,7 @@ namespace PhinixClient
                     height: OFFER_WINDOW_TITLE_HEIGHT
                 )
             );
-            
+
             // Draw our items
             lock (ourOfferCacheLock)
             {
@@ -563,7 +573,7 @@ namespace PhinixClient
         {
             // Create a flex container as our 'column' to store elements in
             VerticalFlexContainer column = new VerticalFlexContainer(0f);
-            
+
             // Title
             column.Add(
                 new Container(
@@ -574,7 +584,7 @@ namespace PhinixClient
                     height: OFFER_WINDOW_TITLE_HEIGHT
                 )
             );
-            
+
             // Draw their items
             lock (theirOfferCacheLock)
             {
@@ -590,7 +600,7 @@ namespace PhinixClient
             // Return the generated flex container
             return column;
         }
-        
+
         /// <summary>
         /// Generates a <see cref="VerticalFlexContainer"/> containing our available items.
         /// </summary>
@@ -599,7 +609,7 @@ namespace PhinixClient
 //            // Set the text anchor
 //            TextAnchor oldAnchor = Text.Anchor;
 //            Text.Anchor = TextAnchor.MiddleCenter;
-//            
+//
 //            // 'Sort by' label
 //            Rect sortByLabelRect = new Rect(
 //                x: container.xMin,
@@ -608,10 +618,10 @@ namespace PhinixClient
 //                height: SORT_HEIGHT
 //            );
 //            Widgets.Label(sortByLabelRect, "Phinix_trade_sortByLabel".Translate());
-//            
+//
 //            // Reset the text anchor
 //            Text.Anchor = oldAnchor;
-//            
+//
 //            // First sorting preference
 //            Rect firstSortButtonRect = new Rect(
 //                x: sortByLabelRect.xMax + DEFAULT_SPACING,
@@ -623,7 +633,7 @@ namespace PhinixClient
 //            {
 //                // TODO: Sorting
 //            }
-//            
+//
 //            // Second sorting preference
 //            Rect secondSortButtonRect = new Rect(
 //                x: firstSortButtonRect.xMax + DEFAULT_SPACING,
@@ -635,18 +645,18 @@ namespace PhinixClient
 //            {
 //                // TODO: Sorting
 //            }
-            
+
             // Create a new flex container as our 'column' to store everything in
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
-            
+
             // Create a new flex container as our 'row' to store the search bar in
             HorizontalFlexContainer searchRow = new HorizontalFlexContainer(DEFAULT_SPACING);
-            
+
             // Spacer to push everything to the right
             searchRow.Add(
                 new SpacerWidget()
             );
-            
+
             // Search label
             searchRow.Add(
                 new Container(
@@ -657,7 +667,7 @@ namespace PhinixClient
                     width: Text.CalcSize("Phinix_trade_searchLabel".Translate()).x
                 )
             );
-            
+
             // Search text field
             searchRow.Add(
                 new Container(
@@ -668,7 +678,7 @@ namespace PhinixClient
                     width: SEARCH_TEXT_FIELD_WIDTH
                 )
             );
-            
+
             // Add the search row to the main column
             column.Add(
                 new Container(
@@ -676,25 +686,25 @@ namespace PhinixClient
                     height: SORT_HEIGHT
                 )
             );
-            
+
             // Filter the item stacks list for only those containing the search text
             IEnumerable<StackedThings> filteredItemStacks = itemStacks.Where(itemStack =>
             {
                 // Make sure the item stack has things in it
                 if (itemStack.Things.Count == 0) return false;
-                
+
                 // Get the first thing from the item stack
                 Thing firstThing = itemStack.Things.First();
 
                 // Return whether the first thing's def label matches the search text
                 return firstThing.def.label.ToLower().Contains(search.ToLower());
             });
-            
+
             // Stockpile items list
             column.Add(
                 GenerateItemList(filteredItemStacks, stockpileItemsScrollPos, newScrollPos => stockpileItemsScrollPos = newScrollPos, true)
             );
-            
+
             // Return the generated flex container
             return column;
         }
@@ -710,7 +720,7 @@ namespace PhinixClient
         {
             // Create a new flex container as our 'column' to hold each element
             VerticalFlexContainer column = new VerticalFlexContainer(0f);
-            
+
             // Set up a list to hold our item stack rows
             int iterations = 0;
             foreach (StackedThings itemStack in itemStacks)
@@ -725,17 +735,17 @@ namespace PhinixClient
                         //Client.Instance.UpdateTradeItems(tradeId, this.itemStacks.SelectMany(stack => stack.GetSelectedThingsAsProto()));
                     }
                 );
-                
+
                 // Contain the row within a minimum-height container
                 MinimumContainer container = new MinimumContainer(
                     row,
                     minHeight: OFFER_WINDOW_ROW_HEIGHT
                 );
-                
+
                 // Add it to the row list
                 column.Add(container);
             }
-            
+
             // Return the flex container wrapped in a scroll container
             return new VerticalScrollContainer(column, scrollPos, scrollUpdate);
         }
