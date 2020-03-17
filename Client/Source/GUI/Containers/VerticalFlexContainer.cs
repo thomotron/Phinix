@@ -39,7 +39,7 @@ namespace PhinixClient.GUI
             this.Contents = contents.ToList();
             this.spacing = spacing;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
