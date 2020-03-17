@@ -56,9 +56,9 @@ namespace PhinixClient
             };
 
             // Constrain the flex container within another container to avoid widgets becoming excessively large
-            Container container = new Container(
+            HeightContainer container = new HeightContainer(
                 child: flexContainer,
-                height: ROW_HEIGHT * flexContainer.Contents.Count + DEFAULT_SPACING * (flexContainer.Contents.Count - 1)
+                height: 130f // For some reason the rect we're given is tiny and barely fits our content, so we just draw outside of it anyway.
             );
 
             // Draw the container with 5f padding at the top to avoid clipping with the close button
