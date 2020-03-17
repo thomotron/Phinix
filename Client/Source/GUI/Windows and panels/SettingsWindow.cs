@@ -214,20 +214,16 @@ namespace PhinixClient
         /// Generates a display name preview label.
         /// </summary>
         /// <returns></returns>
-        private HorizontalFlexContainer GenerateNamePreview()
+        private HorizontalScrollContainer GenerateNamePreview()
         {
-            // Create a flex container to store the text widget in
-            HorizontalFlexContainer row = new HorizontalFlexContainer();
-
-            // Add the name preview
-            row.Add(
-                new HorizontalScrollContainer(
-                    new TextWidget(
-                        text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName)
-                    ),
-                    scrollPosition: namePreviewScrollPos,
-                    onScroll: (newPos) => namePreviewScrollPos = newPos
-                )
+            // Create a scroll container to store the text widget in
+            HorizontalScrollContainer row = new HorizontalScrollContainer(
+                new TextWidget(
+                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName),
+                    wrap: false
+                ),
+                scrollPosition: namePreviewScrollPos,
+                onScroll: (newPos) => namePreviewScrollPos = newPos
             );
 
             // Return the generated row
