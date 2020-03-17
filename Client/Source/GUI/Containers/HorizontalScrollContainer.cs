@@ -9,6 +9,9 @@ namespace PhinixClient.GUI
 {
     internal class HorizontalScrollContainer : Displayable
     {
+        /// <inheritdoc />
+        public override bool IsFluidHeight => child.IsFluidHeight;
+
         private const float SCROLL_BAR_WIDTH = 16f;
 
         /// <summary>
@@ -60,6 +63,16 @@ namespace PhinixClient.GUI
 
             // Invoke the scroll callback
             onScroll?.Invoke(scrollPosition);
+        }
+
+        /// <inheritdoc />
+        public override float CalcHeight(float width)
+        {
+            // We can't determine a height if the child is fluid
+            if (child.IsFluidHeight) return FLUID;
+
+            // Compensate for the scrollbar width
+            return child.CalcHeight(width) + SCROLL_BAR_WIDTH;
         }
     }
 }
