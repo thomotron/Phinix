@@ -52,14 +52,14 @@ namespace PhinixClient.GUI
             // Begin scrolling
             Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect);
 
-            // Invoke the scroll callback
-            onScroll?.Invoke(scrollPosition);
-
             // Draw the contents
             child.Draw(viewRect);
 
             // Stop scrolling
             Widgets.EndScrollView();
+
+            // Invoke the scroll callback
+            onScroll?.Invoke(scrollPosition);
         }
     }
 }
