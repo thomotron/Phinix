@@ -10,7 +10,9 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
-        
+
+        public override bool IsFluidWidth => wrap;
+
         /// <summary>
         /// The label's text content.
         /// </summary>
@@ -26,11 +28,17 @@ namespace PhinixClient.GUI
         /// </summary>
         private TextAnchor anchor;
 
-        public TextWidget(string text, GameFont font = GameFont.Small, TextAnchor anchor = TextAnchor.UpperLeft)
+        /// <summary>
+        /// Whether text should wrap onto a new line.
+        /// </summary>
+        private bool wrap;
+
+        public TextWidget(string text, GameFont font = GameFont.Small, TextAnchor anchor = TextAnchor.UpperLeft, bool wrap = true)
         {
             this.text = text;
             this.font = font;
             this.anchor = anchor;
+            this.wrap = wrap;
         }
 
         /// <inheritdoc />
@@ -39,8 +47,21 @@ namespace PhinixClient.GUI
             SetStyle();
             float height = Text.CalcHeight(text, width);
             ClearStyle();
-            
+
             return height;
+        }
+
+        /// <inheritdoc />
+        public override float CalcWidth(float height)
+        {
+            // Calculating width with wrapping is pointless, so we won't do that
+            if (wrap) return FLUID;
+
+            SetStyle();
+            float width = Text.CalcSize(text).x;
+            ClearStyle();
+
+            return width;
         }
 
         /// <inheritdoc />
@@ -58,6 +79,7 @@ namespace PhinixClient.GUI
         {
             Text.Anchor = this.anchor;
             Text.Font = this.font;
+            Text.WordWrap = this.wrap;
         }
 
         /// <summary>
@@ -67,6 +89,7 @@ namespace PhinixClient.GUI
         {
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+            Text.WordWrap = true;
         }
     }
 }
