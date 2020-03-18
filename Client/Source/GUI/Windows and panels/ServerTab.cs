@@ -170,40 +170,42 @@ namespace PhinixClient
                 );
             }
 
+            // Create a flex container to hold the text field and button
+            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer();
+
             // Message entry field
-            TextFieldWidget messageField = new TextFieldWidget(
-                text: message,
-                onChange: newMessage => message = newMessage
+            messageEntryFlexContainer.Add(
+                new TextFieldWidget(
+                    text: message,
+                    onChange: newMessage => message = newMessage
+                )
             );
 
             // Send button
-            ButtonWidget button = new ButtonWidget(
-                label: "Phinix_chat_sendButton".Translate(),
-                clickAction: () =>
-                {
-                    // Send the message
-                    if (!string.IsNullOrEmpty(message) && Instance.Online)
-                    {
-                        // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                        Instance.SendMessage(message);
+            messageEntryFlexContainer.Add(
+                new WidthContainer(
+                    new ButtonWidget(
+                        label: "Phinix_chat_sendButton".Translate(),
+                        clickAction: () =>
+                        {
+                            // Send the message
+                            if (!string.IsNullOrEmpty(message) && Instance.Online)
+                            {
+                                // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
+                                Instance.SendMessage(message);
 
-                        message = "";
-                        scrollToBottom = true;
-                    }
-                }
+                                message = "";
+                                scrollToBottom = true;
+                            }
+                        }
+                    ),
+                    width: CHAT_SEND_BUTTON_WIDTH
+                )
             );
-            Container buttonWrapper = new Container(
-                child: button,
-                width: CHAT_SEND_BUTTON_WIDTH,
-                height: CHAT_SEND_BUTTON_HEIGHT
-            );
-
-            // Fit the text field and button within a flex container
-            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer(new Displayable[]{messageField, buttonWrapper});
 
             // Add the flex container to the column
             column.Add(
-                new Container(
+                new HeightContainer(
                     messageEntryFlexContainer,
                     height: CHAT_TEXTBOX_HEIGHT
                 )
