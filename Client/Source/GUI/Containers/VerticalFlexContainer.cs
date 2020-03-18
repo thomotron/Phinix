@@ -44,7 +44,7 @@ namespace PhinixClient.GUI
         public override void Draw(Rect container)
         {
             // Get the height taken up by fixed-height elements
-            float fixedHeight = CalcHeight(container.width);
+            float fixedHeight = Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(container.width));
 
             // Divvy out the remaining height to each fluid element
             float remainingHeight = container.height - fixedHeight;

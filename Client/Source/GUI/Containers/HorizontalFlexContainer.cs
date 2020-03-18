@@ -45,7 +45,7 @@ namespace PhinixClient.GUI
         public override void Draw(Rect container)
         {
             // Get the width taken up by fixed-width elements
-            float fixedWidth = CalcWidth(container.height);
+            float fixedWidth = Contents.Where(item => !item.IsFluidWidth).Sum(item => item.CalcWidth(container.height));
 
             // Divvy out the remaining width to each fluid element
             float remainingWidth = container.width - fixedWidth;
