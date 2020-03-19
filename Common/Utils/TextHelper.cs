@@ -23,7 +23,7 @@ namespace Utils
 		/// <param name="input">String to strip</param>
 		/// <param name="strippedTags">Tags to strip from the input string</param>
 		/// <returns>Stripped input</returns>
-		private static string stripRichText(string input, params string[] strippedTags)
+		private static string stripRichText(string input, string[] strippedTags)
 		{
 			foreach (string tag in strippedTags) {
 				// Maybe a better way than a Regex to parse RichText?
