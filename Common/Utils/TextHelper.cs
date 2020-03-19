@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -178,7 +179,7 @@ namespace Utils
 			CaptureStage capStage;
 
 			// Iterate over the string, char by char
-			for (int i = 0; i < text.Length; ++i)
+			for (int i = 0; i < text.Length; i++)
 			{
 				// Get the char at the current position
 				char firstChar = text[i];
@@ -196,8 +197,12 @@ namespace Utils
 					// Mark where the tag opened
 					int tagStartIndex = i;
 
-					// Iterate along the string
-					for (i++; i < text.Length; i++)
+					// Move forward one
+					i++;
+
+					// Iterate along the string until we get to the end or the tag closes, whichever comes first
+					bool finishedReadingTag = false;
+					for (; i < text.Length && !finishedReadingTag; i++)
 					{
 						char secondChar = text[i];
 						switch (secondChar)
@@ -215,13 +220,17 @@ namespace Utils
 									string str = text.Substring(tagStartIndex, i - tagStartIndex + 1);
 									resultBuffer.Append(str);
 
-									// Jump out toward the end of the outer loop
-									goto label_23;
+									// Mark that we're done reading the tag
+									finishedReadingTag = true;
+									break;
 								}
 								else
 									// This was the end of an opening tag, don't do anything special
 									break;
 						}
+
+						// Skip further processing if we're done with this tag
+						if (finishedReadingTag) break;
 
 						if (capStage == CaptureStage.Arg)
 						{
@@ -242,7 +251,6 @@ namespace Utils
 						}
 					}
 
-					label_23:
 					if (!isClosingTag)
 					{
 						resultBuffer.Append(firstChar);
