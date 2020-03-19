@@ -30,8 +30,8 @@ namespace Utils
 				// Unfortunately not, I'm afraid
 				string pattern = @"<\/?" + tag + @"(=[\w#]+)?>";
 
-				Regex regex = new Regex(pattern);
-				input = regex.Replace (input, "");
+				Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
+				input = regex.Replace(input, "");
 			}
 
 			return input;
