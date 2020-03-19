@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Chat;
 using Trading;
 using UnityEngine;
@@ -26,9 +27,19 @@ namespace PhinixClient.GUI
         /// </remarks>
         private List<ChatMessageWidget> messageWidgets;
         /// <summary>
+        /// A list of message widgets to be added to <see cref="messageWidgets"/>.
+        /// </summary>
+        /// <remarks>
+        /// This list is locked and modified by the <see cref="ChatMessageReceivedEventHandler"/> method when an event
+        /// is fired. The drawing thread will attempt to lock and append this list to the <see cref="messageWidgets"/>
+        /// list when <see cref="Draw"/> is first called. If the lock cannot be taken by the drawing thread, it ignores
+        /// this list and draws with the existing <see cref="messageWidgets"/> list instead.
+        /// </remarks>
+        private List<ChatMessageWidget> newMessageWidgets;
+        /// <summary>
         /// Lock object to prevent multi-threaded access problems with <see cref="messageWidgets"/>.
         /// </summary>
-        private object messageWidgetsLock = new object();
+        private object newMessageWidgetsLock = new object();
 
         /// <summary>
         /// Container encapsulating the message widgets.
@@ -48,16 +59,37 @@ namespace PhinixClient.GUI
         {
             // Generate message widgets from chat messages
             messageWidgets = Client.Instance.GetChatMessages().Select(message => new ChatMessageWidget(message)).ToList();
+            newMessageWidgets = new List<ChatMessageWidget>();
 
             // Pack them into a vertical flex container
             chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
 
             // Subscribe to chat message events
-            // TODO: Unsubscribe from the event when being destroyed
+            // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
             Client.Instance.OnChatMessageReceived += ChatMessageReceivedEventHandler;
         }
 
         public override void Draw(Rect inRect) {
+            // Try and append new widgets
+            if (Monitor.TryEnter(newMessageWidgetsLock))
+            {
+                if (newMessageWidgets.Count > 0)
+                {
+                    // Append each new widget to our list and the flex container
+                    foreach (ChatMessageWidget widget in newMessageWidgets)
+                    {
+                        messageWidgets.Add(widget);
+                        chatFlexContainer.Add(widget);
+                    }
+
+                    // Clear the new widget list and mark the messages as read
+                    newMessageWidgets.Clear();
+                    Client.Instance.MarkAsRead();
+                }
+
+                Monitor.Exit(newMessageWidgetsLock);
+            }
+
             // Set up the scrollable container
             Rect innerContainer = new Rect(
                 x: inRect.xMin,
@@ -73,10 +105,7 @@ namespace PhinixClient.GUI
             Widgets.BeginScrollView(inRect, ref chatScroll, innerContainer);
 
             // Draw the flex container
-            lock (messageWidgetsLock)
-            {
-                chatFlexContainer.Draw(innerContainer);
-            }
+            chatFlexContainer.Draw(innerContainer);
 
             // Stop scrolling
             Widgets.EndScrollView();
@@ -131,17 +160,11 @@ namespace PhinixClient.GUI
         {
             Client.Instance.Log(new LogEventArgs("The chat message handler works"));
 
-            lock (messageWidgetsLock)
+            lock (newMessageWidgetsLock)
             {
                 // Append the new message to the list
-                messageWidgets.Add(new ChatMessageWidget(args.Message));
-
-                // Recreate the list
-                chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
+                newMessageWidgets.Add(new ChatMessageWidget(args.Message));
             }
-
-            // Mark the message as read
-            Client.Instance.MarkAsRead();
         }
     }
 }
