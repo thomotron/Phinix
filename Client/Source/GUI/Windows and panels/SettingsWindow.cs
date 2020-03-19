@@ -39,21 +39,25 @@ namespace PhinixClient
             VerticalFlexContainer flexContainer = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Server details (address and [dis]connect button) container
-            if (Client.Instance.Connected)
-            {
-                flexContainer.Add(GenerateConnectedServerDetails());
-            }
-            else
-            {
-                flexContainer.Add(GenerateDisconnectedServerDetails());
-            }
+            flexContainer.Add(
+                new ConditionalContainer(
+                    childIfTrue: GenerateConnectedServerDetails(),
+                    childIfFalse: GenerateDisconnectedServerDetails(),
+                    condition: () => Client.Instance.Connected
+                )
+            );
 
             // Display name and preview
-            if (Client.Instance.Online)
-            {
-                flexContainer.Add(GenerateEditableDisplayName());
-                flexContainer.Add(GenerateNamePreview());
-            };
+            flexContainer.Add(
+                new ConditionalContainer(
+                    childIfTrue: new VerticalFlexContainer(
+                        contents: new Displayable[]{GenerateEditableDisplayName(), GenerateNamePreview()},
+                        spacing: DEFAULT_SPACING
+                    ),
+                    childIfFalse: new BlankWidget(),
+                    condition: () => Client.Instance.Online
+                )
+            );
 
             // Draw the container with 5f padding at the top to avoid clipping with the close button
             flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
