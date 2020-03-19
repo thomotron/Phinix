@@ -53,13 +53,7 @@ namespace PhinixClient
         /// </summary>
         public override void OnAcceptKeyPressed()
         {
-            // Send the message
-            if (!string.IsNullOrEmpty(message))
-            {
-                Instance.SendMessage(message);
-
-                message = "";
-            }
+            sendChatMessage();
         }
 
         /// <summary>
@@ -178,18 +172,7 @@ namespace PhinixClient
                 new WidthContainer(
                     new ButtonWidget(
                         label: "Phinix_chat_sendButton".Translate(),
-                        clickAction: () =>
-                        {
-                            // Send the message
-                            if (!string.IsNullOrEmpty(message) && Instance.Online)
-                            {
-                                // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                                Instance.SendMessage(message);
-
-                                message = "";
-                                chatMessageList.ScrollToBottom();
-                            }
-                        }
+                        clickAction: sendChatMessage
                     ),
                     width: CHAT_SEND_BUTTON_WIDTH
                 )
@@ -307,6 +290,21 @@ namespace PhinixClient
 
             // Return the generated column wrapped in a scroll container
             return new VerticalScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
+        }
+
+        /// <summary>
+        /// Sends <see cref="message"/> to the server.
+        /// </summary>
+        private void sendChatMessage()
+        {
+            if (!string.IsNullOrEmpty(message) && Instance.Online)
+            {
+                // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
+                Instance.SendMessage(message);
+
+                message = "";
+                chatMessageList.ScrollToBottom();
+            }
         }
     }
 }
