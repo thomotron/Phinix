@@ -2,6 +2,11 @@
 // as a part of the RimWorld mod Phi (https://github.com/Longwelwind/Phi)
 
 using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Utils
@@ -56,6 +61,201 @@ namespace Utils
 		public static string SanitiseRichText(string input)
 		{
 			return stripRichText(input, unsafeTags);
+		}
+
+		public static string Strip(string input, string[] strippedTags)
+		{
+			string text = "<this><is><a=closed>tag</a></is></this>";
+
+
+
+			Regex colourHexRegex = new Regex("#([a-f0-9]{8}|[a-f0-9]{6}|[a-f0-9]{3})");
+			Stack<TagMatch> tagStack = new Stack<string>();
+
+			// Iterate over the string
+			for (int i = 0; i < text.Length; i++)
+			{
+				// Try match the string from our current position against the opening tag filter
+				Match openMatch = openingTagRegex.Match(text.Substring(i));
+				if (openMatch.Success)
+				{
+					string tag = openMatch.Groups[1].Value.ToLower();
+					string arg = openMatch.Groups[3].Value.ToLower();
+
+					// Check if the tag matches any of the strippable tags
+					if (strippedTags.Contains(tag))
+					{
+						// Push the opening tag onto the stack
+						tagStack.Push(openMatch.Groups[0].Value);
+						i += openMatch.Length;
+					}
+
+
+				}
+				else
+				{
+
+				}
+			}
+		}
+
+		private static bool tryFindOpeningTag(string text, out TagMatch tagMatch)
+		{
+			tagMatch = new TagMatch();
+
+			Regex regex = new Regex("<(\\w+)(?:=(\"?)([^>=\"]*)\\2)?>");
+			Match match = regex.Match(text);
+
+			if (match.Success)
+			{
+				tagMatch = new TagMatch(
+					tag: match.Groups[1].Value,
+					arg: match.Groups[3].Value,
+					closing: false,
+					startPos: match.Index,
+					length: match.Length
+				);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		private static bool tryFindClosingTag(string text, out TagMatch tagMatch)
+		{
+			tagMatch = new TagMatch();
+
+			Regex regex = new Regex("<\\/(\\w+)>");
+			Match match = regex.Match(text);
+
+			if (match.Success)
+			{
+				tagMatch = new TagMatch(
+					tag: match.Groups[1].Value,
+					arg: match.Groups[3].Value,
+					closing: true,
+					startPos: match.Index,
+					length: match.Length
+				);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		private struct TagMatch
+		{
+			public string Tag { get; }
+			public string Arg { get; }
+			public bool Closing { get; }
+			public int StartPos { get; }
+			public int Length { get; }
+
+			public TagMatch(string tag, string arg, bool closing, int startPos, int length)
+			{
+				this.Tag = tag;
+				this.Arg = arg;
+				this.Closing = closing;
+				this.StartPos = startPos;
+				this.Length = length;
+			}
+		}
+
+		enum CaptureStage
+		{
+			Tag,
+			Arg,
+			Result,
+		}
+
+		public static string Doot(string text)
+		{
+			StringBuilder resultBuffer = new StringBuilder();
+			StringBuilder tagBuffer = new StringBuilder();
+			StringBuilder argBuffer = new StringBuilder();
+			CaptureStage capStage;
+
+			// Iterate over the string, char by char
+			for (int i = 0; i < text.Length; ++i)
+			{
+				// Get the char at the current position
+				char firstChar = text[i];
+
+				// Is this a tag? (starts with `<` and has a `>` further along)
+				if (firstChar == '<' && text.IndexOf('>', i) > i)
+				{
+					bool isClosingTag = false;
+					tagBuffer.Length = 0;
+					argBuffer.Length = 0;
+
+					// State that we're within a tag
+					capStage = CaptureStage.Tag;
+
+					// Mark where the tag opened
+					int tagStartIndex = i;
+
+					// Iterate along the string
+					for (i++; i < text.Length; i++)
+					{
+						char secondChar = text[i];
+						switch (secondChar)
+						{
+							case '/':
+								// Found a `/`, this tag should be closing soon
+								isClosingTag = true;
+								break;
+							case '>':
+								// Found a `>`, this tag is closed
+								capStage = CaptureStage.Result;
+								if (isClosingTag)
+								{
+									// Get a copy of the tags and content then append it to the result buffer
+									string str = text.Substring(tagStartIndex, i - tagStartIndex + 1);
+									resultBuffer.Append(str);
+
+									// Jump out toward the end of the outer loop
+									goto label_23;
+								}
+								else
+									// This was the end of an opening tag, don't do anything special
+									break;
+						}
+
+						if (capStage == CaptureStage.Arg)
+						{
+							// We're reading an argument, append it to the arg buffer
+							argBuffer.Append(secondChar);
+						}
+
+						if (!isClosingTag && secondChar == '=')
+						{
+							// We're in an opening tag and we have an argument coming
+							capStage = CaptureStage.Arg;
+						}
+
+						if (capStage == CaptureStage.Tag)
+						{
+							// We're reading a tag, append it to the tag buffer
+							tagBuffer.Append(secondChar);
+						}
+					}
+
+					label_23:
+					if (!isClosingTag)
+					{
+						resultBuffer.Append(firstChar);
+						i = tagStartIndex + 1;
+					}
+				}
+				else
+				{
+					resultBuffer.Append(firstChar);
+				}
+			}
+
+			return resultBuffer.ToString();
 		}
 	}
 }
