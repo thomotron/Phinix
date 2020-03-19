@@ -162,40 +162,42 @@ namespace PhinixClient
                 )
             );
 
+            // Create a flex container to hold the text field and button
+            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer();
+
             // Message entry field
-            TextFieldWidget messageField = new TextFieldWidget(
-                text: message,
-                onChange: newMessage => message = newMessage
+            messageEntryFlexContainer.Add(
+                new TextFieldWidget(
+                    text: message,
+                    onChange: newMessage => message = newMessage
+                )
             );
 
             // Send button
-            ButtonWidget button = new ButtonWidget(
-                label: "Phinix_chat_sendButton".Translate(),
-                clickAction: () =>
-                {
-                    // Send the message
-                    if (!string.IsNullOrEmpty(message) && Instance.Online)
-                    {
-                        // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
-                        Instance.SendMessage(message);
+            messageEntryFlexContainer.Add(
+                new WidthContainer(
+                    new ButtonWidget(
+                        label: "Phinix_chat_sendButton".Translate(),
+                        clickAction: () =>
+                        {
+                            // Send the message
+                            if (!string.IsNullOrEmpty(message) && Instance.Online)
+                            {
+                                // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
+                                Instance.SendMessage(message);
 
-                        message = "";
-                        chatMessageList.ScrollToBottom();
-                    }
-                }
+                                message = "";
+                                chatMessageList.ScrollToBottom();
+                            }
+                        }
+                    ),
+                    width: CHAT_SEND_BUTTON_WIDTH
+                )
             );
-            Container buttonWrapper = new Container(
-                child: button,
-                width: CHAT_SEND_BUTTON_WIDTH,
-                height: CHAT_SEND_BUTTON_HEIGHT
-            );
-
-            // Fit the text field and button within a flex container
-            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer(new Displayable[]{messageField, buttonWrapper});
 
             // Add the flex container to the column
             column.Add(
-                new Container(
+                new HeightContainer(
                     messageEntryFlexContainer,
                     height: CHAT_TEXTBOX_HEIGHT
                 )
@@ -208,8 +210,8 @@ namespace PhinixClient
         /// <summary>
         /// Adds each logged in user to a scrollable container.
         /// </summary>
-        /// <returns>A <see cref="ScrollContainer"/> containing the user list</returns>
-        private ScrollContainer GenerateUserList()
+        /// <returns>A <see cref="VerticalScrollContainer"/> containing the user list</returns>
+        private VerticalScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
             VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
@@ -236,10 +238,10 @@ namespace PhinixClient
             }
 
             // Wrap the flex container in a scroll container
-            ScrollContainer scrollContainer = new ScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
+            VerticalScrollContainer verticalScrollContainer = new VerticalScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
 
             // Return the scroll container
-            return scrollContainer;
+            return verticalScrollContainer;
         }
 
         /// <summary>
@@ -273,7 +275,7 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates a <see cref="ScrollContainer"/> containing a series of available trades.
+        /// Generates a <see cref="VerticalScrollContainer"/> containing a series of available trades.
         /// </summary>
         /// <returns></returns>
         private Displayable GenerateTradeRows()
@@ -304,7 +306,7 @@ namespace PhinixClient
             }
 
             // Return the generated column wrapped in a scroll container
-            return new ScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
+            return new VerticalScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
         }
     }
 }

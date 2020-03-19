@@ -2,19 +2,20 @@
 <LanguageData>
     <Phinix_tabs_chat>Chat</Phinix_tabs_chat>
     <Phinix_tabs_trades>Trades</Phinix_tabs_trades>
-    
+
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
     <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
     <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
-    
+
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
     <Phinix_settings_connectedToLabel>Connected to {0}</Phinix_settings_connectedToLabel>
     <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
     <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
-    
+    <Phinix_settings_displayNamePreview>Your name will look like: {0}</Phinix_settings_displayNamePreview>
+
     <Phinix_hugslibsettings_serverAddressTitle>Server address</Phinix_hugslibsettings_serverAddressTitle>
     <Phinix_hugslibsettings_serverPortTitle>Server port</Phinix_hugslibsettings_serverPortTitle>
     <Phinix_hugslibsettings_displayNameTitle>Display name</Phinix_hugslibsettings_displayNameTitle>
@@ -23,10 +24,11 @@
     <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
     <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
     <Phinix_hugslibsettings_showUnreadMessageCount>Show unread message count</Phinix_hugslibsettings_showUnreadMessageCount>
-    
+    <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
+
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
-    
+
     <Phinix_trade_tradeTitle>Trade with {0}</Phinix_trade_tradeTitle>
     <Phinix_trade_ourOfferLabel>Our offer</Phinix_trade_ourOfferLabel>
     <Phinix_trade_theirOfferLabel>Their offer</Phinix_trade_theirOfferLabel>
