@@ -152,18 +152,15 @@ namespace PhinixClient
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Chat message area
-            if (Instance.Online)
-            {
-                column.Add(chatMessageList);
-            }
-            else
-            {
-                column.Add(
-                    new PlaceholderWidget(
+            column.Add(
+                new ConditionalContainer(
+                    childIfTrue: chatMessageList,
+                    childIfFalse: new PlaceholderWidget(
                         text: "Phinix_chat_pleaseLogInPlaceholder".Translate()
-                    )
-                );
-            }
+                    ),
+                    condition: () => Instance.Online
+                )
+            );
 
             // Message entry field
             TextFieldWidget messageField = new TextFieldWidget(
