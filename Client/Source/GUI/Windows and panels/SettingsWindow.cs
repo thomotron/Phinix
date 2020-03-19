@@ -22,7 +22,7 @@ namespace PhinixClient
 
         private const float DISPLAY_NAME_SET_BUTTON_WIDTH = 120f;
 
-        public override Vector2 InitialSize => new Vector2(600f, 150f);
+        public override Vector2 InitialSize => new Vector2(600f, 156f); // (30f * rows) + (10f * (rows - 1)) + 36f
 
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
@@ -55,14 +55,8 @@ namespace PhinixClient
                 flexContainer.Add(GenerateNamePreview());
             };
 
-            // Constrain the flex container within another container to avoid widgets becoming excessively large
-            HeightContainer container = new HeightContainer(
-                child: flexContainer,
-                height: 130f // For some reason the rect we're given is tiny and barely fits our content, so we just draw outside of it anyway.
-            );
-
             // Draw the container with 5f padding at the top to avoid clipping with the close button
-            container.Draw(inRect.BottomPartPixels(inRect.height - 5f));
+            flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
 
         /// <summary>
