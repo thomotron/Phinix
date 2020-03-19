@@ -148,6 +148,18 @@ namespace PhinixClient.GUI
             scrollToBottom = true;
         }
 
+        /// <summary>
+        /// Clears the list.
+        /// </summary>
+        public void Clear()
+        {
+            lock (newMessageWidgetsLock)
+            {
+                newMessageWidgets.Clear();
+                chatFlexContainer.Contents.Clear();
+            }
+        }
+
         private void ChatMessageReceivedEventHandler(object sender, ClientChatMessageEventArgs args)
         {
             Client.Instance.Log(new LogEventArgs("The chat message handler works"));
