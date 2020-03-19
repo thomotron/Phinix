@@ -20,31 +20,24 @@ namespace PhinixClient.GUI
         private const float SCROLLBAR_WIDTH = 16f;
 
         /// <summary>
-        /// List of message widgets.
-        /// </summary>
-        /// <remarks>
-        /// These are stored separately so it can be updated within the <see cref="chatFlexContainer"/> post-generation.
-        /// </remarks>
-        private List<ChatMessageWidget> messageWidgets;
-        /// <summary>
-        /// A list of message widgets to be added to <see cref="messageWidgets"/>.
+        /// A list of message widgets to be added to <see cref="chatFlexContainer"/>.
         /// </summary>
         /// <remarks>
         /// This list is locked and modified by the <see cref="ChatMessageReceivedEventHandler"/> method when an event
-        /// is fired. The drawing thread will attempt to lock and append this list to the <see cref="messageWidgets"/>
-        /// list when <see cref="Draw"/> is first called. If the lock cannot be taken by the drawing thread, it ignores
-        /// this list and draws with the existing <see cref="messageWidgets"/> list instead.
+        /// is fired. The drawing thread will attempt to lock and append this list to the <see cref="chatFlexContainer"/>
+        /// when <see cref="Draw"/> is first called. If the lock cannot be taken by the drawing thread, it ignores
+        /// this list and draws with the existing <see cref="chatFlexContainer"/> instead.
         /// </remarks>
         private List<ChatMessageWidget> newMessageWidgets;
         /// <summary>
-        /// Lock object to prevent multi-threaded access problems with <see cref="messageWidgets"/>.
+        /// Lock object to prevent multi-threaded access problems with <see cref="newMessageWidgets"/>.
         /// </summary>
         private object newMessageWidgetsLock = new object();
 
         /// <summary>
         /// Container encapsulating the message widgets.
         /// </summary>
-        private VerticalFlexContainer chatFlexContainer;
+        private VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(0f);
 
         // A collection of state variables for the sticky scroll logic
         private Vector2 chatScroll = new Vector2(0, 0);
@@ -58,11 +51,11 @@ namespace PhinixClient.GUI
         public ChatMessageList()
         {
             // Generate message widgets from chat messages
-            messageWidgets = Client.Instance.GetChatMessages().Select(message => new ChatMessageWidget(message)).ToList();
-            newMessageWidgets = new List<ChatMessageWidget>();
-
-            // Pack them into a vertical flex container
-            chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
+            newMessageWidgets = new List<ChatMessageWidget>(
+                Client.Instance.GetChatMessages()
+                                        .Select(message => new ChatMessageWidget(message))
+                                        .ToList()
+            );
 
             // Subscribe to chat message events
             // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
@@ -75,10 +68,9 @@ namespace PhinixClient.GUI
             {
                 if (newMessageWidgets.Count > 0)
                 {
-                    // Append each new widget to our list and the flex container
+                    // Append each new widget to the flex container
                     foreach (ChatMessageWidget widget in newMessageWidgets)
                     {
-                        messageWidgets.Add(widget);
                         chatFlexContainer.Add(widget);
                     }
 
