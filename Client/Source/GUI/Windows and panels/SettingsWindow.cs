@@ -2,6 +2,7 @@
 using System.Threading;
 using PhinixClient.GUI;
 using UnityEngine;
+using Utils;
 using Verse;
 
 namespace PhinixClient
@@ -219,7 +220,7 @@ namespace PhinixClient
             // Create a scroll container to store the text widget in
             HorizontalScrollContainer row = new HorizontalScrollContainer(
                 new TextWidget(
-                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
+                    text: "Phinix_settings_displayNamePreview".Translate(TextHelper.SanitiseRichText(Client.Instance.DisplayName)).Resolve(),
                     wrap: false
                 ),
                 scrollPosition: namePreviewScrollPos,
