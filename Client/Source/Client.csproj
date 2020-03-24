@@ -93,7 +93,7 @@
     <Compile Include="GUI\Containers\HorizontalScrollContainer.cs" />
     <Compile Include="GUI\Containers\MinimumContainer.cs" />
     <Compile Include="GUI\Containers\VerticalScrollContainer.cs" />
-    <Compile Include="GUI\Containers\TabEntry.cs" />
+    <Compile Include="GUI\Containers\TabContainerEntry.cs" />
     <Compile Include="GUI\Containers\TabsContainer.cs" />
     <Compile Include="GUI\Containers\VerticalFlexContainer.cs" />
     <Compile Include="GUI\Containers\VerticalPaddedContainer.cs" />

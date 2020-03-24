@@ -17,7 +17,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Collection of tabs that will be drawn.
         /// </summary>
-        private List<TabEntry> tabs;
+        private List<TabContainerEntry> tabs;
 
         /// <summary>
         /// Callback invoked when a different tab is selected.
@@ -34,7 +34,7 @@ namespace PhinixClient.GUI
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
 
-            this.tabs = new List<TabEntry>();
+            this.tabs = new List<TabContainerEntry>();
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace PhinixClient.GUI
             );
 
             // Add the tab to the tab list
-            tabs.Add(new TabEntry { tab = tab, displayable = displayable });
+            tabs.Add(new TabContainerEntry { tab = tab, displayable = displayable });
         }
 
         /// <inheritdoc />
@@ -89,7 +89,7 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Update()
         {
-            foreach (TabEntry tab in tabs)
+            foreach (TabContainerEntry tab in tabs)
             {
                 tab.displayable.Update();
             }
