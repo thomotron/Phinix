@@ -33,7 +33,7 @@ namespace PhinixClient.GUI
         {
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
-            
+
             this.tabs = new List<TabEntry>();
         }
 
@@ -48,12 +48,15 @@ namespace PhinixClient.GUI
             int index = tabs.Count;
             
             // Create a tab record
-            TabRecord tab = new TabRecord(label, () =>
+            TabRecord tab = new TabRecord(label,
+                () =>
                 {
                     selectedTab = index;
                     onTabChange(index);
-                }, selectedTab == index);
-            
+                },
+                selectedTab == index
+            );
+
             // Add the tab to the tab list
             tabs.Add(new TabEntry { tab = tab, displayable = displayable });
         }
@@ -69,7 +72,13 @@ namespace PhinixClient.GUI
             inRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
             
             // We draw the top with tabs
-            TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
+            TabRecord selectedRecord = TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
+
+            // Change the selected record if it was clicked
+            if (selectedRecord != null)
+            {
+                selectedTab = tabs.IndexOf(tabs.Single(tabEntry => tabEntry.tab.label == selectedRecord.label));
+            }
 
             // We draw the selected tab
             Displayable selectedDisplayable = tabs[selectedTab].displayable;
