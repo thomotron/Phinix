@@ -78,6 +78,7 @@ namespace PhinixClient.GUI
             if (selectedRecord != null)
             {
                 selectedTab = tabs.IndexOf(tabs.Single(tabEntry => tabEntry.tab.label == selectedRecord.label));
+                onTabChange?.Invoke(selectedTab);
             }
 
             // We draw the selected tab
