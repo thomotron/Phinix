@@ -36,8 +36,6 @@ namespace PhinixClient
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
-        private static int currentTabIndex;
-
         private static Vector2 userListScroll = new Vector2(0, 0);
 
         private static string message = "";
@@ -47,25 +45,12 @@ namespace PhinixClient
 
         private static ChatMessageList chatMessageList = new ChatMessageList();
 
-        ///<inheritdoc/>
-        /// <summary>
-        /// Overrides the default accept key behaviour and instead sends a message.
-        /// </summary>
-        public override void OnAcceptKeyPressed()
-        {
-            sendChatMessage();
-        }
+        private static TabsContainer contents;
 
-        /// <summary>
-        /// Extends the default window drawing behaviour by drawing the Phinix chat interface.
-        /// </summary>
-        /// <param name="inRect">Container to draw within</param>
-        public override void DoWindowContents(Rect inRect)
+        public ServerTab()
         {
-            base.DoWindowContents(inRect);
-
             // Create a tab container to hold the chat and trade list
-            TabsContainer tabContainer = new TabsContainer(newTabIndex => currentTabIndex = newTabIndex, currentTabIndex);
+            contents = new TabsContainer();
 
             // Create a flex container to hold the chat tab content
             HorizontalFlexContainer chatRow = new HorizontalFlexContainer(DEFAULT_SPACING);
@@ -84,13 +69,31 @@ namespace PhinixClient
             );
 
             // Add the chat row as a tab
-            tabContainer.AddTab("Phinix_tabs_chat".Translate(), chatRow);
+            contents.AddTab("Phinix_tabs_chat".Translate(), chatRow);
 
             // Add the active trades tab
-            tabContainer.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
+            contents.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
+        }
+
+        ///<inheritdoc/>
+        /// <summary>
+        /// Overrides the default accept key behaviour and instead sends a message.
+        /// </summary>
+        public override void OnAcceptKeyPressed()
+        {
+            sendChatMessage();
+        }
+
+        /// <summary>
+        /// Extends the default window drawing behaviour by drawing the Phinix chat interface.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        public override void DoWindowContents(Rect inRect)
+        {
+            base.DoWindowContents(inRect);
 
             // Draw the tabs
-            tabContainer.Draw(inRect);
+            contents.Draw(inRect);
         }
 
         /// <summary>
