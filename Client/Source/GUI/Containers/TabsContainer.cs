@@ -29,7 +29,7 @@ namespace PhinixClient.GUI
         /// </summary>
         private int selectedTab;
 
-        public TabsContainer(Action<int> onTabChange, int selectedTab = 0)
+        public TabsContainer(Action<int> onTabChange = null, int selectedTab = 0)
         {
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
@@ -46,13 +46,13 @@ namespace PhinixClient.GUI
         {
             // Set the current index to where this new tab will be
             int index = tabs.Count;
-            
+
             // Create a tab record
             TabRecord tab = new TabRecord(label,
                 () =>
                 {
                     selectedTab = index;
-                    onTabChange(index);
+                    onTabChange?.Invoke(index);
                 },
                 selectedTab == index
             );
