@@ -129,25 +129,28 @@ namespace PhinixServer
         /// <param name="args">Event arguments</param>
         private static void ILoggableHandler(object sender, LogEventArgs args)
         {
+            Verbosity verbosity;
             switch (args.LogLevel)
             {
                 case LogLevel.DEBUG:
-                    Logger.Log(Verbosity.DEBUG, args.Message);
+                    verbosity = Verbosity.DEBUG;
                     break;
                 case LogLevel.WARNING:
-                    Logger.Log(Verbosity.WARN, args.Message);
+                    verbosity = Verbosity.WARN;
                     break;
                 case LogLevel.ERROR:
-                    Logger.Log(Verbosity.ERROR, args.Message);
+                    verbosity = Verbosity.ERROR;
                     break;
                 case LogLevel.FATAL:
-                    Logger.Log(Verbosity.FATAL, args.Message);
+                    verbosity = Verbosity.FATAL;
                     break;
                 case LogLevel.INFO:
                 default:
-                    Logger.Log(Verbosity.INFO, args.Message);
+                    verbosity = Verbosity.INFO;
                     break;
             }
+
+            Logger.Log(verbosity, args.Message, sender.GetType().Namespace);
         }
     }
 }
