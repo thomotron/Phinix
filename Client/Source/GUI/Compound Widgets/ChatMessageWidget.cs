@@ -118,7 +118,8 @@ namespace PhinixClient.GUI
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
             items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
-            
+            items.Add(new FloatMenuOption("Copy message to clipboard", () => { GUIUtility.systemCopyBuffer = Message; }));
+
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
         }
