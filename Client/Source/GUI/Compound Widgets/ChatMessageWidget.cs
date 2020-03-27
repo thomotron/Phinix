@@ -154,7 +154,7 @@ namespace PhinixClient.GUI
             }
 
             // Draw the context menu
-            Find.WindowStack.Add(new FloatMenu(items));
+            if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));
         }
 
         private void drawMessageContextMenu()
@@ -164,7 +164,7 @@ namespace PhinixClient.GUI
             items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => { GUIUtility.systemCopyBuffer = Message; }));
 
             // Draw the context menu
-            Find.WindowStack.Add(new FloatMenu(items));
+            if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }
