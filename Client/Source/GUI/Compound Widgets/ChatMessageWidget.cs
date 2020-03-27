@@ -70,18 +70,9 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
-            // Disabled due to bad text wrapping (as per issue #7)
-            // BUG: Text doesn't wrap properly when drawing a button, but it works just fine when drawing a label
-//            // Draw a button with the formatted text
-//            if (Widgets.ButtonText(container, Client.Instance.ShowChatFormatting ? Format() : TextHelper.StripRichText(Format()), false))
-//            {
-//                // Draw a context menu with user-specific actions
-//                drawContextMenu();
-//            }
-
             // Get the formatted chat message
             string formattedText = Format();
-            
+
             // Change the colour of the message to reflect the sent status
             switch (Status)
             {
@@ -94,8 +85,13 @@ namespace PhinixClient.GUI
                 default:
                     break;
             }
-            
-            Widgets.Label(container, formattedText);
+
+            // Draw a button with the formatted text
+            if (Widgets.ButtonText(container, formattedText, false))
+            {
+                // Draw a context menu with user-specific actions
+                drawContextMenu();
+            }
         }
 
         /// <inheritdoc />
