@@ -17,7 +17,7 @@ namespace Chat
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc/>
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         /// <summary>
         /// <see cref="NetServer"/> instance to bind the packet handler to.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Chat
         /// Maximum number of chat messages to buffer in history.
         /// </summary>
         private int messageHistoryCapacity;
-        
+
         /// <summary>
         /// Initialises a new <see cref="ServerChat"/> instance.
         /// </summary>
@@ -59,9 +59,9 @@ namespace Chat
             this.authenticator = authenticator;
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
-            
+
             this.messageHistory = new List<ChatMessage>();
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
         }
@@ -82,7 +82,7 @@ namespace Chat
             this.messageHistoryCapacity = messageHistoryCapacity;
 
             this.LoadChatHistory(messageHistoryStorePath);
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
         }
@@ -97,7 +97,7 @@ namespace Chat
             {
                 saveMessageHistory(path, messageHistory);
             }
-            
+
             RaiseLogEntry(new LogEventArgs("Saved chat history"));
         }
 
@@ -111,7 +111,7 @@ namespace Chat
             {
                 messageHistory = getMessageHistory(path);
             }
-            
+
             RaiseLogEntry(new LogEventArgs("Loaded chat history"));
         }
 
@@ -121,7 +121,7 @@ namespace Chat
             {
                 // Create a chat history packet
                 ChatHistoryPacket packet = new ChatHistoryPacket();
-                
+
                 // Convert each chat message to their packet counterparts
                 foreach (ChatMessage chatMessage in messageHistory)
                 {
@@ -136,10 +136,10 @@ namespace Chat
                         }
                     );
                 }
-                
+
                 // Pack the history packet
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
                 // Send it on its way
                 if (!netServer.TrySend(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
@@ -183,7 +183,7 @@ namespace Chat
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
-                
+
                 // Stop here
                 return;
             }
@@ -192,29 +192,29 @@ namespace Chat
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
-                
+
                 // Stop here
                 return;
             }
 
             // Get a copy of the packet's original message ID
             string originalMessageId = packet.MessageId;
-            
+
             // Generate a new, guaranteed-to-be-unique message ID since we can't trust clients
             string newMessageId = Guid.NewGuid().ToString();
-            
+
             // Sanitise the message content
             string sanitisedMessage = TextHelper.SanitiseRichText(packet.Message);
-            
+
             // Get the current time
             DateTime timestamp = DateTime.UtcNow;
-            
+
             // Add the message to the message history
             addMessageToHistory(new ChatMessage(newMessageId, packet.Uuid, sanitisedMessage, timestamp));
-            
+
             // Send a response to the sender
             sendChatMessageResponse(connectionId, true, originalMessageId, newMessageId, sanitisedMessage);
-                    
+
             // Broadcast the chat packet to everyone but the sender
             broadcastChatMessage(packet.Uuid, newMessageId, sanitisedMessage, timestamp, new[]{connectionId});
         }
@@ -241,13 +241,13 @@ namespace Chat
 
             // Get an array of connection IDs for each logged in user
             string[] connectionIds = userManager.GetConnections();
-            
+
             // Remove the connection IDs to be excluded from the broadcast (if any)
             if (excludedConnectionIds != null)
             {
                 connectionIds = connectionIds.Except(excludedConnectionIds).ToArray();
             }
-            
+
             // Send it to each of the remaining connection IDs
             foreach (string connectionId in connectionIds)
             {
@@ -278,7 +278,7 @@ namespace Chat
                 Timestamp = timestamp.ToTimestamp()
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
@@ -304,6 +304,15 @@ namespace Chat
                     messageHistory.RemoveAt(0);
                 }
             }
+
+            // Try get the user's display name
+            if (!userManager.TryGetDisplayName(chatMessage.SenderUuid, out string displayName))
+            {
+                displayName = "??? (" + chatMessage.SenderUuid + ")";
+            }
+
+            // Print the message to the log
+            RaiseLogEntry(new LogEventArgs(String.Format("{0}: {1}", TextHelper.StripRichText(displayName), chatMessage.Message)));
         }
 
         /// <summary>
@@ -325,14 +334,14 @@ namespace Chat
                 Message = message
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Creates and sends a failed <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
@@ -355,11 +364,11 @@ namespace Chat
             {
                 // Save a new store to disk
                 saveMessageHistory(path, new List<ChatMessage>());
-                
+
                 // Return the new store
                 return new List<ChatMessage>();
             }
-            
+
             // Pull the store from disk
             ChatHistoryStore store;
             using (FileStream fs = new FileStream(path, FileMode.Open))
@@ -386,7 +395,7 @@ namespace Chat
             {
                 ChatMessages = { messages.Select(message => message.ToChatMessageStore()) }
             };
-            
+
             // Create or truncate the file
             using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
             {
