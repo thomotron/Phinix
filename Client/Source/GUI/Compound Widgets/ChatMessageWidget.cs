@@ -114,17 +114,15 @@ namespace PhinixClient.GUI
             // Handle any button clicks
             if (Widgets.ButtonInvisible(timestampRect, false))
             {
-                Client.Instance.Log(new LogEventArgs("Clicked the timestamp"));
+                // We don't care about the timestamp, but we don't to trigger the message button so this if block stays
             }
             else if (Widgets.ButtonInvisible(displayNameRect, true))
             {
-                Client.Instance.Log(new LogEventArgs("Clicked the display name"));
-
-                drawContextMenu();
+                drawNameContextMenu();
             }
             else if (Widgets.ButtonInvisible(messageRect, true))
             {
-                Client.Instance.Log(new LogEventArgs("Clicked the message"));
+                drawMessageContextMenu();
             }
         }
 
@@ -141,7 +139,7 @@ namespace PhinixClient.GUI
             return FLUID;
         }
 
-        private void drawContextMenu()
+        private void drawNameContextMenu()
         {
             // Try to get the display name of this message's sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
@@ -154,6 +152,15 @@ namespace PhinixClient.GUI
             {
                 items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.CreateTrade(SenderUuid)));
             }
+
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        private void drawMessageContextMenu()
+        {
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
             items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => { GUIUtility.systemCopyBuffer = Message; }));
 
             // Draw the context menu
