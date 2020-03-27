@@ -118,9 +118,9 @@ namespace PhinixClient.GUI
             // Only add the trade option if this is not our message
             if (SenderUuid != Client.Instance.Uuid)
             {
-                items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
+                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.CreateTrade(SenderUuid)));
             }
-            items.Add(new FloatMenuOption("Copy message to clipboard", () => { GUIUtility.systemCopyBuffer = Message; }));
+            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => { GUIUtility.systemCopyBuffer = Message; }));
 
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
