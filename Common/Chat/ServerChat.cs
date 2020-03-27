@@ -304,6 +304,9 @@ namespace Chat
                     messageHistory.RemoveAt(0);
                 }
             }
+
+            // Print the message to the log
+            RaiseLogEntry(new LogEventArgs(String.Format("{0}: {1}", chatMessage.SenderUuid, chatMessage.Message)));
         }
 
         /// <summary>
