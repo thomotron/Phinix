@@ -55,8 +55,18 @@ namespace PhinixClient
                 flexContainer.Add(GenerateNamePreview());
             };
 
+            // Calculate height and constrain the container so we have even row heights with fluid contents
+            float contentHeight = 0f;
+            foreach (Displayable item in flexContainer.Contents)
+            {
+                contentHeight += item.IsFluidHeight ? ROW_HEIGHT : item.CalcHeight(inRect.width);
+            }
+            contentHeight += (flexContainer.Contents.Count - 1) * DEFAULT_SPACING;
+            HeightContainer heightContainer = new HeightContainer(flexContainer, contentHeight);
+
             // Draw the container with 5f padding at the top to avoid clipping with the close button
-            flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
+            // flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
+            heightContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
 
         /// <summary>
