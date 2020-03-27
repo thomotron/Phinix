@@ -11,6 +11,9 @@ namespace PhinixClient.GUI
     {
         public override bool IsFluidHeight => false;
 
+        private readonly Color pendingMessageColour = new Color(1f, 1f, 1f, 0.8f);
+        private readonly Color deniedMessageColour = new Color(0.94f, 0.28f, 0.28f);
+
         /// <summary>
         /// Time message was received.
         /// Set when the constructor is run.
@@ -99,12 +102,17 @@ namespace PhinixClient.GUI
             switch (Status)
             {
                 case ChatMessageStatus.PENDING:
-                    formattedText = string.Format("<color=#ffffff80>{0}</color>", TextHelper.StripRichText(formattedText));
+                    formattedText = TextHelper.StripRichText(formattedText).Colorize(pendingMessageColour);
                     break;
                 case ChatMessageStatus.DENIED:
-                    formattedText = string.Format("<color=#f04747>{0}</color>", TextHelper.StripRichText(formattedText));
+                    formattedText = TextHelper.StripRichText(formattedText).Colorize(deniedMessageColour);
                     break;
+                case ChatMessageStatus.CONFIRMED:
                 default:
+                    if (Mouse.IsOver(messageRect))
+                    {
+                        formattedText = formattedText.Colorize(Widgets.MouseoverOptionColor);
+                    }
                     break;
             }
 
