@@ -16,9 +16,9 @@ namespace PhinixServer
     {
         // Default config file constant
         private const string CONFIG_FILE = "server.conf";
-        
+
         public static readonly Version Version = Assembly.GetAssembly(typeof(Server)).GetName().Version;
-        
+
         // Module instance variables
         public static Config Config;
         public static Logger Logger;
@@ -27,7 +27,7 @@ namespace PhinixServer
         public static ServerUserManager UserManager;
         public static ServerChat Chat;
         public static ServerTrading Trading;
-        
+
         // Exiting flag to stop the main run loop
         private static bool exiting = false;
 
@@ -36,7 +36,7 @@ namespace PhinixServer
             // Read in the config and initialise the logging module
             Config = Config.Load(CONFIG_FILE);
             Logger = new Logger(Config.LogPath, Config.DisplayVerbosity, Config.LogVerbosity);
-            
+
             // Set up module instances
             Connections = new NetServer(new IPEndPoint(Config.Address, Config.Port), Config.MaxConnections);
             Authenticator = new ServerAuthenticator(
@@ -49,13 +49,13 @@ namespace PhinixServer
             UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
             Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength, Config.ChatHistoryPath);
             Trading = new ServerTrading(Connections, Authenticator, UserManager);
-            
+
             // Add handler for ILoggable modules
             Authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
             Chat.OnLogEntry += ILoggableHandler;
             Trading.OnLogEntry += ILoggableHandler;
-            
+
             // Start listening for connections
             Connections.Start();
 
@@ -65,7 +65,7 @@ namespace PhinixServer
 
             // Set up an exit condition on SIGINT/Ctrl+C
             Console.CancelKeyPress += shutdownHandler;
-            
+
             // Start interpreting commands
             CommandInterpreter interpreter = new CommandInterpreter();
             while (!exiting)
@@ -103,20 +103,20 @@ namespace PhinixServer
         private static void shutdownHandler(object sender = null, EventArgs e = null)
         {
             Logger.Log(Verbosity.INFO, "Server shutting down");
-            
+
             // Close all connections
             Connections.Stop();
-            
+
             // Log everyone out and save user data
             UserManager.LogOutAll();
             UserManager.Save(Config.UserDatabasePath);
-            
+
             // Save the chat history
             Chat.SaveChatHistory(Config.ChatHistoryPath);
-            
+
             // Save the config
             Config.Save(CONFIG_FILE);
-            
+
             // Exit the main run loop
             exiting = true;
         }
