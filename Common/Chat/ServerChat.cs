@@ -305,8 +305,14 @@ namespace Chat
                 }
             }
 
+            // Try get the user's display name
+            if (!userManager.TryGetDisplayName(chatMessage.SenderUuid, out string displayName))
+            {
+                displayName = "??? (" + chatMessage.SenderUuid + ")";
+            }
+
             // Print the message to the log
-            RaiseLogEntry(new LogEventArgs(String.Format("{0}: {1}", chatMessage.SenderUuid, chatMessage.Message)));
+            RaiseLogEntry(new LogEventArgs(String.Format("{0}: {1}", TextHelper.StripRichText(displayName), chatMessage.Message)));
         }
 
         /// <summary>
