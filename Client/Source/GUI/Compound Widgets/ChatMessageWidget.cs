@@ -124,7 +124,7 @@ namespace PhinixClient.GUI
             // Handle any button clicks
             if (Widgets.ButtonInvisible(timestampRect, false))
             {
-                // We don't care about the timestamp, but we don't to trigger the message button so this if block stays
+                // We don't care about the timestamp, but we don't want to trigger the message button, so this stays
             }
             else if (Widgets.ButtonInvisible(displayNameRect, true))
             {
