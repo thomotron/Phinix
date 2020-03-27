@@ -128,7 +128,7 @@ namespace PhinixClient.GUI
             {
                 drawNameContextMenu();
             }
-            else if (Widgets.ButtonInvisible(messageRect, true))
+            else if (Widgets.ButtonInvisible(messageRect, false))
             {
                 drawMessageContextMenu();
             }
