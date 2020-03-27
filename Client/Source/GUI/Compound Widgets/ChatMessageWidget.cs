@@ -13,6 +13,7 @@ namespace PhinixClient.GUI
 
         private readonly Color pendingMessageColour = new Color(1f, 1f, 1f, 0.8f);
         private readonly Color deniedMessageColour = new Color(0.94f, 0.28f, 0.28f);
+        private readonly Color backgroundHighlightColour = new Color(1f, 1f, 1f, 0.1f);
 
         /// <summary>
         /// Time message was received.
@@ -107,13 +108,14 @@ namespace PhinixClient.GUI
                 case ChatMessageStatus.DENIED:
                     formattedText = TextHelper.StripRichText(formattedText).Colorize(deniedMessageColour);
                     break;
-                case ChatMessageStatus.CONFIRMED:
                 default:
-                    if (Mouse.IsOver(messageRect))
-                    {
-                        formattedText = formattedText.Colorize(Widgets.MouseoverOptionColor);
-                    }
                     break;
+            }
+
+            if (Mouse.IsOver(messageRect))
+            {
+                // Draw a highlighted background
+                Widgets.DrawRectFast(container, backgroundHighlightColour);
             }
 
             // Draw the message
