@@ -71,7 +71,29 @@ namespace PhinixClient.GUI
         public override void Draw(Rect container)
         {
             // Get the formatted chat message
-            string formattedText = Format();
+            string timestamp = string.Format("[{0:HH:mm}] ", ReceivedTime.ToLocalTime());
+            Rect timestampRect = new Rect(
+                x: container.x,
+                y: container.y,
+                width: Text.CurFontStyle.CalcSize(new GUIContent(timestamp)).x,
+                height: Text.CurFontStyle.CalcSize(new GUIContent(timestamp)).y
+            );
+
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
+            if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
+            Rect displayNameRect = new Rect(
+                x: container.x + timestampRect.width,
+                y: container.y,
+                width: Text.CurFontStyle.CalcSize(new GUIContent(displayName)).x,
+                height: Text.CurFontStyle.CalcSize(new GUIContent(displayName)).y
+            );
+
+            string message = Message;
+            if (!Client.Instance.ShowChatFormatting) message = TextHelper.StripRichText(message);
+            Rect messageRect = container;
+
+            // Put all the pieces together
+            string formattedText = timestamp + displayName + ": " + message;
 
             // Change the colour of the message to reflect the sent status
             switch (Status)
@@ -86,11 +108,23 @@ namespace PhinixClient.GUI
                     break;
             }
 
-            // Draw a button with the formatted text
-            if (Widgets.ButtonText(container, formattedText, false))
+            // Draw the message
+            Widgets.Label(container, formattedText);
+
+            // Handle any button clicks
+            if (Widgets.ButtonInvisible(timestampRect, false))
             {
-                // Draw a context menu with user-specific actions
+                Client.Instance.Log(new LogEventArgs("Clicked the timestamp"));
+            }
+            else if (Widgets.ButtonInvisible(displayNameRect, true))
+            {
+                Client.Instance.Log(new LogEventArgs("Clicked the display name"));
+
                 drawContextMenu();
+            }
+            else if (Widgets.ButtonInvisible(messageRect, true))
+            {
+                Client.Instance.Log(new LogEventArgs("Clicked the message"));
             }
         }
 
