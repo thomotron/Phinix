@@ -109,15 +109,17 @@ namespace PhinixClient.GUI
 
         private void drawContextMenu()
         {
-            // Do nothing if this is our UUID
-            if (SenderUuid == Client.Instance.Uuid) return;
-            
             // Try to get the display name of this message's sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
             
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
+
+            // Only add the trade option if this is not our message
+            if (SenderUuid != Client.Instance.Uuid)
+            {
+                items.Add(new FloatMenuOption("Trade with " + TextHelper.StripRichText(displayName), () => Client.Instance.CreateTrade(SenderUuid)));
+            }
             items.Add(new FloatMenuOption("Copy message to clipboard", () => { GUIUtility.systemCopyBuffer = Message; }));
 
             // Draw the context menu
