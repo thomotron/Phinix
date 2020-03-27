@@ -16,12 +16,12 @@ namespace PhinixClient.GUI
         /// Set when the constructor is run.
         /// </summary>
         public DateTime ReceivedTime;
-        
+
         /// <summary>
         /// UUID of the sender.
         /// </summary>
         public string SenderUuid;
-        
+
         /// <summary>
         /// The message itself.
         /// </summary>
@@ -31,12 +31,12 @@ namespace PhinixClient.GUI
         /// The status of the chat message.
         /// </summary>
         public ChatMessageStatus Status;
-        
+
         public ChatMessageWidget(string senderUuid, string message)
         {
             this.SenderUuid = senderUuid;
             this.Message = message;
-            
+
             this.ReceivedTime = DateTime.UtcNow;
             this.Status = ChatMessageStatus.PENDING;
         }
@@ -53,16 +53,16 @@ namespace PhinixClient.GUI
         {
             // Get a local copy of the message
             string message = Message;
-            
+
             // Try to get the display name of the sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
 
             // Strip name formatting if the user wishes not to see it
             if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
-            
+
             // Strip message formatting if the user wishes not to see it
             if (!Client.Instance.ShowChatFormatting) message = TextHelper.StripRichText(message);
-            
+
             // Return the formatted message
             return string.Format("[{0:HH:mm}] {1}: {2}", ReceivedTime.ToLocalTime(), displayName, message);
         }
@@ -111,7 +111,7 @@ namespace PhinixClient.GUI
         {
             // Try to get the display name of this message's sender
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
-            
+
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
 
