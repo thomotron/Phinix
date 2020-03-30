@@ -65,7 +65,7 @@ namespace Trading
         {
             this.TradeId = tradeId;
             this.PartyUuids = partyUuids.ToArray();
-            this.ItemsOnOffer = ItemsOnOffer.ToDictionary(pair => pair.Key, pair => pair.Value);
+            this.ItemsOnOffer = ItemsOnOffer;
             this.AcceptedParties = acceptedParties.ToList();
         }
 
