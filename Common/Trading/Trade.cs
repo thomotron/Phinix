@@ -55,6 +55,21 @@ namespace Trading
         }
 
         /// <summary>
+        /// Creates a new <see cref="Trade"/> with the given trade ID, parties, items on offer, and list of accepted parties.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="partyUuids">UUIDs of each party</param>
+        /// <param name="itemsOnOffer">Items on offer by each party organised by their UUIDs</param>
+        /// <param name="acceptedParties">UUIDs of each party that has accepted</param>
+        private Trade(string tradeId, IEnumerable<string> partyUuids, Dictionary<string, ProtoThing[]> itemsOnOffer, IEnumerable<string> acceptedParties)
+        {
+            this.TradeId = tradeId;
+            this.PartyUuids = partyUuids.ToArray();
+            this.ItemsOnOffer = ItemsOnOffer.ToDictionary(pair => pair.Key, pair => pair.Value);
+            this.AcceptedParties = acceptedParties.ToList();
+        }
+
+        /// <summary>
         /// Attempts to set the items on offer for the given party and resets the accepted status of all parties.
         /// Returns whether the operation completed successfully.
         /// </summary>
@@ -214,6 +229,44 @@ namespace Trading
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Convert to a <see cref="TradeStore"/>.
+        /// </summary>
+        /// <returns>Converted <see cref="TradeStore"/></returns>
+        public TradeStore ToTradeStore()
+        {
+            // Fill out the majority of the store
+            TradeStore store = new TradeStore
+            {
+                TradeId = TradeId,
+                PartyUuids = { PartyUuids },
+                AcceptedParties = { AcceptedParties }
+            };
+
+            // Add the items on offer
+            foreach (KeyValuePair<string, ProtoThing[]> pair in ItemsOnOffer)
+            {
+                store.ItemsOnOffer.Add(pair.Key, new ProtoThings { Things = { pair.Value } });
+            }
+
+            return store;
+        }
+
+        /// <summary>
+        /// Recreates a <see cref="Trade"/> from a <see cref="TradeStore"/>.
+        /// </summary>
+        /// <param name="store"><see cref="TradeStore"/> to create from</param>
+        /// <returns>Recreated <see cref="Trade"/></returns>
+        public static Trade FromTradeStore(TradeStore store)
+        {
+            return new Trade(
+                tradeId: store.TradeId,
+                partyUuids: store.PartyUuids,
+                itemsOnOffer: store.ItemsOnOffer.ToDictionary(pair => pair.Key, pair => pair.Value.Things.ToArray()),
+                acceptedParties: store.AcceptedParties
+            );
         }
     }
 }
