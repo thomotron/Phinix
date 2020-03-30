@@ -48,7 +48,7 @@ namespace PhinixServer
             );
             UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
             Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength, Config.ChatHistoryPath);
-            Trading = new ServerTrading(Connections, Authenticator, UserManager);
+            Trading = new ServerTrading(Connections, Authenticator, UserManager, Config.TradeDatabasePath);
 
             // Add handler for ILoggable modules
             Authenticator.OnLogEntry += ILoggableHandler;
@@ -113,6 +113,9 @@ namespace PhinixServer
 
             // Save the chat history
             Chat.Save(Config.ChatHistoryPath);
+
+            // Save active trades
+            Trading.Save(Config.TradeDatabasePath);
 
             // Save the config
             Config.Save(CONFIG_FILE);

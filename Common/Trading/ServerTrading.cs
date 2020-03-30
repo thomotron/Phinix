@@ -11,7 +11,7 @@ using Utils;
 
 namespace Trading
 {
-    public class ServerTrading : Trading
+    public class ServerTrading : Trading, IPersistent
     {
         /// <inheritdoc />
         public override event EventHandler<LogEventArgs> OnLogEntry;
@@ -63,6 +63,75 @@ namespace Trading
             
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginEventHandler;
+        }
+
+        public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, string tradeDatabasePath) : this(netServer, authenticator, userManager)
+        {
+            Load(tradeDatabasePath);
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Saves the active trades to the given file, overwriting if it exists.
+        /// </summary>
+        /// <param name="path">Active trade store path</param>
+        public void Save(string path)
+        {
+            lock (activeTradesLock)
+            {
+                // Create the store from the trade list
+                ActiveTradesStore store = new ActiveTradesStore
+                {
+                    Trades = { activeTrades.Values.Select(trade => trade.ToTradeStore()) }
+                };
+
+                // Create or truncate the file
+                using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+                {
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        // Write the store to disk
+                        store.WriteTo(cos);
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Loads the active trades from the given file, reinitialising the active trades dictionary if it doesn't exist.
+        /// </summary>
+        /// <param name="path">Active trade store path</param>
+        public void Load(string path)
+        {
+            lock (activeTradesLock)
+            {
+                // Create a new store if one doesn't already exist
+                if (!File.Exists(path))
+                {
+                    // Initialise a new active trade dictionary
+                    activeTrades = new Dictionary<string, Trade>();
+
+                    // Save the new dictionary to disk
+                    Save(path);
+
+                    // Stop here
+                    return;
+                }
+
+                // Pull the store from disk
+                ActiveTradesStore store;
+                using (FileStream fs = new FileStream(path, FileMode.Open))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        store = ActiveTradesStore.Parser.ParseFrom(cis);
+                    }
+                }
+
+                // Set the active trades dictionary to the data that was just loaded
+                activeTrades = store.Trades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
+            }
         }
 
         /// <summary>
@@ -689,33 +758,6 @@ namespace Trading
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send SyncTradesPacket to connection " + connectionId, LogLevel.ERROR));
-            }
-        }
-
-        public void SaveActiveTrades(string tradeDatabasePath)
-        {
-            lock (activeTradesLock)
-            {
-                saveTrades(tradeDatabasePath, activeTrades.Values.ToList());
-            }
-        }
-
-        private void saveTrades(string path, List<Trade> trades)
-        {
-            // Create the store from the trade list
-            ActiveTradesStore store = new ActiveTradesStore
-            {
-                Trades = { trades.Select(trade => trade.ToTradeStore()) }
-            };
-
-            // Create or truncate the file
-            using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    // Write the store to disk
-                    store.WriteTo(cos);
-                }
             }
         }
     }

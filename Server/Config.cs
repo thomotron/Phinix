@@ -75,33 +75,39 @@ namespace PhinixServer
         public string ChatHistoryPath = "chatHistory";
 
         /// <summary>
+        /// Path to the chat history file.
+        /// </summary>
+        [DataMember(Name = "TradeDatabaseFile", Order = 9)]
+        public string TradeDatabasePath = "trades";
+
+        /// <summary>
         /// Name of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerName", Order = 9)]
+        [DataMember(Name = "ServerName", Order = 10)]
         public string ServerName = "Phinix Server";
         
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerDescription", Order = 10)]
+        [DataMember(Name = "ServerDescription", Order = 11)]
         public string ServerDescription = "A Phinix server.";
         
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
-        [DataMember(Name = "AuthType", Order = 11)]
+        [DataMember(Name = "AuthType", Order = 12)]
         public AuthTypes AuthType = AuthTypes.ClientKey;
 
         /// <summary>
         /// Maximum display name length for users.
         /// </summary>
-        [DataMember(Name = "MaxDisplayNameLength", Order = 12)]
+        [DataMember(Name = "MaxDisplayNameLength", Order = 13)]
         public int MaxDisplayNameLength = 100;
 
         /// <summary>
         /// Maximum number of chat messages to store in the chat history buffer.
         /// </summary>
-        [DataMember(Name = "ChatHistoryLength", Order = 13)]
+        [DataMember(Name = "ChatHistoryLength", Order = 14)]
         public int ChatHistoryLength = 40;
 
         /// <summary>
