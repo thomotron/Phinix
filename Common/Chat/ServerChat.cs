@@ -11,7 +11,7 @@ using Utils;
 
 namespace Chat
 {
-    public class ServerChat : Chat
+    public class ServerChat : Chat, IPersistent
     {
         /// <inheritdoc/>
         public override event EventHandler<LogEventArgs> OnLogEntry;
@@ -81,17 +81,18 @@ namespace Chat
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
 
-            this.LoadChatHistory(messageHistoryStorePath);
+            this.Load(messageHistoryStorePath);
 
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Saves the chat history to the given file, overwriting if it exists.
         /// </summary>
         /// <param name="path">Chat history store path</param>
-        public void SaveChatHistory(string path)
+        public void Save(string path)
         {
             lock (messageHistoryLock)
             {
@@ -101,11 +102,12 @@ namespace Chat
             RaiseLogEntry(new LogEventArgs("Saved chat history"));
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Loads the chat history from the given file.
         /// </summary>
         /// <param name="path">Chat history store path</param>
-        public void LoadChatHistory(string path)
+        public void Load(string path)
         {
             lock (messageHistoryLock)
             {

@@ -112,7 +112,7 @@ namespace PhinixServer
             UserManager.Save(Config.UserDatabasePath);
 
             // Save the chat history
-            Chat.SaveChatHistory(Config.ChatHistoryPath);
+            Chat.Save(Config.ChatHistoryPath);
 
             // Save the config
             Config.Save(CONFIG_FILE);
