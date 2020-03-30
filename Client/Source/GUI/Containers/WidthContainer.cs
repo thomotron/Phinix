@@ -7,7 +7,7 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidWidth => false;
-        
+
         public WidthContainer(Displayable child, float width): base(child, width, Displayable.FLUID)
         {
 

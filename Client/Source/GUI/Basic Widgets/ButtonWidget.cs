@@ -11,17 +11,17 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
-        
+
         /// <summary>
         /// The button label.
         /// </summary>
         public string label;
-        
+
         /// <summary>
         /// Whether to draw the default chunky, brown button or a transparent context menu-esque one.
         /// </summary>
         public bool drawBackground;
-        
+
         /// <summary>
         /// Callback invoked when the button is clicked.
         /// </summary>

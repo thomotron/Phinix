@@ -19,7 +19,7 @@ namespace PhinixClient
         private const float BUTTON_WIDTH = 40f;
         private const float COUNT_FIELD_WIDTH = 70f;
         private const float AVAILABLE_COUNT_WIDTH = 50f;
-        
+
         /// <summary>
         /// The item stack this row will display.
         /// </summary>
@@ -54,16 +54,16 @@ namespace PhinixClient
             this.alternateBackground = alternateBackground;
             this.onSelectedChanged = onSelectedChanged;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
             // Background
             if (alternateBackground) Widgets.DrawHighlight(container);
-            
+
             // Create a row to hold everything
             HorizontalFlexContainer row = new HorizontalFlexContainer(DEFAULT_SPACING);
-            
+
             // Icon
             row.Add(
                 new VerticalPaddedContainer(
@@ -74,7 +74,7 @@ namespace PhinixClient
                     ICON_WIDTH
                 )
             );
-            
+
             // Item name
             row.Add(
                 new TextWidget(
@@ -87,7 +87,7 @@ namespace PhinixClient
             {
                 // Add some padding to right-align the buttons
                 row.Add(new SpacerWidget());
-                
+
                 // -100 button
                 row.Add(
                     new Container(
@@ -104,7 +104,7 @@ namespace PhinixClient
                         width: BUTTON_WIDTH
                     )
                 );
-                
+
                 // -10 button
                 row.Add(
                     new Container(
@@ -121,7 +121,7 @@ namespace PhinixClient
                         width: BUTTON_WIDTH
                     )
                 );
-                
+
                 // -1 button
                 row.Add(
                     new Container(
@@ -138,7 +138,7 @@ namespace PhinixClient
                         width: BUTTON_WIDTH
                     )
                 );
-                
+
                 // Count text field
                 row.Add(
                     new Container(
@@ -170,7 +170,7 @@ namespace PhinixClient
                         width: COUNT_FIELD_WIDTH
                     )
                 );
-                
+
                 // Available count
                 row.Add(
                     new Container(
@@ -181,7 +181,7 @@ namespace PhinixClient
                         width: AVAILABLE_COUNT_WIDTH
                     )
                 );
-                
+
                 // +1 button
                 row.Add(
                     new Container(
@@ -198,7 +198,7 @@ namespace PhinixClient
                         width: BUTTON_WIDTH
                     )
                 );
-                
+
                 // +10 button
                 row.Add(
                     new Container(
@@ -215,7 +215,7 @@ namespace PhinixClient
                         width: BUTTON_WIDTH
                     )
                 );
-                
+
                 // +100 button
                 row.Add(
                     new Container(
@@ -246,13 +246,13 @@ namespace PhinixClient
                     )
                 );
             }
-            
+
             // Add some padding to keep off the edge
             row.Add(new SpacerWidget(RIGHT_PADDING));
 
             // Get a copy of the number of selected items
             int oldSelectedCount = itemStack.Selected;
-            
+
             // Draw the row
             row.Draw(container);
 
@@ -269,13 +269,13 @@ namespace PhinixClient
         {
             // Get the text we will be calculating the height of
             string text = itemStack.Things.First().Label.CapitalizeFirst();
-            
+
             // Check if we should factor in the interactive-only buttons
             if (interactive)
             {
                 // Get the remaining width after subtracting all fixed-width elements and spacing
                 float remainingWidth = width - (ICON_WIDTH + (BUTTON_WIDTH * 6) + COUNT_FIELD_WIDTH + RIGHT_PADDING + (DEFAULT_SPACING * 9));
-                
+
                 // Return the height required by the text
                 return Text.CalcHeight(text, remainingWidth);
             }
@@ -283,7 +283,7 @@ namespace PhinixClient
             {
                 // Get the remaining width after subtracting all fixed-width elements and spacing
                 float remainingWidth = width - (ICON_WIDTH + COUNT_FIELD_WIDTH + (DEFAULT_SPACING * 2));
-                
+
                 // Return the height required by the text
                 return Text.CalcHeight(text, remainingWidth);
             }

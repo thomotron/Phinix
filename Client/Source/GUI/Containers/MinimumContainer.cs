@@ -11,22 +11,22 @@ namespace PhinixClient.GUI
 
         /// <inheritdoc />
         public override bool IsFluidWidth => minWidth.Equals(FLUID);
-        
+
         /// <summary>
         /// Minimum width of the container.
         /// </summary>
         private float minWidth;
-        
+
         /// <summary>
         /// Minimum height of the container.
         /// </summary>
         private float minHeight;
-        
+
         /// <summary>
         /// Contents of the container.
         /// </summary>
         private Displayable child;
-        
+
         public MinimumContainer(Displayable child, float minWidth = FLUID, float minHeight = FLUID)
         {
             this.child = child;

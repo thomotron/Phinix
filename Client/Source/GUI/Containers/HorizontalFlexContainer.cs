@@ -26,7 +26,7 @@ namespace PhinixClient.GUI
         public HorizontalFlexContainer(float spacing = 10f)
         {
             this.spacing = spacing;
-            
+
             this.Contents = new List<Displayable>();
         }
 
@@ -40,7 +40,7 @@ namespace PhinixClient.GUI
             this.Contents = contents.ToList();
             this.spacing = spacing;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
@@ -55,7 +55,7 @@ namespace PhinixClient.GUI
             remainingWidth -= (Contents.Count - 1) * spacing; // Remove spacing between each element
             int fluidItems = Contents.Count(item => item.IsFluidWidth);
             float widthPerFluid = remainingWidth / fluidItems;
-            
+
             // Draw each item
             float xOffset = 0f;
             for (int i = 0; i < Contents.Count; i++)
@@ -90,7 +90,7 @@ namespace PhinixClient.GUI
 
                 // Increment the x offset by the item's width
                 xOffset += rect.width;
-                
+
                 // Add spacing to the x offset if applicable
                 if (i < Contents.Count - 1) xOffset += spacing;
             }

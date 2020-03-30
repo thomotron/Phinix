@@ -15,7 +15,7 @@ namespace PhinixClient.GUI
         private const float TRADE_WITH_LABEL_HEIGHT = 25f;
 
         private const float ACCEPTED_STATE_LABEL_HEIGHT = 15f;
-        
+
         private const float HEIGHT = TRADE_WITH_LABEL_HEIGHT + ACCEPTED_STATE_LABEL_HEIGHT;
 
         private const float BUTTON_WIDTH = 80f;
@@ -35,7 +35,7 @@ namespace PhinixClient.GUI
             this.tradeId = tradeId;
             this.drawAlternateBackground = drawAlternateBackground;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
@@ -53,13 +53,13 @@ namespace PhinixClient.GUI
                 // Failed to get the other party's accepted state
                 throw new Exception("Failed to get whether the other party has accepted or not when drawing a TradeRow");
             }
-            
+
             // Create a row to hold everything
             HorizontalFlexContainer row = new HorizontalFlexContainer(DEFAULT_SPACING);
-            
+
             // Create a column to hold the text
             VerticalFlexContainer textColumn = new VerticalFlexContainer(0f);
-            
+
             // Trade with ... label
             textColumn.Add(
                 new Container(
@@ -70,7 +70,7 @@ namespace PhinixClient.GUI
                     height: TRADE_WITH_LABEL_HEIGHT
                 )
             );
-            
+
             // Accepted state label
             textColumn.Add(
                 new Container(
@@ -82,10 +82,10 @@ namespace PhinixClient.GUI
                     height: ACCEPTED_STATE_LABEL_HEIGHT
                 )
             );
-            
+
             // Add the text column to the row
             row.Add(textColumn);
-            
+
             // Open button
             row.Add(
                 new Container(
@@ -96,7 +96,7 @@ namespace PhinixClient.GUI
                     width: BUTTON_WIDTH
                 )
             );
-            
+
             // Cancel button
             row.Add(
                 new Container(
@@ -107,10 +107,10 @@ namespace PhinixClient.GUI
                     width: BUTTON_WIDTH
                 )
             );
-            
+
             // Draw a background highlight
             if (drawAlternateBackground) Widgets.DrawHighlight(inRect);
-            
+
             // Draw the row
             row.Draw(inRect);
         }
