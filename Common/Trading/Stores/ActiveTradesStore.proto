@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Trading;
+
+import "Stores/TradeStore.proto";
+
+message ActiveTradesStore
+{
+    repeated TradeStore Trades = 1;
+};
