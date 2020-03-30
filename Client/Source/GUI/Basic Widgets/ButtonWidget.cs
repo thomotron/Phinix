@@ -37,9 +37,24 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            if (Widgets.ButtonText(inRect, label, drawBackground))
+            // Handle wrapping properly since ButtonText won't (as per #45)
+            if (!drawBackground)
             {
-                clickAction();
+                // Draw the text
+                Widgets.Label(inRect, Mouse.IsOver(inRect) ? label.Colorize(Widgets.MouseoverOptionColor) : label);
+
+                // Overlay a button
+                if (Widgets.ButtonInvisible(inRect))
+                {
+                    clickAction();
+                }
+            }
+            else
+            {
+                if (Widgets.ButtonText(inRect, label, drawBackground))
+                {
+                    clickAction();
+                }
             }
         }
 
