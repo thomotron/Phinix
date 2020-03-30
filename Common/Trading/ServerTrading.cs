@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Authentication;
 using Connections;
@@ -688,6 +689,33 @@ namespace Trading
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send SyncTradesPacket to connection " + connectionId, LogLevel.ERROR));
+            }
+        }
+
+        public void SaveActiveTrades(string tradeDatabasePath)
+        {
+            lock (activeTradesLock)
+            {
+                saveTrades(tradeDatabasePath, activeTrades.Values.ToList());
+            }
+        }
+
+        private void saveTrades(string path, List<Trade> trades)
+        {
+            // Create the store from the trade list
+            ActiveTradesStore store = new ActiveTradesStore
+            {
+                Trades = { trades.Select(trade => trade.ToTradeStore()) }
+            };
+
+            // Create or truncate the file
+            using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+            {
+                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                {
+                    // Write the store to disk
+                    store.WriteTo(cos);
+                }
             }
         }
     }
