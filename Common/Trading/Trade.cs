@@ -235,18 +235,18 @@ namespace Trading
         /// Convert to a <see cref="TradeStore"/>.
         /// </summary>
         /// <returns>Converted <see cref="TradeStore"/></returns>
-        public TradeStore ToTradeStore()
+        public static TradeStore ToTradeStore(Trade trade)
         {
             // Fill out the majority of the store
             TradeStore store = new TradeStore
             {
-                TradeId = TradeId,
-                PartyUuids = { PartyUuids },
-                AcceptedParties = { AcceptedParties }
+                TradeId = trade.TradeId,
+                PartyUuids = { trade.PartyUuids },
+                AcceptedParties = { trade.AcceptedParties }
             };
 
             // Add the items on offer
-            foreach (KeyValuePair<string, ProtoThing[]> pair in ItemsOnOffer)
+            foreach (KeyValuePair<string, ProtoThing[]> pair in trade.ItemsOnOffer)
             {
                 store.ItemsOnOffer.Add(pair.Key, new ProtoThings { Things = { pair.Value } });
             }

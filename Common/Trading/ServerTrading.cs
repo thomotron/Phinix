@@ -77,7 +77,7 @@ namespace Trading
                 // Create the store from the trade list
                 ActiveTradesStore store = new ActiveTradesStore
                 {
-                    Trades = { activeTrades.Values.Select(trade => trade.ToTradeStore()) }
+                    Trades = { activeTrades.Values.Select(Trade.ToTradeStore) },
                 };
 
                 // Create or truncate the file
