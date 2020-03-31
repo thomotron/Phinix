@@ -94,6 +94,8 @@ namespace Trading
                         store.WriteTo(cos);
                     }
                 }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} trades", activeTrades.Count)));
             }
         }
 
@@ -109,6 +111,8 @@ namespace Trading
                 // Create a new store if one doesn't already exist
                 if (!File.Exists(path))
                 {
+                    RaiseLogEntry(new LogEventArgs("No trades database, generating a new one"));
+
                     // Initialise a new active trade dictionary
                     activeTrades = new Dictionary<string, Trade>();
 
@@ -131,6 +135,8 @@ namespace Trading
 
                 // Set the active trades dictionary to the data that was just loaded
                 activeTrades = store.Trades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} trades", activeTrades.Count)));
             }
         }
 
