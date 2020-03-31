@@ -88,7 +88,7 @@ namespace PhinixServer
 
                 // Check if we've been given the exit command
                 // This is checked here to avoid weird workarounds from the interpreter
-                if (command == "exit")
+                if (command == "exit" || command == "quit" || command == "stop")
                 {
                     shutdownHandler();
                     break;
