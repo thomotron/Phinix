@@ -15,7 +15,7 @@ namespace Authentication
     /// Server authentication module.
     /// Handles incoming authentication attempts and greets new connections.
     /// </summary>
-    public class ServerAuthenticator : Authenticator
+    public class ServerAuthenticator : Authenticator, IPersistent
     {
         /// <inheritdoc />
         public override event EventHandler<LogEventArgs> OnLogEntry;
@@ -54,10 +54,6 @@ namespace Authentication
         private Timer sessionCleanupTimer;
 
         /// <summary>
-        /// Path to the credential store file.
-        /// </summary>
-        private string credentialStorePath;
-        /// <summary>
         /// Stores credentials for each client.
         /// </summary>
         private CredentialStore credentialStore;
@@ -65,17 +61,15 @@ namespace Authentication
         /// Lock object to prevent race conditions when accessing <see cref="credentialStore"/>.
         /// </summary>
         private object credentialStoreLock = new object();
-        
-        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType, string credentialStorePath)
+
+        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType)
         {
             this.netServer = netServer;
             this.serverName = serverName;
             this.serverDescription = serverDescription;
             this.authType = authType;
-            this.credentialStorePath = credentialStorePath;
+            this.credentialStore = new CredentialStore();
 
-            this.credentialStore = getCredentialStore();
-            
             this.sessions = new Dictionary<string, Session>();
             this.sessionCleanupTimer = new Timer
             {
@@ -88,6 +82,11 @@ namespace Authentication
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionEstablished += ConnectionEstablishedHandler;
             netServer.OnConnectionClosed += ConnectionClosedHandler;
+        }
+
+        public ServerAuthenticator(NetServer netServer, string serverName, string serverDescription, AuthTypes authType, string credentialStorePath) : this(netServer, serverName, serverDescription, authType)
+        {
+            Load(credentialStorePath);
         }
 
         /// <summary>
@@ -194,7 +193,68 @@ namespace Authentication
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Loads the credential store from disk, overwriting the currently loaded credential store.
+        /// </summary>
+        /// <param name="path">Credential store path</param>
+        public void Load(string path)
+        {
+            lock (credentialStoreLock)
+            {
+                // Create a new credential store if one doesn't already exist
+                if (!File.Exists(path))
+                {
+                    RaiseLogEntry(new LogEventArgs("No credentials database, generating a new one"));
+
+                    // Create a new credential store
+                    credentialStore = new CredentialStore();
+
+                    // Save the store to disk
+                    Save(path);
+
+                    // Stop here
+                    return;
+                }
+
+                // Pull the store from disk
+                using (FileStream fs = new FileStream(path, FileMode.Open))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        lock (credentialStoreLock)
+                        {
+                            credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                        }
+                    }
+                }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} credentials", credentialStore.Credentials.Count)));
+            }
+        }
+
+        /// <summary>
+        /// Saves the credential store to disk, overwriting an existing one.
+        /// </summary>
+        /// <param name="path">Credential store path</param>
+        public void Save(string path)
+        {
+            lock (credentialStoreLock)
+            {
+                // Create or truncate the credentials file
+                using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+                {
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        // Write the credential store to disk
+                        credentialStore.WriteTo(cos);
+                    }
+                }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} credentials", credentialStore.Credentials.Count)));
+            }
+        }
+
         /// <summary>
         /// Collects all (optionally authenticated) connections and returns the connection ID for each as a string array.
         /// </summary>
@@ -581,66 +641,10 @@ namespace Authentication
                     }
                 }
 
-                // Remove sessions in the removal list 
+                // Remove sessions in the removal list
                 foreach (string key in keysToRemove)
                 {
                     sessions.Remove(key);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the existing credential store from disk or a new one if it doesn't exist.
-        /// </summary>
-        /// <returns>New or existing credential store</returns>
-        private CredentialStore getCredentialStore()
-        {
-            // Create a new credential store if one doesn't already exist
-            if (!File.Exists(credentialStorePath))
-            {
-                // Create a new credential store
-                CredentialStore newCredentialStore = new CredentialStore();
-                
-                // Save the store to disk
-                saveCredentialStore(newCredentialStore);
-                
-                // Finally return the new store
-                return newCredentialStore;
-            }
-            
-            // Pull the store from disk
-            CredentialStore credentialStore;
-            using (FileStream fs = new FileStream(credentialStorePath, FileMode.Open))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
-                {
-                    lock (credentialStoreLock)
-                    {
-                        credentialStore = CredentialStore.Parser.ParseFrom(cis);
-                    }
-                }
-            }
-
-            // Return the credential store
-            return credentialStore;
-        }
-
-        /// <summary>
-        /// Saves the given credential store to disk, overwriting an existing one.
-        /// </summary>
-        /// <param name="credentialStore">Credential store to save</param>
-        private void saveCredentialStore(CredentialStore credentialStore)
-        {
-            // Create or truncate the credentials file
-            using (FileStream fs = File.Open(credentialStorePath, FileMode.Create, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    lock (credentialStoreLock)
-                    {
-                        // Write the credential store to disk
-                        credentialStore.WriteTo(cos);
-                    }
                 }
             }
         }
