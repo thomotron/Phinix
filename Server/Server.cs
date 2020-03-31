@@ -109,17 +109,16 @@ namespace PhinixServer
         {
             Logger.Log(Verbosity.INFO, "Server shutting down");
 
+            // Log everyone out
+            UserManager.LogOutAll();
+
             // Close all connections
             Connections.Stop();
 
-            // Log everyone out and save user data
-            UserManager.LogOutAll();
+            // Save module states
+            Authenticator.Save(Config.CredentialDatabasePath);
             UserManager.Save(Config.UserDatabasePath);
-
-            // Save the chat history
             Chat.Save(Config.ChatHistoryPath);
-
-            // Save active trades
             Trading.Save(Config.TradeDatabasePath);
 
             // Save the config
