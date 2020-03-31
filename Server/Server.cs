@@ -43,11 +43,10 @@ namespace PhinixServer
                 netServer: Connections,
                 serverName: Config.ServerName,
                 serverDescription: Config.ServerDescription,
-                authType: Config.AuthType,
-                credentialStorePath: Config.CredentialDatabasePath
+                authType: Config.AuthType
             );
-            UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
-            Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength, Config.ChatHistoryPath);
+            UserManager = new ServerUserManager(Connections, Authenticator, Config.MaxDisplayNameLength);
+            Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength);
             Trading = new ServerTrading(Connections, Authenticator, UserManager);
 
             // Add handler for ILoggable modules
@@ -55,6 +54,12 @@ namespace PhinixServer
             UserManager.OnLogEntry += ILoggableHandler;
             Chat.OnLogEntry += ILoggableHandler;
             Trading.OnLogEntry += ILoggableHandler;
+
+            // Load saved data
+            Authenticator.Load(Config.CredentialDatabasePath);
+            UserManager.Load(Config.UserDatabasePath);
+            Chat.Load(Config.ChatHistoryPath);
+            Trading.Load(Config.TradeDatabasePath);
 
             // Start listening for connections
             Connections.Start();
@@ -83,7 +88,7 @@ namespace PhinixServer
 
                 // Check if we've been given the exit command
                 // This is checked here to avoid weird workarounds from the interpreter
-                if (command == "exit")
+                if (command == "exit" || command == "quit" || command == "stop")
                 {
                     shutdownHandler();
                     break;
@@ -104,15 +109,17 @@ namespace PhinixServer
         {
             Logger.Log(Verbosity.INFO, "Server shutting down");
 
+            // Log everyone out
+            UserManager.LogOutAll();
+
             // Close all connections
             Connections.Stop();
 
-            // Log everyone out and save user data
-            UserManager.LogOutAll();
+            // Save module states
+            Authenticator.Save(Config.CredentialDatabasePath);
             UserManager.Save(Config.UserDatabasePath);
-
-            // Save the chat history
-            Chat.SaveChatHistory(Config.ChatHistoryPath);
+            Chat.Save(Config.ChatHistoryPath);
+            Trading.Save(Config.TradeDatabasePath);
 
             // Save the config
             Config.Save(CONFIG_FILE);

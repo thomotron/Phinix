@@ -1,0 +1,11 @@
+syntax = "proto3";
+package Trading;
+
+import "Packets/Thing.proto";
+
+// This is a workaround for Protobuf to support maps with repeated values (as used in TradeStore.proto)
+message ProtoThings
+{
+    // Collection of things
+    repeated ProtoThing things = 1;
+}
