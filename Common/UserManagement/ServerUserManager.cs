@@ -91,10 +91,10 @@ namespace UserManagement
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.maxDisplayNameLength = maxDisplayNameLength;
-            
+
             this.connectedUsers = new Dictionary<string, string>();
             Load(userStorePath);
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionClosed += connectionClosedHandler;
         }
