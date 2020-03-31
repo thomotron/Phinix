@@ -77,7 +77,7 @@ namespace Trading
                 // Create the store from the trade list
                 ActiveTradesStore store = new ActiveTradesStore
                 {
-                    Trades = { activeTrades.Values.Select(Trade.ToTradeStore) },
+                    ActiveTrades = { activeTrades.Values.Select(Trade.ToTradeStore) },
                     CompletedTrades = { completedTrades.Values.Select(CompletedTrade.ToStore) }
                 };
 
@@ -131,7 +131,7 @@ namespace Trading
                 }
 
                 // Set the active and completed trade dictionaries to the data that was just loaded
-                activeTrades = store.Trades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
+                activeTrades = store.ActiveTrades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
                 completedTrades = store.CompletedTrades.Select(CompletedTrade.FromStore).ToDictionary(item => item.Trade.TradeId, item => item);
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} active trades and {1} trades pending notification", activeTrades.Count, completedTrades.Count)));

@@ -6,7 +6,7 @@ import "Stores/CompletedTradeStore.proto";
 
 message ActiveTradesStore
 {
-    repeated TradeStore Trades = 1;
+    repeated TradeStore ActiveTrades = 1;
 
     repeated CompletedTradeStore CompletedTrades = 2;
 };
