@@ -74,17 +74,9 @@ namespace Chat
         /// <param name="userManager"></param>
         /// <param name="messageHistoryCapacity"></param>
         /// <param name="messageHistoryStorePath"></param>
-        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath) : this(netServer, authenticator, userManager, messageHistoryCapacity)
         {
-            this.netServer = netServer;
-            this.authenticator = authenticator;
-            this.userManager = userManager;
-            this.messageHistoryCapacity = messageHistoryCapacity;
-
-            this.Load(messageHistoryStorePath);
-
-            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
-            userManager.OnLogin += loginHandler;
+            Load(messageHistoryStorePath);
         }
 
         /// <inheritdoc />
