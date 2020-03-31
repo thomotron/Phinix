@@ -43,18 +43,23 @@ namespace PhinixServer
                 netServer: Connections,
                 serverName: Config.ServerName,
                 serverDescription: Config.ServerDescription,
-                authType: Config.AuthType,
-                credentialStorePath: Config.CredentialDatabasePath
+                authType: Config.AuthType
             );
-            UserManager = new ServerUserManager(Connections, Authenticator, Config.UserDatabasePath, Config.MaxDisplayNameLength);
-            Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength, Config.ChatHistoryPath);
-            Trading = new ServerTrading(Connections, Authenticator, UserManager, Config.TradeDatabasePath);
+            UserManager = new ServerUserManager(Connections, Authenticator, Config.MaxDisplayNameLength);
+            Chat = new ServerChat(Connections, Authenticator, UserManager, Config.ChatHistoryLength);
+            Trading = new ServerTrading(Connections, Authenticator, UserManager);
 
             // Add handler for ILoggable modules
             Authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
             Chat.OnLogEntry += ILoggableHandler;
             Trading.OnLogEntry += ILoggableHandler;
+
+            // Load saved data
+            Authenticator.Load(Config.CredentialDatabasePath);
+            UserManager.Load(Config.UserDatabasePath);
+            Chat.Load(Config.ChatHistoryPath);
+            Trading.Load(Config.TradeDatabasePath);
 
             // Start listening for connections
             Connections.Start();
