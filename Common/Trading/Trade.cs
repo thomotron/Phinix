@@ -34,7 +34,7 @@ namespace Trading
         public Trade(IEnumerable<string> partyUuids)
         {
             this.PartyUuids = partyUuids.ToArray();
-            
+
             this.TradeId = Guid.NewGuid().ToString();
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
@@ -49,7 +49,7 @@ namespace Trading
         {
             this.TradeId = tradeId;
             this.PartyUuids = partyUuids.ToArray();
-            
+
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
         }
@@ -90,13 +90,13 @@ namespace Trading
             {
                 ItemsOnOffer[partyUuid] = items.ToArray();
             }
-            
+
             // Reset all parties' accepted states
             AcceptedParties.Clear();
 
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to clear the items on offer for the given party and resets the accepted status of all parties.
         /// Returns whether the operation completed successfully.
@@ -113,7 +113,7 @@ namespace Trading
             {
                 ItemsOnOffer.Remove(partyUuid);
             }
-            
+
             // Reset all parties' accepted states
             AcceptedParties.Clear();
 
@@ -131,7 +131,7 @@ namespace Trading
         {
             // Set items to something arbitrary
             items = null;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -161,7 +161,7 @@ namespace Trading
         {
             // Set other party's UUID to something arbitrary
             otherPartyUuid = null;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -190,7 +190,7 @@ namespace Trading
         {
             // Set accepted to something arbitrary
             accepted = false;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -199,7 +199,7 @@ namespace Trading
 
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to set whether this party has accepted this trade.
         /// Returns whether the accepted state was set successfully.

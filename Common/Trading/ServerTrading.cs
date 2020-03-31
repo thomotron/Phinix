@@ -57,10 +57,10 @@ namespace Trading
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
-            
+
             this.activeTrades = new Dictionary<string, Trade>();
             this.completedTrades = new Dictionary<string, CompletedTrade>();
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginEventHandler;
         }
@@ -165,7 +165,7 @@ namespace Trading
                     break;
             }
         }
-        
+
         private void loginEventHandler(object sender, ServerLoginEventArgs args)
         {
             // Send the user a list of their active trades
@@ -192,7 +192,7 @@ namespace Trading
                 foreach (CompletedTrade completedTrade in tradesPendingNotification)
                 {
                     Trade trade = completedTrade.Trade;
-                    
+
                     // Try get the other party's UUID, continuing on failure
                     if (!trade.TryGetOtherParty(args.Uuid, out string otherPartyUuid)) continue;
 
@@ -200,7 +200,7 @@ namespace Trading
                     {
                         // Try get the user's items, continuing on failure
                         if (!trade.TryGetItemsOnOffer(args.Uuid, out ProtoThing[] things)) continue;
-                        
+
                         // Send a cancelled trade completion packet
                         sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, true, otherPartyUuid, things);
                     }
@@ -208,14 +208,14 @@ namespace Trading
                     {
                         // Try get the other party's items, continuing on failure
                         if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] things)) continue;
-                        
+
                         // Send a successful trade completion packet
                         sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, false, otherPartyUuid, things);
                     }
-                        
+
                     // Check them off the pending notification list
                     completedTrade.PendingNotification.Remove(args.Uuid);
-                        
+
                     // Queue the cancelled trade for removal if this was the last user pending notification
                     if (completedTrade.PendingNotification.Count == 0)
                     {
@@ -243,17 +243,17 @@ namespace Trading
             {
                 // Fail trade creation attempt due to bad session
                 sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.SessionId, "Cannot create a trade because your session is not valid. Try reconnecting.");
-                
+
                 // Stop here
                 return;
             }
-            
+
             // Make sure the user is valid
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
             {
                 // Fail trade creation attempt due to bad UUID
                 sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.Uuid, "Cannot create a trade because your login is not valid. Try reconnecting.");
-                
+
                 // Stop here
                 return;
             }
@@ -263,20 +263,20 @@ namespace Trading
             {
                 // Fail the trade creation request because the other party does not exist
                 sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.OtherPartyDoesNotExist, "Cannot create a trade because the other party does not exist.");
-                
+
                 // Stop here
                 return;
             }
-            
+
             // Make sure the other party is logged in
             // TODO: Offline trade offers
             if (!otherPartyLoggedIn)
             {
                 // Fail the trade creation request because the other party is not logged in
                 sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.OtherPartyOffline, "Cannot create a trade because the other party is not logged in.");
-                
+
                 // Stop here
-                return; 
+                return;
             }
 
             lock (activeTradesLock)
@@ -287,29 +287,29 @@ namespace Trading
                 {
                     // Fail the trade creation request because both parties are already trading with each other
                     sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.AlreadyTrading, "Cannot create a trade because you are already trading with the other party.");
-                    
+
                     // Stop here
                     return;
                 }
-                
+
                 // Get the other party's connection ID
                 if (!userManager.TryGetConnection(packet.OtherPartyUuid, out string otherPartyConnectionId))
                 {
                     // Fail the trade creation request because the other party's connection ID cannot be retrieved
                     sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.InternalServerError, "Cannot create a trade because the server could not find the other party's connection.");
-                    
+
                     // Stop here
                     return;
                 }
-                
+
                 // Passed all tests, create a new trade
                 Trade trade = new Trade(new[] {packet.Uuid, packet.OtherPartyUuid});
                 activeTrades.Add(trade.TradeId, trade);
-                
+
                 // Send both parties a successful trade creation packet
                 sendSuccessfulCreateTradeResponsePacket(connectionId, trade.TradeId, packet.OtherPartyUuid); // Sender
                 sendSuccessfulCreateTradeResponsePacket(otherPartyConnectionId, trade.TradeId, packet.Uuid); // Other party
-                
+
                 RaiseLogEntry(new LogEventArgs(string.Format("Created trade {0} between {1} and {2}", trade.TradeId, packet.Uuid, packet.OtherPartyUuid), LogLevel.DEBUG));
             }
         }
@@ -323,7 +323,7 @@ namespace Trading
         private void sendSuccessfulCreateTradeResponsePacket(string connectionId, string tradeId, string otherPartyUuid)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             CreateTradeResponsePacket packet = new CreateTradeResponsePacket
             {
@@ -332,7 +332,7 @@ namespace Trading
                 OtherPartyUuid = otherPartyUuid
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
@@ -349,7 +349,7 @@ namespace Trading
         private void sendFailedCreateTradeResponsePacket(string connectionId, TradeFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             CreateTradeResponsePacket packet = new CreateTradeResponsePacket
             {
@@ -358,14 +358,14 @@ namespace Trading
                 FailureMessage = failureMessage
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UpdateTradeStatusPacket"/>s.
         /// </summary>
@@ -381,12 +381,12 @@ namespace Trading
             {
                 // Make sure the trade exists, returning on failure
                 if (!activeTrades.ContainsKey(packet.TradeId)) return;
-                
+
                 Trade trade = activeTrades[packet.TradeId];
-                
+
                 // Try to get the other party's UUID, returning on failure
                 if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid)) return;
-                
+
                 // Check if the trade is being cancelled
                 if (packet.Cancelled)
                 {
@@ -397,23 +397,23 @@ namespace Trading
                         CompletedTrade completedTrade = completedTrades[trade.TradeId];
                         activeTrades.Remove(trade.TradeId);
                         trade = completedTrade.Trade;
-                    
+
                         // Try to get the sender's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
-                    
+
                         // Return the sender's items to them and check them off the pending notification list
                         sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
                         completedTrade.PendingNotification.Remove(packet.Uuid);
-                    
+
                         // Try to get the other party's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
-                    
+
                         // Check if the other party is logged in
                         if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-                    
+
                         // Try to get the other party's connection ID
                         if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-                    
+
                         // Return the other party's items to them and check them off the pending notification list
                         sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
                         completedTrade.PendingNotification.Remove(otherPartyUuid);
@@ -438,7 +438,7 @@ namespace Trading
                         // Nothing has changed, stop here
                         return;
                     }
-                    
+
                     // Check if all parties have accepted and the trade can be completed successfully
                     if (trade.AcceptedParties.Count == trade.PartyUuids.Length)
                     {
@@ -447,23 +447,23 @@ namespace Trading
                         CompletedTrade completedTrade = completedTrades[trade.TradeId];
                         activeTrades.Remove(trade.TradeId);
                         trade = completedTrade.Trade;
-                        
+
                         // Try to get the sender's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
-                        
+
                         // Try to get the other party's items on offer, returning on failure
                         if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
-                    
+
                         // Give the other party's items to the sender and check them off the pending notification list
                         sendCompleteTradePacket(connectionId, trade.TradeId, false, otherPartyUuid, otherPartyItems);
                         completedTrade.PendingNotification.Remove(packet.Uuid);
-                    
+
                         // Check if the other party is logged in
                         if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-                    
+
                         // Try to get the other party's connection ID
                         if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-                    
+
                         // Give the sender's items to the other party and check them off the pending notification list
                         sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, false, packet.Uuid, items);
                         completedTrade.PendingNotification.Remove(otherPartyUuid);
@@ -477,19 +477,19 @@ namespace Trading
                         // early.
                         // The remaining checks are for the other party and are just checking login and getting their
                         // connection ID.
-                    
+
                         // Try to get the other party's accepted state, returning on failure
                         if (!trade.TryGetAccepted(otherPartyUuid, out bool otherPartyAccepted)) return;
-                    
+
                         // Send an update to the sender
                         sendUpdateTradeStatusPacket(connectionId, trade.TradeId, packet.Accepted, otherPartyAccepted);
-                    
+
                         // Check if the other party is logged in
                         if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-                    
+
                         // Try to get the other party's connection ID
                         if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-                    
+
                         // Send an update to the other party
                         sendUpdateTradeStatusPacket(otherPartyConnectionId, trade.TradeId, otherPartyAccepted, packet.Accepted);
                     }
@@ -516,14 +516,14 @@ namespace Trading
                 Items = {items}
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send CompleteTradePacket to connection " + connectionId, LogLevel.ERROR));
-            }   
+            }
         }
-        
+
         /// <summary>
         /// Sends an <see cref="UpdateTradeStatusPacket"/> with the given trade ID and both accepted states to the given connection.
         /// </summary>
@@ -541,14 +541,14 @@ namespace Trading
                 OtherPartyAccepted = otherPartyAccepted
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeStatusPacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
         /// </summary>
@@ -567,11 +567,11 @@ namespace Trading
                 {
                     // Send a failed response
                     sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.TradeDoesNotExist, "The trade does not exist.");
-                    
+
                     // Stop here
                     return;
                 };
-                
+
                 Trade trade = activeTrades[packet.TradeId];
 
                 bool success;
@@ -591,19 +591,19 @@ namespace Trading
                 {
                     // Try to get the other party's UUID, returning on failure
                     if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid)) return;
-                    
+
                     // Try to get the other party's items on offer, returning on failure
                     if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
-                    
+
                     // Send a successful response to the sender
                     sendSuccessfulUpdateTradeItemsResponsePacket(connectionId, trade.TradeId, packet.Token, packet.Items);
-                    
+
                     // Check if the other party is logged in
                     if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-                    
+
                     // Try to get the other party's connection ID
                     if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-                    
+
                     // Send an update to the other party
                     sendUpdateTradeItemsPacket(otherPartyConnectionId, trade.TradeId, otherPartyItems, packet.Items);
                 }
@@ -623,7 +623,7 @@ namespace Trading
                 }
             }
         }
-        
+
         /// <summary>
         /// Sends an <see cref="UpdateTradeItemsPacket"/> with the given items of both parties for the given trade.
         /// </summary>
@@ -641,14 +641,14 @@ namespace Trading
                 OtherPartyItems = {otherPartyItems}
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Sends a successful <see cref="UpdateTradeItemsResponsePacket"/> with the given items of the sender for the given trade and token.
         /// </summary>
@@ -667,7 +667,7 @@ namespace Trading
                 Items = {items}
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
@@ -697,14 +697,14 @@ namespace Trading
                 FailureMessage = failureMessage
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Sends a <see cref="SyncTradesPacket"/> containing the given trades from the given party's perspective.
         /// </summary>
@@ -721,21 +721,21 @@ namespace Trading
             {
                 // Try get the other party's UUID, continuing on failure
                 if (!trade.TryGetOtherParty(partyUuid, out string otherPartyUuid)) continue;
-                
+
                 // Try get each party's items on offer, continuing on failure
                 if (!trade.TryGetItemsOnOffer(partyUuid, out ProtoThing[] partyItems) ||
                     !trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems))
                 {
                     continue;
                 }
-                
+
                 // Try get each party's accepted state, continuing on failure
                 if (!trade.TryGetAccepted(partyUuid, out bool partyAccepted) ||
                     !trade.TryGetAccepted(otherPartyUuid, out bool otherPartyAccepted))
                 {
                     continue;
                 }
-                
+
                 // Create a proto-ified trade with the values we just got
                 TradeProto tradeProto = new TradeProto
                 {
@@ -746,14 +746,14 @@ namespace Trading
                     Accepted = partyAccepted,
                     OtherPartyAccepted = otherPartyAccepted
                 };
-                
+
                 // Add it to the packet
                 packet.Trades.Add(tradeProto);
             }
-            
+
             // Pack the packet
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {

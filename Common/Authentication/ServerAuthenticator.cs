@@ -21,7 +21,7 @@ namespace Authentication
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         /// <summary>
         /// <see cref="NetServer"/> to send packets and bind events to.
         /// </summary>
@@ -84,7 +84,7 @@ namespace Authentication
             };
             this.sessionCleanupTimer.Elapsed += onSessionCleanup;
             this.sessionCleanupTimer.Start();
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionEstablished += ConnectionEstablishedHandler;
             netServer.OnConnectionClosed += ConnectionClosedHandler;
@@ -102,9 +102,9 @@ namespace Authentication
             {
                 // Make sure the connection has a session
                 if (!sessions.ContainsKey(connectionId)) return false;
-                
+
                 Session session = sessions[connectionId];
-                
+
                 // Return whether the session ID matches, is not expired, and is authenticated
                 return session.SessionId == sessionId &&
                        session.Expiry.CompareTo(DateTime.UtcNow) > 0 &&
@@ -123,7 +123,7 @@ namespace Authentication
         {
             // Initialise connection ID to something arbitrary
             connectionId = null;
-            
+
             lock (sessionsLock)
             {
                 try
@@ -220,7 +220,7 @@ namespace Authentication
         private void ConnectionEstablishedHandler(object sender, ConnectionEventArgs e)
         {
             RaiseLogEntry(new LogEventArgs("Sending HelloPacket to incoming connection " + e.ConnectionId, LogLevel.DEBUG));
-            
+
             // Create a new session for this connection
             Session session = new Session
             {
@@ -229,16 +229,16 @@ namespace Authentication
                 Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(5),
                 Authenticated = false
             };
-            
+
             lock (sessionsLock)
             {
                 // Remove any existing sessions for this connection
                 if (sessions.ContainsKey(e.ConnectionId)) sessions.Remove(e.ConnectionId);
-                
+
                 // Add it to the session dictionary
                 sessions.Add(e.ConnectionId, session);
             }
-            
+
             // Construct a HelloPacket
             HelloPacket hello = new HelloPacket
             {
@@ -247,10 +247,10 @@ namespace Authentication
                 ServerDescription = serverDescription,
                 SessionId = session.SessionId
             };
-            
+
             // Pack it into an Any message
             Any packedHello = ProtobufPacketHelper.Pack(hello);
-            
+
             // Try send it
             if (!netServer.TrySend(e.ConnectionId, MODULE_NAME, packedHello.ToByteArray()))
             {
@@ -268,7 +268,7 @@ namespace Authentication
                 if (sessions.ContainsKey(e.ConnectionId))
                 {
                     Session session = sessions[e.ConnectionId];
-                    
+
                     // Remove the session
                     sessions.Remove(session.SessionId);
                 }
@@ -280,7 +280,7 @@ namespace Authentication
         {
             // Validate the incoming packet and discard it if validation fails
             if (!ProtobufPacketHelper.ValidatePacket(typeof(ServerAuthenticator).Namespace, MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
-            
+
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
@@ -310,13 +310,13 @@ namespace Authentication
             {
                 // Fail the authentication attempt due to mismatched credential type
                 sendFailedAuthResponsePacket(connectionId, AuthFailureReason.AuthType, string.Format("Wrong type of credentials supplied. The server only accepts \"{0}\" credentials.", authType.ToString()));
-                
+
                 RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: Wrong credential type", connectionId), LogLevel.DEBUG));
-                
+
                 // Stop here
                 return;
             }
-            
+
             lock (sessionsLock)
             {
                 // Check whether a session exists for this connection or the supplied session ID is assigned to this connection
@@ -324,7 +324,7 @@ namespace Authentication
                 {
                     // Fail the authentication attempt due to invalid session ID
                     sendFailedAuthResponsePacket(connectionId, AuthFailureReason.SessionId, "Could not find session for your connection. It may have expired. Try logging in again.");
-                    
+
                     RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: No session found for this connection", connectionId), LogLevel.DEBUG));
 
                     // Stop here
@@ -339,9 +339,9 @@ namespace Authentication
                 {
                     // Fail the authentication attempt due to expired session
                     sendFailedAuthResponsePacket(connectionId, AuthFailureReason.SessionId, "Session has expired. Try logging in again.");
-                    
+
                     RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Session expired", connectionId, session.SessionId), LogLevel.DEBUG));
-                    
+
                     // Stop here
                     return;
                 }
@@ -367,9 +367,9 @@ namespace Authentication
                         {
                             // Fail the authentication attempt due to missing credential
                             sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, string.Format("No credential found for the username \"{0}\".", packet.Username));
-                            
+
                             RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): No credentials found for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
-                    
+
                             // Stop here
                             return;
                         }
@@ -386,40 +386,40 @@ namespace Authentication
                     {
                         // Delete the offending credential
                         credentialStore.Credentials.Remove(session.Username);
-                        
+
                         // Fail the authentication attempt due to invalid stored credential
                         sendFailedAuthResponsePacket(connectionId, AuthFailureReason.InternalServerError, "Server's stored credential did not match its accepted authentication type. Try logging in again.");
-                        
+
                         RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Stored credentials for {2} are of wrong type ({3})", connectionId, session.SessionId, packet.Username, credential.AuthType.ToString()), LogLevel.DEBUG));
-                        
+
                         // Stop here
                         return;
                     }
-                    
+
                     // Check if the password does not match the stored credential
                     // This check is ignored if the auth type is 'ClientKey' as the password does not matter
                     if (authType == AuthTypes.ClientKey && packet.Password != credential.Password)
                     {
                         // Fail the authentication attempt due to mismatching password
                         sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, "Invalid password provided.");
-                        
+
                         RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): Wrong password provided for {2}", connectionId, session.SessionId, packet.Username), LogLevel.DEBUG));
-                        
+
                         // Stop here
                         return;
                     }
 
                     // Auth attempt made it through the gauntlet, time to accept it as a valid request
-                    
+
                     // Mark the session as authenticated
                     session.Authenticated = true;
 
                     // Extend their session by 30 minutes
                     session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
-                    
+
                     // Approve the authentication attempt
                     sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, session.Expiry);
-                    
+
                     // Log this momentous occasion
                     RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}) successfully authenticated", session.Username, session.ConnectionId, session.SessionId)));
                 }
@@ -435,7 +435,7 @@ namespace Authentication
         private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, DateTime expiry)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Construct an AuthResponsePacket in success configuration
             AuthResponsePacket response = new AuthResponsePacket
             {
@@ -443,10 +443,10 @@ namespace Authentication
                 SessionId = sessionId,
                 Expiry = expiry.ToTimestamp()
             };
-            
+
             // Pack it into an Any for transmission
             Any packedResponse = ProtobufPacketHelper.Pack(response);
-            
+
             // Send it
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
@@ -463,7 +463,7 @@ namespace Authentication
         private void sendFailedAuthResponsePacket(string connectionId, AuthFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed AuthResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Construct an AuthResponsePacket in failure configuration
             AuthResponsePacket response = new AuthResponsePacket
             {
@@ -471,10 +471,10 @@ namespace Authentication
                 FailureReason = failureReason,
                 FailureMessage = failureMessage
             };
-            
+
             // Pack it into an Any for transmission
             Any packedResponse = ProtobufPacketHelper.Pack(response);
-            
+
             // Send it
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
@@ -497,7 +497,7 @@ namespace Authentication
                 {
                     // Extend the session expiry to 30 minutes from now
                     sessions[connectionId].Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
-                    
+
                     // Send a successful response
                     sendSuccessfulExtendSessionResponsePacket(connectionId, sessions[connectionId].Expiry);
                 }
@@ -517,7 +517,7 @@ namespace Authentication
         private void sendSuccessfulExtendSessionResponsePacket(string connectionId, DateTime expiry)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful ExtendSessionResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
             {
@@ -525,14 +525,14 @@ namespace Authentication
                 ExpiresIn = (int) (expiry - DateTime.UtcNow).TotalMilliseconds
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send ExtendSessionResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Sends a failed <see cref="ExtendSessionResponsePacket"/> to a connection.
         /// </summary>
@@ -540,14 +540,14 @@ namespace Authentication
         private void sendFailedExtendSessionResponsePacket(string connectionId)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed ExtendSessionResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             ExtendSessionResponsePacket packet = new ExtendSessionResponsePacket
             {
                 Success = false
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {

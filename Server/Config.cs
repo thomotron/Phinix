@@ -67,7 +67,7 @@ namespace PhinixServer
         /// </summary>
         [DataMember(Name = "CredentialDatabaseFile", Order = 7)]
         public string CredentialDatabasePath = "credentials";
-        
+
         /// <summary>
         /// Path to the chat history file.
         /// </summary>
@@ -85,13 +85,13 @@ namespace PhinixServer
         /// </summary>
         [DataMember(Name = "ServerName", Order = 10)]
         public string ServerName = "Phinix Server";
-        
+
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
         [DataMember(Name = "ServerDescription", Order = 11)]
         public string ServerDescription = "A Phinix server.";
-        
+
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
@@ -148,7 +148,7 @@ namespace PhinixServer
                 new DataContractSerializer(typeof(Config)).WriteObject(writer, this);
             }
         }
-        
+
         /// <summary>
         /// Called before the <see cref="Config"/> is serialised.
         /// Used to convert complex types to something easier to edit by hand.
@@ -159,7 +159,7 @@ namespace PhinixServer
         {
             this.addressString = Address.ToString();
         }
-        
+
         /// <summary>
         /// Called after the <see cref="Config"/> is deserialised.
         /// Used to convert easy-to-edit types back into their complex counterparts.

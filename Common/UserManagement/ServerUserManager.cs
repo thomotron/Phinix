@@ -45,7 +45,7 @@ namespace UserManagement
         /// Lock for connected user dictionary operations.
         /// </summary>
         private object connectedUsersLock = new object();
-        
+
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
@@ -71,10 +71,10 @@ namespace UserManagement
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.maxDisplayNameLength = maxDisplayNameLength;
-            
+
             this.connectedUsers = new Dictionary<string, string>();
             this.userStore = new UserStore();
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netServer.OnConnectionClosed += connectionClosedHandler;
         }
@@ -105,15 +105,15 @@ namespace UserManagement
             {
                 // Make sure this connection has a UUID associated with it
                 if (!connectedUsers.ContainsKey(e.ConnectionId)) return;
-                
+
                 // Try to log them out
                 TryLogOut(connectedUsers[e.ConnectionId]);
-                    
+
                 // Drop them from the connected user dictionary
                 connectedUsers.Remove(e.ConnectionId);
             }
         }
-        
+
         /// <summary>
         /// Attempts to log in a user with the given UUID.
         /// Returns whether the user was successfully logged in.
@@ -130,13 +130,13 @@ namespace UserManagement
                 if (!userStore.Users.ContainsKey(uuid)) return false;
 
                 userStore.Users[uuid].LoggedIn = true;
-                
+
                 broadcastUserUpdate(userStore.Users[uuid]);
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to log out a user with the given UUID.
         /// Returns whether the user was successfully logged out.
@@ -153,10 +153,10 @@ namespace UserManagement
                 if (!userStore.Users.ContainsKey(uuid)) return false;
 
                 userStore.Users[uuid].LoggedIn = false;
-                
+
                 broadcastUserUpdate(userStore.Users[uuid]);
             }
-            
+
             return true;
         }
 
@@ -180,12 +180,12 @@ namespace UserManagement
 
                 user = userStore.Users[uuid];
             }
-            
+
             broadcastUserUpdate(user);
 
             return true;
         }
-        
+
         /// <summary>
         /// Saves the user store at the given path.
         /// This will overwrite the file if it already exists.
@@ -235,7 +235,7 @@ namespace UserManagement
                 }
             }
         }
-        
+
         /// <summary>
         /// Checks whether the user with the given UUID is logged in from the given connection ID.
         /// </summary>
@@ -275,10 +275,10 @@ namespace UserManagement
         {
             // Initialise connection ID to something arbitrary
             connectionId = null;
-            
+
             // It's a surprise tool that will help us later
             KeyValuePair<string, string> pair;
-            
+
             lock (connectedUsersLock)
             {
                 try
@@ -292,12 +292,12 @@ namespace UserManagement
                     return false;
                 }
             }
-            
+
             // Output the connection ID and return successfully
             connectionId = pair.Key;
             return true;
         }
-        
+
         /// <summary>
         /// Logs out all users.
         /// Used when shutting down.
@@ -354,10 +354,10 @@ namespace UserManagement
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
             {
                 RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Invalid session", packet.SessionId)));
-                
+
                 // Fail the login attempt due to an invalid session
                 sendFailedLoginResponsePacket(connectionId, LoginFailureReason.SessionId, "Session is not valid, it may have expired. Try reconnecting.");
-                
+
                 // Stop here
                 return;
             }
@@ -366,16 +366,16 @@ namespace UserManagement
             if (!authenticator.TryGetUsername(connectionId, packet.SessionId, out string username))
             {
                 RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Couldn't get username", packet.SessionId)));
-                
+
                 // Fail the login attempt due to an invalid session/username
                 sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Server failed to get the username associated with the session. Try reconnecting.");
-                
+
                 // Stop here
                 return;
             }
-            
+
             // Passed authentication checks, time to accept the login attempt
-            
+
             // Try to get the user by their username
             if (TryGetUserUuid(username, out string uuid))
             {
@@ -391,7 +391,7 @@ namespace UserManagement
                 // Otherwise create a new user
                 uuid = CreateUser(username, packet.DisplayName, true);
             }
-                    
+
             // Check if they want to use the display name stored on the server
             string displayName = packet.DisplayName;
             if (packet.UseServerDisplayName)
@@ -410,37 +410,37 @@ namespace UserManagement
                 {
                     // Fail the login attempt due to display name length
                     sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is too long.");
-                    
+
                     // Stop here
                     return;
                 }
-                
+
                 // Update the user's display name on the server with the one they've provided
                 UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
-            
+
             // Set whether they are accepting trades
             UpdateUser(uuid, acceptingTrades: packet.AcceptingTrades);
-            
+
             // Add their UUID/Session ID pair to connectedUsers
             lock (connectedUsersLock)
             {
                 // Remove an existing session, if it exists
                 connectedUsers.Remove(connectionId);
-                
+
                 // Add this session with the freshly-logged in UUID
                 connectedUsers.Add(connectionId, uuid);
             }
-            
+
             // Log the event
             RaiseLogEntry(new LogEventArgs(string.Format("User {0} successfully logged in as \"{1}\" (SessionID: {2}, UUID: {3})", username, displayName, packet.SessionId, uuid)));
-            
+
             // Send a successful login response
             sendSuccessfulLoginResponsePacket(connectionId, uuid, displayName);
-            
+
             // Send a sync packet with the current user list
             sendSyncPacket(connectionId);
-            
+
             // Raise the OnLogin event
             OnLogin?.Invoke(this, new ServerLoginEventArgs(connectionId, uuid));
         }
@@ -454,7 +454,7 @@ namespace UserManagement
         private void sendSuccessfulLoginResponsePacket(string connectionId, string uuid, string displayName)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
             {
@@ -463,7 +463,7 @@ namespace UserManagement
                 DisplayName = displayName
             };
             Any packedResponse = ProtobufPacketHelper.Pack(response);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
@@ -480,7 +480,7 @@ namespace UserManagement
         private void sendFailedLoginResponsePacket(string connectionId, LoginFailureReason failureReason, string failureMessage)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending failed LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
-            
+
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
             {
@@ -489,7 +489,7 @@ namespace UserManagement
                 FailureMessage = failureMessage
             };
             Any packedResponse = ProtobufPacketHelper.Pack(response);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
@@ -541,7 +541,7 @@ namespace UserManagement
                 {
                     // Get a non-reference copy of the user so we can blank out the username without affecting the original
                     User user = userRef.Clone();
-                    
+
                     user.Username = "";
                     packet.Users.Add(user);
                 }
@@ -549,14 +549,14 @@ namespace UserManagement
 
             // Pack it
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send UserSyncPacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UserUpdatePacket"/>s.
         /// </summary>
