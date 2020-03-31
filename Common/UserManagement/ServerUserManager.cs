@@ -196,13 +196,18 @@ namespace UserManagement
         {
             if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
 
-            // Write the user store
-            using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+            lock (userStoreLock)
             {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
+                // Write the user store
+                using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write))
                 {
-                    lock (userStoreLock) userStore.WriteTo(cos);
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        userStore.WriteTo(cos);
+                    }
                 }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} user{1}", userStore.Users.Count, userStore.Users.Count != 1 ? "s" : "")));
             }
         }
 
@@ -216,23 +221,30 @@ namespace UserManagement
         {
             if (string.IsNullOrEmpty(filePath)) throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
 
-            // Generate a fresh user store if it doesn't exist
-            if (!File.Exists(filePath))
+            lock (userStoreLock)
             {
-                // Create the user store
-                lock (userStoreLock) this.userStore = new UserStore();
-                
-                // Save it
-                Save(filePath);
-            }
-
-            // Load the user store
-            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
+                // Generate a fresh user store if it doesn't exist
+                if (!File.Exists(filePath))
                 {
-                    lock (userStoreLock) this.userStore = UserStore.Parser.ParseFrom(cis);
+                    RaiseLogEntry(new LogEventArgs("No user database, generating a new one"));
+
+                    // Create the user store
+                    lock (userStoreLock) userStore = new UserStore();
+
+                    // Save it
+                    Save(filePath);
                 }
+
+                // Load the user store
+                using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        userStore = UserStore.Parser.ParseFrom(cis);
+                    }
+                }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} user{1}", userStore.Users.Count, userStore.Users.Count != 1 ? "s" : "")));
             }
         }
 
