@@ -91,7 +91,7 @@ namespace Trading
                     }
                 }
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} trades", activeTrades.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} active trade{1} and {2} trade{3} pending notification", activeTrades.Count, activeTrades.Count != 1 ? "s" : "", completedTrades.Count, completedTrades.Count != 1 ? "s" : "")));
             }
         }
 
@@ -134,7 +134,7 @@ namespace Trading
                 activeTrades = store.ActiveTrades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
                 completedTrades = store.CompletedTrades.Select(CompletedTrade.FromStore).ToDictionary(item => item.Trade.TradeId, item => item);
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} active trades and {1} trades pending notification", activeTrades.Count, completedTrades.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} active trade{1} and {2} trade{3} pending notification", activeTrades.Count, activeTrades.Count != 1 ? "s" : "", completedTrades.Count, completedTrades.Count != 1 ? "s" : "")));
             }
         }
 
