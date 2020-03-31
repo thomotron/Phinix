@@ -78,6 +78,7 @@ namespace Trading
                 ActiveTradesStore store = new ActiveTradesStore
                 {
                     Trades = { activeTrades.Values.Select(Trade.ToTradeStore) },
+                    CompletedTrades = { completedTrades.Values.Select(CompletedTrade.ToStore) }
                 };
 
                 // Create or truncate the file
@@ -108,10 +109,11 @@ namespace Trading
                 {
                     RaiseLogEntry(new LogEventArgs("No trades database, generating a new one"));
 
-                    // Initialise a new active trade dictionary
+                    // Initialise new active and completed trade dictionaries
                     activeTrades = new Dictionary<string, Trade>();
+                    completedTrades = new Dictionary<string, CompletedTrade>();
 
-                    // Save the new dictionary to disk
+                    // Save the new dictionaries to disk
                     Save(path);
 
                     // Stop here
@@ -128,10 +130,11 @@ namespace Trading
                     }
                 }
 
-                // Set the active trades dictionary to the data that was just loaded
+                // Set the active and completed trade dictionaries to the data that was just loaded
                 activeTrades = store.Trades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
+                completedTrades = store.CompletedTrades.Select(CompletedTrade.FromStore).ToDictionary(item => item.Trade.TradeId, item => item);
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} trades", activeTrades.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} active trades and {1} trades pending notification", activeTrades.Count, completedTrades.Count)));
             }
         }
 

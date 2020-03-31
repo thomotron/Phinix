@@ -54,6 +54,7 @@
     <Compile Include="Packets\compiled\UpdateTradeStatusPacket.cs" />
     <Compile Include="ServerTrading.cs" />
     <Compile Include="Stores\compiled\ActiveTradesStore.cs" />
+    <Compile Include="Stores\compiled\CompletedTradeStore.cs" />
     <Compile Include="Stores\compiled\ProtoThings.cs" />
     <Compile Include="Stores\compiled\TradeStore.cs" />
     <Compile Include="ThingReceivedEventArgs.cs" />
@@ -98,6 +99,7 @@
     <Content Include="Packets\UpdateTradeItemsResponsePacket.proto" />
     <Content Include="Packets\UpdateTradeStatusPacket.proto" />
     <Content Include="Stores\ActiveTradesStore.proto" />
+    <Content Include="Stores\CompletedTradeStore.proto" />
     <Content Include="Stores\ProtoThings.proto" />
     <Content Include="Stores\TradeStore.proto" />
   </ItemGroup>

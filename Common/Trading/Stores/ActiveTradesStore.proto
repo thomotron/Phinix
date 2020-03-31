@@ -2,8 +2,11 @@ syntax = "proto3";
 package Trading;
 
 import "Stores/TradeStore.proto";
+import "Stores/CompletedTradeStore.proto";
 
 message ActiveTradesStore
 {
     repeated TradeStore Trades = 1;
+
+    repeated CompletedTradeStore CompletedTrades = 2;
 };

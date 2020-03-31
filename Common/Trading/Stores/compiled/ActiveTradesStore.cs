@@ -25,12 +25,14 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Ch5TdG9yZXMvQWN0aXZlVHJhZGVzU3RvcmUucHJvdG8SB1RyYWRpbmcaF1N0",
-            "b3Jlcy9UcmFkZVN0b3JlLnByb3RvIjgKEUFjdGl2ZVRyYWRlc1N0b3JlEiMK",
-            "BlRyYWRlcxgBIAMoCzITLlRyYWRpbmcuVHJhZGVTdG9yZWIGcHJvdG8z"));
+            "b3Jlcy9UcmFkZVN0b3JlLnByb3RvGiBTdG9yZXMvQ29tcGxldGVkVHJhZGVT",
+            "dG9yZS5wcm90byJvChFBY3RpdmVUcmFkZXNTdG9yZRIjCgZUcmFkZXMYASAD",
+            "KAsyEy5UcmFkaW5nLlRyYWRlU3RvcmUSNQoPQ29tcGxldGVkVHJhZGVzGAIg",
+            "AygLMhwuVHJhZGluZy5Db21wbGV0ZWRUcmFkZVN0b3JlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Trading.TradeStoreReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Trading.TradeStoreReflection.Descriptor, global::Trading.CompletedTradeStoreReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ActiveTradesStore), global::Trading.ActiveTradesStore.Parser, new[]{ "Trades" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ActiveTradesStore), global::Trading.ActiveTradesStore.Parser, new[]{ "Trades", "CompletedTrades" }, null, null, null, null)
           }));
     }
     #endregion
@@ -63,6 +65,7 @@ namespace Trading {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ActiveTradesStore(ActiveTradesStore other) : this() {
       trades_ = other.trades_.Clone();
+      completedTrades_ = other.completedTrades_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -81,6 +84,16 @@ namespace Trading {
       get { return trades_; }
     }
 
+    /// <summary>Field number for the "CompletedTrades" field.</summary>
+    public const int CompletedTradesFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Trading.CompletedTradeStore> _repeated_completedTrades_codec
+        = pb::FieldCodec.ForMessage(18, global::Trading.CompletedTradeStore.Parser);
+    private readonly pbc::RepeatedField<global::Trading.CompletedTradeStore> completedTrades_ = new pbc::RepeatedField<global::Trading.CompletedTradeStore>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Trading.CompletedTradeStore> CompletedTrades {
+      get { return completedTrades_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ActiveTradesStore);
@@ -95,6 +108,7 @@ namespace Trading {
         return true;
       }
       if(!trades_.Equals(other.trades_)) return false;
+      if(!completedTrades_.Equals(other.completedTrades_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -102,6 +116,7 @@ namespace Trading {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= trades_.GetHashCode();
+      hash ^= completedTrades_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -116,6 +131,7 @@ namespace Trading {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       trades_.WriteTo(output, _repeated_trades_codec);
+      completedTrades_.WriteTo(output, _repeated_completedTrades_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -125,6 +141,7 @@ namespace Trading {
     public int CalculateSize() {
       int size = 0;
       size += trades_.CalculateSize(_repeated_trades_codec);
+      size += completedTrades_.CalculateSize(_repeated_completedTrades_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -137,6 +154,7 @@ namespace Trading {
         return;
       }
       trades_.Add(other.trades_);
+      completedTrades_.Add(other.completedTrades_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -150,6 +168,10 @@ namespace Trading {
             break;
           case 10: {
             trades_.AddEntriesFrom(input, _repeated_trades_codec);
+            break;
+          }
+          case 18: {
+            completedTrades_.AddEntriesFrom(input, _repeated_completedTrades_codec);
             break;
           }
         }
