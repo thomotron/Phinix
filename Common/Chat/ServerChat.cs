@@ -104,7 +104,7 @@ namespace Chat
                     }
                 }
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} chat messages", messageHistory.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} chat message{1}", messageHistory.Count, messageHistory.Count != 1 ? "s" : "")));
             }
         }
 
@@ -145,7 +145,7 @@ namespace Chat
                 // Parse the messages
                 messageHistory = store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} chat messages", messageHistory.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} chat message{1}", messageHistory.Count, messageHistory.Count != 1 ? "s" : "")));
             }
         }
 

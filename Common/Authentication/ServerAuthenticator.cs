@@ -229,7 +229,7 @@ namespace Authentication
                     }
                 }
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} credentials", credentialStore.Credentials.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} credential{1}", credentialStore.Credentials.Count, credentialStore.Credentials.Count != 1 ? "s" : "")));
             }
         }
 
@@ -251,7 +251,7 @@ namespace Authentication
                     }
                 }
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} credentials", credentialStore.Credentials.Count)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} credential{1}", credentialStore.Credentials.Count, credentialStore.Credentials.Count != 1 ? "s" : "")));
             }
         }
 
