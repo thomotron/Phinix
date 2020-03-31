@@ -38,19 +38,14 @@ namespace Trading
         /// </summary>
         private Dictionary<string, Trade> activeTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <see cref="activeTrades"/>.
-        /// </summary>
-        private object activeTradesLock = new object();
-
-        /// <summary>
         /// Collection of completed trades organised by trade ID.
         /// Trades are stored here until both parties have been notified that they have been completed.
         /// </summary>
         private Dictionary<string, CompletedTrade> completedTrades;
         /// <summary>
-        /// Lock object to prevent race conditions when accessing <see cref="completedTrades"/>.
+        /// Lock object to prevent race conditions when accessing <see cref="activeTrades"/> and <see cref="completedTrades"/>.
         /// </summary>
-        private object completedTradesLock = new object();
+        private object tradeDataLock = new object();
 
         public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
         {
@@ -77,7 +72,7 @@ namespace Trading
         /// <param name="path">Active trade store path</param>
         public void Save(string path)
         {
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Create the store from the trade list
                 ActiveTradesStore store = new ActiveTradesStore
@@ -106,7 +101,7 @@ namespace Trading
         /// <param name="path">Active trade store path</param>
         public void Load(string path)
         {
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Create a new store if one doesn't already exist
                 if (!File.Exists(path))
@@ -175,7 +170,7 @@ namespace Trading
         private void loginEventHandler(object sender, ServerLoginEventArgs args)
         {
             // Send the user a list of their active trades
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Get all trades involving the user
                 List<Trade> trades = activeTrades.Values.Where(trade => trade.PartyUuids.Contains(args.Uuid)).ToList();
@@ -186,11 +181,8 @@ namespace Trading
                     // Send the user a sync packet with each trade
                     sendSyncTradesPacket(args.ConnectionId, trades, args.Uuid);
                 }
-            }
 
-            // Notify the user of trades they were not notified of earlier
-            lock (completedTradesLock)
-            {
+                // Notify the user of trades they were not notified of earlier
                 // Get all trades where the user is pending notification
                 IEnumerable<CompletedTrade> tradesPendingNotification = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
 
@@ -285,7 +277,7 @@ namespace Trading
                 return;
             }
 
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Check if both parties are already in another active trade
                 bool alreadyTrading = activeTrades.Values.Any(t => t.PartyUuids.Contains(packet.Uuid) && t.PartyUuids.Contains(packet.OtherPartyUuid));
@@ -383,7 +375,7 @@ namespace Trading
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
 
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Make sure the trade exists, returning on failure
                 if (!activeTrades.ContainsKey(packet.TradeId)) return;
@@ -396,34 +388,31 @@ namespace Trading
                 // Check if the trade is being cancelled
                 if (packet.Cancelled)
                 {
-                    lock (completedTradesLock)
-                    {
-                        // Move the trade from the active trades dictionary to the completed trades dictionary
-                        completedTrades.Add(trade.TradeId, new CompletedTrade(trade, new []{packet.Uuid, otherPartyUuid}, true));
-                        CompletedTrade completedTrade = completedTrades[trade.TradeId];
-                        activeTrades.Remove(trade.TradeId);
-                        trade = completedTrade.Trade;
+                    // Move the trade from the active trades dictionary to the completed trades dictionary
+                    completedTrades.Add(trade.TradeId, new CompletedTrade(trade, new []{packet.Uuid, otherPartyUuid}, true));
+                    CompletedTrade completedTrade = completedTrades[trade.TradeId];
+                    activeTrades.Remove(trade.TradeId);
+                    trade = completedTrade.Trade;
 
-                        // Try to get the sender's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
+                    // Try to get the sender's items on offer, returning on failure
+                    if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
 
-                        // Return the sender's items to them and check them off the pending notification list
-                        sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
-                        completedTrade.PendingNotification.Remove(packet.Uuid);
+                    // Return the sender's items to them and check them off the pending notification list
+                    sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
+                    completedTrade.PendingNotification.Remove(packet.Uuid);
 
-                        // Try to get the other party's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
+                    // Try to get the other party's items on offer, returning on failure
+                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
 
-                        // Check if the other party is logged in
-                        if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
+                    // Check if the other party is logged in
+                    if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
 
-                        // Try to get the other party's connection ID
-                        if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
+                    // Try to get the other party's connection ID
+                    if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
 
-                        // Return the other party's items to them and check them off the pending notification list
-                        sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
-                        completedTrade.PendingNotification.Remove(otherPartyUuid);
-                    }
+                    // Return the other party's items to them and check them off the pending notification list
+                    sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
+                    completedTrade.PendingNotification.Remove(otherPartyUuid);
                 }
                 else
                 {
@@ -566,7 +555,7 @@ namespace Trading
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
 
-            lock (activeTradesLock)
+            lock (tradeDataLock)
             {
                 // Make sure trade exists
                 if (!activeTrades.ContainsKey(packet.TradeId))
