@@ -160,6 +160,25 @@ namespace PhinixServer
             this.addressString = Address.ToString();
         }
 
+        [OnDeserializing]
+        private void OnDeserialising(StreamingContext context)
+        {
+            if (string.IsNullOrEmpty(addressString)) addressString = IPAddress.Any.ToString();
+            if (Port < 1 || Port > 65535) Port = 16200;
+            if (MaxConnections < 0) MaxConnections = 1000;
+            if (string.IsNullOrEmpty(LogPath)) LogPath = "server.log";
+            // Ignore Display- and LogVerbosity since they always have a value
+            if (string.IsNullOrEmpty(UserDatabasePath)) UserDatabasePath = "users";
+            if (string.IsNullOrEmpty(CredentialDatabasePath)) CredentialDatabasePath = "credentials";
+            if (string.IsNullOrEmpty(ChatHistoryPath)) ChatHistoryPath = "chatHistory";
+            if (string.IsNullOrEmpty(TradeDatabasePath)) TradeDatabasePath = "trades";
+            if (string.IsNullOrEmpty(ServerName)) ServerName = "Phinix Server";
+            if (string.IsNullOrEmpty(ServerDescription)) ServerDescription = "A Phinix server.";
+            // Ignore AuthType since it always has a value
+            if (MaxDisplayNameLength < 1) MaxDisplayNameLength = 100;
+            if (ChatHistoryLength < 0) ChatHistoryLength = 40;
+        }
+
         /// <summary>
         /// Called after the <see cref="Config"/> is deserialised.
         /// Used to convert easy-to-edit types back into their complex counterparts.
