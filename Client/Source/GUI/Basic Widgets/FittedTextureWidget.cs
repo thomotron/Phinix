@@ -20,7 +20,7 @@ namespace PhinixClient.GUI
             this.texture = texture;
             this.scale = scale;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {

@@ -41,17 +41,25 @@ namespace PhinixServer
         }
 
         /// <summary>
-        /// Appends a message to the console and log file with a timestamp and verbosity level.
+        /// Appends a message to the console and log file with a timestamp and verbosity level. Optionally prepends a
+        /// module name before the message.
         /// </summary>
         /// <param name="verbosity">Verbosity level</param>
         /// <param name="message">Message</param>
-        public void Log(Verbosity verbosity, string message)
+        /// <param name="module">Module prefix</param>
+        public void Log(Verbosity verbosity, string message, string module = null)
         {
-            string formattedEntry = string.Format("[{0:u}][{1}] {2}{3}", DateTime.UtcNow, verbosity.ToString(), message, Environment.NewLine);
+            string formattedEntry = string.Format("[{0:u}][{1}]{2} {3}{4}",
+                DateTime.UtcNow,
+                verbosity.ToString(),
+                module != null ? "[" + module + "]" : "",
+                message,
+                Environment.NewLine
+            );
 
             // Only write to the console if the verbosity meets the minimum
             if (verbosity >= DisplayVerbosity) Console.Write(formattedEntry);
-            
+
             // Only write to disk if the verbosity meets the minimum
             if (verbosity >= LogVerbosity) File.AppendAllText(logPath, formattedEntry);
         }

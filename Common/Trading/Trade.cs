@@ -34,7 +34,7 @@ namespace Trading
         public Trade(IEnumerable<string> partyUuids)
         {
             this.PartyUuids = partyUuids.ToArray();
-            
+
             this.TradeId = Guid.NewGuid().ToString();
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
@@ -49,9 +49,24 @@ namespace Trading
         {
             this.TradeId = tradeId;
             this.PartyUuids = partyUuids.ToArray();
-            
+
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
             this.AcceptedParties = new List<string>();
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Trade"/> with the given trade ID, parties, items on offer, and list of accepted parties.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="partyUuids">UUIDs of each party</param>
+        /// <param name="itemsOnOffer">Items on offer by each party organised by their UUIDs</param>
+        /// <param name="acceptedParties">UUIDs of each party that has accepted</param>
+        private Trade(string tradeId, IEnumerable<string> partyUuids, Dictionary<string, ProtoThing[]> itemsOnOffer, IEnumerable<string> acceptedParties)
+        {
+            this.TradeId = tradeId;
+            this.PartyUuids = partyUuids.ToArray();
+            this.ItemsOnOffer = itemsOnOffer;
+            this.AcceptedParties = acceptedParties.ToList();
         }
 
         /// <summary>
@@ -75,13 +90,13 @@ namespace Trading
             {
                 ItemsOnOffer[partyUuid] = items.ToArray();
             }
-            
+
             // Reset all parties' accepted states
             AcceptedParties.Clear();
 
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to clear the items on offer for the given party and resets the accepted status of all parties.
         /// Returns whether the operation completed successfully.
@@ -98,7 +113,7 @@ namespace Trading
             {
                 ItemsOnOffer.Remove(partyUuid);
             }
-            
+
             // Reset all parties' accepted states
             AcceptedParties.Clear();
 
@@ -116,7 +131,7 @@ namespace Trading
         {
             // Set items to something arbitrary
             items = null;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -146,7 +161,7 @@ namespace Trading
         {
             // Set other party's UUID to something arbitrary
             otherPartyUuid = null;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -175,7 +190,7 @@ namespace Trading
         {
             // Set accepted to something arbitrary
             accepted = false;
-            
+
             // Check if the party UUID is present in this trade
             if (!PartyUuids.Contains(partyUuid)) return false;
 
@@ -184,7 +199,7 @@ namespace Trading
 
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to set whether this party has accepted this trade.
         /// Returns whether the accepted state was set successfully.
@@ -214,6 +229,44 @@ namespace Trading
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Convert to a <see cref="TradeStore"/>.
+        /// </summary>
+        /// <returns>Converted <see cref="TradeStore"/></returns>
+        public static TradeStore ToTradeStore(Trade trade)
+        {
+            // Fill out the majority of the store
+            TradeStore store = new TradeStore
+            {
+                TradeId = trade.TradeId,
+                PartyUuids = { trade.PartyUuids },
+                AcceptedParties = { trade.AcceptedParties }
+            };
+
+            // Add the items on offer
+            foreach (KeyValuePair<string, ProtoThing[]> pair in trade.ItemsOnOffer)
+            {
+                store.ItemsOnOffer.Add(pair.Key, new ProtoThings { Things = { pair.Value } });
+            }
+
+            return store;
+        }
+
+        /// <summary>
+        /// Recreates a <see cref="Trade"/> from a <see cref="TradeStore"/>.
+        /// </summary>
+        /// <param name="store"><see cref="TradeStore"/> to create from</param>
+        /// <returns>Recreated <see cref="Trade"/></returns>
+        public static Trade FromTradeStore(TradeStore store)
+        {
+            return new Trade(
+                tradeId: store.TradeId,
+                partyUuids: store.PartyUuids,
+                itemsOnOffer: store.ItemsOnOffer.ToDictionary(pair => pair.Key, pair => pair.Value.Things.ToArray()),
+                acceptedParties: store.AcceptedParties
+            );
         }
     }
 }

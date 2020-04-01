@@ -7,7 +7,7 @@ using Verse;
 
 namespace PhinixClient.GUI
 {
-    internal class ScrollContainer : Displayable
+    internal class VerticalScrollContainer : Displayable
     {
         private const float SCROLL_BAR_WIDTH = 16f;
 
@@ -15,18 +15,18 @@ namespace PhinixClient.GUI
         /// Contents of the container.
         /// </summary>
         private Displayable child;
-        
+
         /// <summary>
         /// Callback invoked when the scroll position is changed.
         /// </summary>
         private Action<Vector2> onScroll;
-        
+
         /// <summary>
         /// Scroll position of the container.
         /// </summary>
         private Vector2 scrollPosition = Vector2.zero;
 
-        public ScrollContainer(Displayable child, Vector2 scrollPosition, Action<Vector2> onScroll)
+        public VerticalScrollContainer(Displayable child, Vector2 scrollPosition, Action<Vector2> onScroll)
         {
             this.scrollPosition = scrollPosition;
             this.child = child;
@@ -36,33 +36,30 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            // Create a container for the 'view' (i.e. the window we look at scrollable content through)
-            Rect viewRect = inRect.LeftPartPixels(inRect.width - SCROLL_BAR_WIDTH);
-
-            // We calculate the overflowed size the children will take
+            // Calculate the overflowed size the children will take
             // Only supports y-overflow at the moment
-            float widthChild = viewRect.width;
-            float heightChild = child.CalcHeight(viewRect.width);
+            float widthChild = inRect.width - SCROLL_BAR_WIDTH;
+            float heightChild = child.CalcHeight(widthChild);
             if (heightChild == FLUID)
             {
-                // If the child is height-fluid, we attribute the available space
-                heightChild = viewRect.height;
+                // If the child is height-fluid, we attribute all available space
+                heightChild = inRect.height;
             }
-            
+
             // Create an inner container that will hold the scrollable content
-            Rect childRect = new Rect(0, 0, widthChild, heightChild);
-            
+            Rect viewRect = new Rect(inRect.xMin, inRect.yMin, widthChild, heightChild);
+
             // Begin scrolling
-            Widgets.BeginScrollView(inRect, ref scrollPosition, childRect);
-            
-            // Invoke the scroll callback
-            onScroll?.Invoke(scrollPosition);
-            
+            Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect);
+
             // Draw the contents
-            child.Draw(childRect);
+            child.Draw(viewRect);
 
             // Stop scrolling
             Widgets.EndScrollView();
+
+            // Invoke the scroll callback
+            onScroll?.Invoke(scrollPosition);
         }
     }
 }

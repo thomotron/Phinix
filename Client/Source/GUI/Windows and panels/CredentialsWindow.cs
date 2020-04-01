@@ -8,7 +8,7 @@ namespace PhinixClient
     public class CredentialsWindow : Window
     {
         private const float DEFAULT_SPACING = 10f;
-        
+
         private const float TITLE_HEIGHT = 30f;
 
         private const float SERVER_NAME_HEIGHT = 40f;
@@ -17,7 +17,7 @@ namespace PhinixClient
         private const float USERNAME_INPUT_HEIGHT = 30f;
         private const float PASSWORD_INPUT_HEIGHT = 30f;
         private const float SUBMIT_BUTTON_HEIGHT = 30f;
-        
+
         public override Vector2 InitialSize => new Vector2(400f, 600f);
 
         public string SessionId;
@@ -25,18 +25,18 @@ namespace PhinixClient
         public string ServerDescription;
         public AuthTypes AuthType;
         public ClientAuthenticator.ReturnCredentialsDelegate CredentialsCallback;
-        
+
         private Vector2 serverDescriptionScrollPosition = new Vector2(0f, 0f);
-        
+
         private string usernameText = "";
         private string passwordText = "";
-        
+
         public override void DoWindowContents(Rect inRect)
         {
             doCloseX = true;
             doCloseButton = false;
             doWindowBackground = true;
-            
+
             // Log in title
             Rect titleRect = new Rect(
                 x: inRect.xMin,
@@ -54,7 +54,7 @@ namespace PhinixClient
                 height: SERVER_NAME_HEIGHT + SERVER_DESCRIPTION_HEIGHT + DEFAULT_SPACING
             );
             DrawServerDetails(serverDetailRect);
-            
+
             // Credential input container
             Rect credentialInputRect = new Rect(
                 x: inRect.xMin,
@@ -64,11 +64,11 @@ namespace PhinixClient
             );
             DrawUsernamePasswordInput(credentialInputRect);
         }
-        
+
         public override void PostClose()
         {
             base.PostClose();
-            
+
             // Failed credentials collection attempt, only call if the callback isn't null (i.e. we've already responded)
             CredentialsCallback?.Invoke(false, null, 0, null, null);
         }
@@ -82,7 +82,7 @@ namespace PhinixClient
                 height: USERNAME_INPUT_HEIGHT
             );
             usernameText = Widgets.TextField(usernameRect, usernameText);
-            
+
             Rect passwordRect = new Rect(
                 x: container.xMin,
                 y: container.yMin + USERNAME_INPUT_HEIGHT + DEFAULT_SPACING,
@@ -90,7 +90,7 @@ namespace PhinixClient
                 height: PASSWORD_INPUT_HEIGHT
             );
             passwordText = Widgets.TextField(passwordRect, passwordText); // TODO: Hide password text
-            
+
             Rect submitButtonRect = new Rect(
                 x: container.xMin,
                 y: container.yMin + USERNAME_INPUT_HEIGHT + PASSWORD_INPUT_HEIGHT + (DEFAULT_SPACING * 2),
@@ -101,10 +101,10 @@ namespace PhinixClient
             {
                 // Return the entered credentials
                 CredentialsCallback?.Invoke(true, SessionId, AuthType, usernameText, passwordText);
-                
+
                 // Nullify the callback to prevent calling again in PostClose()
                 CredentialsCallback = null;
-                
+
                 // Close the window
                 this.Close();
             }
@@ -119,7 +119,7 @@ namespace PhinixClient
                 height: SERVER_NAME_HEIGHT
             );
             Widgets.Label(serverNameRect, ServerName);
-            
+
             Rect serverDescriptionRect = new Rect(
                 x: container.xMin,
                 y: container.yMin + SERVER_NAME_HEIGHT + DEFAULT_SPACING,

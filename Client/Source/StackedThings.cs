@@ -44,7 +44,7 @@ namespace PhinixClient
             {
                 // Check if we have collected all necessary things
                 if (remainingThings == 0) break;
-                
+
                 // Check if this thing has more in its stack than we need to take
                 if (thing.stackCount > remainingThings)
                 {
@@ -72,7 +72,7 @@ namespace PhinixClient
 
                 // Set the stack size to the target amount
                 thingToModify.stackCount = targetAmount;
-                
+
                 // Convert and add the modified thing
                 convertedThings.Add(TradingThingConverter.ConvertThingFromVerse(thingToModify));
 
@@ -91,13 +91,13 @@ namespace PhinixClient
         public IEnumerable<Thing> PopSelected()
         {
             List<Thing> poppedThings = new List<Thing>();
-            
+
             int remainingThings = Selected;
             foreach (Thing thing in Things)
             {
                 // Check if we have popped all the necessary things, exiting the loop if so
                 if (remainingThings == 0) break;
-                
+
                 // Check if this thing has more in its stack than we need to take
                 if (thing.stackCount > remainingThings)
                 {
@@ -112,7 +112,7 @@ namespace PhinixClient
                     remainingThings -= thing.stackCount;
                 }
             }
-            
+
             // Remove the things we popped
             foreach (Thing thing in poppedThings)
             {
@@ -129,13 +129,13 @@ namespace PhinixClient
         {
             // Set up a list to hold all things pending destruction
             List<Thing> thingsToDestroy = new List<Thing>();
-            
+
             int remainingThings = Selected;
             foreach (Thing thing in Things)
             {
                 // Check if we have deleted all the necessary things, exiting the loop if so
                 if (remainingThings == 0) break;
-                
+
                 // Check if this thing has more in its stack than we need to take
                 if (thing.stackCount > remainingThings)
                 {
@@ -156,12 +156,12 @@ namespace PhinixClient
             {
                 // Remove this thing from the things list
                 Things.Remove(thing);
-                
+
                 // Destroy it
                 thing.Destroy();
             }
         }
-        
+
         /// <summary>
         /// Groups the given collection of items by their def type and stackability.
         /// </summary>
@@ -171,7 +171,7 @@ namespace PhinixClient
         {
             // Set up an item dictionary
             Dictionary<string, List<StackedThings>> groupedItems = new Dictionary<string, List<StackedThings>>();
-            
+
             foreach (Thing item in items)
             {
                 // Check if this item type already has a group

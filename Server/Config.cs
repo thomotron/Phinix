@@ -67,7 +67,7 @@ namespace PhinixServer
         /// </summary>
         [DataMember(Name = "CredentialDatabaseFile", Order = 7)]
         public string CredentialDatabasePath = "credentials";
-        
+
         /// <summary>
         /// Path to the chat history file.
         /// </summary>
@@ -75,33 +75,39 @@ namespace PhinixServer
         public string ChatHistoryPath = "chatHistory";
 
         /// <summary>
+        /// Path to the chat history file.
+        /// </summary>
+        [DataMember(Name = "TradeDatabaseFile", Order = 9)]
+        public string TradeDatabasePath = "trades";
+
+        /// <summary>
         /// Name of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerName", Order = 9)]
+        [DataMember(Name = "ServerName", Order = 10)]
         public string ServerName = "Phinix Server";
-        
+
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerDescription", Order = 10)]
+        [DataMember(Name = "ServerDescription", Order = 11)]
         public string ServerDescription = "A Phinix server.";
-        
+
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
-        [DataMember(Name = "AuthType", Order = 11)]
+        [DataMember(Name = "AuthType", Order = 12)]
         public AuthTypes AuthType = AuthTypes.ClientKey;
 
         /// <summary>
         /// Maximum display name length for users.
         /// </summary>
-        [DataMember(Name = "MaxDisplayNameLength", Order = 12)]
+        [DataMember(Name = "MaxDisplayNameLength", Order = 13)]
         public int MaxDisplayNameLength = 100;
 
         /// <summary>
         /// Maximum number of chat messages to store in the chat history buffer.
         /// </summary>
-        [DataMember(Name = "ChatHistoryLength", Order = 13)]
+        [DataMember(Name = "ChatHistoryLength", Order = 14)]
         public int ChatHistoryLength = 40;
 
         /// <summary>
@@ -142,7 +148,7 @@ namespace PhinixServer
                 new DataContractSerializer(typeof(Config)).WriteObject(writer, this);
             }
         }
-        
+
         /// <summary>
         /// Called before the <see cref="Config"/> is serialised.
         /// Used to convert complex types to something easier to edit by hand.
@@ -153,7 +159,26 @@ namespace PhinixServer
         {
             this.addressString = Address.ToString();
         }
-        
+
+        [OnDeserializing]
+        private void OnDeserialising(StreamingContext context)
+        {
+            if (string.IsNullOrEmpty(addressString)) addressString = IPAddress.Any.ToString();
+            if (Port < 1 || Port > 65535) Port = 16200;
+            if (MaxConnections < 0) MaxConnections = 1000;
+            if (string.IsNullOrEmpty(LogPath)) LogPath = "server.log";
+            // Ignore Display- and LogVerbosity since they always have a value
+            if (string.IsNullOrEmpty(UserDatabasePath)) UserDatabasePath = "users";
+            if (string.IsNullOrEmpty(CredentialDatabasePath)) CredentialDatabasePath = "credentials";
+            if (string.IsNullOrEmpty(ChatHistoryPath)) ChatHistoryPath = "chatHistory";
+            if (string.IsNullOrEmpty(TradeDatabasePath)) TradeDatabasePath = "trades";
+            if (string.IsNullOrEmpty(ServerName)) ServerName = "Phinix Server";
+            if (string.IsNullOrEmpty(ServerDescription)) ServerDescription = "A Phinix server.";
+            // Ignore AuthType since it always has a value
+            if (MaxDisplayNameLength < 1) MaxDisplayNameLength = 100;
+            if (ChatHistoryLength < 0) ChatHistoryLength = 40;
+        }
+
         /// <summary>
         /// Called after the <see cref="Config"/> is deserialised.
         /// Used to convert easy-to-edit types back into their complex counterparts.
