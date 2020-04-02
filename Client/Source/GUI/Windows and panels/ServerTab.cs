@@ -125,14 +125,13 @@ namespace PhinixClient
             );
 
             // User list
-            if (Instance.Online)
-            {
-                column.Add(GenerateUserList());
-            }
-            else
-            {
-                column.Add(new PlaceholderWidget());
-            }
+            column.Add(
+                new ConditionalContainer(
+                    childIfTrue: GenerateUserList(),
+                    childIfFalse: new PlaceholderWidget(),
+                    condition: () => Instance.Online
+                )
+            );
 
             // Return the generated column
             return column;
