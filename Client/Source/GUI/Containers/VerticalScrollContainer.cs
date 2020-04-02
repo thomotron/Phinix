@@ -26,9 +26,8 @@ namespace PhinixClient.GUI
         /// </summary>
         private Vector2 scrollPosition = Vector2.zero;
 
-        public VerticalScrollContainer(Displayable child, Vector2 scrollPosition, Action<Vector2> onScroll)
+        public VerticalScrollContainer(Displayable child, Action<Vector2> onScroll = null)
         {
-            this.scrollPosition = scrollPosition;
             this.child = child;
             this.onScroll = onScroll;
         }
@@ -49,6 +48,9 @@ namespace PhinixClient.GUI
             // Create an inner container that will hold the scrollable content
             Rect viewRect = new Rect(inRect.xMin, inRect.yMin, widthChild, heightChild);
 
+            // Get a copy of the current scroll position
+            Vector2 previousScrollPosition = new Vector2(scrollPosition.x, scrollPosition.y);
+
             // Begin scrolling
             Widgets.BeginScrollView(inRect, ref scrollPosition, viewRect);
 
@@ -58,8 +60,12 @@ namespace PhinixClient.GUI
             // Stop scrolling
             Widgets.EndScrollView();
 
-            // Invoke the scroll callback
-            onScroll?.Invoke(scrollPosition);
+            // Check if the scroll position changed
+            if (!scrollPosition.Equals(previousScrollPosition))
+            {
+                // Invoke the scroll callback
+                onScroll?.Invoke(scrollPosition);
+            }
         }
 
         /// <inheritdoc />

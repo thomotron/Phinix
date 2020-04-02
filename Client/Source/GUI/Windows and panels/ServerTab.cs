@@ -36,8 +36,6 @@ namespace PhinixClient
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
 
-        private static Vector2 userListScroll = new Vector2(0, 0);
-
         private static string message = "";
         private static string userSearch = "";
 
@@ -224,7 +222,7 @@ namespace PhinixClient
             }
 
             // Wrap the flex container in a scroll container
-            VerticalScrollContainer verticalScrollContainer = new VerticalScrollContainer(userListFlexContainer, userListScroll, newScrollPos => userListScroll = newScrollPos);
+            VerticalScrollContainer verticalScrollContainer = new VerticalScrollContainer(userListFlexContainer);
 
             // Return the scroll container
             return verticalScrollContainer;
@@ -292,7 +290,7 @@ namespace PhinixClient
             }
 
             // Return the generated column wrapped in a scroll container
-            return new VerticalScrollContainer(column, activeTradesScroll, newScrollPos => activeTradesScroll = newScrollPos);
+            return new VerticalScrollContainer(column);
         }
 
         /// <summary>

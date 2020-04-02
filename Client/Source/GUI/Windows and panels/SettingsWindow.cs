@@ -219,9 +219,7 @@ namespace PhinixClient
                 new TextWidget(
                     text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
                     wrap: false
-                ),
-                scrollPosition: namePreviewScrollPos,
-                onScroll: (newPos) => namePreviewScrollPos = newPos
+                )
             );
 
             // Return the generated row

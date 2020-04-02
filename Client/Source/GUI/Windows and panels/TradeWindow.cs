@@ -555,7 +555,6 @@ namespace PhinixClient
                 column.Add(
                     GenerateItemList(
                         itemStacks: ourOfferCache,
-                        scrollPos: ourOfferScrollPos,
                         scrollUpdate: newScrollPos => ourOfferScrollPos = newScrollPos
                     )
                 );
@@ -591,7 +590,6 @@ namespace PhinixClient
                 column.Add(
                     GenerateItemList(
                         itemStacks: theirOfferCache,
-                        scrollPos: theirOfferScrollPos,
                         scrollUpdate: newScrollPos => theirOfferScrollPos = newScrollPos
                     )
                 );
@@ -702,7 +700,7 @@ namespace PhinixClient
 
             // Stockpile items list
             column.Add(
-                GenerateItemList(filteredItemStacks, stockpileItemsScrollPos, newScrollPos => stockpileItemsScrollPos = newScrollPos, true)
+                GenerateItemList(filteredItemStacks, newScrollPos => stockpileItemsScrollPos = newScrollPos, true)
             );
 
             // Return the generated flex container
@@ -716,7 +714,7 @@ namespace PhinixClient
         /// <param name="scrollPos">List scroll position</param>
         /// <param name="scrollUpdate">Action invoked with the scroll position of the item list when it is drawn</param>
         /// <param name="interactive">Whether the item counts should be modifiable by the user</param>
-        private VerticalScrollContainer GenerateItemList(IEnumerable<StackedThings> itemStacks, Vector2 scrollPos, Action<Vector2> scrollUpdate, bool interactive = false)
+        private VerticalScrollContainer GenerateItemList(IEnumerable<StackedThings> itemStacks, Action<Vector2> scrollUpdate, bool interactive = false)
         {
             // Create a new flex container as our 'column' to hold each element
             VerticalFlexContainer column = new VerticalFlexContainer(0f);
@@ -747,7 +745,7 @@ namespace PhinixClient
             }
 
             // Return the flex container wrapped in a scroll container
-            return new VerticalScrollContainer(column, scrollPos, scrollUpdate);
+            return new VerticalScrollContainer(column, scrollUpdate);
         }
     }
 }
