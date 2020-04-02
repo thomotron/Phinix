@@ -2,6 +2,7 @@
 using System.Threading;
 using PhinixClient.GUI;
 using UnityEngine;
+using Utils;
 using Verse;
 
 namespace PhinixClient
@@ -27,19 +28,19 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
-        private static Vector2 namePreviewScrollPos;
+        private VerticalFlexContainer contents;
 
-        public override void DoWindowContents(Rect inRect)
+        public SettingsWindow()
         {
             doCloseX = true;
             doCloseButton = false;
             doWindowBackground = true;
 
             // Create a flex container to hold our settings
-            VerticalFlexContainer flexContainer = new VerticalFlexContainer(DEFAULT_SPACING);
+            contents = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Server details (address and [dis]connect button) container
-            flexContainer.Add(
+            contents.Add(
                 new ConditionalContainer(
                     childIfTrue: GenerateConnectedServerDetails(),
                     childIfFalse: GenerateDisconnectedServerDetails(),
@@ -48,7 +49,7 @@ namespace PhinixClient
             );
 
             // Display name and preview
-            flexContainer.Add(
+            contents.Add(
                 new ConditionalContainer(
                     childIfTrue: new VerticalFlexContainer(
                         contents: new Displayable[]{GenerateEditableDisplayName(), GenerateNamePreview()},
@@ -58,9 +59,12 @@ namespace PhinixClient
                     condition: () => Client.Instance.Online
                 )
             );
+        }
 
+        public override void DoWindowContents(Rect inRect)
+        {
             // Draw the container with 5f padding at the top to avoid clipping with the close button
-            flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
+            contents.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
 
         /// <summary>
