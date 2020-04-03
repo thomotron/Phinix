@@ -12,7 +12,7 @@ namespace Trading
         /// The completed trade.
         /// </summary>
         public Trade Trade;
-        
+
         /// <summary>
         /// List of party UUIDs that are awaiting notification of the completed trade.
         /// </summary>
@@ -28,6 +28,21 @@ namespace Trading
             this.Trade = trade;
             this.PendingNotification = pendingNotification.ToList();
             this.Cancelled = cancelled;
+        }
+
+        public static CompletedTradeStore ToStore(CompletedTrade completedTrade)
+        {
+            return new CompletedTradeStore
+            {
+                Trade = Trade.ToTradeStore(completedTrade.Trade),
+                PendingNotification = { completedTrade.PendingNotification },
+                Cancelled = completedTrade.Cancelled
+            };
+        }
+
+        public static CompletedTrade FromStore(CompletedTradeStore store)
+        {
+            return new CompletedTrade(Trade.FromTradeStore(store.Trade), store.PendingNotification, store.Cancelled);
         }
     }
 }

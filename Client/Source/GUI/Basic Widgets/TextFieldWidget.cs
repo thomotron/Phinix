@@ -13,7 +13,7 @@ namespace PhinixClient.GUI
         /// The field's text content.
         /// </summary>
         private string text;
-        
+
         /// <summary>
         /// Callback invoked when the field's text changes
         /// </summary>
@@ -30,7 +30,7 @@ namespace PhinixClient.GUI
         {
             // Draw the text field
             string newText = Widgets.TextField(inRect, text);
-            
+
             // Check if the content has changed
             if (newText != text)
             {

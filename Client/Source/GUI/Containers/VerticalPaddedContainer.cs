@@ -9,7 +9,7 @@ namespace PhinixClient.GUI
 
         /// <inheritdoc />
         public override bool IsFluidWidth => false;
-        
+
         /// <summary>
         /// Contents of the container.
         /// </summary>
@@ -19,7 +19,7 @@ namespace PhinixClient.GUI
         /// Width of the container.
         /// </summary>
         private float width;
-        
+
         public VerticalPaddedContainer(Displayable child, float width)
         {
             this.child = child;
@@ -40,12 +40,12 @@ namespace PhinixClient.GUI
             {
                 // Create a flex container to hold the child and spacers
                 VerticalFlexContainer column = new VerticalFlexContainer(0f);
-                
+
                 // Sandwich the child between two spacers
                 column.Add(new SpacerWidget());
                 column.Add(child);
                 column.Add(new SpacerWidget());
-                
+
                 // Draw the container
                 column.Draw(inRect);
             }

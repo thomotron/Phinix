@@ -38,6 +38,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IPersistent.cs" />
     <Compile Include="LogEventArgs.cs" />
     <Compile Include="ILoggable.cs" />
     <Compile Include="LogLevel.cs" />

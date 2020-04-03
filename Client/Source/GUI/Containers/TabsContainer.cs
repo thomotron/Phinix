@@ -34,7 +34,7 @@ namespace PhinixClient.GUI
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
 
-            this.tabs = new List<TabContainerEntry>();
+            this.tabs = new List<TabEntry>();
         }
 
         /// <summary>
@@ -52,10 +52,8 @@ namespace PhinixClient.GUI
                 () =>
                 {
                     selectedTab = index;
-                    onTabChange?.Invoke(index);
-                },
-                selectedTab == index
-            );
+                    onTabChange(index);
+                }, selectedTab == index);
 
             // Add the tab to the tab list
             tabs.Add(new TabContainerEntry { tab = tab, displayable = displayable });
@@ -70,7 +68,7 @@ namespace PhinixClient.GUI
             // Ok, so for whatever reason the tabs are drawn /above/ whatever region you give them (why?!)
             // To work around this we just trim the tab height off of the container rect
             inRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
-            
+
             // We draw the top with tabs
             TabRecord selectedRecord = TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
 

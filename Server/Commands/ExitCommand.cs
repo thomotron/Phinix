@@ -12,7 +12,9 @@ namespace PhinixServer
 
         public override HelpEntry[] HelpEntries => new HelpEntry[]
         {
-            new HelpEntry("exit", "Shuts down the server")
+            new HelpEntry("exit", "Shuts down the server"),
+            new HelpEntry("quit", ""),
+            new HelpEntry("stop", "")
         };
 
         public override bool Execute(List<string> args)

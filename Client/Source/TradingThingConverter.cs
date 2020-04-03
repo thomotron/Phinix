@@ -18,7 +18,7 @@ namespace PhinixClient
         {
             // Try get the quality of the thing, failure defaulting to none
             Quality quality = verseThing.TryGetQuality(out QualityCategory gottenQuality) ? (Quality) gottenQuality : Quality.None;
-            
+
             // Create a Trading.Thing with attributes from verseThing
             Trading.ProtoThing protoThing = new Trading.ProtoThing
             {
@@ -27,7 +27,7 @@ namespace PhinixClient
                 HitPoints = verseThing.HitPoints,
                 Quality = quality
             };
-            
+
             // Check if verseThing has stuff
             if (verseThing.Stuff?.defName != null)
             {
@@ -41,11 +41,11 @@ namespace PhinixClient
                 // Set protoThing's inner thing
                 protoThing.InnerProtoThing = ConvertThingFromVerse(minifiedVerseThing.InnerThing);
             }
-            
+
             // Return constructed protoThing
             return protoThing;
         }
-        
+
         /// <summary>
         /// Converts a <c>Trading.Thing</c> into a <c>Verse.Thing</c>.
         /// Used for unloading a <c>Trading.Thing</c> after transport.
@@ -86,7 +86,7 @@ namespace PhinixClient
             Verse.Thing verseThing = ThingMaker.MakeThing(thingDef, stuffDef);
             verseThing.stackCount = protoThing.StackCount;
             verseThing.HitPoints = protoThing.HitPoints;
-            
+
             // Check if verseThing should have its quality set
             if (protoThing.Quality != Quality.None)
             {
@@ -94,14 +94,14 @@ namespace PhinixClient
                 // Art generation should be that of an outsider given that this is a traded item
                 verseThing.TryGetComp<CompQuality>()?.SetQuality((QualityCategory) protoThing.Quality, ArtGenerationContext.Outsider);
             }
-            
+
             // Check if verseThing is minified
             if (verseThing is MinifiedThing minifiedVerseThing)
             {
                 // Set verseThing's inner thing to protoThing's inner thing
                 minifiedVerseThing.InnerThing = protoThing.InnerProtoThing != null ? ConvertThingFromProto(protoThing.InnerProtoThing) : null;
             }
-            
+
             // Return the constructed Verse.Thing
             return verseThing;
         }
@@ -123,7 +123,7 @@ namespace PhinixClient
             {
                 // Normal conversion failed, crack out the unknown item def
                 ThingDef thingDef = DefDatabase<ThingDef>.AllDefs.Single(def => def.defName == "UnknownItem");
-    
+
                 // Make our base item and give it protoThing's stack count and hit points
                 UnknownItem verseThing = (UnknownItem) ThingMaker.MakeThing(thingDef);
                 verseThing.stackCount = protoThing.StackCount;
@@ -131,7 +131,7 @@ namespace PhinixClient
 
                 // Set the original label to protoThing's def name
                 verseThing.OriginalLabel = getInnerDefName(protoThing);
-                
+
                 // Return the constructed Verse.Thing
                 return verseThing;
             }
@@ -150,7 +150,7 @@ namespace PhinixClient
                 // Recurse and get the def name of protoThing's stuff
                 return getInnerDefName(protoThing.InnerProtoThing);
             }
-            
+
             // Return protoThing's def name
             return protoThing.DefName;
         }

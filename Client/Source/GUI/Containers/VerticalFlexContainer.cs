@@ -43,6 +43,9 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
+            // Don't do anything if there's nothing to draw
+            if (Contents.Count == 0) return;
+
             // Get the height taken up by fixed-height elements
             float fixedHeight = Contents.Where(item => !item.IsFluidHeight).Sum(item => item.CalcHeight(container.width));
 

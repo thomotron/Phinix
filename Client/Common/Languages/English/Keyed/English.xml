@@ -7,6 +7,7 @@
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
     <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
     <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
+    <Phinix_chat_contextMenu_copyToClipboard>Copy message to clipboard</Phinix_chat_contextMenu_copyToClipboard>
 
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>

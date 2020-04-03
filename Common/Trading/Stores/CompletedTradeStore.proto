@@ -1,0 +1,16 @@
+syntax = "proto3";
+package Trading;
+
+import "Stores/TradeStore.proto";
+
+message CompletedTradeStore
+{
+    // This trade's ID
+    TradeStore Trade = 1;
+
+    // UUIDs of each party pending notification
+    repeated string PendingNotification = 2;
+
+    // Whether the trade was cancelled
+    bool Cancelled = 3;
+}

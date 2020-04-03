@@ -29,7 +29,7 @@ namespace PhinixClient
             this.width = width;
             this.height = height;
         }
-        
+
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {

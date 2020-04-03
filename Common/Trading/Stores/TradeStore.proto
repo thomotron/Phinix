@@ -1,0 +1,19 @@
+syntax = "proto3";
+package Trading;
+
+import "Stores/ProtoThings.proto";
+
+message TradeStore
+{
+    // This trade's ID
+    string TradeId = 1;
+
+    // UUIDs of each party in this trade
+    repeated string PartyUuids = 2;
+
+    // Map of items on offer organised by each party's UUID
+    map<string, ProtoThings> ItemsOnOffer = 3;
+
+    // UUIDs of each party that has accepted
+    repeated string AcceptedParties = 4;
+}

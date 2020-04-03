@@ -11,21 +11,21 @@ namespace PhinixClient.GUI
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
-        
+
         private const float CHECKBOX_HEIGHT = 40f;
 
         /// <summary>
         /// Label text displayed next to the checkbox.
         /// </summary>
         private string label;
-        
+
         /// <summary>
         /// Whether the checkbox is checked.
         /// </summary>
         private bool isChecked;
 
         /// <summary>
-        /// Callback invoked when the checkbox state changes. 
+        /// Callback invoked when the checkbox state changes.
         /// </summary>
         private Action<bool> onChange;
 
@@ -41,7 +41,7 @@ namespace PhinixClient.GUI
         {
             // Get a copy of the old checked state to compare with later
             bool oldValue = isChecked;
-            
+
             // Draw the checkbox
             Widgets.CheckboxLabeled(inRect, label, ref isChecked);
 

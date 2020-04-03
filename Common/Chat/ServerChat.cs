@@ -11,13 +11,13 @@ using Utils;
 
 namespace Chat
 {
-    public class ServerChat : Chat
+    public class ServerChat : Chat, IPersistent
     {
         /// <inheritdoc/>
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc/>
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         /// <summary>
         /// <see cref="NetServer"/> instance to bind the packet handler to.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Chat
         /// Maximum number of chat messages to buffer in history.
         /// </summary>
         private int messageHistoryCapacity;
-        
+
         /// <summary>
         /// Initialises a new <see cref="ServerChat"/> instance.
         /// </summary>
@@ -59,9 +59,9 @@ namespace Chat
             this.authenticator = authenticator;
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
-            
+
             this.messageHistory = new List<ChatMessage>();
-            
+
             netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
             userManager.OnLogin += loginHandler;
         }
@@ -74,45 +74,79 @@ namespace Chat
         /// <param name="userManager"></param>
         /// <param name="messageHistoryCapacity"></param>
         /// <param name="messageHistoryStorePath"></param>
-        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath)
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, string messageHistoryStorePath) : this(netServer, authenticator, userManager, messageHistoryCapacity)
         {
-            this.netServer = netServer;
-            this.authenticator = authenticator;
-            this.userManager = userManager;
-            this.messageHistoryCapacity = messageHistoryCapacity;
-
-            this.LoadChatHistory(messageHistoryStorePath);
-            
-            netServer.RegisterPacketHandler(MODULE_NAME, packetHandler);
-            userManager.OnLogin += loginHandler;
+            Load(messageHistoryStorePath);
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Saves the chat history to the given file, overwriting if it exists.
         /// </summary>
         /// <param name="path">Chat history store path</param>
-        public void SaveChatHistory(string path)
+        public void Save(string path)
         {
             lock (messageHistoryLock)
             {
-                saveMessageHistory(path, messageHistory);
+                // Create the store from the message list
+                ChatHistoryStore store = new ChatHistoryStore
+                {
+                    ChatMessages = { messageHistory.Select(message => message.ToChatMessageStore()) }
+                };
+
+                // Create or truncate the file
+                using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+                {
+                    using (CodedOutputStream cos = new CodedOutputStream(fs))
+                    {
+                        // Write the store to disk
+                        store.WriteTo(cos);
+                    }
+                }
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} chat message{1}", messageHistory.Count, messageHistory.Count != 1 ? "s" : "")));
             }
-            
-            RaiseLogEntry(new LogEventArgs("Saved chat history"));
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Loads the chat history from the given file.
         /// </summary>
         /// <param name="path">Chat history store path</param>
-        public void LoadChatHistory(string path)
+        public void Load(string path)
         {
             lock (messageHistoryLock)
             {
-                messageHistory = getMessageHistory(path);
+                // Create a new store if one doesn't already exist
+                if (!File.Exists(path))
+                {
+                    RaiseLogEntry(new LogEventArgs("No chat history file, generating a new one"));
+
+                    // Create a new message history list
+                    messageHistory = new List<ChatMessage>();
+
+                    // Save a new store to disk
+                    Save(path);
+
+                    // Stop here
+                    return;
+                }
+
+                // Pull the store from disk
+                ChatHistoryStore store;
+                using (FileStream fs = new FileStream(path, FileMode.Open))
+                {
+                    using (CodedInputStream cis = new CodedInputStream(fs))
+                    {
+                        store = ChatHistoryStore.Parser.ParseFrom(cis);
+                    }
+                }
+
+                // Parse the messages
+                messageHistory = store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} chat message{1}", messageHistory.Count, messageHistory.Count != 1 ? "s" : "")));
             }
-            
-            RaiseLogEntry(new LogEventArgs("Loaded chat history"));
         }
 
         private void loginHandler(object sender, ServerLoginEventArgs args)
@@ -121,7 +155,7 @@ namespace Chat
             {
                 // Create a chat history packet
                 ChatHistoryPacket packet = new ChatHistoryPacket();
-                
+
                 // Convert each chat message to their packet counterparts
                 foreach (ChatMessage chatMessage in messageHistory)
                 {
@@ -136,10 +170,10 @@ namespace Chat
                         }
                     );
                 }
-                
+
                 // Pack the history packet
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
                 // Send it on its way
                 if (!netServer.TrySend(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
@@ -183,7 +217,7 @@ namespace Chat
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
-                
+
                 // Stop here
                 return;
             }
@@ -192,29 +226,29 @@ namespace Chat
             if (!userManager.IsLoggedIn(connectionId, packet.Uuid))
             {
                 sendFailedChatMessageResponse(connectionId, packet.MessageId);
-                
+
                 // Stop here
                 return;
             }
 
             // Get a copy of the packet's original message ID
             string originalMessageId = packet.MessageId;
-            
+
             // Generate a new, guaranteed-to-be-unique message ID since we can't trust clients
             string newMessageId = Guid.NewGuid().ToString();
-            
+
             // Sanitise the message content
             string sanitisedMessage = TextHelper.SanitiseRichText(packet.Message);
-            
+
             // Get the current time
             DateTime timestamp = DateTime.UtcNow;
-            
+
             // Add the message to the message history
             addMessageToHistory(new ChatMessage(newMessageId, packet.Uuid, sanitisedMessage, timestamp));
-            
+
             // Send a response to the sender
             sendChatMessageResponse(connectionId, true, originalMessageId, newMessageId, sanitisedMessage);
-                    
+
             // Broadcast the chat packet to everyone but the sender
             broadcastChatMessage(packet.Uuid, newMessageId, sanitisedMessage, timestamp, new[]{connectionId});
         }
@@ -241,13 +275,13 @@ namespace Chat
 
             // Get an array of connection IDs for each logged in user
             string[] connectionIds = userManager.GetConnections();
-            
+
             // Remove the connection IDs to be excluded from the broadcast (if any)
             if (excludedConnectionIds != null)
             {
                 connectionIds = connectionIds.Except(excludedConnectionIds).ToArray();
             }
-            
+
             // Send it to each of the remaining connection IDs
             foreach (string connectionId in connectionIds)
             {
@@ -278,7 +312,7 @@ namespace Chat
                 Timestamp = timestamp.ToTimestamp()
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
@@ -304,6 +338,15 @@ namespace Chat
                     messageHistory.RemoveAt(0);
                 }
             }
+
+            // Try get the user's display name
+            if (!userManager.TryGetDisplayName(chatMessage.SenderUuid, out string displayName))
+            {
+                displayName = "??? (" + chatMessage.SenderUuid + ")";
+            }
+
+            // Print the message to the log
+            RaiseLogEntry(new LogEventArgs(String.Format("{0}: {1}", TextHelper.StripRichText(displayName), chatMessage.Message)));
         }
 
         /// <summary>
@@ -325,14 +368,14 @@ namespace Chat
                 Message = message
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId, LogLevel.ERROR));
             }
         }
-        
+
         /// <summary>
         /// Creates and sends a failed <see cref="ChatMessageResponsePacket"/> to the given connection ID.
         /// </summary>
@@ -341,61 +384,6 @@ namespace Chat
         private void sendFailedChatMessageResponse(string connectionId, string originalMessageId)
         {
             sendChatMessageResponse(connectionId, false, originalMessageId, "", "");
-        }
-
-        /// <summary>
-        /// Returns the existing message history store from disk or a new one if it doesn't exist.
-        /// </summary>
-        /// <param name="path">Path to the message history file</param>
-        /// <returns>New or existing credential store</returns>
-        private List<ChatMessage> getMessageHistory(string path)
-        {
-            // Create a new store if one doesn't already exist
-            if (!File.Exists(path))
-            {
-                // Save a new store to disk
-                saveMessageHistory(path, new List<ChatMessage>());
-                
-                // Return the new store
-                return new List<ChatMessage>();
-            }
-            
-            // Pull the store from disk
-            ChatHistoryStore store;
-            using (FileStream fs = new FileStream(path, FileMode.Open))
-            {
-                using (CodedInputStream cis = new CodedInputStream(fs))
-                {
-                    store = ChatHistoryStore.Parser.ParseFrom(cis);
-                }
-            }
-
-            // Return the messages contained within the store
-            return store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
-        }
-
-        /// <summary>
-        /// Saves the given messages to disk, overwriting any existing ones.
-        /// </summary>
-        /// <param name="path">Path to the message history file</param>
-        /// <param name="messages">Messages to save</param>
-        private static void saveMessageHistory(string path, List<ChatMessage> messages)
-        {
-            // Create the store from the message list
-            ChatHistoryStore store = new ChatHistoryStore
-            {
-                ChatMessages = { messages.Select(message => message.ToChatMessageStore()) }
-            };
-            
-            // Create or truncate the file
-            using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
-            {
-                using (CodedOutputStream cos = new CodedOutputStream(fs))
-                {
-                    // Write the store to disk
-                    store.WriteTo(cos);
-                }
-            }
         }
     }
 }
