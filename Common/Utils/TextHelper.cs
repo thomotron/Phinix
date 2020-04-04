@@ -3,6 +3,7 @@
 
 using System;
 using System.Text.RegularExpressions;
+using Pastel;
 
 namespace Utils
 {
@@ -57,6 +58,44 @@ namespace Utils
 		{
 			return stripRichText(input, unsafeTags);
 		}
+
+		/// <summary>
+		/// Highlights a string with ANSI colour codes according to the given <see cref="HighlightType"/>.
+		/// Intended for making the server log more readable.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="highlightType"></param>
+		/// <returns></returns>
+		public static string Highlight(this string str, HighlightType highlightType)
+		{
+			switch (highlightType)
+			{
+				case HighlightType.ConnectionID:
+					return str.Pastel("bf616a");
+				case HighlightType.SessionID:
+					return str.Pastel("d08770");
+				case HighlightType.UUID:
+					return str.Pastel("ebcb8b");
+				case HighlightType.ChatMessageID:
+					return str.Pastel("a3be8c");
+				case HighlightType.TradeID:
+					return str.Pastel("b48ead");
+				case HighlightType.Username:
+					return str.Pastel("88c0d0");
+				default:
+					return str;
+			}
+		}
+	}
+
+	public enum HighlightType
+	{
+		ConnectionID,
+		SessionID,
+		UUID,
+		ChatMessageID,
+		TradeID,
+		Username
 	}
 }
 

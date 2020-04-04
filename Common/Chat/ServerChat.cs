@@ -177,7 +177,7 @@ namespace Chat
                 // Send it on its way
                 if (!netServer.TrySend(args.ConnectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
-                    RaiseLogEntry(new LogEventArgs("Failed to send ChatHistoryPacket to connection " + args.ConnectionId, LogLevel.ERROR));
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatHistoryPacket to connection " + args.ConnectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace Chat
             switch (typeUrl.Type)
             {
                 case "ChatMessagePacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessagePacket from {0}", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessagePacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     chatMessagePacketHandler(connectionId, message.Unpack<ChatMessagePacket>());
                     break;
                 default:
@@ -288,7 +288,7 @@ namespace Chat
                 // Try send the chat message
                 if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                 {
-                    RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
+                    RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace Chat
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessagePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -372,7 +372,7 @@ namespace Chat
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send ChatMessageResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
