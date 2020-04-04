@@ -341,11 +341,11 @@ namespace UserManagement
             switch (typeUrl.Type)
             {
                 case "LoginPacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got a LoginPacket from {0}", connectionId)));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a LoginPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID))));
                     handleLoginPacket(connectionId, message.Unpack<LoginPacket>());
                     break;
                 case "UserUpdatePacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got a UserUpdatePacket from {0}", connectionId)));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a UserUpdatePacket from {0}", connectionId.Highlight(HighlightType.ConnectionID))));
                     handleUserUpdatePacket(connectionId, message.Unpack<UserUpdatePacket>());
                     break;
                 default:
@@ -365,7 +365,7 @@ namespace UserManagement
             // Make sure the client is authenticated
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId))
             {
-                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Invalid session", packet.SessionId)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Invalid session", packet.SessionId.Highlight(HighlightType.SessionID))));
 
                 // Fail the login attempt due to an invalid session
                 sendFailedLoginResponsePacket(connectionId, LoginFailureReason.SessionId, "Session is not valid, it may have expired. Try reconnecting.");
@@ -377,7 +377,7 @@ namespace UserManagement
             // Try get the username from their session
             if (!authenticator.TryGetUsername(connectionId, packet.SessionId, out string username))
             {
-                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Couldn't get username", packet.SessionId)));
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Couldn't get username", packet.SessionId.Highlight(HighlightType.SessionID))));
 
                 // Fail the login attempt due to an invalid session/username
                 sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Server failed to get the username associated with the session. Try reconnecting.");
@@ -445,7 +445,7 @@ namespace UserManagement
             }
 
             // Log the event
-            RaiseLogEntry(new LogEventArgs(string.Format("User {0} successfully logged in as \"{1}\" (SessionID: {2}, UUID: {3})", username, displayName, packet.SessionId, uuid)));
+            RaiseLogEntry(new LogEventArgs(string.Format("User {0} successfully logged in as \"{1}\" (SessionID: {2}, UUID: {3})", username.Highlight(HighlightType.Username), displayName, packet.SessionId.Highlight(HighlightType.SessionID), uuid.Highlight(HighlightType.UUID))));
 
             // Send a successful login response
             sendSuccessfulLoginResponsePacket(connectionId, uuid, displayName);
@@ -465,7 +465,7 @@ namespace UserManagement
         /// <param name="displayName">User's display name</param>
         private void sendSuccessfulLoginResponsePacket(string connectionId, string uuid, string displayName)
         {
-            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful LoginResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
@@ -479,7 +479,7 @@ namespace UserManagement
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -491,7 +491,7 @@ namespace UserManagement
         /// <param name="failureMessage">Failure message</param>
         private void sendFailedLoginResponsePacket(string connectionId, LoginFailureReason failureReason, string failureMessage)
         {
-            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed LoginResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed LoginResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
             // Create and pack a response
             LoginResponsePacket response = new LoginResponsePacket
@@ -505,7 +505,7 @@ namespace UserManagement
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedResponse.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send LoginResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -530,7 +530,7 @@ namespace UserManagement
                 {
                     if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
                     {
-                        RaiseLogEntry(new LogEventArgs("Failed to send UserUpdatePacket to connection " + connectionId, LogLevel.ERROR));
+                        RaiseLogEntry(new LogEventArgs("Failed to send UserUpdatePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
                     }
                 }
             }
@@ -565,7 +565,7 @@ namespace UserManagement
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UserSyncPacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UserSyncPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
