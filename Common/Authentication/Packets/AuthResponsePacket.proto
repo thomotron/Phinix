@@ -13,6 +13,8 @@ message AuthResponsePacket
     string FailureMessage = 3;
     
     string SessionId = 4;
-    
-    google.protobuf.Timestamp Expiry = 5;
+
+    google.protobuf.Timestamp Expiry = 5 [deprecated = true];
+
+    int32 ExpiresIn = 6;
 }

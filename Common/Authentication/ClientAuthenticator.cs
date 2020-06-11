@@ -77,12 +77,7 @@ namespace Authentication
         /// Use only if <see cref="Authenticated"/> is true.
         /// </summary>
         public string SessionId { get; private set; }
-        
-        /// <summary>
-        /// When the session ID will expire.
-        /// Used by an internal timer to refresh the session periodically.
-        /// </summary>
-        private DateTime sessionExpiry;
+
         /// <summary>
         /// Timer to extend the current session.
         /// </summary>
@@ -407,14 +402,24 @@ namespace Authentication
             // Was authentication successful?
             if (packet.Success)
             {
-                // Set authenticated state, session ID, and expiry
+                // Set authenticated state and session ID
                 Authenticated = true;
                 SessionId = packet.SessionId;
-                sessionExpiry = packet.Expiry.ToDateTime();
-                
+
+                double timerInterval;
+                if (packet.Expiry != null)
+                {
+                    // COMPAT: Maintains backward-compatibility for 0.6.0 servers
+                    timerInterval = (packet.Expiry.ToDateTime() - DateTime.UtcNow).TotalMilliseconds / 2;
+                }
+                else
+                {
+                    timerInterval = packet.ExpiresIn / 2;
+                }
+
                 // Reset the session extension timer for halfway between now and the expiry
                 sessionExtendTimer.Stop();
-                sessionExtendTimer.Interval = (sessionExpiry - DateTime.UtcNow).TotalMilliseconds / 2;
+                sessionExtendTimer.Interval = timerInterval;
                 sessionExtendTimer.Start();
                 
                 // Raise successful auth event
@@ -458,9 +463,6 @@ namespace Authentication
         {
             if (packet.Success)
             {
-                // Update the expiry with the newly-extended one
-                sessionExpiry = DateTime.UtcNow + TimeSpan.FromMilliseconds(packet.ExpiresIn);
-                
                 // Reset the session extension timer to halfway between now and the expiry
                 sessionExtendTimer.Stop();
                 sessionExtendTimer.Interval = (double) packet.ExpiresIn / 2;
