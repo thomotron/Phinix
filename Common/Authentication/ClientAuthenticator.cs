@@ -20,7 +20,7 @@ namespace Authentication
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         /// <summary>
         /// Raised on a successful authentication attempt.
         /// </summary>
@@ -29,7 +29,7 @@ namespace Authentication
         /// Raised on a failed authentication attempt.
         /// </summary>
         public event EventHandler<AuthenticationEventArgs> OnAuthenticationFailure;
-        
+
         /// <summary>
         /// Delegate for requesting credentials.
         /// Used to collect login information when authentication fails or there are no existing credentials for the server.
@@ -66,12 +66,12 @@ namespace Authentication
         /// Delegate called when new credentials are required for authentication.
         /// </summary>
         private GetCredentialsDelegate getCredentials;
-        
+
         /// <summary>
         /// Whether the client has authenticated with the server.
         /// </summary>
         public bool Authenticated { get; private set; }
-        
+
         /// <summary>
         /// Session identifier used by the server to confirm we are allowed to speak to it.
         /// Use only if <see cref="Authenticated"/> is true.
@@ -100,7 +100,7 @@ namespace Authentication
         /// <see cref="NetClient"/> to send packets and bind events to.
         /// </summary>
         private NetClient netClient;
-        
+
         /// <summary>
         /// Creates a new <see cref="ClientAuthenticator"/> bound to the given <see cref="NetClient"/> with credentials stored in <see cref="CredentialStorePath"/>.
         /// The <see cref="getCredentialsDelegate"/> is called when credentials are requested.
@@ -114,7 +114,7 @@ namespace Authentication
             this.getCredentials = getCredentialsDelegate;
             this.CredentialStorePath = credentialStorePath;
             this.credentialStore = getCredentialStore();
-            
+
             // Set up the session extension timer
             sessionExtendTimer = new Timer
             {
@@ -125,7 +125,7 @@ namespace Authentication
             {
                 // Only attempt to extend the session if we have one
                 if (Authenticated) sendExtendSessionPacket(SessionId);
-                
+
                 // Stop the timer from firing again
                 sessionExtendTimer.Stop();
             };
@@ -155,7 +155,7 @@ namespace Authentication
                     // Add it
                     credentialStore.Credentials.Add(serverAddress, credential);
                 }
-                
+
                 // Save the credential store to file
                 saveCredentialStore(credentialStore);
             }
@@ -172,7 +172,7 @@ namespace Authentication
         {
             // Initialise the credential to something arbitrary
             credential = null;
-            
+
             // Prevent other threads from modifying the credential store while we're using it
             lock (credentialStoreLock)
             {
@@ -183,11 +183,11 @@ namespace Authentication
                     return true;
                 }
             }
-            
+
             // Couldn't find the credential you're looking for
             return false;
         }
-        
+
         /// <summary>
         /// Returns the existing credential store from disk or a new one if it doesn't exist.
         /// </summary>
@@ -205,14 +205,14 @@ namespace Authentication
                     {
                         ClientKey = generateClientKey()
                     };
-                
+
                     // Save the store to disk
                     saveCredentialStore(newCredentialStore);
-                
+
                     // Finally return the new store
                     return newCredentialStore;
                 }
-            
+
                 // Pull the store from disk as a pre-packed Any.
                 CredentialStore credentialStore;
                 using (FileStream fs = new FileStream(CredentialStorePath, FileMode.Open))
@@ -222,7 +222,7 @@ namespace Authentication
                         credentialStore = CredentialStore.Parser.ParseFrom(cis);
                     }
                 }
-                
+
                 // Return the credential store
                 return credentialStore;
             }
@@ -248,7 +248,7 @@ namespace Authentication
                 }
             }
         }
-        
+
         /// <summary>
         /// Generates a a random 512-bit client key encoded in Base64.
         /// </summary>
@@ -267,7 +267,7 @@ namespace Authentication
         {
             // Validate the incoming packet and discard it if validation fails
             if (!ProtobufPacketHelper.ValidatePacket(typeof(ClientAuthenticator).Namespace, MODULE_NAME, module, data, out Any message, out TypeUrl typeUrl)) return;
-            
+
             // Determine what to do with this packet type
             switch (typeUrl.Type)
             {
@@ -288,7 +288,7 @@ namespace Authentication
                     break;
             }
         }
-        
+
         /// <summary>
         /// Handler for incoming <see cref="HelloPacket"/>s.
         /// Responds with an <see cref="AuthenticatePacket"/>, requesting new credentials if necessary.
@@ -301,7 +301,7 @@ namespace Authentication
             // TODO: Reset authenticated state on disconnect
             Authenticated = false;
             SessionId = null;
-            
+
             // Try to get an existing credential for this server and ensure it corresponds to the server's accepted authentication type
             // TODO: Use something better than server name that is unique to each (username problems all over again)
             if (!TryGetCredential(packet.ServerName, out Credential credential) || credential.AuthType != packet.AuthType)
@@ -356,7 +356,7 @@ namespace Authentication
                             }
                         }
                     );
-                    
+
                     // Stop here as we don't have any credentials to send yet.
                     // The connection can remain open so that the callback can send credentials when it gets them.
                     return;
@@ -375,7 +375,7 @@ namespace Authentication
         private void sendAuthenticatePacket(string sessionId, Credential credential)
         {
             RaiseLogEntry(new LogEventArgs("Sending AuthenticatePacket", LogLevel.DEBUG));
-            
+
             // Create and populate an authentication packet
             AuthenticatePacket authPacket = new AuthenticatePacket
             {
@@ -387,11 +387,11 @@ namespace Authentication
 
             // Pack it into an Any for transmission
             Any packedAuthPacket = ProtobufPacketHelper.Pack(authPacket);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedAuthPacket.ToByteArray());
         }
-        
+
         /// <summary>
         /// Handler for incoming <see cref="AuthResponsePacket"/>s.
         /// </summary>
@@ -421,7 +421,7 @@ namespace Authentication
                 sessionExtendTimer.Stop();
                 sessionExtendTimer.Interval = timerInterval;
                 sessionExtendTimer.Start();
-                
+
                 // Raise successful auth event
                 OnAuthenticationSuccess?.Invoke(this, new AuthenticationEventArgs());
             }
@@ -429,7 +429,7 @@ namespace Authentication
             {
                 // Set authenticated state
                 Authenticated = false;
-                
+
                 // Raise failed auth event
                 OnAuthenticationFailure?.Invoke(this, new AuthenticationEventArgs(packet.FailureReason, packet.FailureMessage));
             }
@@ -442,18 +442,18 @@ namespace Authentication
         private void sendExtendSessionPacket(string sessionId)
         {
             RaiseLogEntry(new LogEventArgs("Sending ExtendSessionPacket", LogLevel.DEBUG));
-            
+
             // Create and pack a session extension packet
             ExtendSessionPacket packet = new ExtendSessionPacket
             {
                 SessionId = sessionId
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="ExtendSessionResponsePacket"/>s.
         /// </summary>
@@ -469,7 +469,7 @@ namespace Authentication
                 sessionExtendTimer.Start();
             }
         }
-        
+
         /// <summary>
         /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>

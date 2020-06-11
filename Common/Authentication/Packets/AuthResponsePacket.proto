@@ -7,11 +7,11 @@ import "google/protobuf/timestamp.proto";
 message AuthResponsePacket
 {
     bool Success = 1;
-    
+
     AuthFailureReason FailureReason = 2;
-    
+
     string FailureMessage = 3;
-    
+
     string SessionId = 4;
 
     google.protobuf.Timestamp Expiry = 5 [deprecated = true];
