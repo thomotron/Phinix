@@ -475,10 +475,11 @@ namespace Authentication
                     session.Authenticated = true;
 
                     // Extend their session by 30 minutes
-                    session.Expiry = DateTime.UtcNow + TimeSpan.FromMinutes(30);
+                    TimeSpan expiresIn = TimeSpan.FromMinutes(30);
+                    session.Expiry = DateTime.UtcNow + expiresIn;
 
                     // Approve the authentication attempt
-                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, session.Expiry);
+                    sendSuccessfulAuthResponsePacket(connectionId, session.SessionId, (int) expiresIn.TotalMilliseconds);
 
                     // Log this momentous occasion
                     RaiseLogEntry(new LogEventArgs(string.Format("User \"{0}\" (ConnID: {1}, SessID: {2}) successfully authenticated", session.Username.Highlight(HighlightType.Username), session.ConnectionId.Highlight(HighlightType.ConnectionID), session.SessionId.Highlight(HighlightType.SessionID))));
@@ -491,8 +492,8 @@ namespace Authentication
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         /// <param name="sessionId">New session ID</param>
-        /// <param name="expiry">Session expiry</param>
-        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, DateTime expiry)
+        /// <param name="expiresIn">Milliseconds until session expiry</param>
+        private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, int expiresIn)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
@@ -501,7 +502,7 @@ namespace Authentication
             {
                 Success = true,
                 SessionId = sessionId,
-                Expiry = expiry.ToTimestamp()
+                ExpiresIn = expiresIn
             };
 
             // Pack it into an Any for transmission
