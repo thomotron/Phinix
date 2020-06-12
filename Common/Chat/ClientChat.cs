@@ -184,6 +184,35 @@ namespace Chat
         }
 
         /// <summary>
+        /// Attempts to retrieve the corresponding <see cref="ClientChatMessage"/> for the given message ID.
+        /// Returns true if the attempt was successful, otherwise false.
+        /// </summary>
+        /// <param name="messageId">Message ID</param>
+        /// <param name="message">Message output</param>
+        /// <returns>Whether the message with the given ID was retrieved successfully</returns>
+        public bool TryGetMessage(string messageId, out ClientChatMessage message)
+        {
+            message = null;
+
+            lock (messageHistoryLock)
+            {
+                try
+                {
+                    // Get the message corresponding with the given ID from history
+                    message = messageHistory.Single(m => m.MessageId == messageId);
+                }
+                catch (InvalidOperationException)
+                {
+                    // A single message with the given ID doesn't exist, return a failure
+                    return false;
+                }
+            }
+
+            // Got what we came for, return a success
+            return true;
+        }
+
+        /// <summary>
         /// Marks all chat messages as read.
         /// </summary>
         public void MarkAsRead()
