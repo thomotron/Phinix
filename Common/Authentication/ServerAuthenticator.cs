@@ -492,7 +492,7 @@ namespace Authentication
         /// </summary>
         /// <param name="connectionId">Recipient's connection ID</param>
         /// <param name="sessionId">New session ID</param>
-        /// <param name="expiry">Milliseconds until session expiry</param>
+        /// <param name="expiresIn">Milliseconds until session expiry</param>
         private void sendSuccessfulAuthResponsePacket(string connectionId, string sessionId, int expiresIn)
         {
             RaiseLogEntry(new LogEventArgs(string.Format("Sending successful AuthResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
