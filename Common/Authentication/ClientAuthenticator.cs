@@ -409,7 +409,13 @@ namespace Authentication
                 if (packet.Expiry != null)
                 {
                     // COMPAT: Maintains backward-compatibility for 0.6.0 servers
+                    // This requires that the clock be properly synchronised or the interval may be calculated as negative
                     timerInterval = (packet.Expiry.ToDateTime() - DateTime.UtcNow).TotalMilliseconds / 2;
+
+                    if (timerInterval < 0)
+                    {
+                        RaiseLogEntry(new LogEventArgs("Got a negative interval until session expiry. Check your system's clock is set correctly and try connecting again.", LogLevel.ERROR));
+                    }
                 }
                 else
                 {
