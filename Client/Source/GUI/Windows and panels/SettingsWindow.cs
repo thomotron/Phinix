@@ -130,7 +130,7 @@ namespace PhinixClient
             // Server address box
             row.Add(
                 new TextFieldWidget(
-                    text: serverAddress,
+                    initialText: serverAddress,
                     onChange: newAddress => serverAddress = newAddress
                 )
             );
@@ -150,14 +150,9 @@ namespace PhinixClient
             row.Add(
                 new Container(
                     new TextFieldWidget(
-                        text: serverPortString,
-                        onChange: newPortString =>
-                        {
-                            if (new Regex("(^[0-9]{0,5}$)").IsMatch(newPortString))
-                            {
-                                serverPortString = newPortString;
-                            }
-                        }
+                        initialText: serverPortString,
+                        onChange: newPortString => serverPortString = newPortString,
+                        validator: new Regex("(^[0-9]{0,5}$)")
                     ),
                     width: SERVER_PORT_BOX_WIDTH
                 )
@@ -200,7 +195,7 @@ namespace PhinixClient
             // Editable display name text box
             row.Add(
                 new TextFieldWidget(
-                    text: Client.Instance.DisplayName,
+                    initialText: Client.Instance.DisplayName,
                     onChange: newDisplayName => Client.Instance.DisplayName = newDisplayName
                 )
             );

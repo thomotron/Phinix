@@ -143,7 +143,7 @@ namespace PhinixClient
                 row.Add(
                     new Container(
                         new TextFieldWidget(
-                            text: itemStack.Selected.ToString(),
+                            initialText: itemStack.Selected.ToString(),
                             onChange: (countText) =>
                             {
                                 if (int.TryParse(countText, out int result))

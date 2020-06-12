@@ -670,7 +670,7 @@ namespace PhinixClient
             searchRow.Add(
                 new Container(
                     new TextFieldWidget(
-                        text: search,
+                        initialText: search,
                         onChange: newSearch => search = newSearch
                     ),
                     width: SEARCH_TEXT_FIELD_WIDTH

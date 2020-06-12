@@ -117,7 +117,7 @@ namespace PhinixClient
             column.Add(
                 new Container(
                     new TextFieldWidget(
-                        text: userSearch,
+                        initialText: userSearch,
                         onChange: (newText) => userSearch = newText
                     ),
                     height: USER_SEARCH_HEIGHT
@@ -162,7 +162,7 @@ namespace PhinixClient
             // Message entry field
             messageEntryFlexContainer.Add(
                 new TextFieldWidget(
-                    text: message,
+                    initialText: message,
                     onChange: newMessage => message = newMessage
                 )
             );
