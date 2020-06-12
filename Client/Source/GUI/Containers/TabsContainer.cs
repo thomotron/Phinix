@@ -34,7 +34,7 @@ namespace PhinixClient.GUI
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
 
-            this.tabs = new List<TabEntry>();
+            this.tabs = new List<TabContainerEntry>();
         }
 
         /// <summary>
@@ -48,12 +48,11 @@ namespace PhinixClient.GUI
             int index = tabs.Count;
 
             // Create a tab record
-            TabRecord tab = new TabRecord(label,
-                () =>
-                {
-                    selectedTab = index;
-                    onTabChange(index);
-                }, selectedTab == index);
+            TabRecord tab = new TabRecord(
+                label: label,
+                clickedAction: () => { selectedTab = index; onTabChange(index); },
+                selected: selectedTab == index
+            );
 
             // Add the tab to the tab list
             tabs.Add(new TabContainerEntry { tab = tab, displayable = displayable });
