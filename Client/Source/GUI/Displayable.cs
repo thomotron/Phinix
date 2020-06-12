@@ -31,6 +31,7 @@ namespace PhinixClient.GUI
 
         /// <summary>
         /// Refreshes the object's data.
+        /// When called, it should also be called on any child <see cref="Displayable"/> elements.
         /// </summary>
         public virtual void Update() {}
 
