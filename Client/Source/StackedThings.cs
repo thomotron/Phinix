@@ -113,6 +113,9 @@ namespace PhinixClient
                 }
             }
 
+            // Clear the selected counter now that everything has been split off
+            Selected = 0;
+
             // Remove the things we popped
             foreach (Thing thing in poppedThings)
             {
