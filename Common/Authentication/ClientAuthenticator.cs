@@ -298,7 +298,6 @@ namespace Authentication
         private void helloPacketHandler(string connectionId, HelloPacket packet)
         {
             // Nullify authenticated state
-            // TODO: Reset authenticated state on disconnect
             Authenticated = false;
             SessionId = null;
 
