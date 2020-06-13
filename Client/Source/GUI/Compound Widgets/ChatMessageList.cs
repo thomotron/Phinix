@@ -140,6 +140,12 @@ namespace PhinixClient.GUI
             #endregion
         }
 
+        /// <inheritdoc />
+        public override void Update()
+        {
+            chatFlexContainer.Update();
+        }
+
         /// <summary>
         /// Scrolls to the bottom of the list.
         /// </summary>
