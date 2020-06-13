@@ -16,6 +16,11 @@ namespace PhinixClient.GUI
         private Displayable child;
 
         /// <summary>
+        /// Contents of the container wrapped in another horizontally-padded container.
+        /// </summary>
+        private HorizontalFlexContainer paddedChild;
+
+        /// <summary>
         /// Height of the container.
         /// </summary>
         private float height;
@@ -24,6 +29,12 @@ namespace PhinixClient.GUI
         {
             this.child = child;
             this.height = height;
+
+            // Build a horizontally-padded container with the same content
+            this.paddedChild = new HorizontalFlexContainer(0f);
+            this.paddedChild.Add(new SpacerWidget());
+            this.paddedChild.Add(child);
+            this.paddedChild.Add(new SpacerWidget());
         }
 
         /// <inheritdoc />
@@ -38,16 +49,8 @@ namespace PhinixClient.GUI
             // Check if the child is non-fluid and smaller than the allocated space
             if (!child.IsFluidWidth && inRect.width > child.CalcWidth(inRect.height))
             {
-                // Create a flex container to hold the child and spacers
-                HorizontalFlexContainer row = new HorizontalFlexContainer(0f);
-
-                // Sandwich the child between two spacers
-                row.Add(new SpacerWidget());
-                row.Add(child);
-                row.Add(new SpacerWidget());
-
-                // Draw the container
-                row.Draw(inRect);
+                // Draw the child with padding on either side
+                paddedChild.Draw(inRect);
             }
             else
             {
@@ -59,6 +62,7 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override void Update()
         {
+            // Just update the child. No need to update the padded one since it contains the same object.
             child.Update();
         }
     }
