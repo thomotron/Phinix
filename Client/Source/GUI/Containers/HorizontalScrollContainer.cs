@@ -72,6 +72,12 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
+        public override void Update()
+        {
+            child.Update();
+        }
+
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
             // We can't determine a height if the child is fluid

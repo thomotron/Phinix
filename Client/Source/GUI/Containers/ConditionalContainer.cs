@@ -45,6 +45,13 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
+        public override void Update()
+        {
+            childIfTrue.Update();
+            childIfFalse.Update();
+        }
+
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
             return currentChild.CalcHeight(width);
