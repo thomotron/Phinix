@@ -50,8 +50,8 @@ namespace PhinixClient.GUI
             // Create a tab record
             TabRecord tab = new TabRecord(
                 label: label,
-                clickedAction: () => { selectedTab = index; onTabChange(index); },
-                selected: selectedTab == index
+                clickedAction: () => { selectedTab = index; onTabChange?.Invoke(index); },
+                selected: () => selectedTab == index
             );
 
             // Add the tab to the tab list
