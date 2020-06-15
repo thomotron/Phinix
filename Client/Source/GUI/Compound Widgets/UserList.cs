@@ -71,6 +71,7 @@ namespace PhinixClient.GUI
             // Bind to events
             // TODO: Handle user events individually rather than completely replacing the list
             //       This means settling on an ordering standard for users in the sidebar.
+            Client.Instance.OnUserSync += (s, e) => refreshUserWidgetsList();
             Client.Instance.OnUserCreated += (s, e) => refreshUserWidgetsList();
             Client.Instance.OnUserLoggedIn += (s, e) => refreshUserWidgetsList();
             Client.Instance.OnUserLoggedOut += (s, e) => refreshUserWidgetsList();
