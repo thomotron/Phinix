@@ -51,10 +51,7 @@ namespace PhinixClient
             // Display name and preview
             contents.Add(
                 new ConditionalContainer(
-                    childIfTrue: new VerticalFlexContainer(
-                        contents: new Displayable[]{GenerateEditableDisplayName(), GenerateNamePreview()},
-                        spacing: DEFAULT_SPACING
-                    ),
+                    childIfTrue: GenerateEditableDisplayName(),
                     childIfFalse: new BlankWidget(),
                     condition: () => Client.Instance.Online
                 )
@@ -185,24 +182,37 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates an editable display name field and a button to apply the changes.
+        /// Generates an editable display name field, a button to apply the changes, and a preview.
         /// </summary>
-        /// <returns><see cref="HorizontalFlexContainer"/> containing an editable display name field and a button to apply the changes</returns>
-        private HorizontalFlexContainer GenerateEditableDisplayName()
+        /// <returns><see cref="Displayable"/> containing an editable display name field, a button to apply the changes, and a preview</returns>
+        private Displayable GenerateEditableDisplayName()
         {
+            // Make the name preview early so we can bind to it's update method
+            DynamicTextWidget namePreview = new DynamicTextWidget(
+                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
+                wrap: false
+            );
+
+            // Create a column to store the editable portion and preview in
+            VerticalFlexContainer column = new VerticalFlexContainer();
+
             // Create a flex container as our 'row' to store the editable name field in
-            HorizontalFlexContainer row = new HorizontalFlexContainer();
+            HorizontalFlexContainer editableRow = new HorizontalFlexContainer();
 
             // Editable display name text box
-            row.Add(
+            editableRow.Add(
                 new TextFieldWidget(
                     initialText: Client.Instance.DisplayName,
-                    onChange: newDisplayName => Client.Instance.DisplayName = newDisplayName
+                    onChange: newDisplayName =>
+                    {
+                        Client.Instance.DisplayName = newDisplayName;
+                        namePreview.Update();
+                    }
                 )
             );
 
             // Set display name button
-            row.Add(
+            editableRow.Add(
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_settings_setDisplayNameButton".Translate(),
@@ -212,26 +222,19 @@ namespace PhinixClient
                 )
             );
 
-            // Return the generated row
-            return row;
-        }
-
-        /// <summary>
-        /// Generates a display name preview label.
-        /// </summary>
-        /// <returns></returns>
-        private HorizontalScrollContainer GenerateNamePreview()
-        {
-            // Create a scroll container to store the text widget in
-            HorizontalScrollContainer row = new HorizontalScrollContainer(
-                new TextWidget(
-                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
-                    wrap: false
+            // Wrap the editable portion in a container to enforce height and add it to the column
+            column.Add(
+                new HeightContainer(
+                    child: editableRow,
+                    height: ROW_HEIGHT
                 )
             );
 
-            // Return the generated row
-            return row;
+            // Display name preview
+            column.Add(new HorizontalScrollContainer(namePreview));
+
+            // Return the generated column
+            return column;
         }
     }
 }
