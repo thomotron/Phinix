@@ -21,6 +21,10 @@ namespace Chat
         /// Raised when a chat message is received.
         /// </summary>
         public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
+        /// <summary>
+        /// Raised when a <see cref="ChatHistoryPacket"/> is received and chat is synchronised with the server.
+        /// </summary>
+        public event EventHandler OnChatSync;
 
         /// <summary>
         /// The number of messages received since <c>GetMessages()</c> was last called.
@@ -275,6 +279,8 @@ namespace Chat
                     messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
                 }
             }
+
+            OnChatSync?.Invoke(this, EventArgs.Empty);
         }
 
 		/// <summary>

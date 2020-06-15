@@ -61,6 +61,7 @@ namespace PhinixClient
         public ClientChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => chat.GetUnreadMessages(markAsRead);
         public int UnreadMessages => chat.UnreadMessages;
         public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler OnChatSync;
 
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
@@ -461,6 +462,7 @@ namespace PhinixClient
             userManager.OnUserCreated += (sender, e) => { OnUserCreated?.Invoke(sender, e); };
             userManager.OnUserSync += (sender, e) => { OnUserSync?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
+            chat.OnChatSync += (sender, e) => { OnChatSync?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
