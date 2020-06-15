@@ -168,7 +168,7 @@ namespace PhinixClient.GUI
                 lock (userWidgetsLock)
                 {
                     // Repopulate the list with user widgets that have a display name containing cachedSearchText
-                    filteredUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.Contains(searchText)));
+                    filteredUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower())));
                 }
             }
 
