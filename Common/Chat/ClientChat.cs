@@ -170,16 +170,34 @@ namespace Chat
         /// <summary>
         /// Returns a list of all messages received since connecting to the server.
         /// </summary>
+        /// <param name="markAsRead">Whether to mark all messages as read</param>
         /// <returns>A list of all messages received since connecting to the server</returns>
-        public ClientChatMessage[] GetMessages()
+        public ClientChatMessage[] GetMessages(bool markAsRead = true)
         {
             lock (messageHistoryLock)
             {
-                // Mark all messages as read
-                MarkAsRead();
+                // Mark all messages as read, if enabled
+                if (markAsRead) MarkAsRead();
 
                 // Return the messages in history
                 return messageHistory.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of the current unread messages.
+        /// </summary>
+        /// <param name="markAsRead">Whether to mark all messages as read</param>
+        /// <returns>A list of all current unread messages</returns>
+        public ClientChatMessage[] GetUnreadMessages(bool markAsRead = true)
+        {
+            lock (messageHistoryLock)
+            {
+                // Mark all messages as read, if enabled
+                if (markAsRead) MarkAsRead();
+
+                // Return a subset containing just the unread messages
+                return messageHistory.GetRange(messageHistory.Count - UnreadMessages, UnreadMessages).ToArray();
             }
         }
 
