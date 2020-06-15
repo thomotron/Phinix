@@ -52,7 +52,7 @@ namespace UserManagement
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
-        
+
         /// <summary>
         /// UUID used by other users to identify the user.
         /// </summary>
@@ -67,7 +67,7 @@ namespace UserManagement
         /// <see cref="ClientAuthenticator"/> to retrieve session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
-        
+
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
@@ -81,9 +81,9 @@ namespace UserManagement
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
-            
+
             this.userStore = new UserStore();
-            
+
             netClient.OnDisconnect += disconnectHandler;
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
@@ -98,7 +98,7 @@ namespace UserManagement
         public void SendLogin(string displayName, bool useServerDisplayName = false, bool acceptingTrades = true)
         {
             if (!authenticator.Authenticated) return;
-            
+
             // Create and pack a new LoginPacket
             LoginPacket packet = new LoginPacket
             {
@@ -108,9 +108,9 @@ namespace UserManagement
                 AcceptingTrades = acceptingTrades
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             RaiseLogEntry(new LogEventArgs("Sending LoginPacket", LogLevel.DEBUG));
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -146,7 +146,7 @@ namespace UserManagement
         {
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
-            
+
             // Don't do anything if the parameters are all null
             if (displayName == null && acceptingTrades == null) return false;
 
@@ -163,7 +163,7 @@ namespace UserManagement
 
                 // Set the user's trade acceptance if it is present
                 if (acceptingTrades.HasValue) user.AcceptingTrades = acceptingTrades.Value;
-                
+
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
                 {
@@ -172,14 +172,14 @@ namespace UserManagement
                     User = user
                 };
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
                 // Send it on its way
                 netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
             }
 
             return true;
         }
-        
+
         /// <summary>
         /// Handles incoming packets.
         /// </summary>
@@ -224,7 +224,7 @@ namespace UserManagement
                 // Set module states
                 LoggedIn = true;
                 Uuid = packet.Uuid;
-                
+
                 // Raise login success event
                 OnLoginSuccess?.Invoke(this, new LoginEventArgs());
             }
@@ -233,7 +233,7 @@ namespace UserManagement
                 // Set module states
                 LoggedIn = false;
                 Uuid = null;
-                
+
                 // Raise login failure event
                 OnLoginFailure?.Invoke(this, new LoginEventArgs(packet.FailureReason, packet.FailureMessage));
             }
@@ -247,7 +247,7 @@ namespace UserManagement
         private void userUpdatePacketHandler(string connectionId, UserUpdatePacket packet)
         {
             User user = packet.User;
-            
+
             lock (userStoreLock)
             {
                 // Check if the user does not already exist
@@ -312,7 +312,7 @@ namespace UserManagement
                 }
             }
         }
-        
+
         /// <summary>
         /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>
