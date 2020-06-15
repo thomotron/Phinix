@@ -168,8 +168,6 @@ namespace PhinixClient.GUI
 
         private void ChatMessageReceivedEventHandler(object sender, ClientChatMessageEventArgs args)
         {
-            Client.Instance.Log(new LogEventArgs("The chat message handler works"));
-
             lock (newMessageWidgetsLock)
             {
                 // Append the new message to the list
