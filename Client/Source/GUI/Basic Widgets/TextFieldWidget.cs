@@ -13,7 +13,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// The field's text content.
         /// </summary>
-        private string text;
+        public string Text;
 
         /// <summary>
         /// Callback invoked when the field's text changes
@@ -43,7 +43,7 @@ namespace PhinixClient.GUI
         /// <param name="validator">Text validator to apply to the value as it is being changed</param>
         public TextFieldWidget(string initialText, Action<string> onChange, Regex validator)
         {
-            this.text = initialText;
+            this.Text = initialText;
             this.onChange = onChange;
             this.validator = validator;
         }
@@ -52,17 +52,17 @@ namespace PhinixClient.GUI
         public override void Draw(Rect inRect)
         {
             // Draw the text field
-            string newText = Widgets.TextField(inRect, text, int.MaxValue, validator);
+            string newText = Widgets.TextField(inRect, Text, int.MaxValue, validator);
 
             // Check if the content has changed
-            if (newText != text)
+            if (newText != Text)
             {
                 // Invoke the callback
                 onChange?.Invoke(newText);
             }
 
             // Update the text field
-            text = newText;
+            Text = newText;
         }
     }
 }

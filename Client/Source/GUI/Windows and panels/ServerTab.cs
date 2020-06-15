@@ -43,6 +43,7 @@ namespace PhinixClient
 
         private static ChatMessageList chatMessageList;
         private UserList userList;
+        private TextFieldWidget messageBox;
 
         private static TabsContainer contents;
 
@@ -51,6 +52,10 @@ namespace PhinixClient
             // Generate the chat and user list
             chatMessageList = new ChatMessageList();
             userList = new UserList(() => userSearch);
+            messageBox = new TextFieldWidget(
+                initialText: message,
+                onChange: newMessage => message = newMessage
+            );
 
             // Create a tab container to hold the chat and trade list
             contents = new TabsContainer();
@@ -169,12 +174,7 @@ namespace PhinixClient
             HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer();
 
             // Message entry field
-            messageEntryFlexContainer.Add(
-                new TextFieldWidget(
-                    initialText: message,
-                    onChange: newMessage => message = newMessage
-                )
-            );
+            messageEntryFlexContainer.Add(messageBox);
 
             // Send button
             messageEntryFlexContainer.Add(
@@ -252,6 +252,7 @@ namespace PhinixClient
                 Instance.SendMessage(message);
 
                 message = "";
+                messageBox.Text = "";
                 chatMessageList.ScrollToBottom();
             }
         }
