@@ -1,8 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PhinixClient.GUI;
 using UnityEngine;
-using Utils;
 using Verse;
 
 namespace PhinixClient
@@ -28,7 +28,14 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
+        /// <summary>
+        /// The pre-generated window contents.
+        /// </summary>
         private VerticalFlexContainer contents;
+        /// <summary>
+        /// Whether an update call to <see cref="contents"/> has been requested by <see cref="updateOnEventHandler"/>.
+        /// </summary>
+        private bool needsUpdate = false;
 
         public SettingsWindow()
         {
@@ -60,6 +67,13 @@ namespace PhinixClient
 
         public override void DoWindowContents(Rect inRect)
         {
+            if (needsUpdate)
+            {
+                // Update contents and reset the flag
+                contents.Update();
+                needsUpdate = false;
+            }
+
             // Calculate height and constrain the container so we have even row heights with fluid contents
             float contentHeight = 0f;
             foreach (Displayable item in contents.Contents)
@@ -73,6 +87,47 @@ namespace PhinixClient
             heightContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
         }
 
+        /// <inheritdoc />
+        public override void PreOpen()
+        {
+            base.PreOpen();
+
+            // Bind to events
+            Client.Instance.OnConnecting += updateOnEventHandler;
+            Client.Instance.OnDisconnect += updateOnEventHandler;
+            Client.Instance.OnAuthenticationSuccess += updateOnEventHandler;
+            Client.Instance.OnAuthenticationFailure += updateOnEventHandler;
+            Client.Instance.OnLoginSuccess += updateOnEventHandler;
+            Client.Instance.OnLoginFailure += updateOnEventHandler;
+
+            // Invalidate content to compensate for any missed events
+            needsUpdate = true;
+        }
+
+        /// <inheritdoc />
+        public override void PostClose()
+        {
+            base.PostClose();
+
+            // Unbind from events
+            Client.Instance.OnConnecting -= updateOnEventHandler;
+            Client.Instance.OnDisconnect -= updateOnEventHandler;
+            Client.Instance.OnAuthenticationSuccess -= updateOnEventHandler;
+            Client.Instance.OnAuthenticationFailure -= updateOnEventHandler;
+            Client.Instance.OnLoginSuccess -= updateOnEventHandler;
+            Client.Instance.OnLoginFailure -= updateOnEventHandler;
+        }
+
+        /// <summary>
+        /// Refreshes the GUI content.
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="args">Event arguments</param>
+        private void updateOnEventHandler(object sender, EventArgs args)
+        {
+            needsUpdate = true;
+        }
+
         /// <summary>
         /// Generates a non-editable server address and disconnect button.
         /// </summary>
@@ -84,8 +139,8 @@ namespace PhinixClient
 
             // Server address label
             row.Add(
-                new TextWidget(
-                    text: "Phinix_settings_connectedToLabel".Translate(serverAddress),
+                new DynamicTextWidget(
+                    textCallback: () => "Phinix_settings_connectedToLabel".Translate(serverAddress),
                     anchor: TextAnchor.MiddleLeft
                 )
             );
