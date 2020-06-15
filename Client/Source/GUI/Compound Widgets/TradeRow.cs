@@ -30,30 +30,104 @@ namespace PhinixClient.GUI
         /// </summary>
         private bool drawAlternateBackground;
 
+        /// <summary>
+        /// Other party's UUID.
+        /// </summary>
+        private string otherPartyUuid;
+
+        /// <summary>
+        /// A cached copy of the other party's display name.
+        /// Refreshed every time <see cref="Update"/> is called.
+        /// </summary>
+        private string cachedOtherPartyDisplayName;
+
+        /// <summary>
+        /// A cached copy of the other party's accepted state.
+        /// Refreshed every time <see cref="Update"/> is called.
+        /// </summary>
+        /// <returns></returns>
+        private bool cachedOtherPartyAccepted;
+
+        /// <summary>
+        /// The pre-generated trade row.
+        /// </summary>
+        private Displayable content;
+
+        /// <summary>
+        /// Creates a new <see cref="TradeRow"/> from the given trade ID.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="drawAlternateBackground">Whether to draw an alternate, lighter background</param>
+        /// <exception cref="Exception">Failed to get other party's display name</exception>
+        /// <exception cref="Exception">Failed to get whether the other party has accepted or not</exception>
         public TradeRow(string tradeId, bool drawAlternateBackground = false)
         {
             this.tradeId = tradeId;
             this.drawAlternateBackground = drawAlternateBackground;
+
+            // Try get the other party's UUID and display name
+            if (!Client.Instance.TryGetOtherPartyUuid(tradeId, out otherPartyUuid) ||
+                !Client.Instance.TryGetDisplayName(otherPartyUuid, out cachedOtherPartyDisplayName))
+            {
+                // Failed to get the other party's display name
+                throw new Exception("Failed to get the other party's display name.");
+            }
+
+            // Try get the other party's accepted state
+            if (!Client.Instance.TryGetPartyAccepted(tradeId, otherPartyUuid, out cachedOtherPartyAccepted))
+            {
+                // Failed to get the other party's accepted state
+                throw new Exception("Failed to get whether the other party has accepted or not.");
+            }
+
+            // Generate the content
+            this.content = generateTradeRow();
         }
 
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
+            // Draw a background highlight
+            if (drawAlternateBackground) Widgets.DrawHighlight(inRect);
+
+            // Draw the row
+            content.Draw(inRect);
+        }
+
+        public override void Update()
+        {
             // Try get the other party's UUID and display name
-            if (!Client.Instance.TryGetOtherPartyUuid(tradeId, out string otherPartyUuid) ||
-                !Client.Instance.TryGetDisplayName(otherPartyUuid, out string otherPartyDisplayName))
+            if (!Client.Instance.TryGetOtherPartyUuid(tradeId, out otherPartyUuid) ||
+                !Client.Instance.TryGetDisplayName(otherPartyUuid, out cachedOtherPartyDisplayName))
             {
                 // Failed to get the other party's display name
-                throw new Exception("Failed to get the other party's display name when drawing a TradeRow");
+                throw new Exception("Failed to get the other party's display name.");
             }
 
             // Try get the other party's accepted state
-            if (!Client.Instance.TryGetPartyAccepted(tradeId, otherPartyUuid, out bool otherPartyAccepted))
+            if (!Client.Instance.TryGetPartyAccepted(tradeId, otherPartyUuid, out cachedOtherPartyAccepted))
             {
                 // Failed to get the other party's accepted state
-                throw new Exception("Failed to get whether the other party has accepted or not when drawing a TradeRow");
+                throw new Exception("Failed to get whether the other party has accepted or not.");
             }
 
+            // Update the pre-generated row
+            content.Update();
+        }
+
+        /// <inheritdoc />
+        public override float CalcHeight(float width)
+        {
+            return HEIGHT;
+        }
+
+        /// <summary>
+        /// Generates the trade row based on the cached state variables.
+        /// This only needs to be run once.
+        /// </summary>
+        /// <returns>Generated trade row</returns>
+        private Displayable generateTradeRow()
+        {
             // Create a row to hold everything
             HorizontalFlexContainer row = new HorizontalFlexContainer(DEFAULT_SPACING);
 
@@ -64,7 +138,7 @@ namespace PhinixClient.GUI
             textColumn.Add(
                 new Container(
                     new TextWidget(
-                        text: "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(otherPartyDisplayName)),
+                        text: "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(cachedOtherPartyDisplayName)),
                         anchor: TextAnchor.MiddleLeft
                     ),
                     height: TRADE_WITH_LABEL_HEIGHT
@@ -75,7 +149,7 @@ namespace PhinixClient.GUI
             textColumn.Add(
                 new Container(
                     new TextWidget(
-                        text: ("Phinix_trade_activeTrade_theyHave" + (!otherPartyAccepted ? "Not" : "") + "Accepted").Translate(),
+                        text: ("Phinix_trade_activeTrade_theyHave" + (!cachedOtherPartyAccepted ? "Not" : "") + "Accepted").Translate(),
                         font: GameFont.Tiny,
                         anchor: TextAnchor.MiddleLeft
                     ),
@@ -108,17 +182,7 @@ namespace PhinixClient.GUI
                 )
             );
 
-            // Draw a background highlight
-            if (drawAlternateBackground) Widgets.DrawHighlight(inRect);
-
-            // Draw the row
-            row.Draw(inRect);
-        }
-
-        /// <inheritdoc />
-        public override float CalcHeight(float width)
-        {
-            return HEIGHT;
+            return row;
         }
     }
 }
