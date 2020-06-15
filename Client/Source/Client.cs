@@ -49,6 +49,7 @@ namespace PhinixClient
         public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedIn;
         public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedOut;
         public event EventHandler<UserCreatedEventArgs> OnUserCreated;
+        public event EventHandler OnUserSync;
 
         public bool Online => Connected && Authenticated && LoggedIn;
 
@@ -458,6 +459,7 @@ namespace PhinixClient
             userManager.OnUserLoggedIn += (sender, e) => { OnUserLoggedIn?.Invoke(sender, e); };
             userManager.OnUserLoggedOut += (sender, e) => { OnUserLoggedOut?.Invoke(sender, e); };
             userManager.OnUserCreated += (sender, e) => { OnUserCreated?.Invoke(sender, e); };
+            userManager.OnUserSync += (sender, e) => { OnUserSync?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };

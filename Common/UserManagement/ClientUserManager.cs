@@ -49,6 +49,11 @@ namespace UserManagement
         public event EventHandler<UserCreatedEventArgs> OnUserCreated;
 
         /// <summary>
+        /// Raised when a <see cref="UserSyncPacket"/> is received and users are synchronised with the server.
+        /// </summary>
+        public event EventHandler OnUserSync;
+
+        /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
@@ -311,6 +316,8 @@ namespace UserManagement
                     }
                 }
             }
+
+            OnUserSync?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
