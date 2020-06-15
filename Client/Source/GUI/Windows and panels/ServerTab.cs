@@ -228,18 +228,6 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Draws a grey placeholder box over the container with the given text.
-        /// </summary>
-        /// <param name="container">Container to draw within</param>
-        /// <param name="text">Text to display</param>
-        private void DrawPlaceholder(Rect container, string text = "")
-        {
-            PlaceholderWidget placeholder = new PlaceholderWidget(text);
-
-            placeholder.Draw(container);
-        }
-
-        /// <summary>
         /// Draws a context menu with user-specific actions.
         /// </summary>
         /// <param name="uuid">User's UUID</param>
