@@ -58,24 +58,23 @@ namespace PhinixClient.GUI
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
         }
 
-        public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
+        public ChatMessageWidget(ClientChatMessage message)
+            : this(message.MessageId, message.SenderUuid, message.Message, message.Timestamp, message.Status)
         {
+        }
+
+        public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
+             : this(null, senderUuid, message, receivedTime, status)
+        {
+        }
+
+        public ChatMessageWidget(string messageId, string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
+        {
+            this.MessageId = messageId;
             this.ReceivedTime = receivedTime;
             this.SenderUuid = senderUuid;
             this.Message = message;
             this.Status = status;
-
-            // Pre-cache the user's display name
-            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
-        }
-
-        public ChatMessageWidget(ClientChatMessage message)
-        {
-            this.MessageId = message.MessageId;
-            this.ReceivedTime = message.Timestamp;
-            this.SenderUuid = message.SenderUuid;
-            this.Message = message.Message;
-            this.Status = message.Status;
 
             // Pre-cache the user's display name
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
