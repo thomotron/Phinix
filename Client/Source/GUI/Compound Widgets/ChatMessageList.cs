@@ -5,6 +5,7 @@ using System.Threading;
 using Chat;
 using Trading;
 using UnityEngine;
+using UserManagement;
 using Utils;
 using Verse;
 
@@ -60,6 +61,7 @@ namespace PhinixClient.GUI
             // Subscribe to chat message events
             // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
             Client.Instance.OnChatMessageReceived += ChatMessageReceivedEventHandler;
+            Client.Instance.OnUserDisplayNameChanged += UserChangedEventHandler;
         }
 
         public override void Draw(Rect inRect) {
@@ -172,6 +174,23 @@ namespace PhinixClient.GUI
             {
                 // Append the new message to the list
                 newMessageWidgets.Add(new ChatMessageWidget(args.Message));
+            }
+        }
+
+        private void UserChangedEventHandler(object sender, UserDisplayNameChangedEventArgs args)
+        {
+            // Prevent the UI thread from changing chatFlexContainer while we iterate over it
+            lock (newMessageWidgetsLock)
+            {
+                // Update every message sent by this user
+                foreach (Displayable element in chatFlexContainer.Contents)
+                {
+                    // Ignore non-message widgets
+                    if (!(element is ChatMessageWidget message)) continue;
+
+                    // Update the message if it's sent by the user that just got updated
+                    if (message.SenderUuid == args.Uuid) message.Update();
+                }
             }
         }
     }
