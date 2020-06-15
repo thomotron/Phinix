@@ -58,10 +58,12 @@ namespace PhinixClient.GUI
                                         .ToList()
             );
 
-            // Subscribe to chat message events
+            // Subscribe to events
             // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
             Client.Instance.OnChatMessageReceived += ChatMessageReceivedEventHandler;
             Client.Instance.OnUserDisplayNameChanged += UserChangedEventHandler;
+            Client.Instance.OnChatSync += (s, e) => ReplaceWithBuffer();
+            Client.Instance.OnDisconnect += (s, e) => Clear();
         }
 
         public override void Draw(Rect inRect) {
@@ -165,6 +167,24 @@ namespace PhinixClient.GUI
             {
                 newMessageWidgets.Clear();
                 chatFlexContainer.Contents.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Clears the list and populates it with the messages in the chat buffer.
+        /// </summary>
+        /// <seealso cref="Client.GetChatMessages"/>
+        public void ReplaceWithBuffer()
+        {
+            Clear();
+
+            lock (newMessageWidgetsLock)
+            {
+                // Append each buffered message to the list
+                foreach (ClientChatMessage message in Client.Instance.GetChatMessages())
+                {
+                    newMessageWidgets.Add(new ChatMessageWidget(message));
+                }
             }
         }
 
