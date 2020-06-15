@@ -45,6 +45,10 @@ namespace PhinixClient
         public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn);
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
+        public event EventHandler<UserDisplayNameChangedEventArgs> OnUserDisplayNameChanged;
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedIn;
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedOut;
+        public event EventHandler<UserCreatedEventArgs> OnUserCreated;
 
         public bool Online => Connected && Authenticated && LoggedIn;
 
@@ -295,6 +299,22 @@ namespace PhinixClient
 
                 Disconnect();
             };
+            userManager.OnUserDisplayNameChanged += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User with UUID {0} changed their display name from \"{1}\" to \"{2}\"", args.Uuid, args.OldDisplayName, args.NewDisplayName));
+            };
+            userManager.OnUserLoggedIn += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User {0} logged in", args.Uuid));
+            };
+            userManager.OnUserLoggedOut += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User {0} logged out", args.Uuid));
+            };
+            userManager.OnUserCreated += (sender, args) =>
+            {
+                Logger.Trace(string.Format("New user created: {0} ({1}) - {2}gged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
+            };
 
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
@@ -434,6 +454,10 @@ namespace PhinixClient
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
             userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
+            userManager.OnUserDisplayNameChanged += (sender, e) => { OnUserDisplayNameChanged?.Invoke(sender, e); };
+            userManager.OnUserLoggedIn += (sender, e) => { OnUserLoggedIn?.Invoke(sender, e); };
+            userManager.OnUserLoggedOut += (sender, e) => { OnUserLoggedOut?.Invoke(sender, e); };
+            userManager.OnUserCreated += (sender, e) => { OnUserCreated?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
