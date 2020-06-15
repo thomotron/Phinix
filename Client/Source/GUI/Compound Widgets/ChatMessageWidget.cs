@@ -53,6 +53,9 @@ namespace PhinixClient.GUI
 
             this.ReceivedTime = DateTime.UtcNow;
             this.Status = ChatMessageStatus.PENDING;
+
+            // Pre-cache the user's display name
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
         }
 
         public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
@@ -61,6 +64,9 @@ namespace PhinixClient.GUI
             this.SenderUuid = senderUuid;
             this.Message = message;
             this.Status = status;
+
+            // Pre-cache the user's display name
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
         }
 
         public ChatMessageWidget(ClientChatMessage message)
@@ -70,6 +76,9 @@ namespace PhinixClient.GUI
             this.SenderUuid = message.SenderUuid;
             this.Message = message.Message;
             this.Status = message.Status;
+
+            // Pre-cache the user's display name
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
         }
 
         /// <inheritdoc />
