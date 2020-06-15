@@ -41,12 +41,17 @@ namespace PhinixClient
 
         private static Vector2 activeTradesScroll = new Vector2(0, 0);
 
-        private static ChatMessageList chatMessageList = new ChatMessageList();
+        private static ChatMessageList chatMessageList;
+        private UserList userList;
 
         private static TabsContainer contents;
 
         public ServerTab()
         {
+            // Generate the chat and user list
+            chatMessageList = new ChatMessageList();
+            userList = new UserList(() => userSearch);
+
             // Create a tab container to hold the chat and trade list
             contents = new TabsContainer();
 
@@ -118,7 +123,11 @@ namespace PhinixClient
                 new Container(
                     new TextFieldWidget(
                         initialText: userSearch,
-                        onChange: (newText) => userSearch = newText
+                        onChange: (newText) =>
+                        {
+                            userSearch = newText;
+                            userList.Update();
+                        }
                     ),
                     height: USER_SEARCH_HEIGHT
                 )
@@ -127,7 +136,7 @@ namespace PhinixClient
             // User list
             column.Add(
                 new ConditionalContainer(
-                    childIfTrue: GenerateUserList(),
+                    childIfTrue: userList,
                     childIfFalse: new PlaceholderWidget(),
                     condition: () => Instance.Online
                 )
@@ -188,61 +197,6 @@ namespace PhinixClient
 
             // Return the generated column
             return column;
-        }
-
-        /// <summary>
-        /// Adds each logged in user to a scrollable container.
-        /// </summary>
-        /// <returns>A <see cref="VerticalScrollContainer"/> containing the user list</returns>
-        private VerticalScrollContainer GenerateUserList()
-        {
-            // Create a flex container to hold the users
-            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
-
-            // Add each logged in user to the flex container
-            foreach (string uuid in Instance.GetUserUuids(true))
-            {
-                // Try to get the display name of the user
-                if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
-
-                // Skip the user if they don't contain the search text
-                if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
-
-                // Strip name formatting if the user wishes not to see it
-                if (!Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
-
-                userListFlexContainer.Add(
-                    new ButtonWidget(
-                        label: displayName,
-                        clickAction: () => DrawUserContextMenu(uuid, displayName),
-                        drawBackground: false
-                    )
-                );
-            }
-
-            // Wrap the flex container in a scroll container
-            VerticalScrollContainer verticalScrollContainer = new VerticalScrollContainer(userListFlexContainer);
-
-            // Return the scroll container
-            return verticalScrollContainer;
-        }
-
-        /// <summary>
-        /// Draws a context menu with user-specific actions.
-        /// </summary>
-        /// <param name="uuid">User's UUID</param>
-        /// <param name="displayName">User's display name</param>
-        private void DrawUserContextMenu(string uuid, string displayName)
-        {
-            // Do nothing if this is our UUID
-            if (uuid == Instance.Uuid) return;
-
-            // Create and populate a list of context menu items
-            List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
-
-            // Draw the context menu
-            Find.WindowStack.Add(new FloatMenu(items));
         }
 
         /// <summary>

@@ -86,6 +86,8 @@
     <Compile Include="GUI\Compound Widgets\DynamicTextWidget.cs" />
     <Compile Include="GUI\Compound Widgets\ItemStackRow.cs" />
     <Compile Include="GUI\Compound Widgets\TradeRow.cs" />
+    <Compile Include="GUI\Compound Widgets\UserList.cs" />
+    <Compile Include="GUI\Compound Widgets\UserWidget.cs" />
     <Compile Include="GUI\Containers\ConditionalContainer.cs" />
     <Compile Include="GUI\Containers\Container.cs" />
     <Compile Include="GUI\Containers\HeightContainer.cs" />
