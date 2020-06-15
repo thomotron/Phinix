@@ -251,16 +251,6 @@ namespace PhinixClient
         /// <returns></returns>
         private Displayable GenerateTradeRows()
         {
-            // Make sure we are online and have active trades before attempting to draw them
-            if (!Instance.Online)
-            {
-                return new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate());
-            }
-            else if (Instance.GetTrades().Count() == 0)
-            {
-                return new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate());
-            }
-
             // Create a column to store everything in
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 
@@ -276,8 +266,25 @@ namespace PhinixClient
                 );
             }
 
-            // Return the generated column wrapped in a scroll container
-            return new VerticalScrollContainer(column);
+            // Wrap the column in a scroll container
+            VerticalScrollContainer scrolledColumn = new VerticalScrollContainer(column);
+
+            // Make sure we have active trades before attempting to draw them
+            ConditionalContainer activeTradesConditional = new ConditionalContainer(
+                childIfTrue: scrolledColumn,
+                childIfFalse: new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate()),
+                condition: () => Instance.GetTrades().Any()
+            );
+
+            // Make sure we are online above all else
+            ConditionalContainer onlineConditional = new ConditionalContainer(
+                childIfTrue: activeTradesConditional,
+                childIfFalse: new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate()),
+                condition: () => Instance.Online
+            );
+
+            // Return the generated panel
+            return onlineConditional;
         }
 
         /// <summary>
