@@ -56,7 +56,7 @@ namespace Authentication
         /// <summary>
         /// Stores credentials for each client.
         /// </summary>
-        private CredentialStore credentialStore;
+        private ServerCredentialStore credentialStore;
         /// <summary>
         /// Lock object to prevent race conditions when accessing <see cref="credentialStore"/>.
         /// </summary>
@@ -68,7 +68,7 @@ namespace Authentication
             this.serverName = serverName;
             this.serverDescription = serverDescription;
             this.authType = authType;
-            this.credentialStore = new CredentialStore();
+            this.credentialStore = new ServerCredentialStore();
 
             this.sessions = new Dictionary<string, Session>();
             this.sessionCleanupTimer = new Timer
@@ -208,7 +208,7 @@ namespace Authentication
                     RaiseLogEntry(new LogEventArgs("No credentials database, generating a new one"));
 
                     // Create a new credential store
-                    credentialStore = new CredentialStore();
+                    credentialStore = new ServerCredentialStore();
 
                     // Save the store to disk
                     Save(path);
@@ -224,7 +224,7 @@ namespace Authentication
                     {
                         lock (credentialStoreLock)
                         {
-                            credentialStore = CredentialStore.Parser.ParseFrom(cis);
+                            credentialStore = ServerCredentialStore.Parser.ParseFrom(cis);
                         }
                     }
                 }
@@ -415,11 +415,12 @@ namespace Authentication
                         if (authType == AuthTypes.ClientKey)
                         {
                             // Create a new credential and add it to the credential store
-                            Credential newCredential = new Credential
+                            ServerCredential newCredential = new ServerCredential
                             {
                                 AuthType = AuthTypes.ClientKey,
                                 Username = packet.Username,
-                                Password = packet.Password
+                                Password = packet.Password,
+                                Banned = false
                             };
                             credentialStore.Credentials.Add(newCredential.Username, newCredential);
                         }
@@ -439,7 +440,7 @@ namespace Authentication
                     session.Username = packet.Username;
 
                     // Get an alias of the user's credential for simplicity
-                    Credential credential = credentialStore.Credentials[session.Username];
+                    ServerCredential credential = credentialStore.Credentials[session.Username];
 
                     // Check if the credential is not for our current auth type
                     if (credential.AuthType != authType)
