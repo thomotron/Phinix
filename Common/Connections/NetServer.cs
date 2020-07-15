@@ -15,7 +15,7 @@ namespace Connections
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         /// <summary>
         /// Whether the server is currently listening for connections.
         /// </summary>
@@ -25,7 +25,7 @@ namespace Connections
         /// <see cref="IPEndPoint"/> the server is listening on.
         /// </summary>
         public readonly IPEndPoint Endpoint;
-        
+
         /// <summary>
         /// Raised when a new connection is established.
         /// </summary>
@@ -52,14 +52,14 @@ namespace Connections
         public NetServer(IPEndPoint endpoint, int maxConnections)
         {
             this.Endpoint = endpoint;
-            
+
             this.server = new NetManager(listener, maxConnections, "Phinix")
             {
                 PingInterval = 5000,
                 DisconnectTimeout = 30000
             };
             this.connectedPeers = new Dictionary<string, NetPeer>();
-            
+
             // Subscribe to events
             listener.PeerConnectedEvent += (peer) =>
             {
@@ -73,7 +73,7 @@ namespace Connections
                 {
                     connectedPeers.Add(connectionId, peer);
                 }
-                
+
                 // Raise the connection established event for this peer
                 OnConnectionEstablished?.Invoke(this, new ConnectionEventArgs(connectionId));
             };
@@ -82,7 +82,7 @@ namespace Connections
                 // Remove the peer's connection
                 string connectionId = peer.ConnectId.ToString("X");
                 connectedPeers.Remove(connectionId);
-                
+
                 // Raise the connection established event for this peer
                 OnConnectionClosed?.Invoke(this, new ConnectionEventArgs(connectionId));
             };
@@ -98,7 +98,7 @@ namespace Connections
 
             // Start listening
             server.Start(Endpoint.Port);
-            
+
             // Start a polling thread to check for incoming packets
             pollThread = new Thread(() =>
             {
@@ -118,7 +118,7 @@ namespace Connections
         {
             server.Stop();
             connectedPeers.Clear();
-            
+
             // Kill the poll thread and clear the variable
             if (pollThread != null)
             {
@@ -143,22 +143,22 @@ namespace Connections
             if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
             if (string.IsNullOrEmpty(module)) throw new ArgumentException("Module cannot be null or empty", nameof(module));
             if (serialisedMessage == null) throw new ArgumentNullException(nameof(serialisedMessage), "Serialised message cannot be null");
-            
+
             // Check the connection exists
             if (!connectedPeers.ContainsKey(connectionId))
             {
                 throw new NotConnectedException();
             }
-            
+
             // Get the connection by it's ID
             NetPeer peer = connectedPeers[connectionId];
-            
+
             // Make sure the connection is open
             if (peer.ConnectionState != ConnectionState.Connected)
             {
                 throw new NotConnectedException(peer);
             }
-            
+
             // Write the module and message data to a NetDataWriter stream
             NetDataWriter writer = new NetDataWriter();
             writer.Put(module);
@@ -181,28 +181,28 @@ namespace Connections
             {
                 // Try to send the message
                 Send(connectionId, module, serialisedMessage);
-                
+
                 return true;
             }
             catch (NotConnectedException e)
             {
                 // Catch connection exceptions
                 RaiseLogEntry(new LogEventArgs("Cannot send message, " + e.Message, LogLevel.ERROR));
-                
+
                 return false;
             }
             catch (ArgumentNullException e)
             {
                 // Catch argument exceptions
                 RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
-                
+
                 return false;
             }
             catch (ArgumentException e)
             {
                 // Catch more argument exceptions
                 RaiseLogEntry(new LogEventArgs(string.Format("Cannot send message, argument {0} is null or empty", e.ParamName), LogLevel.ERROR));
-                
+
                 return false;
             }
             catch (Exception e)
@@ -211,6 +211,23 @@ namespace Connections
                 RaiseLogEntry(new LogEventArgs("Got an unusual exception when sending a message\n" + e, LogLevel.ERROR));
 
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Disconnects the connection with the given ID.
+        /// </summary>
+        /// <param name="connectionId">ID of the connection to disconnect</param>
+        /// <exception cref="ArgumentException"><see cref="connectionId"/> cannot be null or empty</exception>
+        public void Disconnect(string connectionId)
+        {
+            // Disallow null parameters
+            if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
+
+            // Disconnect the client if they are connected
+            if (!connectedPeers.ContainsKey(connectionId))
+            {
+                server.DisconnectPeer(connectedPeers[connectionId]);
             }
         }
     }
