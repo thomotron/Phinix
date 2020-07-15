@@ -153,15 +153,15 @@ namespace Trading
             switch (typeUrl.Type)
             {
                 case "CreateTradePacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got a CreateTradePacket from {0}", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a CreateTradePacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     createTradePacketHandler(connectionId, message.Unpack<CreateTradePacket>());
                     break;
                 case "UpdateTradeItemsPacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeItemsPacket from {0}", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeItemsPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
                     break;
                 case "UpdateTradeStatusPacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeStatusPacket from {0}", connectionId), LogLevel.DEBUG));
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeStatusPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     updateTradeStatusPacketHandler(connectionId, message.Unpack<UpdateTradeStatusPacket>());
                     break;
                 default:
@@ -311,7 +311,7 @@ namespace Trading
                 sendSuccessfulCreateTradeResponsePacket(connectionId, trade.TradeId, packet.OtherPartyUuid); // Sender
                 sendSuccessfulCreateTradeResponsePacket(otherPartyConnectionId, trade.TradeId, packet.Uuid); // Other party
 
-                RaiseLogEntry(new LogEventArgs(string.Format("Created trade {0} between {1} and {2}", trade.TradeId, packet.Uuid, packet.OtherPartyUuid), LogLevel.DEBUG));
+                RaiseLogEntry(new LogEventArgs(string.Format("Created trade {0} between {1} and {2}", trade.TradeId.Highlight(HighlightType.TradeID), packet.Uuid.Highlight(HighlightType.UUID), packet.OtherPartyUuid.Highlight(HighlightType.UUID)), LogLevel.DEBUG));
             }
         }
 
@@ -323,7 +323,7 @@ namespace Trading
         /// <param name="otherPartyUuid">Other party's UUID</param>
         private void sendSuccessfulCreateTradeResponsePacket(string connectionId, string tradeId, string otherPartyUuid)
         {
-            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending successful CreateTradeResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
             // Create and pack a response
             CreateTradeResponsePacket packet = new CreateTradeResponsePacket
@@ -337,7 +337,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -349,7 +349,7 @@ namespace Trading
         /// <param name="failureMessage">Failure message</param>
         private void sendFailedCreateTradeResponsePacket(string connectionId, TradeFailureReason failureReason, string failureMessage)
         {
-            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed CreateTradeResponsePacket to connection {0}", connectionId), LogLevel.DEBUG));
+            RaiseLogEntry(new LogEventArgs(string.Format("Sending failed CreateTradeResponsePacket to connection {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
             // Create and pack a response
             CreateTradeResponsePacket packet = new CreateTradeResponsePacket
@@ -363,7 +363,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send CreateTradeResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -518,7 +518,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send CompleteTradePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send CompleteTradePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -543,7 +543,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeStatusPacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeStatusPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -643,7 +643,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -669,7 +669,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -699,7 +699,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
@@ -755,7 +755,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send SyncTradesPacket to connection " + connectionId, LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send SyncTradesPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
     }
