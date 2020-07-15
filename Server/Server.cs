@@ -50,6 +50,7 @@ namespace PhinixServer
             Trading = new ServerTrading(Connections, Authenticator, UserManager);
 
             // Add handler for ILoggable modules
+            Connections.OnLogEntry += ILoggableHandler;
             Authenticator.OnLogEntry += ILoggableHandler;
             UserManager.OnLogEntry += ILoggableHandler;
             Chat.OnLogEntry += ILoggableHandler;

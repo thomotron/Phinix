@@ -74,6 +74,9 @@ namespace Connections
                     connectedPeers.Add(connectionId, peer);
                 }
 
+                // Log the event
+                RaiseLogEntry(new LogEventArgs(string.Format("Opened connection from {0}:{1} (ConnID: {2})", peer.EndPoint.Host, peer.EndPoint.Port, connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
+
                 // Raise the connection established event for this peer
                 OnConnectionEstablished?.Invoke(this, new ConnectionEventArgs(connectionId));
             };
@@ -82,6 +85,9 @@ namespace Connections
                 // Remove the peer's connection
                 string connectionId = peer.ConnectId.ToString("X");
                 connectedPeers.Remove(connectionId);
+
+                // Log the event
+                RaiseLogEntry(new LogEventArgs(string.Format("Closed connection from {0}:{1} (ConnID: {2})", peer.EndPoint.Host, peer.EndPoint.Port, connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
 
                 // Raise the connection established event for this peer
                 OnConnectionClosed?.Invoke(this, new ConnectionEventArgs(connectionId));
