@@ -277,6 +277,106 @@ namespace Authentication
             }
         }
 
+        /// <summary>
+        /// Checks whether the given user is banned.
+        /// Returns false if the user does not exist.
+        /// </summary>
+        /// <param name="username">User's username</param>
+        /// <returns>Whether the given user exists and is banned</returns>
+        public bool IsBanned(string username)
+        {
+            lock (credentialStoreLock)
+            {
+                // Check if the user exists
+                if (credentialStore.Credentials.ContainsKey(username))
+                {
+                    return credentialStore.Credentials[username].Banned;
+                }
+            }
+
+            // Default to false if the user doesn't exist
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the usernames of each banned user.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetBannedUsers()
+        {
+            lock (credentialStoreLock)
+            {
+                // Return only banned users' usernames
+                return credentialStore.Credentials.Values.Where(c => c.Banned).Select(c => c.Username).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Bans the user with the given username.
+        /// </summary>
+        /// <remarks>
+        /// The user will no longer be able to authenticate with the newly-banned username and any existing connections
+        /// authenticated under that username will be disconnected.
+        /// </remarks>
+        /// <param name="username">User's username</param>
+        /// <exception cref="ArgumentException">User does not exist</exception>
+        /// <seealso cref="Unban"/>
+        public void Ban(string username)
+        {
+            lock (credentialStoreLock)
+            {
+                // Make sure the user exists
+                if (!credentialStore.Credentials.ContainsKey(username))
+                {
+                    throw new ArgumentException("User \"" + username + "\" does not exist", username);
+                }
+
+                // Mark them as banned
+                credentialStore.Credentials[username].Banned = true;
+
+                // Get any active sessions' connection IDs
+                List<string> connections = new List<string>();
+                lock (sessionsLock)
+                {
+                    foreach (Session session in sessions.Values)
+                    {
+                        // Ignore sessions that aren't authenticated or aren't this user
+                        if (!session.Authenticated && session.Username != username) continue;
+
+                        // Add the connection ID to the list of connections to close
+                        connections.Add(session.ConnectionId);
+                    }
+                }
+
+                // Close each connection
+                foreach (string connection in connections)
+                {
+                    netServer.Disconnect(connection);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unbans the user with the given username.
+        /// </summary>
+        /// <param name="username">User's username</param>
+        /// <exception cref="ArgumentException">User does not exist</exception>
+        /// <seealso cref="Ban"/>
+        public void Unban(string username)
+        {
+            lock (credentialStoreLock)
+            {
+                // Make sure the user exists
+                if (!credentialStore.Credentials.ContainsKey(username))
+                {
+                    throw new ArgumentException("User \"" + username + "\" does not exist", username);
+                }
+
+                // Unmark them as banned
+                credentialStore.Credentials[username].Banned = false;
+            }
+        }
+
         private void ConnectionEstablishedHandler(object sender, ConnectionEventArgs e)
         {
             RaiseLogEntry(new LogEventArgs("Sending HelloPacket to incoming connection " + e.ConnectionId.Highlight(HighlightType.ConnectionID), LogLevel.DEBUG));
@@ -441,6 +541,18 @@ namespace Authentication
 
                     // Get an alias of the user's credential for simplicity
                     ServerCredential credential = credentialStore.Credentials[session.Username];
+
+                    // Check if the user is banned
+                    if (credential.Banned)
+                    {
+                        // Fail the authentication attempt due to an existing ban
+                        sendFailedAuthResponsePacket(connectionId, AuthFailureReason.Credentials, "You have been banned from this server.");
+
+                        RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0} (SessID: {1}): User \"{2}\" is banned", connectionId.Highlight(HighlightType.ConnectionID), session.SessionId.Highlight(HighlightType.SessionID), packet.Username.Highlight(HighlightType.Username)), LogLevel.DEBUG));
+
+                        // Stop here
+                        return;
+                    }
 
                     // Check if the credential is not for our current auth type
                     if (credential.AuthType != authType)
