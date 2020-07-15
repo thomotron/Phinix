@@ -196,12 +196,6 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeCompleted(object sender, CompleteTradeEventArgs args)
         {
-            // Delete our selected items
-            foreach (StackedThings itemStack in itemStacks)
-            {
-                itemStack.DeleteSelected();
-            }
-
             // Close the window
             Close();
         }
