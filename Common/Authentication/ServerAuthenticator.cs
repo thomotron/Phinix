@@ -173,6 +173,34 @@ namespace Authentication
         }
 
         /// <summary>
+        /// Attempts to get the session ID from the session authenticated as the given username.
+        /// Returns whether the session ID was retrieved successfully.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="sessionId">Session ID output</param>
+        /// <returns>Whether the session ID was retrieved successfully</returns>
+        public bool TryGetSessionId(string username, out string sessionId)
+        {
+            // Initialise session ID to something arbitrary
+            sessionId = null;
+
+            lock (sessionsLock)
+            {
+                try
+                {
+                    // Try to get the session ID from the entry authenticated as the given username
+                    sessionId = sessions.Single(pair => pair.Value.Authenticated && pair.Value.Username == username).Value.SessionId;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Collects all (optionally authenticated) sessions and returns the session ID for each as a string array.
         /// </summary>
         /// <param name="mustBeAuthenticated">Only collect authenticated sessions</param>

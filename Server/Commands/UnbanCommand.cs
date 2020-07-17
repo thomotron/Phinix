@@ -11,33 +11,31 @@ namespace PhinixServer
 
         public override HelpEntry[] HelpEntries => new HelpEntry[]
         {
-            new HelpEntry("unban username", new string[] {"username"}, "Unbans a user by their username")
+            new HelpEntry("unban", new string[] {"username or UUID"}, "Unbans a user by their username or UUID")
         };
 
         public override bool Execute(List<string> args)
         {
             // Fail if we don't get enough arguments
-            if (args.Count < 2) return false;
+            if (args.Count < 1) return false;
 
-            if (args.ElementAt(0) == "username")
+            string name = args.ElementAt(0);
+            if (Server.Authenticator.TryGetSessionId(name, out string _)) // Get the session for this user, proving they exist
             {
-                try
-                {
-                    // Ban the user by their username
-                    Server.Authenticator.Unban(args.ElementAt(1));
-                }
-                catch (ArgumentException)
-                {
-                    // Failed to ban the user, they probably don't exist
-                    Console.WriteLine("User " + args.ElementAt(1).Highlight(HighlightType.Username) + " does not exist");
-                    return false;
-                }
-
-                Console.WriteLine("Unbanned user " + args.ElementAt(1).Highlight(HighlightType.Username));
+                // Unban by username
+                Server.Authenticator.Unban(name);
+                Console.WriteLine("Unbanned user " + name.Highlight(HighlightType.Username) + " by username");
+            }
+            else if (Server.UserManager.TryGetLoggedIn(name, out bool _)) // Get the user's logged-in state, proving they exist
+            {
+                // Unban by UUID
+                //Server.UserManager.Unban(name);
+                Console.WriteLine("Unbanned user " + name.Highlight(HighlightType.UUID) + " by UUID");
             }
             else
             {
-                // Unknown unban type, fail here
+                // Unknown ban type, fail here
+                Console.WriteLine("Unknown user " + name);
                 return false;
             }
 
