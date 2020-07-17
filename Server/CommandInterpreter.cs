@@ -14,7 +14,9 @@ namespace PhinixServer
             { "help", new HelpCommand() },
             { "version", new VersionCommand()},
             { "exit", new ExitCommand() },
-            { "log", new LogCommand() }
+            { "log", new LogCommand() },
+            { "ban", new BanCommand() },
+            { "unban", new UnbanCommand() }
         };
 
         /// <summary>

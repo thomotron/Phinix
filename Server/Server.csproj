@@ -40,9 +40,11 @@
   <ItemGroup>
     <Compile Include="Command.cs" />
     <Compile Include="CommandInterpreter.cs" />
+    <Compile Include="Commands\BanCommand.cs" />
     <Compile Include="Commands\ExitCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Commands\LogCommand.cs" />
+    <Compile Include="Commands\UnbanCommand.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigItemDeserialisationException.cs" />
     <Compile Include="HelpEntry.cs" />
