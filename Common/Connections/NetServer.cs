@@ -231,7 +231,7 @@ namespace Connections
             if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
 
             // Disconnect the client if they are connected
-            if (!connectedPeers.ContainsKey(connectionId))
+            if (connectedPeers.ContainsKey(connectionId))
             {
                 server.DisconnectPeer(connectedPeers[connectionId]);
             }
