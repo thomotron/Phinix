@@ -395,13 +395,32 @@ namespace UserManagement
                 if (!TryLogIn(uuid))
                 {
                     // This shouldn't happen because we just got their UUID but ok.
-                    throw new UserNoLongerExistsException(uuid);
+                    RaiseLogEntry(new LogEventArgs(string.Format("Failed to log in user {0} after getting their UUID. This shouldn't happen.", uuid.Highlight(HighlightType.UUID)), LogLevel.ERROR));
+
+                    // Fail the login attempt due to a weird error
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Failed to log in after retrieving UUID. This should not happen, please report it to the developer.");
+
+                    // Stop here
+                    return;
                 }
             }
             else
             {
-                // Otherwise create a new user
-                uuid = CreateUser(username, packet.DisplayName, true);
+                try
+                {
+                    // Otherwise create a new user
+                    uuid = CreateUser(username, packet.DisplayName, true);
+                }
+                catch (ArgumentException)
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Display name is null or empty", packet.SessionId.Highlight(HighlightType.SessionID))));
+
+                    // Fail the login attempt due to an empty display name
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is empty. Change it in the mod options and try reconnecting.");
+
+                    // Stop here
+                    return;
+                }
             }
 
             // Check if they want to use the display name stored on the server
@@ -412,7 +431,13 @@ namespace UserManagement
                 if (!TryGetDisplayName(uuid, out displayName))
                 {
                     // This should never happen because we just made sure that the user existed no more than 30 lines ago, but just in case...
-                    throw new UserNoLongerExistsException(uuid);
+                    RaiseLogEntry(new LogEventArgs(string.Format("Failed to log in user {0} after checking if they want to use their display name from the server. This shouldn't happen.", uuid.Highlight(HighlightType.UUID)), LogLevel.ERROR));
+
+                    // Fail the login attempt due to a weird error
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Failed to log in after checking server display name preference. This should not happen, please report it to the developer.");
+
+                    // Stop here
+                    return;
                 }
             }
             else
