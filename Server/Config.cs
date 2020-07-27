@@ -173,7 +173,7 @@ namespace PhinixServer
             if (Port < 1 || Port > 65535) Port = 16200;
             if (MaxConnections < 0) MaxConnections = 1000;
             if (string.IsNullOrEmpty(LogPath)) LogPath = "server.log";
-            if (SaveInterval < 0) SaveInterval = 60000;
+            if (SaveInterval < 1) SaveInterval = 60000;
             // Ignore Display- and LogVerbosity since they always have a value
             if (string.IsNullOrEmpty(UserDatabasePath)) UserDatabasePath = "users";
             if (string.IsNullOrEmpty(CredentialDatabasePath)) CredentialDatabasePath = "credentials";
