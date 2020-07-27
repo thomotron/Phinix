@@ -400,8 +400,21 @@ namespace UserManagement
             }
             else
             {
-                // Otherwise create a new user
-                uuid = CreateUser(username, packet.DisplayName, true);
+                try
+                {
+                    // Otherwise create a new user
+                    uuid = CreateUser(username, packet.DisplayName, true);
+                }
+                catch (ArgumentException)
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Failed login attempt for session {0}: Display name is null or empty", packet.SessionId.Highlight(HighlightType.SessionID))));
+
+                    // Fail the login attempt due to an empty display name
+                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is empty. Change it in the mod options and try reconnecting.");
+
+                    // Stop here
+                    return;
+                }
             }
 
             // Check if they want to use the display name stored on the server
