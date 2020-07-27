@@ -45,69 +45,75 @@ namespace PhinixServer
         public string LogPath = "server.log";
 
         /// <summary>
+        /// Save interval in milliseconds.
+        /// </summary>
+        [DataMember(Name = "SaveInterval", Order = 4)]
+        public int SaveInterval = 60000;
+
+        /// <summary>
         /// The minimum verbosity level for a message to be displayed in the console.
         /// </summary>
-        [DataMember(Name = "DisplayVerbosity", Order = 4)]
+        [DataMember(Name = "DisplayVerbosity", Order = 5)]
         public Verbosity DisplayVerbosity = Verbosity.INFO;
 
         /// <summary>
         /// The minimum verbosity level for a message to be recorded in the log file.
         /// </summary>
-        [DataMember(Name = "LogVerbosity", Order = 5)]
+        [DataMember(Name = "LogVerbosity", Order = 6)]
         public Verbosity LogVerbosity = Verbosity.INFO;
 
         /// <summary>
         /// Path to the user database file.
         /// </summary>
-        [DataMember(Name = "UserDatabaseFile", Order = 6)]
+        [DataMember(Name = "UserDatabaseFile", Order = 7)]
         public string UserDatabasePath = "users";
 
         /// <summary>
         /// Path to the credential database file.
         /// </summary>
-        [DataMember(Name = "CredentialDatabaseFile", Order = 7)]
+        [DataMember(Name = "CredentialDatabaseFile", Order = 8)]
         public string CredentialDatabasePath = "credentials";
 
         /// <summary>
         /// Path to the chat history file.
         /// </summary>
-        [DataMember(Name = "ChatHistoryFile", Order = 8)]
+        [DataMember(Name = "ChatHistoryFile", Order = 9)]
         public string ChatHistoryPath = "chatHistory";
 
         /// <summary>
         /// Path to the chat history file.
         /// </summary>
-        [DataMember(Name = "TradeDatabaseFile", Order = 9)]
+        [DataMember(Name = "TradeDatabaseFile", Order = 10)]
         public string TradeDatabasePath = "trades";
 
         /// <summary>
         /// Name of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerName", Order = 10)]
+        [DataMember(Name = "ServerName", Order = 11)]
         public string ServerName = "Phinix Server";
 
         /// <summary>
         /// Description of the server as shown to clients.
         /// </summary>
-        [DataMember(Name = "ServerDescription", Order = 11)]
+        [DataMember(Name = "ServerDescription", Order = 12)]
         public string ServerDescription = "A Phinix server.";
 
         /// <summary>
         /// Authentication type clients must use when connecting.
         /// </summary>
-        [DataMember(Name = "AuthType", Order = 12)]
+        [DataMember(Name = "AuthType", Order = 13)]
         public AuthTypes AuthType = AuthTypes.ClientKey;
 
         /// <summary>
         /// Maximum display name length for users.
         /// </summary>
-        [DataMember(Name = "MaxDisplayNameLength", Order = 13)]
+        [DataMember(Name = "MaxDisplayNameLength", Order = 14)]
         public int MaxDisplayNameLength = 100;
 
         /// <summary>
         /// Maximum number of chat messages to store in the chat history buffer.
         /// </summary>
-        [DataMember(Name = "ChatHistoryLength", Order = 14)]
+        [DataMember(Name = "ChatHistoryLength", Order = 15)]
         public int ChatHistoryLength = 40;
 
         /// <summary>
@@ -167,6 +173,7 @@ namespace PhinixServer
             if (Port < 1 || Port > 65535) Port = 16200;
             if (MaxConnections < 0) MaxConnections = 1000;
             if (string.IsNullOrEmpty(LogPath)) LogPath = "server.log";
+            if (SaveInterval < 0) SaveInterval = 60000;
             // Ignore Display- and LogVerbosity since they always have a value
             if (string.IsNullOrEmpty(UserDatabasePath)) UserDatabasePath = "users";
             if (string.IsNullOrEmpty(CredentialDatabasePath)) CredentialDatabasePath = "credentials";
