@@ -26,6 +26,10 @@
     <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
     <Phinix_hugslibsettings_showUnreadMessageCount>Show unread message count</Phinix_hugslibsettings_showUnreadMessageCount>
     <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
+    
+    <Phinix_hugslibsettings_blockedUsers>Blocked users</Phinix_hugslibsettings_blockedUsers>
+    <Phinix_chat_contextMenu_blockUser>Block user</Phinix_chat_contextMenu_blockUser>
+    <Phinix_chat_contextMenu_unblockUser>Unblock user</Phinix_chat_contextMenu_unblockUser>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>

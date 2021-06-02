@@ -215,6 +215,7 @@ namespace PhinixClient
             return column;
         }
 
+
         /// <summary>
         /// Draws each chat message within a scrollable container.
         /// </summary>
@@ -225,10 +226,20 @@ namespace PhinixClient
                 {
                     // Get all chat messages and convert them to widgets
                     ClientChatMessage[] messages = Instance.GetChatMessages();
-                    ChatMessageWidget[] messageWidgets = messages.Select(message => new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp, message.Status)).ToArray();
+                    List<ChatMessageWidget> messageWidgets = new List<ChatMessageWidget>();
+                    foreach (ClientChatMessage msg in messages)
+                    {
+                        if (!Instance.BlockedUsers.Contains(msg.SenderUuid))
+                        {
+                            messageWidgets.Add(new ChatMessageWidget(msg.SenderUuid, msg.Message, msg.Timestamp, msg.Status));
+                        }
+                    }
+                    //ChatMessageWidget[] messageWidgets = messages.Select(message => 
+                    //        new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp, message.Status)
+                    //    ).ToArray();
 
                     // Create a new flex container from our message list
-                    VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets, 0f);
+                    VerticalFlexContainer chatFlexContainer = new VerticalFlexContainer(messageWidgets.ToArray(), 0f);
 
                     // Set up the scrollable container
                     Rect innerContainer = new Rect(
@@ -352,7 +363,13 @@ namespace PhinixClient
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
             items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
-
+            if (!Instance.BlockedUsers.Contains(uuid))
+            {
+                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(displayName)), () => Instance.BlockUser(uuid)));
+            } else
+            {
+                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(displayName)), () => Instance.UnBlockUser(uuid)));
+            }
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
         }

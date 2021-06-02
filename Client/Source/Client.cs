@@ -73,6 +73,8 @@ namespace PhinixClient
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         private SettingHandle<string> serverAddressHandle;
+        private SettingHandle<List<string>> blockedUsers;
+
         public string ServerAddress
         {
             get => serverAddressHandle.Value;
@@ -81,6 +83,17 @@ namespace PhinixClient
                 serverAddressHandle.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
+        }
+
+        public List<string> BlockedUsers
+        {
+            get => blockedUsers.Value;
+            private set
+            {
+                blockedUsers.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+
         }
 
         private SettingHandle<int> serverPortHandle;
@@ -150,6 +163,7 @@ namespace PhinixClient
         }
 
         private SettingHandle<bool> showUnreadMessageCount;
+
         public bool ShowUnreadMessageCount
         {
             get => showUnreadMessageCount.Value;
@@ -247,6 +261,15 @@ namespace PhinixClient
                 description: null,
                 defaultValue: false
             );
+            blockedUsers = Settings.GetHandle(
+                settingName: "blockedUsers",
+                title: "Phinix_hugslibsettings_blockedUsers".Translate(),
+                description: null,
+                defaultValue: new List<string>()
+            );
+            blockedUsers.NeverVisible = true;
+            
+            
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -299,7 +322,7 @@ namespace PhinixClient
                 Logger.Trace("Received chat message from UUID " + args.OriginUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
+                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.OriginUuid))
                 {
                     lock (soundQueueLock)
                     {
@@ -441,6 +464,15 @@ namespace PhinixClient
 
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
+        }
+        public void BlockUser(string senderUuid)
+        {
+            BlockedUsers.AddDistinct(senderUuid);
+        }
+
+        public void UnBlockUser(string senderUuid)
+        {
+            BlockedUsers.Remove(senderUuid);
         }
 
         /// <inheritdoc />
