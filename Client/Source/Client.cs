@@ -268,8 +268,6 @@ namespace PhinixClient
                 defaultValue: new List<string>()
             );
             blockedUsers.NeverVisible = true;
-            
-            
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -465,11 +463,20 @@ namespace PhinixClient
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
         }
+
+        /// <summary>
+        /// Adds a user's UUID to the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of user to block</param>
         public void BlockUser(string senderUuid)
         {
             BlockedUsers.AddDistinct(senderUuid);
         }
 
+        /// <summary>
+        /// Removes a user's UUID from the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of the user to unblock</param>
         public void UnBlockUser(string senderUuid)
         {
             BlockedUsers.Remove(senderUuid);

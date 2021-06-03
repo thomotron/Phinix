@@ -83,6 +83,7 @@
     <Compile Include="GUI\Compound Widgets\ChatMessageWidget.cs" />
     <Compile Include="GUI\Compound Widgets\ItemStackRow.cs" />
     <Compile Include="GUI\Compound Widgets\TradeRow.cs" />
+    <Compile Include="GUI\Compound Widgets\UserWidget.cs" />
     <Compile Include="GUI\Containers\Container.cs" />
     <Compile Include="GUI\Containers\HeightContainer.cs" />
     <Compile Include="GUI\Containers\HorizontalFlexContainer.cs" />
