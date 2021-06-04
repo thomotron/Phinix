@@ -23,7 +23,6 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Background colour for blocked users.
         /// </summary>
-        // private readonly Color blockedBackgroundColour = new Color(0.44f, 0.20f, 0.20f);
         private readonly Color blockedBackgroundColour = new Color(0f, 0f, 0f, 0.35f);
         /// <summary>
         /// Text colour for blocked users.
