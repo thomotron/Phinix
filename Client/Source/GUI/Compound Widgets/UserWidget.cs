@@ -12,6 +12,15 @@ namespace PhinixClient.GUI
         public override bool IsFluidHeight => false;
 
         /// <summary>
+        /// Padding above and below the display name text.
+        /// </summary>
+        private static float verticalPadding = 5f;
+        /// <summary>
+        /// Padding either side of the display name text.
+        /// </summary>
+        private static float horizontalPadding = 3f;
+
+        /// <summary>
         /// Background colour for blocked users.
         /// </summary>
         // private readonly Color blockedBackgroundColour = new Color(0.44f, 0.20f, 0.20f);
@@ -47,8 +56,11 @@ namespace PhinixClient.GUI
                 displayName = TextHelper.StripRichText(displayName).Colorize(blockedNameColour);
             }
 
+            // Get a padded area to draw the text in
+            Rect paddedRect = new Rect(inRect.x + horizontalPadding, inRect.y + verticalPadding, inRect.width - (horizontalPadding * 2), inRect.height - (verticalPadding * 2));
+
             // Draw the text
-            Widgets.Label(inRect, Mouse.IsOver(inRect) ? displayName.Colorize(Widgets.MouseoverOptionColor) : displayName);
+            Widgets.Label(paddedRect, Mouse.IsOver(inRect) ? displayName.Colorize(Widgets.MouseoverOptionColor) : displayName);
 
             // Draw the button and optionally the context menu if clicked
             if (Widgets.ButtonInvisible(inRect, false))
@@ -61,7 +73,7 @@ namespace PhinixClient.GUI
         public override float CalcHeight(float width)
         {
             // Return the calculated the height of the formatted text
-            return Text.CalcHeight(format(), width);
+            return Text.CalcHeight(format(), width - (horizontalPadding * 2)) + (verticalPadding * 2);
         }
 
         private string format()

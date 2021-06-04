@@ -308,7 +308,7 @@ namespace PhinixClient
         private VerticalScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
-            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
+            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer(0);
 
             // Add each logged in user to the flex container
             foreach (string uuid in Instance.GetUserUuids(true))
