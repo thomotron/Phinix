@@ -74,8 +74,6 @@ namespace PhinixClient
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         private SettingHandle<string> serverAddressHandle;
-        private SettingHandle<List<string>> blockedUsers;
-
         public string ServerAddress
         {
             get => serverAddressHandle.Value;
@@ -84,17 +82,6 @@ namespace PhinixClient
                 serverAddressHandle.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
-        }
-
-        public List<string> BlockedUsers
-        {
-            get => blockedUsers.Value;
-            private set
-            {
-                blockedUsers.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-
         }
 
         private SettingHandle<int> serverPortHandle;
@@ -195,6 +182,9 @@ namespace PhinixClient
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
+
+        private SettingHandle<List<string>> blockedUsers;
+        public List<string> BlockedUsers => blockedUsers;
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -488,6 +478,7 @@ namespace PhinixClient
         public void BlockUser(string senderUuid)
         {
             BlockedUsers.AddDistinct(senderUuid);
+            HugsLibController.SettingsManager.SaveChanges();
         }
 
         /// <summary>
@@ -497,6 +488,7 @@ namespace PhinixClient
         public void UnBlockUser(string senderUuid)
         {
             BlockedUsers.Remove(senderUuid);
+            HugsLibController.SettingsManager.SaveChanges();
         }
 
         /// <inheritdoc />
