@@ -52,6 +52,7 @@ namespace PhinixClient
         public void SendMessage(string message) => chat.Send(message);
         public ClientChatMessage[] GetChatMessages() => chat.GetMessages();
         public int UnreadMessages => chat.UnreadMessages;
+        public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
@@ -163,13 +164,23 @@ namespace PhinixClient
         }
 
         private SettingHandle<bool> showUnreadMessageCount;
-
         public bool ShowUnreadMessageCount
         {
             get => showUnreadMessageCount.Value;
             set
             {
                 showUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<bool> showBlockedUnreadMessageCount;
+        public bool ShowBlockedUnreadMessageCount
+        {
+            get => showBlockedUnreadMessageCount.Value;
+            set
+            {
+                showBlockedUnreadMessageCount.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
@@ -253,6 +264,12 @@ namespace PhinixClient
                 settingName: "showUnreadMessageCount",
                 title: "Phinix_hugslibsettings_showUnreadMessageCount".Translate(),
                 description: null,
+                defaultValue: true
+            );
+            showBlockedUnreadMessageCount = Settings.GetHandle(
+                settingName: "showUnreadMessageCount",
+                title: "Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(),
+                description: "Phinix_hugslibsettings_showBlockedUnreadMessageCount_description".Translate(),
                 defaultValue: true
             );
             allItemsTradable = Settings.GetHandle(
