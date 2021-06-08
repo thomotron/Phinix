@@ -183,8 +183,8 @@ namespace PhinixClient
             }
         }
 
-        private SettingHandle<List<string>> blockedUsers;
-        public List<string> BlockedUsers => blockedUsers;
+        private SettingHandle<StringListSetting> blockedUsers;
+        public List<string> BlockedUsers => blockedUsers.Value.List;
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -478,6 +478,7 @@ namespace PhinixClient
         public void BlockUser(string senderUuid)
         {
             BlockedUsers.AddDistinct(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
         }
 
@@ -488,6 +489,7 @@ namespace PhinixClient
         public void UnBlockUser(string senderUuid)
         {
             BlockedUsers.Remove(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
         }
 
