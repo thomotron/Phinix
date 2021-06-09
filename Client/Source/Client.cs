@@ -183,7 +183,7 @@ namespace PhinixClient
             }
         }
 
-        private SettingHandle<StringListSetting> blockedUsers;
+        private SettingHandle<ListSetting<string>> blockedUsers;
         public List<string> BlockedUsers => blockedUsers.Value.List;
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace PhinixClient
                 description: null,
                 defaultValue: false
             );
-            blockedUsers = Settings.GetHandle<StringListSetting>(
+            blockedUsers = Settings.GetHandle<ListSetting<string>>(
                 settingName: "blockedUsers",
                 title: "Phinix_hugslibsettings_blockedUsers".Translate(),
                 description: null
@@ -276,7 +276,7 @@ namespace PhinixClient
             blockedUsers.NeverVisible = true;
             // Always initialise a new value otherwise it will use the reference of the default value, resulting in the
             // default list being updated and the save mechanism never being able to differentiate any changes.
-            if (blockedUsers.Value == null) blockedUsers.Value = new StringListSetting();
+            if (blockedUsers.Value == null) blockedUsers.Value = new ListSetting<string>();
 
             // Set up our module instances
             this.netClient = new NetClient();
