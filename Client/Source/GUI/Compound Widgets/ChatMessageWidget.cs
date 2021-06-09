@@ -160,7 +160,20 @@ namespace PhinixClient.GUI
             // Only add the trade option if this is not our message
             if (SenderUuid != Client.Instance.Uuid)
             {
+                // Trade with...
                 items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.CreateTrade(SenderUuid)));
+
+                // Block/Unblock user
+                if (!Client.Instance.BlockedUsers.Contains(SenderUuid))
+                {
+                    // Block
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.BlockUser(SenderUuid)));
+                }
+                else
+                {
+                    // Unblock
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.UnBlockUser(SenderUuid)));
+                }
             }
 
             // Draw the context menu

@@ -52,6 +52,7 @@ namespace PhinixClient
         public void SendMessage(string message) => chat.Send(message);
         public ClientChatMessage[] GetChatMessages() => chat.GetMessages();
         public int UnreadMessages => chat.UnreadMessages;
+        public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
         public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
 
         private ClientTrading trading;
@@ -73,8 +74,6 @@ namespace PhinixClient
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         private SettingHandle<string> serverAddressHandle;
-        private SettingHandle<List<string>> blockedUsers;
-
         public string ServerAddress
         {
             get => serverAddressHandle.Value;
@@ -83,17 +82,6 @@ namespace PhinixClient
                 serverAddressHandle.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
-        }
-
-        public List<string> BlockedUsers
-        {
-            get => blockedUsers.Value;
-            private set
-            {
-                blockedUsers.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-
         }
 
         private SettingHandle<int> serverPortHandle;
@@ -163,13 +151,23 @@ namespace PhinixClient
         }
 
         private SettingHandle<bool> showUnreadMessageCount;
-
         public bool ShowUnreadMessageCount
         {
             get => showUnreadMessageCount.Value;
             set
             {
                 showUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<bool> showBlockedUnreadMessageCount;
+        public bool ShowBlockedUnreadMessageCount
+        {
+            get => showBlockedUnreadMessageCount.Value;
+            set
+            {
+                showBlockedUnreadMessageCount.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
@@ -184,6 +182,9 @@ namespace PhinixClient
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
+
+        private SettingHandle<ListSetting<string>> blockedUsers;
+        public List<string> BlockedUsers => blockedUsers.Value.List;
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -255,21 +256,27 @@ namespace PhinixClient
                 description: null,
                 defaultValue: true
             );
+            showBlockedUnreadMessageCount = Settings.GetHandle(
+                settingName: "showUnreadMessageCount",
+                title: "Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(),
+                description: "Phinix_hugslibsettings_showBlockedUnreadMessageCount_description".Translate(),
+                defaultValue: true
+            );
             allItemsTradable = Settings.GetHandle(
                 settingName: "allItemsTradable",
                 title: "Phinix_hugslibsettings_allItemsTradable".Translate(),
                 description: null,
                 defaultValue: false
             );
-            blockedUsers = Settings.GetHandle(
+            blockedUsers = Settings.GetHandle<ListSetting<string>>(
                 settingName: "blockedUsers",
                 title: "Phinix_hugslibsettings_blockedUsers".Translate(),
-                description: null,
-                defaultValue: new List<string>()
+                description: null
             );
             blockedUsers.NeverVisible = true;
-            
-            
+            // Always initialise a new value otherwise it will use the reference of the default value, resulting in the
+            // default list being updated and the save mechanism never being able to differentiate any changes.
+            if (blockedUsers.Value == null) blockedUsers.Value = new ListSetting<string>();
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -465,14 +472,27 @@ namespace PhinixClient
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
         }
+
+        /// <summary>
+        /// Adds a user's UUID to the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of user to block</param>
         public void BlockUser(string senderUuid)
         {
             BlockedUsers.AddDistinct(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
+            HugsLibController.SettingsManager.SaveChanges();
         }
 
+        /// <summary>
+        /// Removes a user's UUID from the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of the user to unblock</param>
         public void UnBlockUser(string senderUuid)
         {
             BlockedUsers.Remove(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
+            HugsLibController.SettingsManager.SaveChanges();
         }
 
         /// <inheritdoc />

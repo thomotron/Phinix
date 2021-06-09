@@ -234,7 +234,7 @@ namespace PhinixClient
                             messageWidgets.Add(new ChatMessageWidget(msg.SenderUuid, msg.Message, msg.Timestamp, msg.Status));
                         }
                     }
-                    //ChatMessageWidget[] messageWidgets = messages.Select(message => 
+                    //ChatMessageWidget[] messageWidgets = messages.Select(message =>
                     //        new ChatMessageWidget(message.SenderUuid, message.Message, message.Timestamp, message.Status)
                     //    ).ToArray();
 
@@ -308,7 +308,7 @@ namespace PhinixClient
         private VerticalScrollContainer GenerateUserList()
         {
             // Create a flex container to hold the users
-            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
+            VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer(0);
 
             // Add each logged in user to the flex container
             foreach (string uuid in Instance.GetUserUuids(true))
@@ -319,16 +319,7 @@ namespace PhinixClient
                 // Skip the user if they don't contain the search text
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
 
-                // Strip name formatting if the user wishes not to see it
-                if (!Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
-
-                userListFlexContainer.Add(
-                    new ButtonWidget(
-                        label: displayName,
-                        clickAction: () => DrawUserContextMenu(uuid, displayName),
-                        drawBackground: false
-                    )
-                );
+                userListFlexContainer.Add(new UserWidget(uuid));
             }
 
             // Wrap the flex container in a scroll container
@@ -348,30 +339,6 @@ namespace PhinixClient
             PlaceholderWidget placeholder = new PlaceholderWidget(text);
 
             placeholder.Draw(container);
-        }
-
-        /// <summary>
-        /// Draws a context menu with user-specific actions.
-        /// </summary>
-        /// <param name="uuid">User's UUID</param>
-        /// <param name="displayName">User's display name</param>
-        private void DrawUserContextMenu(string uuid, string displayName)
-        {
-            // Do nothing if this is our UUID
-            if (uuid == Instance.Uuid) return;
-
-            // Create and populate a list of context menu items
-            List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Instance.CreateTrade(uuid)));
-            if (!Instance.BlockedUsers.Contains(uuid))
-            {
-                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(displayName)), () => Instance.BlockUser(uuid)));
-            } else
-            {
-                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(displayName)), () => Instance.UnBlockUser(uuid)));
-            }
-            // Draw the context menu
-            Find.WindowStack.Add(new FloatMenu(items));
         }
 
         /// <summary>

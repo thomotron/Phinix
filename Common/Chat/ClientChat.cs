@@ -60,16 +60,16 @@ namespace Chat
         /// Lock object to prevent race conditions when accessing <see cref="messageHistory"/>.
         /// </summary>
         private object messageHistoryLock = new object();
-        
+
         public ClientChat(NetClient netClient, ClientAuthenticator authenticator, ClientUserManager userManager)
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
             this.userManager = userManager;
-            
+
             this.messageHistory = new List<ClientChatMessage>();
             this.messageCountAtLastCheck = 0;
-            
+
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netClient.OnDisconnect += disconnectHandler;
         }
@@ -80,7 +80,7 @@ namespace Chat
             {
                 // Clear message history
                 messageHistory.Clear();
-                
+
                 // Reset the last message count
                 messageCountAtLastCheck = 0;
             }
@@ -131,7 +131,7 @@ namespace Chat
             if (!authenticator.Authenticated)
             {
                 RaiseLogEntry(new LogEventArgs("Cannot send chat message: Not authenticated"));
-                
+
                 return;
             }
 
@@ -142,10 +142,10 @@ namespace Chat
 
                 return;
             }
-            
+
             // Create a random message ID
             string messageId = Guid.NewGuid().ToString();
-            
+
             // Create and store a chat message locally
             ClientChatMessage localMessage = new ClientChatMessage(messageId, userManager.Uuid, message);
             lock (messageHistoryLock)
@@ -162,7 +162,7 @@ namespace Chat
                 Message = message
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -177,10 +177,28 @@ namespace Chat
             {
                 // Set the read message count
                 messageCountAtLastCheck = messageHistory.Count;
-                
+
                 // Return the messages in history
                 return messageHistory.ToArray();
             }
+        }
+
+        /// <summary>
+        /// Returns the number of unread messages excluding any from the given UUIDs.
+        /// </summary>
+        /// <param name="uuids">UUIDs to exclude messages from</param>
+        /// <returns>The number of unread messages excluding any from the given UUIDs</returns>
+        public int GetUnreadMessagesExcluding(List<string> uuids)
+        {
+            List<ClientChatMessage> newMessages;
+            lock (messageHistoryLock)
+            {
+                // Get the messages since last check
+                 newMessages = messageHistory.GetRange(messageCountAtLastCheck, UnreadMessages);
+            }
+
+            // Return how many aren't from any of the given UUIDs
+            return newMessages.Count(m => !uuids.Contains(m.SenderUuid));
         }
 
         /// <summary>
@@ -195,10 +213,10 @@ namespace Chat
                 // Store the message in chat history
                 messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
             }
-            
+
             OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="ChatHistoryPacket"/>s.
         /// </summary>
@@ -234,11 +252,11 @@ namespace Chat
                 catch (InvalidOperationException)
                 {
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a ChatMessageResponsePacket with an unknown original message ID ({0})", packet.OriginalMessageId), LogLevel.WARNING));
-                    
+
                     // Stop here
                     return;
                 }
-                
+
                 // Update the message ID
                 message.MessageId = packet.NewMessageId;
 
