@@ -427,6 +427,9 @@ namespace PhinixClient
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
+                // Don't display anything if the other party is blocked and we want to hide their trades
+                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+
                 // Try get the other party's display name
                 if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
