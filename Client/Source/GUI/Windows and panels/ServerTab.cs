@@ -311,7 +311,7 @@ namespace PhinixClient
             VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer(0);
 
             // Add each logged in user to the flex container
-            foreach (string uuid in Instance.GetUserUuids(true))
+            foreach (string uuid in Instance.GetUserUuids(true).Except(Instance.BlockedUsers))
             {
                 // Try to get the display name of the user
                 if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
@@ -320,6 +320,27 @@ namespace PhinixClient
                 if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
 
                 userListFlexContainer.Add(new UserWidget(uuid));
+            }
+
+            // Add any blocked users at the bottom
+            if (Instance.BlockedUsers.Any())
+            {
+                // Add a heading before the blocked user list
+                userListFlexContainer.Add(new SpacerWidget(height: 10f));
+                userListFlexContainer.Add(new TextWidget("Phinix_chat_blockedUsers".Translate(), anchor: TextAnchor.LowerCenter));
+                userListFlexContainer.Add(new SpacerWidget(height: 3f));
+
+                // Add each blocked user to the flex container
+                foreach (string uuid in Instance.BlockedUsers)
+                {
+                    // Try to get the display name of the user
+                    if (!Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
+
+                    // Skip the user if they don't contain the search text
+                    if (!string.IsNullOrEmpty(userSearch) && !displayName.ToLower().Contains(userSearch.ToLower())) continue;
+
+                    userListFlexContainer.Add(new UserWidget(uuid));
+                }
             }
 
             // Wrap the flex container in a scroll container
