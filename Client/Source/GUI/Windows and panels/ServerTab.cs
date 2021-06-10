@@ -361,7 +361,7 @@ namespace PhinixClient
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Get TradeRows for each trade and add them to the column
-            string[] tradeIds = Instance.GetTrades();
+            string[] tradeIds = Instance.ShowBlockedTrades ? Instance.GetTrades() : Instance.GetTradesExceptWith(Instance.BlockedUsers);
             for (int i = 0; i < tradeIds.Length; i++)
             {
                 column.Add(
