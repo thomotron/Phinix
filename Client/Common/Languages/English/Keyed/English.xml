@@ -28,6 +28,7 @@
     <Phinix_hugslibsettings_showBlockedUnreadMessageCount>Show unread message count for blocked users</Phinix_hugslibsettings_showBlockedUnreadMessageCount>
     <Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>Includes blocked users in the total number of unread messages when showing the unread message count</Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>
     <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
+    <Phinix_hugslibsettings_showBlockedTrades>Show trades from blocked users</Phinix_hugslibsettings_showBlockedTrades>
 
     <Phinix_hugslibsettings_blockedUsers>Blocked users</Phinix_hugslibsettings_blockedUsers>
     <Phinix_chat_contextMenu_blockUser>Block user</Phinix_chat_contextMenu_blockUser>

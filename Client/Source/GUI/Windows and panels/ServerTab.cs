@@ -347,12 +347,15 @@ namespace PhinixClient
         /// <returns></returns>
         private Displayable GenerateTradeRows()
         {
-            // Make sure we are online and have active trades before attempting to draw them
+            // Make sure we are online
             if (!Instance.Online)
             {
                 return new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate());
             }
-            else if (Instance.GetTrades().Count() == 0)
+
+            // Make sure we have visible active trades before attempting to draw them
+            string[] tradeIds = Instance.ShowBlockedTrades ? Instance.GetTrades() : Instance.GetTradesExceptWith(Instance.BlockedUsers);
+            if (!tradeIds.Any())
             {
                 return new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate());
             }
@@ -361,7 +364,6 @@ namespace PhinixClient
             VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Get TradeRows for each trade and add them to the column
-            string[] tradeIds = Instance.GetTrades();
             for (int i = 0; i < tradeIds.Length; i++)
             {
                 column.Add(

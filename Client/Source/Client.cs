@@ -59,6 +59,7 @@ namespace PhinixClient
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
         public string[] GetTrades() => trading.GetTrades();
+        public string[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids) => trading.GetTradesExceptWith(otherPartyUuids);
         public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
         public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted) => trading.TryGetPartyAccepted(tradeId, partyUuid, out accepted);
@@ -183,6 +184,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> showBlockedTrades;
+        public bool ShowBlockedTrades
+        {
+            get => showBlockedTrades.Value;
+            set
+            {
+                showBlockedTrades.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         private SettingHandle<ListSetting<string>> blockedUsers;
         public List<string> BlockedUsers => blockedUsers.Value.List;
 
@@ -268,6 +280,12 @@ namespace PhinixClient
                 description: null,
                 defaultValue: false
             );
+            showBlockedTrades = Settings.GetHandle(
+                settingName: "showBlockedTrades",
+                title: "Phinix_hugslibsettings_showBlockedTrades".Translate(),
+                description: null,
+                defaultValue: false
+            );
             blockedUsers = Settings.GetHandle<ListSetting<string>>(
                 settingName: "blockedUsers",
                 title: "Phinix_hugslibsettings_blockedUsers".Translate(),
@@ -345,6 +363,9 @@ namespace PhinixClient
             {
                 Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
 
+                // Don't display anything if the other party is blocked and we want to hide their trades
+                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+
                 // Try get the other party's display name
                 if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -406,6 +427,9 @@ namespace PhinixClient
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
+                // Don't display anything if the other party is blocked and we want to hide their trades
+                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+
                 // Try get the other party's display name
                 if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -453,6 +477,9 @@ namespace PhinixClient
 
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
+
+            // Subscribe to setting handle value change events
+            acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
 
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };

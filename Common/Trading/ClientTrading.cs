@@ -73,9 +73,9 @@ namespace Trading
             this.netClient = netClient;
             this.authenticator = authenticator;
             this.userManager = userManager;
-            
+
             this.activeTrades = new Dictionary<string, Trade>();
-            
+
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
             netClient.OnDisconnect += disconnectHandler;
         }
@@ -97,7 +97,7 @@ namespace Trading
         public void CreateTrade(string otherPartyUuid)
         {
             if (string.IsNullOrEmpty(otherPartyUuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(otherPartyUuid));
-            
+
             // Do nothing if not online
             if (!(netClient.Connected || authenticator.Authenticated || userManager.LoggedIn)) return;
 
@@ -109,11 +109,11 @@ namespace Trading
                 OtherPartyUuid = otherPartyUuid
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
-        
+
         /// <summary>
         /// Cancels a trade with the given ID.
         /// </summary>
@@ -122,16 +122,16 @@ namespace Trading
         public void CancelTrade(string tradeId)
         {
             if (string.IsNullOrEmpty(tradeId)) throw new ArgumentException("Trade ID cannot be null or empty.", nameof(tradeId));
-            
+
             lock (activeTradesLock)
             {
                 // Make sure the trade exists
                 if (!activeTrades.ContainsKey(tradeId)) return;
             }
-            
+
             // Do nothing if not online
             if (!(netClient.Connected || authenticator.Authenticated || userManager.LoggedIn)) return;
-            
+
             // Create and pack a CompleteTradePacket
             UpdateTradeStatusPacket packet = new UpdateTradeStatusPacket
             {
@@ -141,7 +141,7 @@ namespace Trading
                 Cancelled = true
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -159,6 +159,22 @@ namespace Trading
         }
 
         /// <summary>
+        /// Returns a collection of all active trade IDs except those with another party.
+        /// </summary>
+        /// <param name="otherPartyUuids">Other parties' UUIDs to ignore trades from</param>
+        /// <returns>Collection of all active trade IDs except those with another party</returns>
+        public string[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids)
+        {
+            lock (activeTrades)
+            {
+                return activeTrades.Values
+                                   .Where(trade => trade.PartyUuids.All(uuid => !otherPartyUuids.Contains(uuid))) // Ignore the other parties
+                                   .Select(trade => trade.TradeId) // Extract the trade ID
+                                   .ToArray();
+            }
+        }
+
+        /// <summary>
         /// Tries to get the other party's UUID from the given trade.
         /// Returns whether the UUID was retrieved successfully.
         /// </summary>
@@ -169,7 +185,7 @@ namespace Trading
         {
             // Assign other party UUID to something arbitrary
             otherPartyUuid = null;
-            
+
             lock (activeTradesLock)
             {
                 // Make sure the trade exists
@@ -186,10 +202,10 @@ namespace Trading
                     return false;
                 }
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to get the accepted state of the other party from the given trade.
         /// Returns whether the accepted state was retrieved successfully.
@@ -216,7 +232,7 @@ namespace Trading
 
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to get the accepted state of the given party from the given trade.
         /// Returns whether the accepted state was retrieved successfully.
@@ -240,10 +256,10 @@ namespace Trading
                 // Try to get the party's accepted state, returning false on failure
                 if (!trade.TryGetAccepted(partyUuid, out accepted)) return false;
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Attempts to get the items on offer in the given trade for a given party.
         /// Returns whether the operation completed successfully.
@@ -256,18 +272,18 @@ namespace Trading
         {
             // Initialise items to something arbitrary
             items = null;
-            
+
             lock (activeTradesLock)
             {
                 // Make sure the trade exists
                 if (!activeTrades.ContainsKey(tradeId)) return false;
 
                 Trade trade = activeTrades[tradeId];
-                
+
                 // Make sure the party is a part of this trade
                 if (!trade.PartyUuids.Contains(partyUuid)) return false;
-                
-                // Check if the party has any items on offer 
+
+                // Check if the party has any items on offer
                 if (trade.ItemsOnOffer.ContainsKey(partyUuid))
                 {
                     // Set items as those on offer
@@ -293,7 +309,7 @@ namespace Trading
         {
             // Do nothing if not online
             if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
-            
+
             // Create and pack an UpdateTradeItems packet
             UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
             {
@@ -304,7 +320,7 @@ namespace Trading
                 Token = token
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -330,7 +346,7 @@ namespace Trading
                 Cancelled = cancelled.HasValue ? cancelled.Value : false
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -392,11 +408,11 @@ namespace Trading
                 {
                     // Stop here if the trade already exists locally
                     if (activeTrades.ContainsKey(packet.TradeId)) return;
-                    
+
                     // Add a new trade with the ID contained in the packet
                     activeTrades.Add(packet.TradeId, new Trade(packet.TradeId, new[]{userManager.Uuid, packet.OtherPartyUuid}));
                 }
-                
+
                 // Raise the successful trade creation event
                 OnTradeCreationSuccess?.Invoke(this, new CreateTradeEventArgs(packet.TradeId, packet.OtherPartyUuid));
             }
@@ -406,7 +422,7 @@ namespace Trading
                 OnTradeCreationFailure?.Invoke(this, new CreateTradeEventArgs(packet.FailureReason, packet.FailureMessage));
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="CompleteTradePacket"/>s.
         /// </summary>
@@ -423,14 +439,14 @@ namespace Trading
             {
                 OnTradeCancelled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
             }
-            
+
             lock (activeTradesLock)
             {
                 // Remove the trade
                 activeTrades.Remove(packet.TradeId);
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
         /// </summary>
@@ -447,23 +463,23 @@ namespace Trading
 
                 // Set our items on offer
                 trade.TrySetItemsOnOffer(userManager.Uuid, packet.Items);
-                
+
                 RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for us", packet.Items.Count), LogLevel.DEBUG));
-                
+
                 // Try get the other party's UUID
                 if (trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
                 {
                     // Set the other party's items on offer
                     trade.TrySetItemsOnOffer(otherPartyUuid, packet.OtherPartyItems);
-                    
+
                     RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for {1}", packet.Items.Count, otherPartyUuid), LogLevel.DEBUG));
                 }
             }
-            
+
             // Raise the trade update event
             OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UpdateTradeItemsResponsePacket"/>s.
         /// </summary>
@@ -482,9 +498,9 @@ namespace Trading
                 {
                     // Set our items on offer
                     trade.TrySetItemsOnOffer(userManager.Uuid, packet.Items);
-                
+
                     RaiseLogEntry(new LogEventArgs(string.Format("Got items {0} for us", packet.Items.Count), LogLevel.DEBUG));
-                    
+
                     // Raise the successful trade update event
                     OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId, packet.Token));
                 }
@@ -508,7 +524,7 @@ namespace Trading
                 }
             }
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="UpdateTradeStatusPacket"/>s.
         /// </summary>
@@ -525,7 +541,7 @@ namespace Trading
 
                 // Try set our accepted state
                 trade.TrySetAccepted(userManager.Uuid, packet.Accepted);
-                
+
                 // Try get the other party's UUID
                 if (trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
                 {
@@ -533,11 +549,11 @@ namespace Trading
                     trade.TrySetAccepted(otherPartyUuid, packet.OtherPartyAccepted);
                 }
             }
-            
+
             // Raise the trade update event
             OnTradeUpdateSuccess?.Invoke(this, new TradeUpdateEventArgs(packet.TradeId));
         }
-        
+
         /// <summary>
         /// Handles incoming <see cref="SyncTradesPacket"/>s.
         /// </summary>
@@ -549,13 +565,13 @@ namespace Trading
             {
                 // Clear out all active trades
                 activeTrades.Clear();
-                
+
                 // Construct new trades for each in the sync packet
                 foreach (TradeProto tradeProto in packet.Trades)
                 {
                     // Create a new trade between us and the other party
                     Trade trade = new Trade(tradeProto.TradeId, new[]{userManager.Uuid, tradeProto.OtherPartyUuid});
-                    
+
                     // Set items on offer
                     trade.TrySetItemsOnOffer(userManager.Uuid, tradeProto.Items);
                     trade.TrySetItemsOnOffer(tradeProto.OtherPartyUuid, tradeProto.OtherPartyItems);
@@ -563,7 +579,7 @@ namespace Trading
                     // Set accepted states
                     trade.TrySetAccepted(userManager.Uuid, tradeProto.Accepted);
                     trade.TrySetAccepted(tradeProto.OtherPartyUuid, tradeProto.OtherPartyAccepted);
-                    
+
                     // Add the trade to the active trades collection
                     activeTrades.Add(trade.TradeId, trade);
                 }
