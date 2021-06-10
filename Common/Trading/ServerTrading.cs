@@ -280,6 +280,13 @@ namespace Trading
                 return;
             }
 
+            // Make sure the other party is accepting trades
+            if (!userManager.TryGetAcceptingTrades(packet.OtherPartyUuid, out bool otherPartyAcceptingTrades) || !otherPartyAcceptingTrades)
+            {
+                // Fail the trade creation request because the other party is not accepting trades
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.NotAcceptingTrades, "Cannot create a trade because the other party is not accepting trades.");
+            }
+
             lock (tradeDataLock)
             {
                 // Check if both parties are already in another active trade

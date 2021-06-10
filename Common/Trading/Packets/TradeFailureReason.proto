@@ -10,4 +10,5 @@ enum TradeFailureReason
     OtherPartyDoesNotExist = 4;
     AlreadyTrading = 5;
     TradeDoesNotExist = 6;
+    NotAcceptingTrades = 7;
 };

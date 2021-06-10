@@ -454,6 +454,9 @@ namespace PhinixClient
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
 
+            // Subscribe to setting handle value change events
+            acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
+
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
             netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
