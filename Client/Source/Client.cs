@@ -114,6 +114,9 @@ namespace PhinixClient
             {
                 acceptingTradesHandle.Value = value;
                 HugsLibController.SettingsManager.SaveChanges();
+
+                // Update our trade acceptance status if we're connected to a server
+                userManager.UpdateSelf(acceptingTrades: value);
             }
         }
 
