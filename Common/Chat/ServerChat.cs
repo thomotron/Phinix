@@ -95,7 +95,10 @@ namespace Chat
                 };
 
                 // Create or truncate the file
-                using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+                FileStream fs = File.Exists(path)
+                    ? File.Open(path, FileMode.Truncate, FileAccess.Write)
+                    : File.Create(path);
+                using (fs)
                 {
                     using (CodedOutputStream cos = new CodedOutputStream(fs))
                     {

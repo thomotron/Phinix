@@ -199,7 +199,10 @@ namespace UserManagement
             lock (userStoreLock)
             {
                 // Write the user store
-                using (FileStream fs = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+                FileStream fs = File.Exists(filePath)
+                    ? File.Open(filePath, FileMode.Truncate, FileAccess.Write)
+                    : File.Create(filePath);
+                using (fs)
                 {
                     using (CodedOutputStream cos = new CodedOutputStream(fs))
                     {
