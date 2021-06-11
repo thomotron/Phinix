@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -15,7 +16,7 @@ namespace Connections
         public override event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc />
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
-        
+
         public bool Connected => clientNetManager != null &&                              // We have a NetManager
                                  clientNetManager.IsRunning &&                            // The NetManager is running
                                  serverPeer != null &&                                    // We have connection info about the server
@@ -24,7 +25,7 @@ namespace Connections
         /// <summary>
         /// Raised when connecting to a server.
         /// </summary>
-        public event EventHandler OnConnecting; 
+        public event EventHandler OnConnecting;
         /// <summary>
         /// Raised when disconnecting from a server.
         /// </summary>
@@ -43,6 +44,17 @@ namespace Connections
         /// Thread that polls the client backend for incoming packets.
         /// </summary>
         private Thread pollThread;
+
+        /// <summary>
+        /// Thread that probes multiple server addresses to determine which one to connect to.
+        /// Should be terminated on disconnect along with the associated <see cref="probePeers"/>.
+        /// </summary>
+        private Thread probeThread;
+        /// <summary>
+        /// Collection of <see cref="NetPeer"/>s currently probing for a valid connection address.
+        /// Should be gracefully disconnected and cleared on disconnect.
+        /// </summary>
+        private readonly List<NetPeer> probePeers = new List<NetPeer>();
 
         /// <summary>
         /// Creates a new <see cref="NetClient"/> instance.
@@ -75,7 +87,7 @@ namespace Connections
             // Try to connect
             clientNetManager.Start();
             serverPeer = clientNetManager.Connect(endpoint.Address.ToString(), endpoint.Port);
-            
+
             // Start a polling thread to check for incoming packets
             pollThread = new Thread(() =>
             {
@@ -86,9 +98,57 @@ namespace Connections
                 }
             });
             pollThread.Start();
-            
+
             // Raise the connection event
             OnConnecting?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Connects to the first of the given endpoints to establish a connection.
+        /// </summary>
+        /// <param name="endpoints">Endpoints to try connect to</param>
+        public void Connect(IEnumerable<IPEndPoint> endpoints)
+        {
+            // Close the active connection before we make a new one
+            Disconnect();
+
+            // Iterate over the endpoints we've been given and try to connect to them
+            foreach (IPEndPoint endpoint in endpoints)
+            {
+                probePeers.Add(clientNetManager.Connect(endpoint.Address.ToString(), endpoint.Port));
+            }
+
+            // Start a polling thread to check for incoming packets
+            pollThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    clientNetManager.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
+
+            // Invoke the OnConnecting event early before we shard off into another thread
+            OnConnecting?.Invoke(this, EventArgs.Empty);
+
+            // Connect to each peer asynchronously and keep the one that works
+            probeThread = new Thread(() =>
+            {
+                // Spin until one of the peers connects
+                while (!probePeers.Any(peer => peer.ConnectionState == ConnectionState.Connected))
+                {
+                    Thread.Sleep(10);
+                }
+
+                // Apply the connected one
+                NetPeer connectedPeer = probePeers.First(peer => peer.ConnectionState == ConnectionState.Connected);
+                serverPeer = connectedPeer;
+
+                // Cancel the remainder
+                probePeers.Remove(connectedPeer);
+                clearProbePeers();
+            });
         }
 
         /// <summary>
@@ -111,10 +171,10 @@ namespace Connections
             }
 
             // Parse the given hostname
-            if (TryResolveHostname(host, out IPAddress resolvedAddress))
+            if (TryResolveHostname(host, out IPAddress[] resolvedAddresses))
             {
                 // Try to connect using the resolved address
-                Connect(new IPEndPoint(resolvedAddress, port));
+                Connect(resolvedAddresses.Select(address => new IPEndPoint(address, port)));
             }
             else
             {
@@ -126,11 +186,10 @@ namespace Connections
         /// Attempts to resolve the given string to an <see cref="IPAddress"/>. Returns true if resolution was successful.
         /// </summary>
         /// <param name="hostname">Hostname to resolve</param>
-        /// <param name="address">Resolved address</param>
+        /// <param name="addresses">Resolved addresses</param>
         /// <returns>Resolved successfully</returns>
-        private static bool TryResolveHostname(string hostname, out IPAddress address)
+        private static bool TryResolveHostname(string hostname, out IPAddress[] addresses)
         {
-            IPAddress[] addresses;
             try
             {
                 // Query DNS for a list of addresses
@@ -139,15 +198,12 @@ namespace Connections
             catch (SocketException)
             {
                 // Couldn't contact a DNS server, set output to nothing and return a failure
-                address = null;
+                addresses = null;
                 return false;
             }
 
-            // Use the first address if we got one, otherwise set the output to null
-            address = addresses.Length > 0 ? addresses[0] : null;
-
             // Return if we got an address
-            return address != null;
+            return addresses != null && addresses.Length > 0;
         }
 
         /// <summary>
@@ -155,16 +211,24 @@ namespace Connections
         /// </summary>
         public void Disconnect()
         {
+            // Kill the probe thread and clear the variable
+            if (probeThread != null)
+            {
+                probeThread.Abort();
+                probeThread = null;
+                clearProbePeers();
+            }
+
             // Check if the client is running
             if (clientNetManager.IsRunning)
             {
                 // Stop the client
                 clientNetManager.Stop();
-                
+
                 // Raise the OnDisconnect event
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
             }
-            
+
             // Kill the poll thread and clear the variable
             if (pollThread != null)
             {
@@ -189,7 +253,7 @@ namespace Connections
 
             // Make sure we are connected before attempting to send anything
             if (!Connected) throw new NotConnectedException(serverPeer);
-            
+
             // Write the module and message data to a NetDataWriter stream
             NetDataWriter writer = new NetDataWriter();
             writer.Put(module);
@@ -197,6 +261,21 @@ namespace Connections
 
             // Send the message in a reliable and ordered fashion
             serverPeer.Send(writer, SendOptions.ReliableOrdered);
+        }
+
+        /// <summary>
+        /// Gracefully disconnects any connected peers in <see cref="probePeers"/> and clears it.
+        /// </summary>
+        private void clearProbePeers()
+        {
+            // Gracefully disconnect any connected peers
+            foreach (NetPeer peer in probePeers)
+            {
+                clientNetManager.DisconnectPeer(peer);
+            }
+
+            // Empty out the list
+            probePeers.Clear();
         }
     }
 }
