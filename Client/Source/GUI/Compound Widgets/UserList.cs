@@ -11,6 +11,8 @@ namespace PhinixClient.GUI
     public class UserList : Displayable
     {
         private const float SCROLLBAR_WIDTH = 16f;
+        private const float BLOCKED_SPACER_MARGIN_TOP = 10f;
+        private const float BLOCKED_SPACER_MARGIN_BOTTOM = 3f;
 
         /// <summary>
         /// Search text callback used to filter the list.
@@ -18,9 +20,9 @@ namespace PhinixClient.GUI
         private Func<string> searchTextCallback;
 
         /// <summary>
-        /// Container that holds a collection of <see cref="UserWidget"/> from <see cref="filteredUserWidgets"/>
+        /// Container that holds a collection of <see cref="UserWidget"/> from <see cref="filteredUnblockedUserWidgets"/>
         /// </summary>
-        private VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer();
+        private VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer(0);
 
         /// <summary>
         /// List containing each online user.
@@ -32,17 +34,21 @@ namespace PhinixClient.GUI
         private object userWidgetsLock = new object();
 
         /// <summary>
-        /// A subset of <see cref="userWidgets"/> filtered by <see cref="searchTextCallback"/>.
+        /// A subset of <see cref="userWidgets"/> filtered by <see cref="searchTextCallback"/> that are not blocked.
         /// </summary>
-        private List<UserWidget> filteredUserWidgets = new List<UserWidget>();
+        private List<UserWidget> filteredUnblockedUserWidgets = new List<UserWidget>();
         /// <summary>
-        /// Lock object to prevent multi-threaded access problems with <see cref="filteredUserWidgets"/>.
+        /// A subset of <see cref="userWidgets"/> filtered by <see cref="searchTextCallback"/> that are blocked.
+        /// </summary>
+        private List<UserWidget> filteredBlockedUserWidgets = new List<UserWidget>();
+        /// <summary>
+        /// Lock object to prevent multi-threaded access problems with <see cref="filteredUnblockedUserWidgets"/>.
         /// </summary>
         private object filteredUserWidgetsLock = new object();
 
         /// <summary>
         /// Whether <see cref="userListFlexContainer"/> needs to be refreshed to accommodate changes to
-        /// <see cref="filteredUserWidgets"/>.
+        /// <see cref="filteredUnblockedUserWidgets"/>.
         /// </summary>
         private bool filterChanged;
 
@@ -76,6 +82,7 @@ namespace PhinixClient.GUI
             Client.Instance.OnUserLoggedIn += (s, e) => refreshUserWidgetsList();
             Client.Instance.OnUserLoggedOut += (s, e) => refreshUserWidgetsList();
             Client.Instance.OnUserDisplayNameChanged += (s, e) => refreshUserWidgetsList();
+            Client.Instance.OnBlockedUsersChanged += (s, e) => refreshUserWidgetsList();
         }
 
         /// <inheritdoc />
@@ -89,7 +96,14 @@ namespace PhinixClient.GUI
                 {
                     // Replace the list content with the new list of filtered widgets
                     userListFlexContainer.Contents.Clear();
-                    userListFlexContainer.Contents.AddRange(filteredUserWidgets);
+                    userListFlexContainer.Contents.AddRange(filteredUnblockedUserWidgets);
+                    if (filteredBlockedUserWidgets.Any())
+                    {
+                        userListFlexContainer.Contents.Add(new SpacerWidget(height: BLOCKED_SPACER_MARGIN_TOP));
+                        userListFlexContainer.Contents.Add(new TextWidget("Phinix_chat_blockedUsers".Translate(), anchor: TextAnchor.LowerCenter));
+                        userListFlexContainer.Contents.Add(new SpacerWidget(height: BLOCKED_SPACER_MARGIN_BOTTOM));
+                        userListFlexContainer.Contents.AddRange(filteredBlockedUserWidgets);
+                    }
 
                     // Unset the filter changed flag
                     filterChanged = false;
@@ -137,14 +151,17 @@ namespace PhinixClient.GUI
             {
                 userWidgets.Clear();
 
-                // Get each online user's UUID
-                foreach (string uuid in Client.Instance.GetUserUuids(true))
+                // Get each online and blocked user's UUID
+                foreach (string uuid in Client.Instance.GetUserUuids(true).Union(Client.Instance.BlockedUsers).Distinct())
                 {
                     // Try get the user's display name
                     if (!Client.Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
 
+                    // Try get the user's blocked state
+                    bool isBlocked = Client.Instance.BlockedUsers.Contains(uuid);
+
                     // Create a new user widget and add it to the list
-                    userWidgets.Add(new UserWidget(uuid, displayName));
+                    userWidgets.Add(new UserWidget(uuid, displayName, isBlocked));
                 }
             }
 
@@ -153,8 +170,8 @@ namespace PhinixClient.GUI
         }
 
         /// <summary>
-        /// Refreshes <see cref="filteredUserWidgets"/> with <see cref="UserWidget"/> that have
-        /// display names containing the search text.
+        /// Refreshes <see cref="filteredUnblockedUserWidgets"/> and <see cref="filteredBlockedUserWidgets"/> with
+        /// <see cref="UserWidget"/> that have display names containing the search text.
         /// </summary>
         private void refreshFilteredUserWidgetsList()
         {
@@ -163,12 +180,14 @@ namespace PhinixClient.GUI
 
             lock (filteredUserWidgetsLock)
             {
-                filteredUserWidgets.Clear();
+                filteredUnblockedUserWidgets.Clear();
+                filteredBlockedUserWidgets.Clear();
 
                 lock (userWidgetsLock)
                 {
-                    // Repopulate the list with user widgets that have a display name containing cachedSearchText
-                    filteredUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower())));
+                    // Repopulate the lists with user widgets that have a display name containing cachedSearchText
+                    filteredUnblockedUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower()) && !w.Blocked));
+                    filteredBlockedUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower()) && w.Blocked));
                 }
             }
 

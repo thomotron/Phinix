@@ -177,6 +177,8 @@ namespace PhinixClient.GUI
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
+            if (cachedBlockedState) return 0;
+
             // Build a formatted representation of the message
             string formattedMessage = string.Format(
                 "[{0:HH:mm}] {1}: {2}",
@@ -209,13 +211,13 @@ namespace PhinixClient.GUI
                 // Block/Unblock user
                 if (cachedBlockedState)
                 {
-                    // Block
-                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(cachedDisplayName)), () => Client.Instance.BlockUser(SenderUuid)));
+                    // Unblock
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(), () => Client.Instance.UnBlockUser(SenderUuid)));
                 }
                 else
                 {
-                    // Unblock
-                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(cachedDisplayName)), () => Client.Instance.UnBlockUser(SenderUuid)));
+                    // Block
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(), () => Client.Instance.BlockUser(SenderUuid)));
                 }
             }
 

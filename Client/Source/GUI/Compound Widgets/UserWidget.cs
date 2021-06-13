@@ -40,6 +40,11 @@ namespace PhinixClient.GUI
         public string DisplayName => cachedDisplayName;
 
         /// <summary>
+        /// Whether the user is blocked.
+        /// </summary>
+        public bool Blocked => cachedBlockedState;
+
+        /// <summary>
         /// Cached copy of the user's display name.
         /// Updated when <see cref="Update"/> is called.
         /// </summary>

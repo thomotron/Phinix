@@ -62,6 +62,7 @@ namespace PhinixClient.GUI
             // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
             Client.Instance.OnChatMessageReceived += ChatMessageReceivedEventHandler;
             Client.Instance.OnUserDisplayNameChanged += UserChangedEventHandler;
+            Client.Instance.OnBlockedUsersChanged += BlockedUsersChangedEventHandler;
             Client.Instance.OnChatSync += (s, e) => ReplaceWithBuffer();
             Client.Instance.OnDisconnect += (s, e) => Clear();
         }
@@ -199,18 +200,30 @@ namespace PhinixClient.GUI
 
         private void UserChangedEventHandler(object sender, UserDisplayNameChangedEventArgs args)
         {
-            // Prevent the UI thread from changing chatFlexContainer while we iterate over it
             lock (newMessageWidgetsLock)
             {
-                // Update every message sent by this user
-                foreach (Displayable element in chatFlexContainer.Contents)
-                {
-                    // Ignore non-message widgets
-                    if (!(element is ChatMessageWidget message)) continue;
+                UpdateMessagesFrom(args.Uuid);
+            }
+        }
 
-                    // Update the message if it's sent by the user that just got updated
-                    if (message.SenderUuid == args.Uuid) message.Update();
-                }
+        private void BlockedUsersChangedEventHandler(object sender, BlockedUsersChangedEventArgs args)
+        {
+            lock (newMessageWidgetsLock)
+            {
+                UpdateMessagesFrom(args.Uuid);
+            }
+        }
+
+        private void UpdateMessagesFrom(string uuid)
+        {
+            // Update every message sent by this user
+            foreach (Displayable element in chatFlexContainer.Contents)
+            {
+                // Ignore non-message widgets
+                if (!(element is ChatMessageWidget message)) continue;
+
+                // Update the message if it's sent by the user that just got updated
+                if (message.SenderUuid == uuid) message.Update();
             }
         }
     }

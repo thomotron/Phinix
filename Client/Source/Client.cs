@@ -83,6 +83,8 @@ namespace PhinixClient
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
+        public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
+
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
         {
@@ -540,6 +542,8 @@ namespace PhinixClient
             BlockedUsers.AddDistinct(senderUuid);
             blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
+
+            OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, true));
         }
 
         /// <summary>
@@ -551,6 +555,8 @@ namespace PhinixClient
             BlockedUsers.Remove(senderUuid);
             blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
+
+            OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, false));
         }
 
         /// <inheritdoc />
