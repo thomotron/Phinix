@@ -45,6 +45,11 @@ namespace PhinixClient.GUI
         /// Refreshed every time <see cref="Update"/> is called.
         /// </summary>
         private string cachedDisplayName;
+        /// <summary>
+        /// A cashed copy of the sender's blocked state.
+        /// Refreshed every time <see cref="Update"/> is called.
+        /// </summary>
+        private bool cachedBlockedState;
 
         public ChatMessageWidget(string senderUuid, string message)
         {
@@ -54,8 +59,9 @@ namespace PhinixClient.GUI
             this.ReceivedTime = DateTime.UtcNow;
             this.Status = ChatMessageStatus.PENDING;
 
-            // Pre-cache the user's display name
+            // Pre-cache the user's display name and blocked status
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
         }
 
         public ChatMessageWidget(ClientChatMessage message)
@@ -76,13 +82,17 @@ namespace PhinixClient.GUI
             this.Message = message;
             this.Status = status;
 
-            // Pre-cache the user's display name
+            // Pre-cache the user's display name and blocked status
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
         }
 
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
+            // Don't draw anything for blocked users
+            if (cachedBlockedState) return;
+
             // Get the formatted chat message
             string timestamp = string.Format("[{0:HH:mm}] ", ReceivedTime.ToLocalTime());
             Rect timestampRect = new Rect(
@@ -159,7 +169,9 @@ namespace PhinixClient.GUI
                 Status = message.Status;
             }
 
+            // Update the sender's display name and blocked states
             if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
         }
 
         /// <inheritdoc />
@@ -195,7 +207,7 @@ namespace PhinixClient.GUI
                 items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(cachedDisplayName)), () => Client.Instance.CreateTrade(SenderUuid)));
 
                 // Block/Unblock user
-                if (!Client.Instance.BlockedUsers.Contains(SenderUuid))
+                if (cachedBlockedState)
                 {
                     // Block
                     items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(cachedDisplayName)), () => Client.Instance.BlockUser(SenderUuid)));

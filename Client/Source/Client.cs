@@ -61,7 +61,6 @@ namespace PhinixClient
         public ClientChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => chat.GetUnreadMessages(markAsRead);
         public int UnreadMessages => chat.UnreadMessages;
         public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
-        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler OnChatSync;
 
@@ -373,7 +372,7 @@ namespace PhinixClient
                 Logger.Trace("Received chat message from UUID " + args.Message.SenderUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.OriginUuid))
+                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.Message.SenderUuid))
                 {
                     lock (soundQueueLock)
                     {
