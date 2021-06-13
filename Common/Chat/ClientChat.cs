@@ -189,6 +189,24 @@ namespace Chat
         }
 
         /// <summary>
+        /// Returns the number of unread messages excluding any from the given UUIDs.
+        /// </summary>
+        /// <param name="uuids">UUIDs to exclude messages from</param>
+        /// <returns>The number of unread messages excluding any from the given UUIDs</returns>
+        public int GetUnreadMessagesExcluding(List<string> uuids)
+        {
+            List<ClientChatMessage> newMessages;
+            lock (messageHistoryLock)
+            {
+                // Get the messages since last check
+                newMessages = messageHistory.GetRange(messageCountAtLastCheck, UnreadMessages);
+            }
+
+            // Return how many aren't from any of the given UUIDs
+            return newMessages.Count(m => !uuids.Contains(m.SenderUuid));
+        }
+
+        /// <summary>
         /// Returns a list of the current unread messages.
         /// </summary>
         /// <param name="markAsRead">Whether to mark all messages as read</param>

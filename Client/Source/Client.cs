@@ -60,6 +60,8 @@ namespace PhinixClient
         public ClientChatMessage[] GetChatMessages(bool markAsRead = true) => chat.GetMessages(markAsRead);
         public ClientChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => chat.GetUnreadMessages(markAsRead);
         public int UnreadMessages => chat.UnreadMessages;
+        public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
+        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler OnChatSync;
 
@@ -67,6 +69,7 @@ namespace PhinixClient
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
         public string[] GetTrades() => trading.GetTrades();
+        public string[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids) => trading.GetTradesExceptWith(otherPartyUuids);
         public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
         public bool TryGetPartyAccepted(string tradeId, string partyUuid, out bool accepted) => trading.TryGetPartyAccepted(tradeId, partyUuid, out accepted);
@@ -169,6 +172,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> showBlockedUnreadMessageCount;
+        public bool ShowBlockedUnreadMessageCount
+        {
+            get => showBlockedUnreadMessageCount.Value;
+            set
+            {
+                showBlockedUnreadMessageCount.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         private SettingHandle<bool> allItemsTradable;
         public bool AllItemsTradable
         {
@@ -179,6 +193,20 @@ namespace PhinixClient
                 HugsLibController.SettingsManager.SaveChanges();
             }
         }
+
+        private SettingHandle<bool> showBlockedTrades;
+        public bool ShowBlockedTrades
+        {
+            get => showBlockedTrades.Value;
+            set
+            {
+                showBlockedTrades.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
+        private SettingHandle<ListSetting<string>> blockedUsers;
+        public List<string> BlockedUsers => blockedUsers.Value.List;
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -250,12 +278,33 @@ namespace PhinixClient
                 description: null,
                 defaultValue: true
             );
+            showBlockedUnreadMessageCount = Settings.GetHandle(
+                settingName: "showUnreadMessageCount",
+                title: "Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(),
+                description: "Phinix_hugslibsettings_showBlockedUnreadMessageCount_description".Translate(),
+                defaultValue: true
+            );
             allItemsTradable = Settings.GetHandle(
                 settingName: "allItemsTradable",
                 title: "Phinix_hugslibsettings_allItemsTradable".Translate(),
                 description: null,
                 defaultValue: false
             );
+            showBlockedTrades = Settings.GetHandle(
+                settingName: "showBlockedTrades",
+                title: "Phinix_hugslibsettings_showBlockedTrades".Translate(),
+                description: null,
+                defaultValue: false
+            );
+            blockedUsers = Settings.GetHandle<ListSetting<string>>(
+                settingName: "blockedUsers",
+                title: "Phinix_hugslibsettings_blockedUsers".Translate(),
+                description: null
+            );
+            blockedUsers.NeverVisible = true;
+            // Always initialise a new value otherwise it will use the reference of the default value, resulting in the
+            // default list being updated and the save mechanism never being able to differentiate any changes.
+            if (blockedUsers.Value == null) blockedUsers.Value = new ListSetting<string>();
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -324,7 +373,7 @@ namespace PhinixClient
                 Logger.Trace("Received chat message from UUID " + args.Message.SenderUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null)
+                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.OriginUuid))
                 {
                     lock (soundQueueLock)
                     {
@@ -339,6 +388,9 @@ namespace PhinixClient
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
                 Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
+
+                // Don't display anything if the other party is blocked and we want to hide their trades
+                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
 
                 // Try get the other party's display name
                 if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
@@ -401,6 +453,9 @@ namespace PhinixClient
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
+                // Don't display anything if the other party is blocked and we want to hide their trades
+                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+
                 // Try get the other party's display name
                 if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -449,6 +504,9 @@ namespace PhinixClient
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
 
+            // Subscribe to setting handle value change events
+            acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
+
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
             netClient.OnDisconnect += (sender, e) => { OnDisconnect?.Invoke(sender, e); };
@@ -472,6 +530,28 @@ namespace PhinixClient
 
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
+        }
+
+        /// <summary>
+        /// Adds a user's UUID to the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of user to block</param>
+        public void BlockUser(string senderUuid)
+        {
+            BlockedUsers.AddDistinct(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
+            HugsLibController.SettingsManager.SaveChanges();
+        }
+
+        /// <summary>
+        /// Removes a user's UUID from the blocked user list.
+        /// </summary>
+        /// <param name="senderUuid">UUID of the user to unblock</param>
+        public void UnBlockUser(string senderUuid)
+        {
+            BlockedUsers.Remove(senderUuid);
+            blockedUsers.HasUnsavedChanges = true;
+            HugsLibController.SettingsManager.SaveChanges();
         }
 
         /// <inheritdoc />

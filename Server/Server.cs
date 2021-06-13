@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Timers;
 using Authentication;
 using Chat;
 using Connections;
@@ -30,6 +31,9 @@ namespace PhinixServer
 
         // Exiting flag to stop the main run loop
         private static bool exiting = false;
+
+        // Save timer
+        private static Timer saveTimer;
 
         static void Main()
         {
@@ -60,6 +64,16 @@ namespace PhinixServer
             UserManager.Load(Config.UserDatabasePath);
             Chat.Load(Config.ChatHistoryPath);
             Trading.Load(Config.TradeDatabasePath);
+
+            // Set up the save timer
+            saveTimer = new Timer
+            {
+                AutoReset = true,
+                Enabled = true,
+                Interval = Config.SaveInterval
+            };
+            saveTimer.Elapsed += saveHandler;
+            saveTimer.Start();
 
             // Start listening for connections
             Connections.Start();
@@ -100,6 +114,28 @@ namespace PhinixServer
         }
 
         /// <summary>
+        /// Handles save events.
+        /// Used by <see cref="saveTimer"/> to save each module state periodically.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void saveHandler(object sender, ElapsedEventArgs e)
+        {
+            Logger.Log(Verbosity.INFO, "Saving module states...");
+
+            // Save module states
+            Authenticator.Save(Config.CredentialDatabasePath);
+            UserManager.Save(Config.UserDatabasePath);
+            Chat.Save(Config.ChatHistoryPath);
+            Trading.Save(Config.TradeDatabasePath);
+
+            // Save config too
+            Config.Save(CONFIG_FILE);
+
+            Logger.Log(Verbosity.INFO, "Saved module states");
+        }
+
+        /// <summary>
         /// Handles server shutdown events.
         /// Used to safely save and shut down modules before closing.
         /// </summary>
@@ -108,6 +144,9 @@ namespace PhinixServer
         private static void shutdownHandler(object sender = null, EventArgs e = null)
         {
             Logger.Log(Verbosity.INFO, "Server shutting down");
+
+            // Stop the save timer
+            saveTimer.Stop();
 
             // Log everyone out
             UserManager.LogOutAll();

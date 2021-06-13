@@ -82,7 +82,10 @@ namespace Trading
                 };
 
                 // Create or truncate the file
-                using (FileStream fs = File.Open(path, FileMode.Create, FileAccess.Write))
+                FileStream fs = File.Exists(path)
+                    ? File.Open(path, FileMode.Truncate, FileAccess.Write)
+                    : File.Create(path);
+                using (fs)
                 {
                     using (CodedOutputStream cos = new CodedOutputStream(fs))
                     {
@@ -278,6 +281,13 @@ namespace Trading
 
                 // Stop here
                 return;
+            }
+
+            // Make sure the other party is accepting trades
+            if (!userManager.TryGetAcceptingTrades(packet.OtherPartyUuid, out bool otherPartyAcceptingTrades) || !otherPartyAcceptingTrades)
+            {
+                // Fail the trade creation request because the other party is not accepting trades
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.NotAcceptingTrades, "Cannot create a trade because the other party is not accepting trades.");
             }
 
             lock (tradeDataLock)

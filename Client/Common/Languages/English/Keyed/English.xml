@@ -8,6 +8,9 @@
     <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
     <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
     <Phinix_chat_contextMenu_copyToClipboard>Copy message to clipboard</Phinix_chat_contextMenu_copyToClipboard>
+    <Phinix_chat_blockedUsers>Blocked users</Phinix_chat_blockedUsers>
+    <Phinix_chat_contextMenu_blockUser>Block user</Phinix_chat_contextMenu_blockUser>
+    <Phinix_chat_contextMenu_unblockUser>Unblock user</Phinix_chat_contextMenu_unblockUser>
 
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
@@ -25,7 +28,11 @@
     <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
     <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
     <Phinix_hugslibsettings_showUnreadMessageCount>Show unread message count</Phinix_hugslibsettings_showUnreadMessageCount>
+    <Phinix_hugslibsettings_showBlockedUnreadMessageCount>Show unread message count for blocked users</Phinix_hugslibsettings_showBlockedUnreadMessageCount>
+    <Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>Includes blocked users in the total number of unread messages when showing the unread message count</Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>
     <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
+    <Phinix_hugslibsettings_showBlockedTrades>Show trades from blocked users</Phinix_hugslibsettings_showBlockedTrades>
+    <Phinix_hugslibsettings_blockedUsers>Blocked users</Phinix_hugslibsettings_blockedUsers>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
