@@ -112,6 +112,9 @@ namespace Connections
             // Close the active connection before we make a new one
             Disconnect();
 
+            // Start the client
+            clientNetManager.Start();
+
             // Iterate over the endpoints we've been given and try to connect to them
             foreach (IPEndPoint endpoint in endpoints)
             {
@@ -136,19 +139,37 @@ namespace Connections
             probeThread = new Thread(() =>
             {
                 // Spin until one of the peers connects
-                while (!probePeers.Any(peer => peer.ConnectionState == ConnectionState.Connected))
+                while (true)
                 {
+                    // Make sure there is at least one non-null peer
+                    if (probePeers.All(peer => peer == null)) break;
+                    // ...and that none are connected
+                    if (probePeers.Where(peer => peer != null).Any(peer => peer.ConnectionState == ConnectionState.Connected)) break;
+                    // ...and that not all of them are disconnected
+                    if (probePeers.Where(peer => peer != null).All(peer => peer.ConnectionState == ConnectionState.Disconnected)) break;
+
                     Thread.Sleep(10);
                 }
 
-                // Apply the connected one
-                NetPeer connectedPeer = probePeers.First(peer => peer.ConnectionState == ConnectionState.Connected);
-                serverPeer = connectedPeer;
+                NetPeer connectedPeer;
+                try
+                {
+                    // Apply the connected one
+                    connectedPeer = probePeers.First(peer => peer.ConnectionState == ConnectionState.Connected);
+                    serverPeer = connectedPeer;
+                }
+                catch (InvalidOperationException)
+                {
+                    // No connected peers available, disconnect
+                    connectedPeer = null;
+                    Disconnect();
+                }
 
                 // Cancel the remainder
-                probePeers.Remove(connectedPeer);
+                probePeers.RemoveAll(peer => peer == null || peer.Equals(connectedPeer));
                 clearProbePeers();
             });
+            probeThread.Start();
         }
 
         /// <summary>
