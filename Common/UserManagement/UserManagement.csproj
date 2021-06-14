@@ -47,7 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerLoginEventArgs.cs" />
     <Compile Include="ServerUserManager.cs" />
-    <Compile Include="UserChangedEventArgs.cs" />
+    <Compile Include="UserCreatedEventArgs.cs" />
+    <Compile Include="UserDisplayNameChangedEventArgs.cs" />
+    <Compile Include="UserLoginStateChangedEventArgs.cs" />
     <Compile Include="UserManager.cs" />
     <Compile Include="UserNoLongerExistsException.cs" />
     <Compile Include="Users\compiled\User.cs" />

@@ -20,7 +20,11 @@ namespace Chat
         /// <summary>
         /// Raised when a chat message is received.
         /// </summary>
-        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
+        /// <summary>
+        /// Raised when a <see cref="ChatHistoryPacket"/> is received and chat is synchronised with the server.
+        /// </summary>
+        public event EventHandler OnChatSync;
 
         /// <summary>
         /// The number of messages received since <c>GetMessages()</c> was last called.
@@ -170,13 +174,14 @@ namespace Chat
         /// <summary>
         /// Returns a list of all messages received since connecting to the server.
         /// </summary>
+        /// <param name="markAsRead">Whether to mark all messages as read</param>
         /// <returns>A list of all messages received since connecting to the server</returns>
-        public ClientChatMessage[] GetMessages()
+        public ClientChatMessage[] GetMessages(bool markAsRead = true)
         {
             lock (messageHistoryLock)
             {
-                // Set the read message count
-                messageCountAtLastCheck = messageHistory.Count;
+                // Mark all messages as read, if enabled
+                if (markAsRead) MarkAsRead();
 
                 // Return the messages in history
                 return messageHistory.ToArray();
@@ -194,11 +199,69 @@ namespace Chat
             lock (messageHistoryLock)
             {
                 // Get the messages since last check
-                 newMessages = messageHistory.GetRange(messageCountAtLastCheck, UnreadMessages);
+                newMessages = messageHistory.GetRange(messageCountAtLastCheck, UnreadMessages);
             }
 
             // Return how many aren't from any of the given UUIDs
             return newMessages.Count(m => !uuids.Contains(m.SenderUuid));
+        }
+
+        /// <summary>
+        /// Returns a list of the current unread messages.
+        /// </summary>
+        /// <param name="markAsRead">Whether to mark all messages as read</param>
+        /// <returns>A list of all current unread messages</returns>
+        public ClientChatMessage[] GetUnreadMessages(bool markAsRead = true)
+        {
+            lock (messageHistoryLock)
+            {
+                // Mark all messages as read, if enabled
+                if (markAsRead) MarkAsRead();
+
+                // Return a subset containing just the unread messages
+                return messageHistory.GetRange(messageHistory.Count - UnreadMessages, UnreadMessages).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to retrieve the corresponding <see cref="ClientChatMessage"/> for the given message ID.
+        /// Returns true if the attempt was successful, otherwise false.
+        /// </summary>
+        /// <param name="messageId">Message ID</param>
+        /// <param name="message">Message output</param>
+        /// <returns>Whether the message with the given ID was retrieved successfully</returns>
+        public bool TryGetMessage(string messageId, out ClientChatMessage message)
+        {
+            message = null;
+
+            lock (messageHistoryLock)
+            {
+                try
+                {
+                    // Get the message corresponding with the given ID from history
+                    message = messageHistory.Single(m => m.MessageId == messageId);
+                }
+                catch (InvalidOperationException)
+                {
+                    // A single message with the given ID doesn't exist, return a failure
+                    return false;
+                }
+            }
+
+            // Got what we came for, return a success
+            return true;
+        }
+
+        /// <summary>
+        /// Marks all chat messages as read.
+        /// </summary>
+        public void MarkAsRead()
+        {
+            lock (messageHistoryLock)
+            {
+                // Set the read message count
+                messageCountAtLastCheck = messageHistory.Count;
+            }
         }
 
         /// <summary>
@@ -208,13 +271,15 @@ namespace Chat
         /// <param name="packet">Incoming packet</param>
         private void chatMessagePacketHandler(string connectionId, ChatMessagePacket packet)
         {
+            ClientChatMessage message = new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED);
+
             lock (messageHistoryLock)
             {
                 // Store the message in chat history
-                messageHistory.Add(new ClientChatMessage(packet.MessageId, packet.Uuid, packet.Message, packet.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
+                messageHistory.Add(message);
             }
 
-            OnChatMessageReceived?.Invoke(this, new ChatMessageEventArgs(packet.Message, packet.Uuid, packet.Timestamp.ToDateTime()));
+            OnChatMessageReceived?.Invoke(this, new ClientChatMessageEventArgs(message));
         }
 
         /// <summary>
@@ -232,6 +297,8 @@ namespace Chat
                     messageHistory.Add(new ClientChatMessage(messagePacket.MessageId, messagePacket.Uuid, messagePacket.Message, messagePacket.Timestamp.ToDateTime(), ChatMessageStatus.CONFIRMED));
                 }
             }
+
+            OnChatSync?.Invoke(this, EventArgs.Empty);
         }
 
 		/// <summary>
@@ -241,9 +308,9 @@ namespace Chat
         /// <param name="packet">Incoming packet</param>
         private void chatMessageResponsePacketHandler(string connectionId, ChatMessageResponsePacket packet)
         {
+            ClientChatMessage message;
             lock (messageHistoryLock)
             {
-                ClientChatMessage message;
                 try
                 {
                     // Try get a message with a corresponding original message ID
@@ -272,6 +339,8 @@ namespace Chat
                     message.Status = ChatMessageStatus.DENIED;
                 }
             }
+
+            OnChatMessageReceived?.Invoke(this, new ClientChatMessageEventArgs(message));
         }
     }
 }

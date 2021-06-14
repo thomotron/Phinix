@@ -4,17 +4,11 @@ namespace Chat
 {
     public class ChatMessageEventArgs : EventArgs
     {
-        public string Message;
+        public ChatMessage Message;
 
-        public string OriginUuid;
-
-        public DateTime Timestamp;
-
-        public ChatMessageEventArgs(string message, string originUuid, DateTime timestamp)
+        public ChatMessageEventArgs(ChatMessage message)
         {
             this.Message = message;
-            this.OriginUuid = originUuid;
-            this.Timestamp = timestamp;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PhinixClient.GUI;
 using UnityEngine;
@@ -27,46 +28,104 @@ namespace PhinixClient
         private static string serverAddress = Client.Instance.ServerAddress;
         private static string serverPortString = Client.Instance.ServerPort.ToString();
 
-        private static Vector2 namePreviewScrollPos;
+        /// <summary>
+        /// The pre-generated window contents.
+        /// </summary>
+        private VerticalFlexContainer contents;
+        /// <summary>
+        /// Whether an update call to <see cref="contents"/> has been requested by <see cref="updateOnEventHandler"/>.
+        /// </summary>
+        private bool needsUpdate = false;
 
-        public override void DoWindowContents(Rect inRect)
+        public SettingsWindow()
         {
             doCloseX = true;
             doCloseButton = false;
             doWindowBackground = true;
 
             // Create a flex container to hold our settings
-            VerticalFlexContainer flexContainer = new VerticalFlexContainer(DEFAULT_SPACING);
+            contents = new VerticalFlexContainer(DEFAULT_SPACING);
 
             // Server details (address and [dis]connect button) container
-            if (Client.Instance.Connected)
-            {
-                flexContainer.Add(GenerateConnectedServerDetails());
-            }
-            else
-            {
-                flexContainer.Add(GenerateDisconnectedServerDetails());
-            }
+            contents.Add(
+                new ConditionalContainer(
+                    childIfTrue: GenerateConnectedServerDetails(),
+                    childIfFalse: GenerateDisconnectedServerDetails(),
+                    condition: () => Client.Instance.Connected
+                )
+            );
 
             // Display name and preview
-            if (Client.Instance.Online)
+            contents.Add(
+                new ConditionalContainer(
+                    childIfTrue: GenerateEditableDisplayName(),
+                    childIfFalse: new BlankWidget(),
+                    condition: () => Client.Instance.Online
+                )
+            );
+        }
+
+        public override void DoWindowContents(Rect inRect)
+        {
+            if (needsUpdate)
             {
-                flexContainer.Add(GenerateEditableDisplayName());
-                flexContainer.Add(GenerateNamePreview());
-            };
+                // Update contents and reset the flag
+                contents.Update();
+                needsUpdate = false;
+            }
 
             // Calculate height and constrain the container so we have even row heights with fluid contents
             float contentHeight = 0f;
-            foreach (Displayable item in flexContainer.Contents)
+            foreach (Displayable item in contents.Contents)
             {
                 contentHeight += item.IsFluidHeight ? ROW_HEIGHT : item.CalcHeight(inRect.width);
             }
-            contentHeight += (flexContainer.Contents.Count - 1) * DEFAULT_SPACING;
-            HeightContainer heightContainer = new HeightContainer(flexContainer, contentHeight);
+            contentHeight += (contents.Contents.Count - 1) * DEFAULT_SPACING;
+            HeightContainer heightContainer = new HeightContainer(contents, contentHeight);
 
             // Draw the container with 5f padding at the top to avoid clipping with the close button
-            // flexContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
             heightContainer.Draw(inRect.BottomPartPixels(inRect.height - 5f));
+        }
+
+        /// <inheritdoc />
+        public override void PreOpen()
+        {
+            base.PreOpen();
+
+            // Bind to events
+            Client.Instance.OnConnecting += updateOnEventHandler;
+            Client.Instance.OnDisconnect += updateOnEventHandler;
+            Client.Instance.OnAuthenticationSuccess += updateOnEventHandler;
+            Client.Instance.OnAuthenticationFailure += updateOnEventHandler;
+            Client.Instance.OnLoginSuccess += updateOnEventHandler;
+            Client.Instance.OnLoginFailure += updateOnEventHandler;
+
+            // Invalidate content to compensate for any missed events
+            needsUpdate = true;
+        }
+
+        /// <inheritdoc />
+        public override void PostClose()
+        {
+            base.PostClose();
+
+            // Unbind from events
+            Client.Instance.OnConnecting -= updateOnEventHandler;
+            Client.Instance.OnDisconnect -= updateOnEventHandler;
+            Client.Instance.OnAuthenticationSuccess -= updateOnEventHandler;
+            Client.Instance.OnAuthenticationFailure -= updateOnEventHandler;
+            Client.Instance.OnLoginSuccess -= updateOnEventHandler;
+            Client.Instance.OnLoginFailure -= updateOnEventHandler;
+        }
+
+        /// <summary>
+        /// Refreshes the GUI content.
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="args">Event arguments</param>
+        private void updateOnEventHandler(object sender, EventArgs args)
+        {
+            needsUpdate = true;
         }
 
         /// <summary>
@@ -80,8 +139,8 @@ namespace PhinixClient
 
             // Server address label
             row.Add(
-                new TextWidget(
-                    text: "Phinix_settings_connectedToLabel".Translate(serverAddress),
+                new DynamicTextWidget(
+                    textCallback: () => "Phinix_settings_connectedToLabel".Translate(serverAddress),
                     anchor: TextAnchor.MiddleLeft
                 )
             );
@@ -124,7 +183,7 @@ namespace PhinixClient
             // Server address box
             row.Add(
                 new TextFieldWidget(
-                    text: serverAddress,
+                    initialText: serverAddress,
                     onChange: newAddress => serverAddress = newAddress
                 )
             );
@@ -144,14 +203,9 @@ namespace PhinixClient
             row.Add(
                 new Container(
                     new TextFieldWidget(
-                        text: serverPortString,
-                        onChange: newPortString =>
-                        {
-                            if (new Regex("(^[0-9]{0,5}$)").IsMatch(newPortString))
-                            {
-                                serverPortString = newPortString;
-                            }
-                        }
+                        initialText: serverPortString,
+                        onChange: newPortString => serverPortString = newPortString,
+                        validator: new Regex("(^[0-9]{0,5}$)")
                     ),
                     width: SERVER_PORT_BOX_WIDTH
                 )
@@ -183,24 +237,37 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// Generates an editable display name field and a button to apply the changes.
+        /// Generates an editable display name field, a button to apply the changes, and a preview.
         /// </summary>
-        /// <returns><see cref="HorizontalFlexContainer"/> containing an editable display name field and a button to apply the changes</returns>
-        private HorizontalFlexContainer GenerateEditableDisplayName()
+        /// <returns><see cref="Displayable"/> containing an editable display name field, a button to apply the changes, and a preview</returns>
+        private Displayable GenerateEditableDisplayName()
         {
+            // Make the name preview early so we can bind to it's update method
+            DynamicTextWidget namePreview = new DynamicTextWidget(
+                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
+                wrap: false
+            );
+
+            // Create a column to store the editable portion and preview in
+            VerticalFlexContainer column = new VerticalFlexContainer();
+
             // Create a flex container as our 'row' to store the editable name field in
-            HorizontalFlexContainer row = new HorizontalFlexContainer();
+            HorizontalFlexContainer editableRow = new HorizontalFlexContainer();
 
             // Editable display name text box
-            row.Add(
+            editableRow.Add(
                 new TextFieldWidget(
-                    text: Client.Instance.DisplayName,
-                    onChange: newDisplayName => Client.Instance.DisplayName = newDisplayName
+                    initialText: Client.Instance.DisplayName,
+                    onChange: newDisplayName =>
+                    {
+                        Client.Instance.DisplayName = newDisplayName;
+                        namePreview.Update();
+                    }
                 )
             );
 
             // Set display name button
-            row.Add(
+            editableRow.Add(
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_settings_setDisplayNameButton".Translate(),
@@ -210,28 +277,19 @@ namespace PhinixClient
                 )
             );
 
-            // Return the generated row
-            return row;
-        }
-
-        /// <summary>
-        /// Generates a display name preview label.
-        /// </summary>
-        /// <returns></returns>
-        private HorizontalScrollContainer GenerateNamePreview()
-        {
-            // Create a scroll container to store the text widget in
-            HorizontalScrollContainer row = new HorizontalScrollContainer(
-                new TextWidget(
-                    text: "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
-                    wrap: false
-                ),
-                scrollPosition: namePreviewScrollPos,
-                onScroll: (newPos) => namePreviewScrollPos = newPos
+            // Wrap the editable portion in a container to enforce height and add it to the column
+            column.Add(
+                new HeightContainer(
+                    child: editableRow,
+                    height: ROW_HEIGHT
+                )
             );
 
-            // Return the generated row
-            return row;
+            // Display name preview
+            column.Add(new HorizontalScrollContainer(namePreview));
+
+            // Return the generated column
+            return column;
         }
     }
 }

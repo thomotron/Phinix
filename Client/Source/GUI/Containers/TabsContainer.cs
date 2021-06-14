@@ -17,7 +17,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Collection of tabs that will be drawn.
         /// </summary>
-        private List<TabEntry> tabs;
+        private List<TabContainerEntry> tabs;
 
         /// <summary>
         /// Callback invoked when a different tab is selected.
@@ -29,12 +29,12 @@ namespace PhinixClient.GUI
         /// </summary>
         private int selectedTab;
 
-        public TabsContainer(Action<int> onTabChange, int selectedTab = 0)
+        public TabsContainer(Action<int> onTabChange = null, int selectedTab = 0)
         {
             this.onTabChange = onTabChange;
             this.selectedTab = selectedTab;
 
-            this.tabs = new List<TabEntry>();
+            this.tabs = new List<TabContainerEntry>();
         }
 
         /// <summary>
@@ -48,14 +48,14 @@ namespace PhinixClient.GUI
             int index = tabs.Count;
 
             // Create a tab record
-            TabRecord tab = new TabRecord(label, () =>
-                {
-                    selectedTab = index;
-                    onTabChange(index);
-                }, selectedTab == index);
+            TabRecord tab = new TabRecord(
+                label: label,
+                clickedAction: () => { selectedTab = index; onTabChange?.Invoke(index); },
+                selected: () => selectedTab == index
+            );
 
             // Add the tab to the tab list
-            tabs.Add(new TabEntry { tab = tab, displayable = displayable });
+            tabs.Add(new TabContainerEntry { tab = tab, displayable = displayable });
         }
 
         /// <inheritdoc />
@@ -69,11 +69,27 @@ namespace PhinixClient.GUI
             inRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
 
             // We draw the top with tabs
-            TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
+            TabRecord selectedRecord = TabDrawer.DrawTabs(inRect, tabs.Select(e => e.tab).ToList());
+
+            // Change the selected record if it was clicked
+            if (selectedRecord != null)
+            {
+                selectedTab = tabs.IndexOf(tabs.Single(tabEntry => tabEntry.tab.label == selectedRecord.label));
+                onTabChange?.Invoke(selectedTab);
+            }
 
             // We draw the selected tab
             Displayable selectedDisplayable = tabs[selectedTab].displayable;
             selectedDisplayable.Draw(inRect);
+        }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            foreach (TabContainerEntry tab in tabs)
+            {
+                tab.displayable.Update();
+            }
         }
 
         /// <inheritdoc />

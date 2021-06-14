@@ -16,8 +16,12 @@ namespace PhinixClient.GUI
         private readonly Color backgroundHighlightColour = new Color(1f, 1f, 1f, 0.1f);
 
         /// <summary>
+        /// ID of the corresponding chat message.
+        /// </summary>
+        public string MessageId;
+
+        /// <summary>
         /// Time message was received.
-        /// Set when the constructor is run.
         /// </summary>
         public DateTime ReceivedTime;
 
@@ -36,6 +40,17 @@ namespace PhinixClient.GUI
         /// </summary>
         public ChatMessageStatus Status;
 
+        /// <summary>
+        /// A cached copy of the sender's display name.
+        /// Refreshed every time <see cref="Update"/> is called.
+        /// </summary>
+        private string cachedDisplayName;
+        /// <summary>
+        /// A cashed copy of the sender's blocked state.
+        /// Refreshed every time <see cref="Update"/> is called.
+        /// </summary>
+        private bool cachedBlockedState;
+
         public ChatMessageWidget(string senderUuid, string message)
         {
             this.SenderUuid = senderUuid;
@@ -43,37 +58,41 @@ namespace PhinixClient.GUI
 
             this.ReceivedTime = DateTime.UtcNow;
             this.Status = ChatMessageStatus.PENDING;
+
+            // Pre-cache the user's display name and blocked status
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
+        }
+
+        public ChatMessageWidget(ClientChatMessage message)
+            : this(message.MessageId, message.SenderUuid, message.Message, message.Timestamp, message.Status)
+        {
         }
 
         public ChatMessageWidget(string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
+             : this(null, senderUuid, message, receivedTime, status)
         {
+        }
+
+        public ChatMessageWidget(string messageId, string senderUuid, string message, DateTime receivedTime, ChatMessageStatus status)
+        {
+            this.MessageId = messageId;
             this.ReceivedTime = receivedTime;
             this.SenderUuid = senderUuid;
             this.Message = message;
             this.Status = status;
-        }
 
-        public string Format()
-        {
-            // Get a local copy of the message
-            string message = Message;
-
-            // Try to get the display name of the sender
-            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
-
-            // Strip name formatting if the user wishes not to see it
-            if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
-
-            // Strip message formatting if the user wishes not to see it
-            if (!Client.Instance.ShowChatFormatting) message = TextHelper.StripRichText(message);
-
-            // Return the formatted message
-            return string.Format("[{0:HH:mm}] {1}: {2}", ReceivedTime.ToLocalTime(), displayName, message);
+            // Pre-cache the user's display name and blocked status
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
         }
 
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
+            // Don't draw anything for blocked users
+            if (cachedBlockedState) return;
+
             // Get the formatted chat message
             string timestamp = string.Format("[{0:HH:mm}] ", ReceivedTime.ToLocalTime());
             Rect timestampRect = new Rect(
@@ -83,8 +102,7 @@ namespace PhinixClient.GUI
                 height: Text.CurFontStyle.CalcSize(new GUIContent(timestamp)).y
             );
 
-            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
-            if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
+            string displayName = Client.Instance.ShowNameFormatting ? cachedDisplayName : TextHelper.StripRichText(cachedDisplayName);
             Rect displayNameRect = new Rect(
                 x: container.x + timestampRect.width,
                 y: container.y,
@@ -137,10 +155,40 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
+        /// <exception cref="ArgumentException">Chat message with the given message ID does not exist</exception>
+        public override void Update()
+        {
+            // Update the message status if we've been given a message ID
+            if (MessageId != null)
+            {
+                if (!Client.Instance.TryGetMessage(MessageId, out ClientChatMessage message))
+                {
+                    throw new ArgumentException("Chat message with the given message ID does not exist.");
+                }
+
+                Status = message.Status;
+            }
+
+            // Update the sender's display name and blocked states
+            if (!Client.Instance.TryGetDisplayName(SenderUuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(SenderUuid);
+        }
+
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
+            if (cachedBlockedState) return 0;
+
+            // Build a formatted representation of the message
+            string formattedMessage = string.Format(
+                "[{0:HH:mm}] {1}: {2}",
+                ReceivedTime,
+                Client.Instance.ShowNameFormatting && Status == ChatMessageStatus.CONFIRMED ? cachedDisplayName : TextHelper.StripRichText(cachedDisplayName),
+                Client.Instance.ShowChatFormatting && Status == ChatMessageStatus.CONFIRMED ? Message : TextHelper.StripRichText(Message)
+            );
+
             // Return the calculated the height of the formatted text
-            return Text.CalcHeight(Format(), width);
+            return Text.CalcHeight(formattedMessage, width);
         }
 
         /// <inheritdoc />
@@ -151,9 +199,6 @@ namespace PhinixClient.GUI
 
         private void drawNameContextMenu()
         {
-            // Try to get the display name of this message's sender
-            if (!Client.Instance.TryGetDisplayName(SenderUuid, out string displayName)) displayName = "???";
-
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
 
@@ -161,18 +206,18 @@ namespace PhinixClient.GUI
             if (SenderUuid != Client.Instance.Uuid)
             {
                 // Trade with...
-                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.CreateTrade(SenderUuid)));
+                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(cachedDisplayName)), () => Client.Instance.CreateTrade(SenderUuid)));
 
                 // Block/Unblock user
-                if (!Client.Instance.BlockedUsers.Contains(SenderUuid))
+                if (cachedBlockedState)
                 {
-                    // Block
-                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.BlockUser(SenderUuid)));
+                    // Unblock
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(), () => Client.Instance.UnBlockUser(SenderUuid)));
                 }
                 else
                 {
-                    // Unblock
-                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.UnBlockUser(SenderUuid)));
+                    // Block
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(), () => Client.Instance.BlockUser(SenderUuid)));
                 }
             }
 

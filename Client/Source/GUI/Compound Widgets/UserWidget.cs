@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UserManagement;
 using Utils;
 using Verse;
 
+// TODO: Properly merge blocking functionality from b6c68ca
 namespace PhinixClient.GUI
 {
-    public class UserWidget : Displayable
+    internal class UserWidget : Displayable
     {
         /// <inheritdoc />
         public override bool IsFluidHeight => false;
@@ -30,23 +30,51 @@ namespace PhinixClient.GUI
         private readonly Color blockedNameColour = new Color(0.6f, 0.6f, 0.6f);
 
         /// <summary>
-        /// UUID of the user.
+        /// The user's UUID.
         /// </summary>
-        private readonly string uuid;
+        public string Uuid;
 
-        public UserWidget(User user) : this(user.Uuid) {}
+        /// <summary>
+        /// The user's display name.
+        /// </summary>
+        public string DisplayName => cachedDisplayName;
 
-        public UserWidget(string uuid)
+        /// <summary>
+        /// Whether the user is blocked.
+        /// </summary>
+        public bool Blocked => cachedBlockedState;
+
+        /// <summary>
+        /// Cached copy of the user's display name.
+        /// Updated when <see cref="Update"/> is called.
+        /// </summary>
+        private string cachedDisplayName;
+
+        /// <summary>
+        /// Cached copy of the user's blocked state.
+        /// Updated when <see cref="Update"/> is called.
+        /// </summary>
+        private bool cachedBlockedState;
+
+        /// <summary>
+        /// Creates a new <see cref="UserWidget"/> with the given UUID and initial display name.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <param name="initialDisplayName">User's display name</param>
+        /// <param name="initialBlockedState">User's initial blocked state</param>
+        public UserWidget(string uuid, string initialDisplayName, bool initialBlockedState = false)
         {
-            this.uuid = uuid;
+            this.Uuid = uuid;
+            this.cachedDisplayName = initialDisplayName;
+            this.cachedBlockedState = initialBlockedState;
         }
 
         /// <inheritdoc />
         public override void Draw(Rect inRect)
         {
-            string displayName = format();
+            string displayName = Client.Instance.ShowNameFormatting ? cachedDisplayName : TextHelper.StripRichText(cachedDisplayName);
 
-            if (Client.Instance.BlockedUsers.Contains(uuid))
+            if (cachedBlockedState)
             {
                 // Draw a highlighted background
                 Widgets.DrawRectFast(inRect, blockedBackgroundColour);
@@ -64,52 +92,62 @@ namespace PhinixClient.GUI
             // Draw the button and optionally the context menu if clicked
             if (Widgets.ButtonInvisible(inRect, false))
             {
-                drawNameContextMenu();
+                drawContextMenu();
             }
         }
 
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
-            // Return the calculated the height of the formatted text
-            return Text.CalcHeight(format(), width - (horizontalPadding * 2)) + (verticalPadding * 2);
-        }
-
-        private string format()
-        {
-            // Try to get the display name of the user
-            if (!Client.Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
+            string displayName = cachedDisplayName;
 
             // Strip name formatting if the user wishes not to see it
             if (!Client.Instance.ShowNameFormatting) displayName = TextHelper.StripRichText(displayName);
 
-            return displayName;
+            // Strip display name formatting and grey it out
+            if (cachedBlockedState) displayName = TextHelper.StripRichText(displayName).Colorize(blockedNameColour);
+
+            // Return the calculated the height of the formatted text
+            return Text.CalcHeight(displayName, width - (horizontalPadding * 2)) + (verticalPadding * 2);
         }
 
-        private void drawNameContextMenu()
+        /// <inheritdoc />
+        public override void Update()
+        {
+            // Refresh the button label and blocked state
+            if (!Client.Instance.TryGetDisplayName(Uuid, out cachedDisplayName)) cachedDisplayName = "???";
+            cachedBlockedState = Client.Instance.BlockedUsers.Contains(Uuid);
+        }
+
+        /// <summary>
+        /// Draws a context menu with user-specific actions.
+        /// </summary>
+        private void drawContextMenu()
         {
             // Do nothing if this is our UUID
-            if (uuid == Client.Instance.Uuid) return;
-
-            // Try to get the display name of this message's sender
-            if (!Client.Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
+            if (Uuid == Client.Instance.Uuid) return;
 
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.CreateTrade(uuid)));
-            if (!Client.Instance.BlockedUsers.Contains(uuid))
-            {
-                // Block
-                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.BlockUser(uuid)));
-            }
-            else
-            {
-                // Unblock
-                items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(TextHelper.StripRichText(displayName)), () => Client.Instance.UnBlockUser(uuid)));
-            }
+            items.Add(
+                new FloatMenuOption(
+                    label: "Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(cachedDisplayName)),
+                    action: () => Client.Instance.CreateTrade(Uuid)
+                )
+            );
+            items.Add(
+                new FloatMenuOption(
+                        label: (cachedBlockedState ? "Phinix_chat_contextMenu_unblockUser" : "Phinix_chat_contextMenu_blockUser").Translate(),
+                        action: () =>
+                        {
+                            if (cachedBlockedState) Client.Instance.UnBlockUser(Uuid);
+                            else Client.Instance.BlockUser(Uuid);
+                        }
+                )
+            );
 
             // Draw the context menu
-            if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }

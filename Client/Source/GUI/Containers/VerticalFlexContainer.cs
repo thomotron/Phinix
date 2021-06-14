@@ -96,6 +96,15 @@ namespace PhinixClient.GUI
         }
 
         /// <inheritdoc />
+        public override void Update()
+        {
+            foreach (Displayable item in Contents)
+            {
+                item.Update();
+            }
+        }
+
+        /// <inheritdoc />
         public override float CalcHeight(float width)
         {
             // Return the sum of each item's height, ignoring fluid items, and the spacing between each
