@@ -45,6 +45,11 @@ namespace Trading
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
 
         /// <summary>
+        /// Raised when trades are synced from the server.
+        /// </summary>
+        public event EventHandler<TradesSyncedEventArgs> OnTradesSynced;
+
+        /// <summary>
         /// <see cref="NetClient"/> instance to bind events and send data through.
         /// </summary>
         private NetClient netClient;
@@ -584,6 +589,9 @@ namespace Trading
                     activeTrades.Add(trade.TradeId, trade);
                 }
             }
+
+            // Raise the trades synced event
+            OnTradesSynced?.Invoke(this, new TradesSyncedEventArgs(packet.Trades.Select(trade => trade.TradeId)));
         }
     }
 }

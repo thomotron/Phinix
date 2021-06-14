@@ -82,6 +82,7 @@ namespace PhinixClient
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
+        public event EventHandler<TradesSyncedEventArgs> OnTradesSynced;
 
         public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
 
@@ -504,6 +505,10 @@ namespace PhinixClient
 
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
+            trading.OnTradesSynced += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Synced {0} trade{1} from server", args.TradeIds.Length, args.TradeIds.Length != 1 ? "s" : ""));
+            };
 
             // Subscribe to setting handle value change events
             acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
@@ -528,6 +533,7 @@ namespace PhinixClient
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
             trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
             trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
+            trading.OnTradesSynced += (sender, e) => { OnTradesSynced?.Invoke(sender, e); };
 
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

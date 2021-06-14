@@ -59,6 +59,7 @@
     <Compile Include="Stores\compiled\TradeStore.cs" />
     <Compile Include="ThingReceivedEventArgs.cs" />
     <Compile Include="Trade.cs" />
+    <Compile Include="TradesSyncedEventArgs.cs" />
     <Compile Include="TradeUpdateEventArgs.cs" />
     <Compile Include="Trading.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

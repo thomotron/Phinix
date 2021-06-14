@@ -23,16 +23,18 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Trade ID this trade row represents.
         /// </summary>
-        private string tradeId;
+        public readonly string TradeId;
 
         /// <summary>
         /// Whether to draw an alternate, lighter background behind the trade row.
         /// </summary>
-        private bool drawAlternateBackground;
+        public bool DrawAlternateBackground;
 
         /// <summary>
         /// Other party's UUID.
         /// </summary>
+        public string OtherPartyUuid => otherPartyUuid;
+        /// <inheritdoc cref="OtherPartyUuid"/>
         private string otherPartyUuid;
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// The pre-generated trade row.
         /// </summary>
-        private Displayable content;
+        private readonly Displayable content;
 
         /// <summary>
         /// Creates a new <see cref="TradeRow"/> from the given trade ID.
@@ -62,8 +64,8 @@ namespace PhinixClient.GUI
         /// <exception cref="Exception">Failed to get whether the other party has accepted or not</exception>
         public TradeRow(string tradeId, bool drawAlternateBackground = false)
         {
-            this.tradeId = tradeId;
-            this.drawAlternateBackground = drawAlternateBackground;
+            this.TradeId = tradeId;
+            this.DrawAlternateBackground = drawAlternateBackground;
 
             // Try get the other party's UUID and display name
             if (!Client.Instance.TryGetOtherPartyUuid(tradeId, out otherPartyUuid) ||
@@ -88,7 +90,7 @@ namespace PhinixClient.GUI
         public override void Draw(Rect inRect)
         {
             // Draw a background highlight
-            if (drawAlternateBackground) Widgets.DrawHighlight(inRect);
+            if (DrawAlternateBackground) Widgets.DrawHighlight(inRect);
 
             // Draw the row
             content.Draw(inRect);
@@ -97,7 +99,7 @@ namespace PhinixClient.GUI
         public override void Update()
         {
             // Try get the other party's UUID and display name
-            if (!Client.Instance.TryGetOtherPartyUuid(tradeId, out otherPartyUuid) ||
+            if (!Client.Instance.TryGetOtherPartyUuid(TradeId, out otherPartyUuid) ||
                 !Client.Instance.TryGetDisplayName(otherPartyUuid, out cachedOtherPartyDisplayName))
             {
                 // Failed to get the other party's display name
@@ -105,7 +107,7 @@ namespace PhinixClient.GUI
             }
 
             // Try get the other party's accepted state
-            if (!Client.Instance.TryGetPartyAccepted(tradeId, otherPartyUuid, out cachedOtherPartyAccepted))
+            if (!Client.Instance.TryGetPartyAccepted(TradeId, otherPartyUuid, out cachedOtherPartyAccepted))
             {
                 // Failed to get the other party's accepted state
                 throw new Exception("Failed to get whether the other party has accepted or not.");
@@ -137,8 +139,8 @@ namespace PhinixClient.GUI
             // Trade with ... label
             textColumn.Add(
                 new Container(
-                    new TextWidget(
-                        text: "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(cachedOtherPartyDisplayName)),
+                    new DynamicTextWidget(
+                        textCallback: () => "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(cachedOtherPartyDisplayName)),
                         anchor: TextAnchor.MiddleLeft
                     ),
                     height: TRADE_WITH_LABEL_HEIGHT
@@ -148,8 +150,8 @@ namespace PhinixClient.GUI
             // Accepted state label
             textColumn.Add(
                 new Container(
-                    new TextWidget(
-                        text: ("Phinix_trade_activeTrade_theyHave" + (!cachedOtherPartyAccepted ? "Not" : "") + "Accepted").Translate(),
+                    new DynamicTextWidget(
+                        textCallback: () => ("Phinix_trade_activeTrade_theyHave" + (!cachedOtherPartyAccepted ? "Not" : "") + "Accepted").Translate(),
                         font: GameFont.Tiny,
                         anchor: TextAnchor.MiddleLeft
                     ),
@@ -165,7 +167,7 @@ namespace PhinixClient.GUI
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_trade_activeTrade_openButton".Translate(),
-                        clickAction: () => Find.WindowStack.Add(new TradeWindow(tradeId))
+                        clickAction: () => Find.WindowStack.Add(new TradeWindow(TradeId))
                     ),
                     width: BUTTON_WIDTH
                 )
@@ -176,7 +178,7 @@ namespace PhinixClient.GUI
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_trade_cancelButton".Translate(),
-                        clickAction: () => Client.Instance.CancelTrade(tradeId)
+                        clickAction: () => Client.Instance.CancelTrade(TradeId)
                     ),
                     width: BUTTON_WIDTH
                 )

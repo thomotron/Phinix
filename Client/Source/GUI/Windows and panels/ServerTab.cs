@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Chat;
-using PhinixClient.GUI;
+﻿using PhinixClient.GUI;
+using PhinixClient.GUI.Compound_Widgets;
 using RimWorld;
 using UnityEngine;
-using Utils;
 using Verse;
 using static PhinixClient.Client;
 
@@ -80,7 +77,7 @@ namespace PhinixClient
             contents.AddTab("Phinix_tabs_chat".Translate(), chatRow);
 
             // Add the active trades tab
-            contents.AddTab("Phinix_tabs_trades".Translate(), GenerateTradeRows());
+            contents.AddTab("Phinix_tabs_trades".Translate(), new TradeList());
         }
 
         ///<inheritdoc/>
@@ -197,48 +194,6 @@ namespace PhinixClient
 
             // Return the generated column
             return column;
-        }
-
-        /// <summary>
-        /// Generates a <see cref="VerticalScrollContainer"/> containing a series of available trades.
-        /// </summary>
-        /// <returns></returns>
-        private Displayable GenerateTradeRows()
-        {
-            // Create a column to store everything in
-            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
-
-            // Get TradeRows for each trade and add them to the column
-            string[] tradeIds = Instance.GetTrades();
-            for (int i = 0; i < tradeIds.Length; i++)
-            {
-                column.Add(
-                    new TradeRow(
-                        tradeId: tradeIds[i],
-                        drawAlternateBackground: i % 2 != 0
-                     )
-                );
-            }
-
-            // Wrap the column in a scroll container
-            VerticalScrollContainer scrolledColumn = new VerticalScrollContainer(column);
-
-            // Make sure we have active trades before attempting to draw them
-            ConditionalContainer activeTradesConditional = new ConditionalContainer(
-                childIfTrue: scrolledColumn,
-                childIfFalse: new PlaceholderWidget("Phinix_trade_noActiveTradesPlaceholder".Translate()),
-                condition: () => Instance.GetTrades().Any()
-            );
-
-            // Make sure we are online above all else
-            ConditionalContainer onlineConditional = new ConditionalContainer(
-                childIfTrue: activeTradesConditional,
-                childIfFalse: new PlaceholderWidget("Phinix_chat_pleaseLogInPlaceholder".Translate()),
-                condition: () => Instance.Online
-            );
-
-            // Return the generated panel
-            return onlineConditional;
         }
 
         /// <summary>
