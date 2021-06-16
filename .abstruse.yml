@@ -1,0 +1,7 @@
+image: mono:latest
+
+install:
+    - nuget restore Phinix.sln
+
+script:
+    - msbuild /property:Configuration=TravisCI ./Phinix.sln
