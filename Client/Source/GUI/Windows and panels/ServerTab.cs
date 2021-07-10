@@ -95,8 +95,6 @@ namespace PhinixClient
         /// <param name="inRect">Container to draw within</param>
         public override void DoWindowContents(Rect inRect)
         {
-            base.DoWindowContents(inRect);
-
             // Draw the tabs
             contents.Draw(inRect);
         }
