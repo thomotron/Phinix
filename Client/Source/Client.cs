@@ -45,15 +45,24 @@ namespace PhinixClient
         public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn);
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
+        public event EventHandler<UserDisplayNameChangedEventArgs> OnUserDisplayNameChanged;
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedIn;
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedOut;
+        public event EventHandler<UserCreatedEventArgs> OnUserCreated;
+        public event EventHandler OnUserSync;
 
         public bool Online => Connected && Authenticated && LoggedIn;
 
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
-        public ClientChatMessage[] GetChatMessages() => chat.GetMessages();
+        public bool TryGetMessage(string messageId, out ClientChatMessage message) => chat.TryGetMessage(messageId, out message);
+        public void MarkAsRead() => chat.MarkAsRead();
+        public ClientChatMessage[] GetChatMessages(bool markAsRead = true) => chat.GetMessages(markAsRead);
+        public ClientChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => chat.GetUnreadMessages(markAsRead);
         public int UnreadMessages => chat.UnreadMessages;
         public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
-        public event EventHandler<ChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler OnChatSync;
 
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
@@ -73,6 +82,9 @@ namespace PhinixClient
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
+        public event EventHandler<TradesSyncedEventArgs> OnTradesSynced;
+
+        public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
 
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
@@ -340,14 +352,30 @@ namespace PhinixClient
 
                 Disconnect();
             };
+            userManager.OnUserDisplayNameChanged += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User with UUID {0} changed their display name from \"{1}\" to \"{2}\"", args.Uuid, args.OldDisplayName, args.NewDisplayName));
+            };
+            userManager.OnUserLoggedIn += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User {0} logged in", args.Uuid));
+            };
+            userManager.OnUserLoggedOut += (sender, args) =>
+            {
+                Logger.Trace(string.Format("User {0} logged out", args.Uuid));
+            };
+            userManager.OnUserCreated += (sender, args) =>
+            {
+                Logger.Trace(string.Format("New user created: {0} ({1}) - {2}gged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
+            };
 
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
             {
-                Logger.Trace("Received chat message from UUID " + args.OriginUuid);
+                Logger.Trace("Received chat message from UUID " + args.Message.SenderUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.OriginUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.OriginUuid))
+                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.Message.SenderUuid))
                 {
                     lock (soundQueueLock)
                     {
@@ -477,9 +505,13 @@ namespace PhinixClient
 
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
+            trading.OnTradesSynced += (sender, args) =>
+            {
+                Logger.Trace(string.Format("Synced {0} trade{1} from server", args.TradeIds.Length, args.TradeIds.Length != 1 ? "s" : ""));
+            };
 
             // Subscribe to setting handle value change events
-            acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
+            acceptingTradesHandle.ValueChanged += (handle) => { userManager.UpdateSelf(acceptingTrades: acceptingTradesHandle.Value); };
 
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
@@ -488,13 +520,20 @@ namespace PhinixClient
             authenticator.OnAuthenticationFailure += (sender, e) => { OnAuthenticationFailure?.Invoke(sender, e); };
             userManager.OnLoginSuccess += (sender, e) => { OnLoginSuccess?.Invoke(sender, e); };
             userManager.OnLoginFailure += (sender, e) => { OnLoginFailure?.Invoke(sender, e); };
+            userManager.OnUserDisplayNameChanged += (sender, e) => { OnUserDisplayNameChanged?.Invoke(sender, e); };
+            userManager.OnUserLoggedIn += (sender, e) => { OnUserLoggedIn?.Invoke(sender, e); };
+            userManager.OnUserLoggedOut += (sender, e) => { OnUserLoggedOut?.Invoke(sender, e); };
+            userManager.OnUserCreated += (sender, e) => { OnUserCreated?.Invoke(sender, e); };
+            userManager.OnUserSync += (sender, e) => { OnUserSync?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
+            chat.OnChatSync += (sender, e) => { OnChatSync?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
             trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
             trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
             trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
             trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
+            trading.OnTradesSynced += (sender, e) => { OnTradesSynced?.Invoke(sender, e); };
 
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);
@@ -509,6 +548,8 @@ namespace PhinixClient
             BlockedUsers.AddDistinct(senderUuid);
             blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
+
+            OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, true));
         }
 
         /// <summary>
@@ -520,6 +561,8 @@ namespace PhinixClient
             BlockedUsers.Remove(senderUuid);
             blockedUsers.HasUnsavedChanges = true;
             HugsLibController.SettingsManager.SaveChanges();
+
+            OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, false));
         }
 
         /// <inheritdoc />

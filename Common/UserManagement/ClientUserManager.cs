@@ -32,15 +32,32 @@ namespace UserManagement
         public event EventHandler<LoginEventArgs> OnLoginFailure;
 
         /// <summary>
-        /// Raised on a user update.
+        /// Raised when a user changes their display name.
         /// </summary>
-        public event EventHandler<UserChangedEventArgs> OnUserChanged; 
+        public event EventHandler<UserDisplayNameChangedEventArgs> OnUserDisplayNameChanged;
+        /// <summary>
+        /// Raised when a user logs in.
+        /// </summary>
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedIn;
+        /// <summary>
+        /// Raised when a user logs out.
+        /// </summary>
+        public event EventHandler<UserLoginStateChangedEventArgs> OnUserLoggedOut;
+        /// <summary>
+        /// Raised when a new user logs in.
+        /// </summary>
+        public event EventHandler<UserCreatedEventArgs> OnUserCreated;
+
+        /// <summary>
+        /// Raised when a <see cref="UserSyncPacket"/> is received and users are synchronised with the server.
+        /// </summary>
+        public event EventHandler OnUserSync;
 
         /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
-        
+
         /// <summary>
         /// UUID used by other users to identify the user.
         /// </summary>
@@ -55,7 +72,7 @@ namespace UserManagement
         /// <see cref="ClientAuthenticator"/> to retrieve session ID from.
         /// </summary>
         private ClientAuthenticator authenticator;
-        
+
         /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
@@ -69,9 +86,9 @@ namespace UserManagement
         {
             this.netClient = netClient;
             this.authenticator = authenticator;
-            
+
             this.userStore = new UserStore();
-            
+
             netClient.OnDisconnect += disconnectHandler;
             netClient.RegisterPacketHandler(MODULE_NAME, packetHandler);
         }
@@ -86,7 +103,7 @@ namespace UserManagement
         public void SendLogin(string displayName, bool useServerDisplayName = false, bool acceptingTrades = true)
         {
             if (!authenticator.Authenticated) return;
-            
+
             // Create and pack a new LoginPacket
             LoginPacket packet = new LoginPacket
             {
@@ -96,9 +113,9 @@ namespace UserManagement
                 AcceptingTrades = acceptingTrades
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
-            
+
             RaiseLogEntry(new LogEventArgs("Sending LoginPacket", LogLevel.DEBUG));
-            
+
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
         }
@@ -134,7 +151,7 @@ namespace UserManagement
         {
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
-            
+
             // Don't do anything if the parameters are all null
             if (displayName == null && acceptingTrades == null) return false;
 
@@ -151,7 +168,7 @@ namespace UserManagement
 
                 // Set the user's trade acceptance if it is present
                 if (acceptingTrades.HasValue) user.AcceptingTrades = acceptingTrades.Value;
-                
+
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
                 {
@@ -160,14 +177,14 @@ namespace UserManagement
                     User = user
                 };
                 Any packedPacket = ProtobufPacketHelper.Pack(packet);
-                
+
                 // Send it on its way
                 netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
             }
 
             return true;
         }
-        
+
         /// <summary>
         /// Handles incoming packets.
         /// </summary>
@@ -212,7 +229,7 @@ namespace UserManagement
                 // Set module states
                 LoggedIn = true;
                 Uuid = packet.Uuid;
-                
+
                 // Raise login success event
                 OnLoginSuccess?.Invoke(this, new LoginEventArgs());
             }
@@ -221,7 +238,7 @@ namespace UserManagement
                 // Set module states
                 LoggedIn = false;
                 Uuid = null;
-                
+
                 // Raise login failure event
                 OnLoginFailure?.Invoke(this, new LoginEventArgs(packet.FailureReason, packet.FailureMessage));
             }
@@ -235,22 +252,45 @@ namespace UserManagement
         private void userUpdatePacketHandler(string connectionId, UserUpdatePacket packet)
         {
             User user = packet.User;
-            
+
             lock (userStoreLock)
             {
-                if (userStore.Users.ContainsKey(user.Uuid))
-                {
-                    // Update/replace the user
-                    userStore.Users[user.Uuid] = user;
-                }
-                else
+                // Check if the user does not already exist
+                if (!userStore.Users.ContainsKey(user.Uuid))
                 {
                     // Add the user
                     userStore.Users.Add(user.Uuid, user);
+
+                    // Raise the user created event and return
+                    OnUserCreated?.Invoke(this, new UserCreatedEventArgs(user.Uuid, user.LoggedIn, user.DisplayName));
+                    return;
+                }
+
+                // Hold on to the existing copy for later
+                User existingUser = userStore.Users[user.Uuid];
+
+                // Replace the user with the new copy
+                userStore.Users[user.Uuid] = user;
+
+                // Compare the user's login states and raise an event if they differ
+                if (user.LoggedIn != existingUser.LoggedIn)
+                {
+                    if (user.LoggedIn)
+                    {
+                        OnUserLoggedIn?.Invoke(this, new UserLoginStateChangedEventArgs(user.Uuid, false, true));
+                    }
+                    else
+                    {
+                        OnUserLoggedOut?.Invoke(this, new UserLoginStateChangedEventArgs(user.Uuid, true, false));
+                    }
+                }
+
+                // Compare the user's display name and raise an event if they differ
+                if (user.DisplayName != existingUser.DisplayName)
+                {
+                    OnUserDisplayNameChanged?.Invoke(this, new UserDisplayNameChangedEventArgs(user.Uuid, existingUser.DisplayName, user.DisplayName));
                 }
             }
-
-            OnUserChanged?.Invoke(this, new UserChangedEventArgs(user.Uuid, user.LoggedIn, user.DisplayName));
         }
 
         /// <summary>
@@ -276,8 +316,10 @@ namespace UserManagement
                     }
                 }
             }
+
+            OnUserSync?.Invoke(this, EventArgs.Empty);
         }
-        
+
         /// <summary>
         /// Handles the OnDisconnect event from <see cref="NetClient"/> and invalidates any connection-specific fields.
         /// </summary>

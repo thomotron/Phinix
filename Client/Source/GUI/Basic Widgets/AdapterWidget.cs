@@ -28,11 +28,17 @@ namespace PhinixClient.GUI
         /// </summary>
         private Func<float, float> getHeightCallback;
 
-        public AdapterWidget(Action<Rect> drawCallback, Func<float, float> getWidthCallback = null, Func<float, float> getHeightCallback = null)
+        /// <summary>
+        /// Callback invoked when the adapter is updated.
+        /// </summary>
+        private Action updateCallback;
+
+        public AdapterWidget(Action<Rect> drawCallback, Func<float, float> getWidthCallback = null, Func<float, float> getHeightCallback = null, Action updateCallback = null)
         {
             this.drawCallback = drawCallback;
             this.getWidthCallback = getWidthCallback;
             this.getHeightCallback = getHeightCallback;
+            this.updateCallback = updateCallback;
 
             IsFluidWidth = getWidthCallback == null;
             IsFluidHeight = getHeightCallback == null;
@@ -42,6 +48,12 @@ namespace PhinixClient.GUI
         public override void Draw(Rect inRect)
         {
             drawCallback(inRect);
+        }
+
+        /// <inheritdoc />
+        public override void Update()
+        {
+            updateCallback?.Invoke();
         }
 
         /// <inheritdoc />

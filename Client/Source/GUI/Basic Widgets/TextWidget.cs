@@ -16,7 +16,7 @@ namespace PhinixClient.GUI
         /// <summary>
         /// The label's text content.
         /// </summary>
-        private string text;
+        public string Text;
 
         /// <summary>
         /// Font of the text.
@@ -35,7 +35,7 @@ namespace PhinixClient.GUI
 
         public TextWidget(string text, GameFont font = GameFont.Small, TextAnchor anchor = TextAnchor.UpperLeft, bool wrap = true)
         {
-            this.text = text;
+            this.Text = text;
             this.font = font;
             this.anchor = anchor;
             this.wrap = wrap;
@@ -45,7 +45,7 @@ namespace PhinixClient.GUI
         public override float CalcHeight(float width)
         {
             SetStyle();
-            float height = Text.CalcHeight(text, width);
+            float height = Verse.Text.CalcHeight(Text, width);
             ClearStyle();
 
             return height;
@@ -58,7 +58,7 @@ namespace PhinixClient.GUI
             if (wrap) return FLUID;
 
             SetStyle();
-            float width = Text.CurFontStyle.CalcSize(new GUIContent(text)).x;
+            float width = Verse.Text.CurFontStyle.CalcSize(new GUIContent(Text)).x;
             ClearStyle();
 
             return width;
@@ -68,7 +68,7 @@ namespace PhinixClient.GUI
         public override void Draw(Rect inRect)
         {
             SetStyle();
-            Widgets.Label(inRect, text);
+            Widgets.Label(inRect, Text);
             ClearStyle();
         }
 
@@ -77,9 +77,9 @@ namespace PhinixClient.GUI
         /// </summary>
         private void SetStyle()
         {
-            Text.Anchor = this.anchor;
-            Text.Font = this.font;
-            Text.WordWrap = this.wrap;
+            Verse.Text.Anchor = this.anchor;
+            Verse.Text.Font = this.font;
+            Verse.Text.WordWrap = this.wrap;
         }
 
         /// <summary>
@@ -87,9 +87,9 @@ namespace PhinixClient.GUI
         /// </summary>
         private void ClearStyle()
         {
-            Text.Anchor = TextAnchor.UpperLeft;
-            Text.Font = GameFont.Small;
-            Text.WordWrap = true;
+            Verse.Text.Anchor = TextAnchor.UpperLeft;
+            Verse.Text.Font = GameFont.Small;
+            Verse.Text.WordWrap = true;
         }
     }
 }

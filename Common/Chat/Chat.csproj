@@ -42,6 +42,7 @@
     <Compile Include="ChatMessageEventArgs.cs" />
     <Compile Include="ChatMessageStatus.cs" />
     <Compile Include="ClientChat.cs" />
+    <Compile Include="ClientChatMessageEventArgs.cs" />
     <Compile Include="Packets\compiled\ChatHistoryPacket.cs" />
     <Compile Include="ClientChatMessage.cs" />
     <Compile Include="Packets\compiled\ChatMessagePacket.cs" />

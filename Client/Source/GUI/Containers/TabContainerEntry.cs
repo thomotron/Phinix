@@ -2,7 +2,7 @@
 
 namespace PhinixClient.GUI
 {
-    internal struct TabEntry
+    internal struct TabContainerEntry
     {
         public TabRecord tab;
         public Displayable displayable;

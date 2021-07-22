@@ -267,3 +267,6 @@ Client/1.*/Assemblies/*.dll
 
 # Git rubbish
 *.orig
+
+# Phinix credentials
+**/PhinixCredentials.bin

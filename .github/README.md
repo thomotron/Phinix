@@ -9,6 +9,9 @@
   <a href="https://travis-ci.org/PhinixTeam/Phinix">
     <img src="https://img.shields.io/travis/PhinixTeam/Phinix.svg?style=flat-square" alt="Travis CI">
   </a>
+  <a href="https://ci.cocytus.services/repos/64/">
+    <img src="https://ci.cocytus.services/badge/ca953ca7?branch=master" alt="Abstruse">
+  </a>
   <a href="https://hub.docker.com/r/phinixteam/phinix">
     <img alt="Docker Build Status" src="https://img.shields.io/docker/cloud/build/phinixteam/phinix.svg?label=docker&style=flat-square">
   </a>

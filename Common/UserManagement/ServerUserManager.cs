@@ -106,11 +106,23 @@ namespace UserManagement
                 // Make sure this connection has a UUID associated with it
                 if (!connectedUsers.ContainsKey(e.ConnectionId)) return;
 
-                // Try to log them out
-                TryLogOut(connectedUsers[e.ConnectionId]);
+                // Get the UUID associated with this connection
+                string uuid = connectedUsers[e.ConnectionId];
 
-                // Drop them from the connected user dictionary
-                connectedUsers.Remove(e.ConnectionId);
+                // Check if there are multiple connections for this user
+                if (connectedUsers.Values.Count(v => v == uuid) > 1)
+                {
+                    // Only drop this connection from the association dict
+                    connectedUsers.Remove(e.ConnectionId);
+                }
+                else
+                {
+                    // Try to log them out
+                    TryLogOut(connectedUsers[e.ConnectionId]);
+
+                    // Drop them from the connected user dictionary
+                    connectedUsers.Remove(e.ConnectionId);
+                }
             }
         }
 

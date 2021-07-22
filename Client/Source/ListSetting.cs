@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using HugsLib.Settings;
-using HugsLib.Source.Settings;
 using Utils;
 
 namespace PhinixClient
@@ -14,7 +13,7 @@ namespace PhinixClient
     public class ListSetting<T> : SettingHandleConvertible
     {
         public override bool ShouldBeSaved => true;
-        
+
         /// <summary>
         /// Inner wrapped list.
         /// </summary>
@@ -53,7 +52,7 @@ namespace PhinixClient
                     Client.Instance.Log(new LogEventArgs("Failed to deserialise ListSetting: " + e.Message, LogLevel.ERROR));
                 }
             }
-            
+
             // Make sure it's a list and if so, update it
             if (result is List<T> loadedList)
             {

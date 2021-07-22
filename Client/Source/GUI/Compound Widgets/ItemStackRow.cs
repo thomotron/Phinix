@@ -79,15 +79,13 @@ namespace PhinixClient
             row.Add(
                 new TextWidget(
                     text: itemStack.Things.First().LabelCapNoCount,
-                    anchor: TextAnchor.MiddleLeft
+                    anchor: TextAnchor.MiddleLeft,
+                    wrap: true
                 )
             );
 
             if (interactive)
             {
-                // Add some padding to right-align the buttons
-                row.Add(new SpacerWidget());
-
                 // -100 button
                 row.Add(
                     new Container(
@@ -143,7 +141,7 @@ namespace PhinixClient
                 row.Add(
                     new Container(
                         new TextFieldWidget(
-                            text: itemStack.Selected.ToString(),
+                            initialText: itemStack.Selected.ToString(),
                             onChange: (countText) =>
                             {
                                 if (int.TryParse(countText, out int result))
