@@ -511,7 +511,7 @@ namespace PhinixClient
             };
 
             // Subscribe to setting handle value change events
-            acceptingTradesHandle.OnValueChanged += (newValue) => { userManager.UpdateSelf(acceptingTrades: newValue); };
+            acceptingTradesHandle.ValueChanged += (handle) => { userManager.UpdateSelf(acceptingTrades: acceptingTradesHandle.Value); };
 
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };

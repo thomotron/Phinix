@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using HugsLib.Settings;
-using HugsLib.Source.Settings;
 using Utils;
 
 namespace PhinixClient

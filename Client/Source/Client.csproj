@@ -37,15 +37,15 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=2.0.4.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\.nuget\Lib.Harmony.2.0.4\lib\net472\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\.nuget\Lib.Harmony.2.1.0\lib\net472\0Harmony.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\GameDlls\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.8.0.0\lib\net472\HugsLib.dll</HintPath>
+      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.9.0.0\lib\net472\HugsLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
