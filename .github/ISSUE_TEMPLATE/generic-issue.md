@@ -1,7 +1,6 @@
 ---
 name: Generic Issue
-about: A generic issue template. Has a description, steps for reproduction, and further
-  detail.
+about: Report a problem with Phinix
 title: ''
 labels: ''
 assignees: ''
@@ -9,7 +8,7 @@ assignees: ''
 ---
 
 ### Description
-Describe why you're opening the issue.
+Describe the problem. What is/isn't happening? Should it be happening differently or not at all? When does/doesn't it happen?
 
 ### Steps to reproduce
 1. Install Gentoo
