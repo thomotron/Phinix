@@ -25,6 +25,11 @@ namespace PhinixServer
         private string logPath;
 
         /// <summary>
+        /// Lock object to prevent multiple threads from writing to the log path at the same time.
+        /// </summary>
+        private object writeLock = new object();
+
+        /// <summary>
         /// Creates a new <see cref="Logger"/> instance.
         /// </summary>
         /// <param name="logPath">Log file path including extension</param>
@@ -61,7 +66,13 @@ namespace PhinixServer
             if (verbosity >= DisplayVerbosity) Console.Write(formattedEntry);
 
             // Only write to disk if the verbosity meets the minimum
-            if (verbosity >= LogVerbosity) File.AppendAllText(logPath, formattedEntry);
+            if (verbosity >= LogVerbosity)
+            {
+                lock (writeLock)
+                {
+                    File.AppendAllText(logPath, formattedEntry);
+                }
+            }
         }
     }
 
