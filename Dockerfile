@@ -1,5 +1,5 @@
 # Build on top of Mono
-FROM mono:latest
+FROM mono:latest AS build
 
 # Set our working directory to build from source
 WORKDIR /src/
@@ -15,13 +15,14 @@ COPY Dependencies ./Dependencies/
 RUN nuget restore Phinix.sln && \
     msbuild Phinix.sln /t:Build /p:Configuration=TravisCI
 
-# Move out of the src directory and make a spot for the server to sit
+# Start fresh using a lighter Alpine image
+FROM frolvlad/alpine-mono:latest
+
+# Make a spot for the server to sit
 WORKDIR /server/
 
-# Copy the build result into the server dir and clean up
-RUN cp /src/Server/bin/Debug/*.dll ./ && \
-    cp /src/Server/bin/Debug/PhinixServer.exe ./ && \
-    rm -rf /src/
+# Copy the build result into the server dir
+COPY --from=build /src/Server/bin/Debug/*.dll /src/Server/bin/Debug/PhinixServer.exe ./
 
 # Expose the default port
 EXPOSE 16200
