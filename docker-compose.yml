@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+    phinix:
+        image: 'thomotron/phinix:latest'
+        container_name: phinix
+        restart: always
+        ports:
+            - '16200:16200/udp'
+        volumes:
+            - phinix_data:/server
+
+volumes:
+  phinix_data:
+    driver: local
