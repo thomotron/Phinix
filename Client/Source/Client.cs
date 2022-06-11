@@ -42,7 +42,9 @@ namespace PhinixClient
         public bool LoggedIn => userManager.LoggedIn;
         public string Uuid => userManager.Uuid;
         public bool TryGetDisplayName(string uuid, out string displayName) => userManager.TryGetDisplayName(uuid, out displayName);
+        public bool TryGetUser(string uuid, out ImmutableUser user) => userManager.TryGetUser(uuid, out user);
         public string[] GetUserUuids(bool loggedIn = false) => userManager.GetUuids(loggedIn);
+        public ImmutableUser[] GetUsers(bool loggedIn = false) => userManager.GetUsers(loggedIn);
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
         public event EventHandler<LoginEventArgs> OnLoginFailure;
         public event EventHandler<UserDisplayNameChangedEventArgs> OnUserDisplayNameChanged;
