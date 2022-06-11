@@ -3,54 +3,77 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using UserManagement;
 using Utils;
 using Verse;
 
 namespace PhinixClient.GUI
 {
-    public class UserList : Displayable
+    public class UserList
     {
         private const float SCROLLBAR_WIDTH = 16f;
-        private const float BLOCKED_SPACER_MARGIN_TOP = 10f;
-        private const float BLOCKED_SPACER_MARGIN_BOTTOM = 3f;
+
+        private readonly float BLOCKED_SPACER_HEIGHT = Text.CalcHeight("", 0) + BLOCKED_SPACER_PADDING_TOP + BLOCKED_SPACER_PADDING_BOTTOM;
+        private const float BLOCKED_SPACER_PADDING_TOP = 7f;
+        private const float BLOCKED_SPACER_PADDING_BOTTOM = 3f;
+
+        private readonly float USER_BUTTON_HEIGHT = Text.CalcHeight("", 0) + USER_BUTTON_PADDING_VERTICAL * 2;
+        private const float USER_BUTTON_PADDING_HORIZONTAL = 3f;
+        private const float USER_BUTTON_PADDING_VERTICAL = 5f;
 
         /// <summary>
-        /// Search text callback used to filter the list.
+        /// Background colour for blocked users.
         /// </summary>
-        private Func<string> searchTextCallback;
+        private readonly Color blockedBackgroundColour = new Color(0f, 0f, 0f, 0.35f);
+        /// <summary>
+        /// Text colour for blocked users.
+        /// </summary>
+        private readonly Color blockedNameColour = new Color(0.6f, 0.6f, 0.6f);
 
         /// <summary>
-        /// Container that holds a collection of <see cref="UserWidget"/> from <see cref="filteredUnblockedUserWidgets"/>
+        /// List of currently-online users.
         /// </summary>
-        private VerticalFlexContainer userListFlexContainer = new VerticalFlexContainer(0);
+        private readonly List<ImmutableUser> onlineUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// List of blocked users.
+        /// </summary>
+        private readonly List<ImmutableUser> blockedUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// Subset of <see cref="onlineUsers"/> filtered by <see cref="searchText"/> who are also not in
+        /// <see cref="blockedUsers"/>.
+        /// </summary>
+        /// <remarks>
+        /// This list is primarily used by the UI thread. It is populated from <see cref="onlineUsers"/> by the UI
+        /// thread when <see cref="Draw"/> is called and <see cref="onlineUsersChanged"/> is true. It should not be
+        /// updated directly by any other thread.
+        /// </remarks>
+        private readonly List<ImmutableUser> filteredOnlineUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// Subset of <see cref="blockedUsers"/> filtered by <see cref="searchText"/>.
+        /// </summary>
+        /// <remarks>
+        /// This list is primarily used by the UI thread. It is populated from <see cref="blockedUsers"/> by the UI
+        /// thread when <see cref="Draw"/> is called and <see cref="blockedUsersChanged"/> is true. It should not be
+        /// updated directly by any other thread.
+        /// </remarks>
+        private readonly List<ImmutableUser> filteredBlockedUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// Whether <see cref="filteredOnlineUsers"/> should be repopulated from <see cref="onlineUsers"/>.
+        /// </summary>
+        private bool onlineUsersChanged = false;
+        /// <summary>
+        /// Whether <see cref="filteredBlockedUsers"/> should be repopulated from <see cref="blockedUsers"/>.
+        /// </summary>
+        private bool blockedUsersChanged = false;
+        /// <summary>
+        /// Lock object protecting <see cref="filteredOnlineUsers"/> and <see cref="filteredBlockedUsers"/>.
+        /// </summary>
+        private readonly object userListsLock = new object();
 
         /// <summary>
-        /// List containing each online user.
+        /// Search text to filter <see cref="filteredOnlineUsers"/> and <see cref="filteredBlockedUsers"/> by.
         /// </summary>
-        private List<UserWidget> userWidgets = new List<UserWidget>();
-        /// <summary>
-        /// Lock object to prevent multi-threaded access problems with <see cref="userWidgets"/>.
-        /// </summary>
-        private object userWidgetsLock = new object();
-
-        /// <summary>
-        /// A subset of <see cref="userWidgets"/> filtered by <see cref="searchTextCallback"/> that are not blocked.
-        /// </summary>
-        private List<UserWidget> filteredUnblockedUserWidgets = new List<UserWidget>();
-        /// <summary>
-        /// A subset of <see cref="userWidgets"/> filtered by <see cref="searchTextCallback"/> that are blocked.
-        /// </summary>
-        private List<UserWidget> filteredBlockedUserWidgets = new List<UserWidget>();
-        /// <summary>
-        /// Lock object to prevent multi-threaded access problems with <see cref="filteredUnblockedUserWidgets"/>.
-        /// </summary>
-        private object filteredUserWidgetsLock = new object();
-
-        /// <summary>
-        /// Whether <see cref="userListFlexContainer"/> needs to be refreshed to accommodate changes to
-        /// <see cref="filteredUnblockedUserWidgets"/>.
-        /// </summary>
-        private bool filterChanged;
+        private string searchText = "";
 
         /// <summary>
         /// List scroll position.
@@ -58,141 +81,231 @@ namespace PhinixClient.GUI
         Vector2 scrollPos;
 
         /// <summary>
-        /// Creates a new <see cref="UserList"/> instance with the given search text callback.
+        /// Creates a new <see cref="UserList"/> instance.
         /// </summary>
-        /// <param name="searchTextCallback">Search text callback</param>
-        public UserList(Func<string> searchTextCallback)
+        public UserList()
         {
-            // Refuse null callbacks
-            if (searchTextCallback == null)
-            {
-                throw new ArgumentNullException(nameof(searchTextCallback), "Search text callback cannot be null.");
-            }
-
-            this.searchTextCallback = searchTextCallback;
-
-            // Refresh and filter the user list to populate before the first draw
-            refreshUserWidgetsList();
-
             // Bind to events
-            // TODO: Handle user events individually rather than completely replacing the list
-            //       This means settling on an ordering standard for users in the sidebar.
-            Client.Instance.OnUserSync += (s, e) => refreshUserWidgetsList();
-            Client.Instance.OnUserCreated += (s, e) => refreshUserWidgetsList();
-            Client.Instance.OnUserLoggedIn += (s, e) => refreshUserWidgetsList();
-            Client.Instance.OnUserLoggedOut += (s, e) => refreshUserWidgetsList();
-            Client.Instance.OnUserDisplayNameChanged += (s, e) => refreshUserWidgetsList();
-            Client.Instance.OnBlockedUsersChanged += (s, e) => refreshUserWidgetsList();
+            Client.Instance.OnUserSync += (s, e) => refreshUserLists();
+            Client.Instance.OnUserCreated += (s, e) => refreshOnlineUserList();
+            Client.Instance.OnUserLoggedIn += (s, e) => refreshOnlineUserList();
+            Client.Instance.OnUserLoggedOut += (s, e) => refreshOnlineUserList();
+            Client.Instance.OnUserDisplayNameChanged += (s, e) => refreshOnlineUserList();
+            Client.Instance.OnBlockedUsersChanged += (s, e) => refreshUserLists();
+
+            // Populate the user lists before the first draw
+            refreshUserLists();
         }
 
-        /// <inheritdoc />
-        public override void Draw(Rect inRect)
+        /// <summary>
+        /// Draws the user list within the given container.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        public void Draw(Rect inRect)
         {
-            // Check if the filtered list has changed
-            if (filterChanged)
+            // Update the online users list if it's been changed
+            if (onlineUsersChanged)
             {
-                // Try lock the filtered widget list, otherwise wait until the next cycle to refresh content
-                if (Monitor.TryEnter(filteredUserWidgetsLock))
+                // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
+                if (Monitor.TryEnter(userListsLock))
                 {
-                    // Replace the list content with the new list of filtered widgets
-                    userListFlexContainer.Contents.Clear();
-                    userListFlexContainer.Contents.AddRange(filteredUnblockedUserWidgets);
-                    if (filteredBlockedUserWidgets.Any())
-                    {
-                        userListFlexContainer.Contents.Add(new SpacerWidget(height: BLOCKED_SPACER_MARGIN_TOP));
-                        userListFlexContainer.Contents.Add(new TextWidget("Phinix_chat_blockedUsers".Translate(), anchor: TextAnchor.LowerCenter));
-                        userListFlexContainer.Contents.Add(new SpacerWidget(height: BLOCKED_SPACER_MARGIN_BOTTOM));
-                        userListFlexContainer.Contents.AddRange(filteredBlockedUserWidgets);
-                    }
+                    // Repopulate the list content with users matching the search text
+                    filteredOnlineUsers.Clear();
+                    filteredOnlineUsers.AddRange(onlineUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
 
-                    // Unset the filter changed flag
-                    filterChanged = false;
+                    // Unset the changed flag and release the lock
+                    onlineUsersChanged = false;
+                    Monitor.Exit(userListsLock);
+                }
+            }
 
-                    Monitor.Exit(filteredUserWidgetsLock);
+            // Update the blocked users list if it's been changed
+            if (blockedUsersChanged)
+            {
+                // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
+                if (Monitor.TryEnter(userListsLock))
+                {
+                    // Repopulate the list content with users matching the search text
+                    filteredBlockedUsers.Clear();
+                    filteredBlockedUsers.AddRange(blockedUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
+
+                    // Unset the changed flag and release the lock
+                    blockedUsersChanged = false;
+                    Monitor.Exit(userListsLock);
                 }
             }
 
             // Set up the scrollable container
-            Rect innerContainer = new Rect(
+            Rect contentRect = new Rect(
                 x: inRect.xMin,
                 y: inRect.yMin,
-                width: inRect.width - SCROLLBAR_WIDTH,
-                height: userListFlexContainer.CalcHeight(inRect.width - SCROLLBAR_WIDTH)
+                width: inRect.width,
+                height: filteredBlockedUsers.Any()
+                    ? BLOCKED_SPACER_HEIGHT + ((filteredOnlineUsers.Count + filteredBlockedUsers.Count) * USER_BUTTON_HEIGHT)
+                    : filteredOnlineUsers.Count * USER_BUTTON_HEIGHT
             );
+            if (contentRect.height > inRect.height) contentRect.width = inRect.width - SCROLLBAR_WIDTH;
 
             // Start scrolling
-            Widgets.BeginScrollView(inRect, ref scrollPos, innerContainer);
+            Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
 
-            // Draw the flex container
-            userListFlexContainer.Draw(innerContainer);
+            // Keep track of how far down the list we are
+            float currentY = contentRect.yMin;
+
+            // Normal users
+            foreach (ImmutableUser user in filteredOnlineUsers)
+            {
+                drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, USER_BUTTON_HEIGHT), user, false);
+                currentY += USER_BUTTON_HEIGHT;
+            }
+
+            // Blocked users
+            if (filteredBlockedUsers.Any())
+            {
+                // Draw the blocked users spacer
+                Rect paddedRect = new Rect(
+                    x: contentRect.xMin,
+                    y: currentY + BLOCKED_SPACER_PADDING_TOP,
+                    width: contentRect.width,
+                    height: BLOCKED_SPACER_HEIGHT - BLOCKED_SPACER_PADDING_TOP - BLOCKED_SPACER_PADDING_BOTTOM
+                );
+                TextAnchor oldTextAnchor = Text.Anchor;
+                Text.Anchor = TextAnchor.MiddleCenter;
+                Widgets.Label(paddedRect, "Phinix_chat_blockedUsers".Translate());
+                Text.Anchor = oldTextAnchor;
+                currentY += BLOCKED_SPACER_HEIGHT;
+
+                // ...then the blocked users
+                foreach (ImmutableUser user in filteredBlockedUsers)
+                {
+                    drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, USER_BUTTON_HEIGHT), user, true);
+                    currentY += USER_BUTTON_HEIGHT;
+                }
+            }
 
             // Stop scrolling
             Widgets.EndScrollView();
         }
 
-        /// <inheritdoc />
-        public override void Update()
+        /// <summary>
+        /// Updates the user list.
+        /// </summary>
+        public void Filter(string searchText)
         {
-            // Re-filter the user widgets
-            refreshFilteredUserWidgetsList();
+            // Apply search text and flag filtered lists to be updated next frame
+            this.searchText = searchText;
+            onlineUsersChanged = true;
+            blockedUsersChanged = true;
         }
 
         /// <summary>
-        /// Generates <see cref="UserWidget"/> widgets for each online user and
-        /// places them in <see cref="userWidgets"/>.
+        /// Repopulates both <see cref="onlineUsers"/> and <see cref="blockedUsers"/>.
         /// </summary>
-        /// <remarks>
-        /// This method calls <see cref="refreshFilteredUserWidgetsList"/> to rebuild
-        /// the filtered widgets list based on the new content.
-        /// </remarks>
-        private void refreshUserWidgetsList()
+        private void refreshUserLists()
         {
-            lock (userWidgetsLock)
-            {
-                userWidgets.Clear();
-
-                // Get each online and blocked user's UUID
-                foreach (string uuid in Client.Instance.GetUserUuids(true).Union(Client.Instance.BlockedUsers).Distinct())
-                {
-                    // Try get the user's display name
-                    if (!Client.Instance.TryGetDisplayName(uuid, out string displayName)) displayName = "???";
-
-                    // Try get the user's blocked state
-                    bool isBlocked = Client.Instance.BlockedUsers.Contains(uuid);
-
-                    // Create a new user widget and add it to the list
-                    userWidgets.Add(new UserWidget(uuid, displayName, isBlocked));
-                }
-            }
-
-            // Refresh the filtered widgets since the list just got purged
-            refreshFilteredUserWidgetsList();
+            refreshBlockedUserList();
+            refreshOnlineUserList();
         }
 
         /// <summary>
-        /// Refreshes <see cref="filteredUnblockedUserWidgets"/> and <see cref="filteredBlockedUserWidgets"/> with
-        /// <see cref="UserWidget"/> that have display names containing the search text.
+        /// Repopulates <see cref="onlineUsers"/> with each online user.
         /// </summary>
-        private void refreshFilteredUserWidgetsList()
+        private void refreshOnlineUserList()
         {
-            // Get the search text
-            string searchText = searchTextCallback.Invoke();
-
-            lock (filteredUserWidgetsLock)
+            lock (userListsLock)
             {
-                filteredUnblockedUserWidgets.Clear();
-                filteredBlockedUserWidgets.Clear();
+                // Repopulate the online list
+                onlineUsers.Clear();
+                onlineUsers.AddRange(Client.Instance.GetUsers(true).Where(u => !blockedUsers.Contains(u)));
+            }
 
-                lock (userWidgetsLock)
+            // Flag the filtered list to be repopulated
+            onlineUsersChanged = true;
+        }
+
+        /// <summary>
+        /// Repopulates <see cref="blockedUsers"/> with each blocked user.
+        /// </summary>
+        private void refreshBlockedUserList()
+        {
+            lock (userListsLock)
+            {
+                // Repopulate the online list
+                blockedUsers.Clear();
+                foreach (string uuid in Client.Instance.BlockedUsers)
                 {
-                    // Repopulate the lists with user widgets that have a display name containing cachedSearchText
-                    filteredUnblockedUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower()) && !w.Blocked));
-                    filteredBlockedUserWidgets.AddRange(userWidgets.Where(w => w.DisplayName.ToLower().Contains(searchText.ToLower()) && w.Blocked));
+                    if (Client.Instance.TryGetUser(uuid, out ImmutableUser user))
+                    {
+                        blockedUsers.Add(user);
+                    }
                 }
             }
 
-            // Set the filter changed flag to tell the GUI thread that it needs to rebuild the list
-            filterChanged = true;
+            // Flag the filtered list to be repopulated
+            blockedUsersChanged = true;
+        }
+
+        /// <summary>
+        /// Draws a user in the given container.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        /// <param name="user">User to draw</param>
+        /// <param name="blocked">Whether the user is blocked</param>
+        private void drawUser(Rect inRect, ImmutableUser user, bool blocked = false)
+        {
+            string formattedDisplayName = Client.Instance.ShowNameFormatting ? user.DisplayName : TextHelper.StripRichText(user.DisplayName);
+
+            if (blocked)
+            {
+                // Draw a highlighted background
+                Widgets.DrawRectFast(inRect, blockedBackgroundColour);
+
+                // Strip display name formatting and grey it out
+                formattedDisplayName = TextHelper.StripRichText(formattedDisplayName).Colorize(blockedNameColour);
+            }
+
+            // Get a padded area to draw the text in
+            Rect paddedRect = inRect.ContractedBy(USER_BUTTON_PADDING_HORIZONTAL, USER_BUTTON_PADDING_VERTICAL);
+
+            // Draw the text
+            Widgets.Label(paddedRect, Mouse.IsOver(inRect) ? formattedDisplayName.Colorize(Widgets.MouseoverOptionColor) : formattedDisplayName);
+
+            // Draw the button and optionally the context menu if clicked
+            if (Widgets.ButtonInvisible(inRect, false))
+            {
+                drawContextMenu(user);
+            }
+        }
+
+        /// <summary>
+        /// Draws a context menu with user-specific actions.
+        /// </summary>
+        private void drawContextMenu(ImmutableUser user)
+        {
+            // Do nothing if this is our UUID
+            if (user.Uuid == Client.Instance.Uuid) return;
+
+            // Create and populate a list of context menu items
+            List<FloatMenuOption> items = new List<FloatMenuOption>();
+            items.Add(
+                new FloatMenuOption(
+                    label: "Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(user.DisplayName)),
+                    action: () => Client.Instance.CreateTrade(user.Uuid)
+                )
+            );
+            items.Add(
+                new FloatMenuOption(
+                    label: (Client.Instance.BlockedUsers.Contains(user.Uuid) ? "Phinix_chat_contextMenu_unblockUser" : "Phinix_chat_contextMenu_blockUser").Translate(),
+                    action: () =>
+                    {
+                        if (Client.Instance.BlockedUsers.Contains(user.Uuid)) Client.Instance.UnBlockUser(user.Uuid);
+                        else Client.Instance.BlockUser(user.Uuid);
+                    }
+                )
+            );
+
+            // Draw the context menu
+            Find.WindowStack.Add(new FloatMenu(items));
         }
     }
 }
