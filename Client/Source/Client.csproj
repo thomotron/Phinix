@@ -72,7 +72,6 @@
   <ItemGroup>
     <Compile Include="BlockedUsersChangedEventArgs.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="GUI\Basic Widgets\AdapterWidget.cs" />
     <Compile Include="GUI\Basic Widgets\BlankWidget.cs" />
     <Compile Include="GUI\Basic Widgets\ButtonWidget.cs" />
     <Compile Include="GUI\Basic Widgets\CheckboxLabeledWidget.cs" />
@@ -89,12 +88,10 @@
     <Compile Include="GUI\Compound Widgets\TradeList.cs" />
     <Compile Include="GUI\Compound Widgets\TradeRow.cs" />
     <Compile Include="GUI\Compound Widgets\UserList.cs" />
-    <Compile Include="GUI\Compound Widgets\UserWidget.cs" />
     <Compile Include="GUI\Containers\ConditionalContainer.cs" />
     <Compile Include="GUI\Containers\Container.cs" />
     <Compile Include="GUI\Containers\HeightContainer.cs" />
     <Compile Include="GUI\Containers\HorizontalFlexContainer.cs" />
-    <Compile Include="GUI\Containers\HorizontalPaddedContainer.cs" />
     <Compile Include="GUI\Containers\HorizontalScrollContainer.cs" />
     <Compile Include="GUI\Containers\MinimumContainer.cs" />
     <Compile Include="GUI\Containers\VerticalScrollContainer.cs" />
@@ -102,7 +99,6 @@
     <Compile Include="GUI\Containers\TabsContainer.cs" />
     <Compile Include="GUI\Containers\VerticalFlexContainer.cs" />
     <Compile Include="GUI\Containers\VerticalPaddedContainer.cs" />
-    <Compile Include="GUI\Containers\WidthContainer.cs" />
     <Compile Include="GUI\Displayable.cs" />
     <Compile Include="GUI\Windows and panels\CredentialsWindow.cs" />
     <Compile Include="GUI\Windows and panels\ServerTab.cs" />
