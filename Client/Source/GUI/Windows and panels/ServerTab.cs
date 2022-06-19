@@ -32,9 +32,14 @@ namespace PhinixClient
         private static string message = "";
         private static string userSearch = "";
 
-        private static Vector2 activeTradesScroll = new Vector2(0, 0);
-
+        private ChatMessageList chatMessageList = new ChatMessageList();
         private UserList userList = new UserList();
+
+        public ServerTab()
+        {
+            // Pre-fill the chat with the current buffer
+            chatMessageList.ReplaceWithBuffer();
+        }
 
         ///<inheritdoc/>
         /// <summary>
@@ -109,9 +114,7 @@ namespace PhinixClient
             // Chat message area
             if (Instance.Online)
             {
-                // TODO: Online panel
-                Widgets.DrawMenuSection(chatRect);
-                Widgets.NoneLabelCenteredVertically(chatRect, "Online! :)");
+                chatMessageList.Draw(chatRect);
             }
             else
             {

@@ -57,13 +57,11 @@ namespace PhinixClient
 
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
-        public bool TryGetMessage(string messageId, out ClientChatMessage message) => chat.TryGetMessage(messageId, out message);
         public void MarkAsRead() => chat.MarkAsRead();
-        public ClientChatMessage[] GetChatMessages(bool markAsRead = true) => chat.GetMessages(markAsRead);
-        public ClientChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => chat.GetUnreadMessages(markAsRead);
+        public UIChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => GetChatMessages(markAsRead, true);
         public int UnreadMessages => chat.UnreadMessages;
         public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
-        public event EventHandler<ClientChatMessageEventArgs> OnChatMessageReceived;
+        public event EventHandler<UIChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler OnChatSync;
 
         private ClientTrading trading;
@@ -527,7 +525,7 @@ namespace PhinixClient
             userManager.OnUserLoggedOut += (sender, e) => { OnUserLoggedOut?.Invoke(sender, e); };
             userManager.OnUserCreated += (sender, e) => { OnUserCreated?.Invoke(sender, e); };
             userManager.OnUserSync += (sender, e) => { OnUserSync?.Invoke(sender, e); };
-            chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, e); };
+            chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, new UIChatMessageEventArgs(new UIChatMessage(userManager, e.Message))); };
             chat.OnChatSync += (sender, e) => { OnChatSync?.Invoke(sender, e); };
             trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
             trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
@@ -619,6 +617,38 @@ namespace PhinixClient
         {
             // Try to update within the user manager
             userManager.UpdateSelf(displayName);
+        }
+
+        /// <summary>
+        /// Gets the current chat message buffer, optionally marking them as read.
+        /// </summary>
+        /// <param name="markAsRead">Whether to mark the messages as read</param>
+        /// <param name="unreadOnly">Whether to only get unread messages</param>
+        /// <returns>List of chat messages</returns>
+        public UIChatMessage[] GetChatMessages(bool markAsRead = true, bool unreadOnly = false)
+        {
+            ClientChatMessage[] chatMessages = unreadOnly ? chat.GetUnreadMessages(markAsRead) : chat.GetMessages(markAsRead);
+
+            return chatMessages.Select(m => new UIChatMessage(userManager, m)).ToArray();
+        }
+
+        /// <summary>
+        /// Tries to get the chat message with the given ID.
+        /// </summary>
+        /// <param name="messageId">ID of the chat message to retrieve</param>
+        /// <param name="message">Chat message output</param>
+        /// <returns>Whether the chat message was retrieved successfully</returns>
+        public bool TryGetMessage(string messageId, out UIChatMessage message)
+        {
+            message = null;
+
+            // Try pull out the message
+            if (!chat.TryGetMessage(messageId, out ClientChatMessage clientChatMessage)) return false;
+
+            // Wrap it with the sender's user details
+            message = new UIChatMessage(userManager, clientChatMessage);
+
+            return true;
         }
 
         /// <summary>

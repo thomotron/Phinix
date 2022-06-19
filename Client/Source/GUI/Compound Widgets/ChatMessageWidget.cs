@@ -161,7 +161,7 @@ namespace PhinixClient.GUI
             // Update the message status if we've been given a message ID
             if (MessageId != null)
             {
-                if (!Client.Instance.TryGetMessage(MessageId, out ClientChatMessage message))
+                if (!Client.Instance.TryGetMessage(MessageId, out UIChatMessage message))
                 {
                     throw new ArgumentException("Chat message with the given message ID does not exist.");
                 }

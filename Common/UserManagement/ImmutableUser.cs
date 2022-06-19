@@ -16,7 +16,7 @@ namespace UserManagement
         /// <inheritdoc cref="User.AcceptingTrades"/>
         public bool AcceptingTrades { get; }
 
-        public ImmutableUser(string uuid, string displayName, bool loggedIn, bool acceptingTrades)
+        public ImmutableUser(string uuid, string displayName = "???", bool loggedIn = false, bool acceptingTrades = false)
         {
             this.Uuid = uuid;
             this.DisplayName = displayName;

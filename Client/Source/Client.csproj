@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockedUsersChangedEventArgs.cs" />
+    <Compile Include="UIChatMessage.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="GUI\Basic Widgets\BlankWidget.cs" />
     <Compile Include="GUI\Basic Widgets\ButtonWidget.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="StackedThings.cs" />
     <Compile Include="ListSetting.cs" />
     <Compile Include="TradingThingConverter.cs" />
+    <Compile Include="UIChatMessageEventArgs.cs" />
     <Compile Include="UnknownItem.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
