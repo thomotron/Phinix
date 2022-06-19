@@ -366,7 +366,7 @@ namespace PhinixClient
             };
             userManager.OnUserCreated += (sender, args) =>
             {
-                Logger.Trace(string.Format("New user created: {0} ({1}) - {2}gged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
+                Logger.Trace(string.Format("New user created: {0} ({1}) - {2}ogged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
             };
 
             // Subscribe to chat events
