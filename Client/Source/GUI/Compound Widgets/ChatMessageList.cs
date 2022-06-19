@@ -127,7 +127,7 @@ namespace PhinixClient.GUI
             // Credit to Aze for figuring out how to get the bottom scroll pos
             bool scrolledToBottom = chatScroll.y.Equals(innerContainer.height - inRect.height);
             bool scrollChanged = !chatScroll.y.Equals(oldChatScroll.y);
-            float heightDifference = oldHeight - innerContainer.height;
+            bool heightChanged = !(oldHeight - innerContainer.height).Equals(0f);
 
             if (scrollChanged)
             {
@@ -142,14 +142,11 @@ namespace PhinixClient.GUI
                     stickyScroll = false;
                 }
             }
-            else if (!heightDifference.Equals(0f))
+            else if ((heightChanged && stickyScroll) || scrollToBottom)
             {
-                if (stickyScroll || scrollToBottom)
-                {
-                    // Scroll to bottom
-                    chatScroll.y = innerContainer.height - inRect.height;
-                    scrollToBottom = false;
-                }
+                // Scroll to bottom
+                chatScroll.y = innerContainer.height - inRect.height;
+                scrollToBottom = false;
             }
 
             // Update old height for the next pass
