@@ -202,6 +202,9 @@ namespace PhinixClient.GUI
                 // Append the new message to the list
                 messages.Add(args.Message);
                 messagesChanged = true;
+
+                // Trim the list down to the buffer limit if needed
+                messages.RemoveRange(0, Math.Max(0, messages.Count - Client.Instance.ChatMessageLimit));
             }
         }
 

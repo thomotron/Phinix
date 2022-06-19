@@ -185,6 +185,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<int> chatMessageLimit;
+        public int ChatMessageLimit
+        {
+            get => chatMessageLimit.Value;
+            set
+            {
+                chatMessageLimit.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         private SettingHandle<bool> allItemsTradable;
         public bool AllItemsTradable
         {
@@ -285,6 +296,12 @@ namespace PhinixClient
                 title: "Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(),
                 description: "Phinix_hugslibsettings_showBlockedUnreadMessageCount_description".Translate(),
                 defaultValue: true
+            );
+            chatMessageLimit = Settings.GetHandle(
+                settingName: "chatMessageLimit",
+                title: "Phinix_hugslibsettings_chatMessageLimit".Translate(),
+                description: null,
+                defaultValue: 40
             );
             allItemsTradable = Settings.GetHandle(
                 settingName: "allItemsTradable",

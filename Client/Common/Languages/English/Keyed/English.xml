@@ -33,6 +33,7 @@
     <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
     <Phinix_hugslibsettings_showBlockedTrades>Show trades from blocked users</Phinix_hugslibsettings_showBlockedTrades>
     <Phinix_hugslibsettings_blockedUsers>Blocked users</Phinix_hugslibsettings_blockedUsers>
+    <Phinix_hugslibsettings_chatMessageLimit>Number of chat messages to keep</Phinix_hugslibsettings_chatMessageLimit>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
