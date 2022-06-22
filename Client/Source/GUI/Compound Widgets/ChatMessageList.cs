@@ -65,6 +65,9 @@ namespace PhinixClient.GUI
             Client.Instance.OnBlockedUsersChanged += BlockedUsersChangedEventHandler;
             Client.Instance.OnChatSync += (s, e) => ReplaceWithBuffer();
             Client.Instance.OnDisconnect += (s, e) => Clear();
+
+            // Populate the message list before first draw
+            ReplaceWithBuffer();
         }
 
         public void Draw(Rect inRect) {
