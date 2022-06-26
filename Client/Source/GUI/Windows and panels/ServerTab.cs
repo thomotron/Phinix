@@ -90,7 +90,7 @@ namespace PhinixClient
         {
             Rect settingsButtonRect = inRect.TopPartPixels(SETTINGS_BUTTON_HEIGHT);
             Rect userSearchRect = new Rect(inRect.x, settingsButtonRect.yMax + DEFAULT_SPACING, inRect.width, USER_SEARCH_HEIGHT);
-            Rect userListRect = inRect.BottomPartPixels(inRect.height - (userSearchRect.yMax + DEFAULT_SPACING));
+            Rect userListRect = new Rect(inRect.x, userSearchRect.yMax + DEFAULT_SPACING, inRect.width, inRect.yMax - (userSearchRect.yMax + DEFAULT_SPACING));
 
             // Settings button
             if (Widgets.ButtonText(settingsButtonRect, "Phinix_chat_settingsButton".Translate()))
