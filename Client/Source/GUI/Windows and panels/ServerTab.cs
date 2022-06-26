@@ -1,5 +1,5 @@
-﻿using PhinixClient.GUI;
-using PhinixClient.GUI.Compound_Widgets;
+﻿using System.Collections.Generic;
+using PhinixClient.GUI;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -32,13 +32,17 @@ namespace PhinixClient
         private static string message = "";
         private static string userSearch = "";
 
-        private ChatMessageList chatMessageList = new ChatMessageList();
-        private UserList userList = new UserList();
+        private readonly List<TabRecord> tabList = new List<TabRecord>();
+        private int activeTab = 0;
+
+        private readonly ChatMessageList chatMessageList = new ChatMessageList();
+        private readonly UserList userList = new UserList();
 
         public ServerTab()
         {
-            // Pre-fill the chat with the current buffer
-            chatMessageList.ReplaceWithBuffer();
+            // Populate the tab list
+            tabList.Add(new TabRecord("Phinix_tabs_chat".Translate(), () => activeTab = 0, () => activeTab == 0));
+            tabList.Add(new TabRecord("Phinix_tabs_trades".Translate(), () => activeTab = 1, () => activeTab == 1));
         }
 
         ///<inheritdoc/>
@@ -56,14 +60,26 @@ namespace PhinixClient
         /// <param name="inRect">Container to draw within</param>
         public override void DoWindowContents(Rect inRect)
         {
-            Rect rightColumnRect = inRect.RightPartPixels(RIGHT_COLUMN_WIDTH);
-            Rect chatRect = inRect.LeftPartPixels(inRect.width - (rightColumnRect.width + DEFAULT_SPACING));
+            Rect usableRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
+            Rect rightColumnRect = usableRect.RightPartPixels(RIGHT_COLUMN_WIDTH);
+            Rect chatRect = usableRect.LeftPartPixels(usableRect.width - (rightColumnRect.width + DEFAULT_SPACING));
 
-            // Chat
-            GenerateChat(chatRect);
+            // Tabs
+            TabDrawer.DrawTabs(usableRect, tabList, 1);
 
-            // Right column
-            GenerateRightColumn(rightColumnRect);
+            switch (activeTab)
+            {
+                case 0: // Chat tab
+                    GenerateChat(chatRect); // Chat
+                    GenerateRightColumn(rightColumnRect); // Right column
+                    break;
+                case 1: // Trades tab
+                    GenerateTrades(usableRect); // Trades
+                    break;
+                default:
+                    Widgets.DrawMenuSection(usableRect); // Placeholder
+                    break;
+            }
         }
 
         /// <summary>
@@ -130,6 +146,15 @@ namespace PhinixClient
             {
                 sendChatMessage();
             }
+        }
+
+        /// <summary>
+        /// Generates the active trade list.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        private void GenerateTrades(Rect inRect)
+        {
+            // TODO: Generate trade list
         }
 
         /// <summary>
