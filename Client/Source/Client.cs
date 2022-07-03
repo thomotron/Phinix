@@ -67,7 +67,7 @@ namespace PhinixClient
         private ClientTrading trading;
         public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
-        public string[] GetTrades() => trading.GetTrades();
+        public string[] GetTradeIds() => trading.GetTradeIds();
         public string[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids) => trading.GetTradesExceptWith(otherPartyUuids);
         public bool TryGetOtherPartyUuid(string tradeId, out string otherPartyUuid) => trading.TryGetOtherPartyUuid(tradeId, out otherPartyUuid);
         public bool TryGetOtherPartyAccepted(string tradeId, out bool otherPartyAccepted) => trading.TryGetOtherPartyAccepted(tradeId, out otherPartyAccepted);
@@ -76,13 +76,13 @@ namespace PhinixClient
         public void UpdateTradeItems(string tradeId, IEnumerable<ProtoThing> items, string token = "") => trading.UpdateItems(tradeId, items, token);
         public void UpdateTradeStatus(string tradeId, bool? accepted = null, bool? cancelled = null) => trading.UpdateStatus(tradeId, accepted, cancelled);
         public LookTargets DropPods(IEnumerable<Thing> verseThings) => dropPods(verseThings);
-        public event EventHandler<CreateTradeEventArgs> OnTradeCreationSuccess;
-        public event EventHandler<CreateTradeEventArgs> OnTradeCreationFailure;
-        public event EventHandler<CompleteTradeEventArgs> OnTradeCompleted;
-        public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
-        public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateFailure;
-        public event EventHandler<TradesSyncedEventArgs> OnTradesSynced;
+        public event EventHandler<UICreateTradeEventArgs> OnTradeCreationSuccess;
+        public event EventHandler<UICreateTradeEventArgs> OnTradeCreationFailure;
+        public event EventHandler<UICompleteTradeEventArgs> OnTradeCompleted;
+        public event EventHandler<UICompleteTradeEventArgs> OnTradeCancelled;
+        public event EventHandler<UITradeUpdateEventArgs> OnTradeUpdateSuccess;
+        public event EventHandler<UITradeUpdateEventArgs> OnTradeUpdateFailure;
+        public event EventHandler<UITradesSyncedEventArgs> OnTradesSynced;
 
         public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
 
@@ -544,13 +544,13 @@ namespace PhinixClient
             userManager.OnUserSync += (sender, e) => { OnUserSync?.Invoke(sender, e); };
             chat.OnChatMessageReceived += (sender, e) => { OnChatMessageReceived?.Invoke(sender, new UIChatMessageEventArgs(new UIChatMessage(userManager, e.Message))); };
             chat.OnChatSync += (sender, e) => { OnChatSync?.Invoke(sender, e); };
-            trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, e); };
-            trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, e); };
-            trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, e); };
-            trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, e); };
-            trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, e); };
-            trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, e); };
-            trading.OnTradesSynced += (sender, e) => { OnTradesSynced?.Invoke(sender, e); };
+            trading.OnTradeCreationSuccess += (sender, e) => { OnTradeCreationSuccess?.Invoke(sender, UICreateTradeEventArgs.FromCreateTradeEventArgs(e, userManager)); };
+            trading.OnTradeCreationFailure += (sender, e) => { OnTradeCreationFailure?.Invoke(sender, UICreateTradeEventArgs.FromCreateTradeEventArgs(e, userManager)); };
+            trading.OnTradeCompleted += (sender, e) => { OnTradeCompleted?.Invoke(sender, UICompleteTradeEventArgs.FromCompleteTradeEventArgs(e, userManager)); };
+            trading.OnTradeCancelled += (sender, e) => { OnTradeCancelled?.Invoke(sender, UICompleteTradeEventArgs.FromCompleteTradeEventArgs(e, userManager)); };
+            trading.OnTradeUpdateSuccess += (sender, e) => { OnTradeUpdateSuccess?.Invoke(sender, UITradeUpdateEventArgs.FromTradeUpdateEventArgs(e, trading)); };
+            trading.OnTradeUpdateFailure += (sender, e) => { OnTradeUpdateFailure?.Invoke(sender, UITradeUpdateEventArgs.FromTradeUpdateEventArgs(e, trading)); };
+            trading.OnTradesSynced += (sender, e) => { OnTradesSynced?.Invoke(sender, UITradesSyncedEventArgs.FromTradesSyncedEventArgs(e, trading, userManager)); };
 
             // Connect to the server set in the config
             Connect(ServerAddress, ServerPort);

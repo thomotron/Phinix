@@ -139,7 +139,7 @@ namespace PhinixClient.GUI.Compound_Widgets
         /// <summary>
         /// Repopulates <see cref="tradeRows"/> with the current active trades.
         /// </summary>
-        /// <seealso cref="Client.GetTrades()"/>
+        /// <seealso cref="Client.GetTradeIds"/>
         private void repopulateTradeRows()
         {
             lock (tradeRowsLock)
@@ -148,7 +148,7 @@ namespace PhinixClient.GUI.Compound_Widgets
                 tradeRows.Clear();
 
                 // Populate TradeRows with the current active trades
-                tradeRows.AddRange(Client.Instance.GetTrades().Select(tradeId => new TradeRow(tradeId)));
+                tradeRows.AddRange(Client.Instance.GetTradeIds().Select(tradeId => new TradeRow(tradeId)));
 
                 // Mark the rows to be updated
                 tradesUpdated = true;

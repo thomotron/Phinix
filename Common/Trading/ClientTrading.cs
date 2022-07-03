@@ -155,7 +155,7 @@ namespace Trading
         /// Returns a collection of all active trade IDs.
         /// </summary>
         /// <returns>Collection of all active trade IDs</returns>
-        public string[] GetTrades()
+        public string[] GetTradeIds()
         {
             lock (activeTradesLock)
             {
@@ -302,6 +302,52 @@ namespace Trading
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Tries to get the trade details for the given trade ID.
+        /// Returns whether the trade was retrieved successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="immutableTrade">Trade details output</param>
+        /// <returns>Whether the trade was received successfully</returns>
+        public bool TryGetTrade(string tradeId, out ImmutableTrade immutableTrade)
+        {
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId))
+                {
+                    immutableTrade = new ImmutableTrade();
+                    return false;
+                }
+
+                Trade trade = activeTrades[tradeId];
+
+                // Ensure we can get the other party's UUID
+                if (!trade.TryGetOtherParty(tradeId, out string otherPartyUuid))
+                {
+                    immutableTrade = new ImmutableTrade(tradeId, new ImmutableUser());
+                    return false;
+                }
+
+                // Try to pull out the other party from userManager, creating a barebones one if that fails
+                if (!userManager.TryGetUser(otherPartyUuid, out ImmutableUser otherParty))
+                {
+                    otherParty = new ImmutableUser(otherPartyUuid);
+                }
+                
+                // Build an immutable copy of the trade and return successfully
+                immutableTrade = new ImmutableTrade(
+                    tradeId: tradeId,
+                    otherParty: otherParty,
+                    ourItemsOnOffer: trade.ItemsOnOffer[userManager.Uuid],
+                    otherPartyItemsOnOffer: trade.ItemsOnOffer[otherPartyUuid],
+                    accepted: trade.AcceptedParties.Contains(userManager.Uuid),
+                    otherPartyAccepted: trade.AcceptedParties.Contains(otherPartyUuid)
+                );
+                return true;
+            }
         }
 
         /// <summary>

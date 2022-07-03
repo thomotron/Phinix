@@ -111,6 +111,10 @@
     <Compile Include="ListSetting.cs" />
     <Compile Include="TradingThingConverter.cs" />
     <Compile Include="UIChatMessageEventArgs.cs" />
+    <Compile Include="UICompleteTradeEventArgs.cs" />
+    <Compile Include="UICreateTradeEventArgs.cs" />
+    <Compile Include="UITradesSyncedEventArgs.cs" />
+    <Compile Include="UITradeUpdateEventArgs.cs" />
     <Compile Include="UnknownItem.cs" />
     <Content Include="..\About\**">
       <Link>About\%(RecursiveDir)%(Filename)%(Extension)</Link>
