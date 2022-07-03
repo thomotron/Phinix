@@ -37,6 +37,7 @@ namespace PhinixClient
 
         private readonly ChatMessageList chatMessageList = new ChatMessageList();
         private readonly UserList userList = new UserList();
+        private readonly TradeList tradeList = new TradeList();
 
         public ServerTab()
         {
@@ -154,7 +155,15 @@ namespace PhinixClient
         /// <param name="inRect">Container to draw within</param>
         private void GenerateTrades(Rect inRect)
         {
-            // TODO: Generate trade list
+            if (Instance.Online)
+            {
+                tradeList.Draw(inRect);
+            }
+            else
+            {
+                Widgets.DrawMenuSection(inRect);
+                Widgets.NoneLabelCenteredVertically(inRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
+            }
         }
 
         /// <summary>
