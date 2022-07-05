@@ -15,9 +15,9 @@ namespace PhinixClient.GUI
 
         private const float DEFAULT_SPACING = 10f;
 
-        private const float TRADE_TITLE_LABEL_HEIGHT = 25f;
+        private const float TRADE_TITLE_LABEL_HEIGHT = 20f;
 
-        private const float ACCEPTED_STATE_LABEL_HEIGHT = 15f;
+        private const float ACCEPTED_STATE_LABEL_HEIGHT = 18f;
 
         private const float ROW_HEIGHT = TRADE_TITLE_LABEL_HEIGHT + ACCEPTED_STATE_LABEL_HEIGHT;
 
@@ -91,27 +91,31 @@ namespace PhinixClient.GUI
             {
                 ImmutableTrade trade = filteredTrades[i];
 
-                Rect rowRect = new Rect(contentRect.xMin, currentY, contentRect.width, contentRect.height);
+                Rect rowRect = new Rect(contentRect.xMin, currentY, contentRect.width, ROW_HEIGHT);
                 Rect buttonAreaRect = new Rect(rowRect.xMax - (BUTTON_WIDTH * 2 + DEFAULT_SPACING), currentY, BUTTON_WIDTH * 2 + DEFAULT_SPACING, ROW_HEIGHT);
-                Rect tradeTitleRect = new Rect(rowRect.xMin, rowRect.yMin, rowRect.width - buttonAreaRect.width - DEFAULT_SPACING, TRADE_TITLE_LABEL_HEIGHT);
+                Rect tradeTitleRect = new Rect(rowRect.xMin, currentY, rowRect.width - buttonAreaRect.width - DEFAULT_SPACING, TRADE_TITLE_LABEL_HEIGHT);
                 Rect acceptedStateRect = new Rect(rowRect.xMin, tradeTitleRect.yMax, rowRect.width - buttonAreaRect.width - DEFAULT_SPACING, ACCEPTED_STATE_LABEL_HEIGHT);
 
                 // Background highlight
                 if (i % 2 != 0) Widgets.DrawHighlight(rowRect);
 
-                // Save the current font size
+                // Save the current text settings
                 GameFont previousFont = Text.Font;
+                TextAnchor previousAnchor = Text.Anchor;
 
                 // Trade with ... label
                 Text.Font = GameFont.Small;
-                Widgets.Label(tradeTitleRect, "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName)));
+                Text.Anchor = TextAnchor.UpperLeft;
+                Widgets.LabelFit(tradeTitleRect, "Phinix_trade_activeTrade_tradeWithLabel".Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName)));
 
                 // Accepted state label
                 Text.Font = GameFont.Tiny;
+                Text.Anchor = TextAnchor.LowerLeft;
                 Widgets.Label(acceptedStateRect, ("Phinix_trade_activeTrade_theyHave" + (!trade.OtherPartyAccepted ? "Not" : "") + "Accepted").Translate());
 
-                // Restore the font size
+                // Restore the text settings
                 Text.Font = previousFont;
+                Text.Anchor = previousAnchor;
 
                 // Open button
                 if (Widgets.ButtonText(buttonAreaRect.LeftPartPixels(BUTTON_WIDTH), "Phinix_trade_activeTrade_openButton".Translate()))
