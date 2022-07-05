@@ -374,9 +374,10 @@ namespace Trading
             {
                 immutableTrade = getTrade(tradeId);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 immutableTrade = new ImmutableTrade();
+                RaiseLogEntry(new LogEventArgs($"Failed to get/convert trade {tradeId}: {e.Message}", LogLevel.ERROR));
                 return false;
             }
 
