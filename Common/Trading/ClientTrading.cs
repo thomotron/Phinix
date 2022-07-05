@@ -455,7 +455,7 @@ namespace Trading
                 Trade trade = activeTrades[tradeId];
 
                 // Ensure we can get the other party's UUID
-                if (!trade.TryGetOtherParty(tradeId, out string otherPartyUuid))
+                if (!trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
                 {
                     throw new InvalidOperationException("Trade does not have a valid other party");
                 }
