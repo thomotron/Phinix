@@ -155,8 +155,6 @@ namespace PhinixClient.GUI
                 trades.Clear();
                 trades.AddRange(args.Trades);
                 tradesChanged = true;
-
-                Client.Instance.Log(new LogEventArgs(string.Format("UI received {0} trades from sync", args.Trades.Length), LogLevel.DEBUG));
             }
         }
 
