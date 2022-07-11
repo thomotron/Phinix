@@ -120,8 +120,7 @@ namespace PhinixClient.GUI
                 // Open button
                 if (Widgets.ButtonText(buttonAreaRect.LeftPartPixels(BUTTON_WIDTH), "Phinix_trade_activeTrade_openButton".Translate()))
                 {
-                    // TODO: Rewrite trade window
-                    // Find.WindowStack.Add(new TradeWindow(trade));
+                    Find.WindowStack.Add(new TradeWindow(trade));
                 }
 
                 // Cancel button
