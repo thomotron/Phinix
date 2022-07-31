@@ -26,6 +26,7 @@ namespace PhinixClient
 
         public override string ModIdentifier => "Phinix";
 
+        #region Modules
         private NetClient netClient;
         public bool Connected => netClient.Connected;
         public void Send(string module, byte[] serialisedMessage) => netClient.Send(module, serialisedMessage);
@@ -85,9 +86,11 @@ namespace PhinixClient
         public event EventHandler<UITradeUpdateEventArgs> OnTradeUpdateSuccess;
         public event EventHandler<UITradeUpdateEventArgs> OnTradeUpdateFailure;
         public event EventHandler<UITradesSyncedEventArgs> OnTradesSynced;
+        #endregion
 
         public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
 
+        #region Setting Handles
         private SettingHandle<string> serverAddressHandle;
         public string ServerAddress
         {
@@ -222,6 +225,7 @@ namespace PhinixClient
 
         private SettingHandle<ListSetting<string>> blockedUsers;
         public List<string> BlockedUsers => blockedUsers.Value.List;
+        #endregion
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -244,6 +248,7 @@ namespace PhinixClient
             Client.Instance = this;
 
             // Load in Settings
+            #region Settings
             serverAddressHandle = Settings.GetHandle(
                 settingName: "serverAddress",
                 title: "Phinix_hugslibsettings_serverAddressTitle".Translate(),
@@ -326,6 +331,7 @@ namespace PhinixClient
             // Always initialise a new value otherwise it will use the reference of the default value, resulting in the
             // default list being updated and the save mechanism never being able to differentiate any changes.
             if (blockedUsers.Value == null) blockedUsers.Value = new ListSetting<string>();
+            #endregion
 
             // Set up our module instances
             this.netClient = new NetClient();
@@ -340,6 +346,7 @@ namespace PhinixClient
             chat.OnLogEntry += ILoggableHandler;
             trading.OnLogEntry += ILoggableHandler;
 
+            #region Module Event Handlers
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
@@ -528,6 +535,7 @@ namespace PhinixClient
             {
                 Logger.Trace(string.Format("Synced {0} trade{1} from server", args.TradeIds.Length, args.TradeIds.Length != 1 ? "s" : ""));
             };
+            #endregion
 
             // Subscribe to setting handle value change events
             acceptingTradesHandle.ValueChanged += (handle) => { userManager.UpdateSelf(acceptingTrades: acceptingTradesHandle.Value); };
