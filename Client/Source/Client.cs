@@ -237,6 +237,28 @@ namespace PhinixClient
         /// </summary>
         private object soundQueueLock = new object();
 
+        /// <summary>
+        /// Items on offer that have been reserved for one or more trades.
+        /// </summary>
+        public TradeReservedItems ReservedItems
+        {
+            get
+            {
+                TradeReservedItems reservedItems = Current.Game.GetComponent<TradeReservedItems>();
+                if (reservedItems != null)
+                {
+                    return reservedItems;
+                }
+                else
+                {
+                    // Create a new reserved items instance and add it to the game
+                    reservedItems = new TradeReservedItems();
+                    Current.Game.components.Add(reservedItems);
+                    return reservedItems;
+                }
+            }
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
