@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PhinixClient.GUI;
 using RimWorld;
@@ -8,11 +9,14 @@ using Trading;
 using UnityEngine;
 using Utils;
 using Verse;
+using static PhinixClient.GUI.GUIUtils;
 
 namespace PhinixClient
 {
     public class TradeWindow : Window
     {
+        private const float SCROLLBAR_WIDTH = 16f;
+
         private const float DEFAULT_SPACING = 10f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
@@ -30,10 +34,34 @@ namespace PhinixClient
 
         public override Vector2 InitialSize => new Vector2(1000f, 750f);
 
+        private readonly Regex itemCountInputRegex = new Regex("\\d*");
+
+        private Vector2 ourOfferScrollPos = Vector2.zero;
+        private Vector2 theirOfferScrollPos = Vector2.zero;
+        private Vector2 availableItemsScrollPos = Vector2.zero;
+
         /// <summary>
         /// The trade this window contains.
+        /// Will be overwritten with <see cref="updatedTrade"/> by the UI thread if <see cref="tradeUpdated"/> is set.
         /// </summary>
-        private readonly ImmutableTrade trade;
+        private ImmutableTrade trade;
+        /// <summary>
+        /// Updated copy of <see cref="trade"/>.
+        /// </summary>
+        private ImmutableTrade updatedTrade;
+        /// <summary>
+        /// Whether <see cref="updatedTrade"/> has been changed and should be copied into <see cref="trade"/> by the UI thread.
+        /// </summary>
+        private bool tradeUpdated = false;
+        /// <summary>
+        /// Lock object protecting <see cref="updatedTrade"/>.
+        /// </summary>
+        private object updatedTradeLock = new object();
+
+        /// <summary>
+        /// All items that can be added to the trade.
+        /// </summary>
+        private List<StackedThings> availableItems = new List<StackedThings>();
 
         /// <summary>
         /// Creates a new <see cref="TradeWindow"/> for the given trade ID.
@@ -57,6 +85,26 @@ namespace PhinixClient
             // Subscribe to events
             Client.Instance.OnTradeCompleted += OnTradeFinished;
             Client.Instance.OnTradeCancelled += OnTradeFinished;
+            Client.Instance.OnTradeUpdateSuccess += OnTradeUpdated;
+            Client.Instance.OnTradeUpdateFailure += OnTradeUpdated;
+
+            // Select things from all maps that are player homes
+            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
+            IEnumerable<Thing> things;
+            if (Client.Instance.AllItemsTradable)
+            {
+                // Get *everything*
+                things = homeMaps.SelectMany(map => map.listerThings.AllThings);
+            }
+            else
+            {
+                // From each map, select all haul destinations, then everything stored there
+                IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
+                things = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
+            }
+
+            // Group all items and cache them for later
+            availableItems = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
         }
 
         public override void Close(bool doCloseSound = true)
@@ -70,6 +118,18 @@ namespace PhinixClient
 
         public override void DoWindowContents(Rect inRect)
         {
+            // Update trade if requested
+            if (tradeUpdated)
+            {
+                if (Monitor.TryEnter(updatedTradeLock))
+                {
+                    // Copy the new trade details into place
+                    trade = updatedTrade;
+
+                    Monitor.Exit(updatedTradeLock);
+                }
+            }
+
             // Build layout rects
             Rect titleRect = inRect.TopPartPixels(TITLE_HEIGHT);
 
@@ -101,10 +161,32 @@ namespace PhinixClient
             // Trade arrows
             Widgets.DrawTextureFitted(tradeArrowsRect, ContentFinder<Texture2D>.Get("tradeArrows"), 1f);
 
-            // Offers
-            // TODO: Offers
-            Widgets.DrawMenuSection(ourOfferRect);
-            Widgets.DrawMenuSection(theirOfferRect);
+            // Our offer
+            // TODO: Maybe render our own checkbox with loading state based on trade update token???
+            bool ourOfferAccepted = trade.Accepted;
+            drawOffer(inRect: ourOfferRect,
+                title: "Phinix_trade_ourOfferLabel".Translate(),
+                itemStacks: StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)), // TODO: Hook this into a cached copy
+                scrollPos: ref ourOfferScrollPos,
+                accepted: ref ourOfferAccepted,
+                acceptedLabel: ("Phinix_trade_confirmOurTradeCheckbox" + (trade.Accepted ? "Checked" : "Unchecked")).Translate()
+            );
+            if (ourOfferAccepted != trade.Accepted)
+            {
+                // Update our accepted state
+                // TODO: Keep a handle on a single thread for this to prevent excessive calls
+                new Thread(() => Client.Instance.UpdateTradeStatus(trade.TradeId, accepted: ourOfferAccepted)).Start();
+            }
+
+            // Their offer
+            bool theirOfferAccepted = trade.OtherPartyAccepted;
+            drawOffer(inRect: theirOfferRect,
+                title: "Phinix_trade_theirOfferLabel".Translate(),
+                itemStacks: StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)), // TODO: Hook this into a cached copy
+                scrollPos: ref theirOfferScrollPos,
+                accepted: ref theirOfferAccepted,
+                acceptedLabel: ("Phinix_trade_confirmTheirTradeCheckbox" + (trade.OtherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName))
+            );
 
             // Update button
             if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
@@ -132,8 +214,7 @@ namespace PhinixClient
             UnityEngine.GUI.color = previousColour;
 
             // Available items
-            // TODO: Available items
-            Widgets.DrawMenuSection(availableItemsRect);
+            drawItemStackList(availableItemsRect, availableItems, ref availableItemsScrollPos, true);
         }
 
         /// <summary>
@@ -147,6 +228,21 @@ namespace PhinixClient
         }
 
         /// <summary>
+        /// Event handler for the <see cref="Client.OnTradeUpdateSuccess"/> and <see cref="Client.OnTradeUpdateFailure"/> events.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void OnTradeUpdated(object sender, UITradeUpdateEventArgs args)
+        {
+            // Save the updated trade and flag the current one to be replaced
+            lock (updatedTradeLock)
+            {
+                updatedTrade = args.Trade;
+                tradeUpdated = true;
+            }
+        }
+
+        /// <summary>
         /// Draws an offer containing a title, list of items on offer, and toggle-able checkbox with whether it's been accepted.
         /// </summary>
         /// <param name="inRect">Container to draw within</param>
@@ -155,7 +251,7 @@ namespace PhinixClient
         /// <param name="scrollPos">Item list scroll position</param>
         /// <param name="accepted">Offer accepted state</param>
         /// <param name="acceptedLabel">Accepted state label</param>
-        private void drawOffer(Rect inRect, string title, IEnumerable<StackedThings> itemStacks, ref Vector2 scrollPos, ref bool accepted, string acceptedLabel)
+        private void drawOffer(Rect inRect, string title, List<StackedThings> itemStacks, ref Vector2 scrollPos, ref bool accepted, string acceptedLabel)
         {
             Rect titleRect = inRect.TopPartPixels(OFFER_WINDOW_TITLE_HEIGHT);
             Rect acceptedStateRect = inRect.BottomPartPixels(OFFER_WINDOW_CHECKBOX_HEIGHT);
@@ -178,7 +274,116 @@ namespace PhinixClient
             Text.Anchor = previousAnchor;
 
             // Items on offer
-            // TODO: Items on offer
+            drawItemStackList(itemListRect, itemStacks, ref scrollPos, false);
+        }
+
+        /// <summary>
+        /// Draws a list of item stacks.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        /// <param name="stacks">List of item stacks to draw</param>
+        /// <param name="scrollPos">Scroll position</param>
+        /// <param name="interactive">Whether to draw interactive buttons and quantity fields</param>
+        private void drawItemStackList(Rect inRect, List<StackedThings> stacks, ref Vector2 scrollPos, bool interactive = false)
+        {
+            float ICON_WIDTH = 30f;
+            float ROW_HEIGHT = ICON_WIDTH;
+            float BUTTON_WIDTH = 40f;
+            float QUANTITY_FIELD_WIDTH = 70f;
+            float AVAILABLE_COUNT_WIDTH = 50f;
+            float RIGHT_PADDING = 5f;
+
+            // Set up the content rect and start scrolling
+            bool scrollbarsPresent = ROW_HEIGHT * stacks.Count > inRect.height;
+            Rect contentRect = new Rect(inRect.xMin, inRect.yMin, scrollbarsPresent ? inRect.width - SCROLLBAR_WIDTH : inRect.width, ROW_HEIGHT * stacks.Count);
+            Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
+
+            bool alternateBackground = false;
+            float currentY = contentRect.yMin;
+            foreach (StackedThings stack in stacks)
+            {
+                // Don't deal with empty stacks
+                if (stack.Things.Count == 0) continue;
+
+                Rect rowRect = new Rect(contentRect.xMin, currentY, contentRect.width, ROW_HEIGHT);
+                Rect iconRect = rowRect.LeftPartPixels(ICON_WIDTH);
+
+                // Background
+                if (alternateBackground) Widgets.DrawHighlight(rowRect);
+
+                // Icon
+                Widgets.ThingIcon(iconRect, stack.ThingDef, stack.StuffDef, stack.StyleDef, 0.9f);
+
+                Rect itemNameRect;
+                if (interactive)
+                {
+                    float buttonAreaWidth = ((BUTTON_WIDTH * 6) + QUANTITY_FIELD_WIDTH + AVAILABLE_COUNT_WIDTH + (DEFAULT_SPACING * 3));
+                    Rect buttonAreaRect = new Rect(rowRect.xMax - (RIGHT_PADDING + buttonAreaWidth), rowRect.yMin, buttonAreaWidth, rowRect.height);
+                    Rect quantityButton1Rect = new Rect(buttonAreaRect.xMin, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
+                    Rect quantityButton2Rect = quantityButton1Rect.TranslatedBy(BUTTON_WIDTH);
+                    Rect quantityButton3Rect = quantityButton2Rect.TranslatedBy(BUTTON_WIDTH);
+                    Rect quantityFieldRect = new Rect(quantityButton3Rect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, QUANTITY_FIELD_WIDTH, buttonAreaRect.height);
+                    Rect availableCountRect = new Rect(quantityFieldRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, AVAILABLE_COUNT_WIDTH, buttonAreaRect.height);
+                    Rect quantityButton4Rect = new Rect(availableCountRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
+                    Rect quantityButton5Rect = quantityButton4Rect.TranslatedBy(BUTTON_WIDTH);
+                    Rect quantityButton6Rect = quantityButton5Rect.TranslatedBy(BUTTON_WIDTH);
+
+                    itemNameRect = new Rect(iconRect.xMax + DEFAULT_SPACING, rowRect.yMin, buttonAreaRect.xMin - iconRect.xMax - (DEFAULT_SPACING * 2), rowRect.height);
+
+                    // -100 button
+                    if (Widgets.ButtonText(quantityButton1Rect, "-100")) stack.Selected = Clamp(stack.Selected - 100, 0, stack.Count);
+
+                    // -10 button
+                    if (Widgets.ButtonText(quantityButton2Rect, "-10")) stack.Selected = Clamp(stack.Selected - 10, 0, stack.Count);
+
+                    // -1 button
+                    if (Widgets.ButtonText(quantityButton3Rect, "-1")) stack.Selected = Clamp(stack.Selected - 1, 0, stack.Count);
+
+                    // +1 button
+                    if (Widgets.ButtonText(quantityButton4Rect, "+1")) stack.Selected = Clamp(stack.Selected + 1, 0, stack.Count);
+
+                    // +10 button
+                    if (Widgets.ButtonText(quantityButton5Rect, "+10")) stack.Selected = Clamp(stack.Selected + 10, 0, stack.Count);
+
+                    // +100 button
+                    if (Widgets.ButtonText(quantityButton6Rect, "+100")) stack.Selected = Clamp(stack.Selected + 100, 0, stack.Count);
+
+                    // Quantity text field
+                    string buf = stack.Selected == 0 ? "" : stack.Selected.ToString();
+                    buf = Widgets.TextField(quantityFieldRect, buf, 100, itemCountInputRegex);
+                    stack.Selected = string.IsNullOrEmpty(buf) ? 0 : Clamp(int.Parse(buf), 0, stack.Count);
+
+                    // Available count
+                    SaveTextFormat();
+                    Text.Anchor = TextAnchor.MiddleLeft;
+                    Widgets.Label(availableCountRect, $"/ {stack.Count.ToStringSI()}");
+                    RestoreTextFormat();
+                }
+                else
+                {
+                    Rect itemCountRect = new Rect(rowRect.xMax - QUANTITY_FIELD_WIDTH - RIGHT_PADDING, rowRect.yMin, QUANTITY_FIELD_WIDTH, rowRect.height);
+                    itemNameRect = new Rect(iconRect.xMax + DEFAULT_SPACING, rowRect.yMin, itemCountRect.xMin - iconRect.xMax - DEFAULT_SPACING, rowRect.height);
+
+                    // Item count
+                    SaveTextFormat();
+                    Text.Anchor = TextAnchor.MiddleRight;
+                    Widgets.Label(itemCountRect, stack.Count.ToStringSI());
+                    RestoreTextFormat();
+                }
+
+                // Item name
+                SaveTextFormat();
+                Text.Anchor = TextAnchor.MiddleLeft;
+                Widgets.LabelFit(itemNameRect, stack.Label);
+                RestoreTextFormat();
+
+                // Toggle alternate background colour
+                alternateBackground = !alternateBackground;
+
+                currentY += ROW_HEIGHT;
+            }
+
+            Widgets.EndScrollView();
         }
     }
 }

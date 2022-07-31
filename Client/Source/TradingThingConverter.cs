@@ -8,6 +8,14 @@ namespace PhinixClient
 {
     public static class TradingThingConverter
     {
+        // Extension method signatures for the three conversions below
+        /// <inheritdoc cref="ConvertThingFromVerse"/>
+        public static ProtoThing ConvertToProto(this Verse.Thing verseThing) => ConvertThingFromVerse(verseThing);
+        /// <inheritdoc cref="ConvertThingFromProto"/>
+        public static Verse.Thing ConvertToVerse(this ProtoThing protoThing) => ConvertThingFromProto(protoThing);
+        /// <inheritdoc cref="ConvertThingFromProtoOrUnknown"/>
+        public static Verse.Thing ConvertToVerseOrUnknown(this ProtoThing protoThing) => ConvertThingFromProtoOrUnknown(protoThing);
+
         /// <summary>
         /// Converts a <c>Verse.Thing</c> into a <c>Trading.Thing</c>.
         /// Used for preparing a <c>Verse.Thing</c> for transport.
