@@ -9,27 +9,37 @@ namespace PhinixClient
         /// <summary>
         /// Items that have been put up for offer and removed from the game, organised by trade ID.
         /// </summary>
-        public Dictionary<string, ExposableList<Thing>> ReservedItems => reservedItems;
-        /// <inheritdoc cref="ReservedItems"/>
-        private Dictionary<string, ExposableList<Thing>> reservedItems = new Dictionary<string, ExposableList<Thing>>();
+        public Dictionary<string, ExposableList<Thing>> Items => items;
+        /// <inheritdoc cref="Items"/>
+        private Dictionary<string, ExposableList<Thing>> items = new Dictionary<string, ExposableList<Thing>>();
 
         /// <inheritdoc cref="Dictionary{TKey,TValue}.this"/>
-        public List<Thing> this[string index] => reservedItems[index];
+        public List<Thing> this[string index] => items[index];
         /// <inheritdoc cref="Dictionary{TKey,TValue}.ContainsKey(TKey)"/>
-        public bool ContainsKey(string tradeId) => reservedItems.ContainsKey(tradeId);
+        public bool ContainsKey(string tradeId) => items.ContainsKey(tradeId);
+        /// <inheritdoc cref="Dictionary{TKey,TValue}.Remove(TKey)"/>
+        public bool Remove(string tradeId) => items.Remove(tradeId);
+
+        /// <summary>
+        /// Determines whether there are any items reserved.
+        /// </summary>
+        public bool Any() => items.Values.Any(list => list.Any(thing => thing.stackCount > 0));
+
+        // Required for RimWorld startup
+        public TradeReservedItems(Game game = null) {}
 
         /// <inheritdoc cref="IExposable.ExposeData"/>
         public override void ExposeData()
         {
             // Don't save anything if there aren't any items reserved
-            if (Scribe.mode == LoadSaveMode.Saving && !reservedItems.Any())
+            if (Scribe.mode == LoadSaveMode.Saving && !Any())
             {
                 return;
             }
 
-            List<string> dictKeys = ReservedItems.Keys.ToList();
-            List<ExposableList<Thing>> dictValues = ReservedItems.Values.ToList();
-            Scribe_Collections.Look(ref reservedItems, "PhinixReservedItems", LookMode.Value, LookMode.Deep, ref dictKeys, ref dictValues);
+            List<string> dictKeys = Items.Keys.ToList();
+            List<ExposableList<Thing>> dictValues = Items.Values.ToList();
+            Scribe_Collections.Look(ref items, "PhinixReservedItems", LookMode.Value, LookMode.Deep, ref dictKeys, ref dictValues);
         }
 
         /// <summary>
@@ -43,13 +53,22 @@ namespace PhinixClient
         }
 
         /// <summary>
-        /// <inheritdoc cref="Add(string,IEnumerable{Thing})"/>
+        /// Adds an item to the reserved items dictionary.
         /// </summary>
-        /// <param name="tradeId">ID of the trade the items belong to</param>
+        /// <param name="tradeId">ID of the trade the item belongs to</param>
         /// <param name="thing"><see cref="Thing"/> to add</param>
         public void Add(string tradeId, Thing thing)
         {
-            Add(tradeId, new Thing[]{thing});
+            // Add to an existing list or create a new one
+            if (items.ContainsKey(tradeId))
+            {
+                items[tradeId].Add(thing);
+            }
+            else
+            {
+                ExposableList<Thing> list = new ExposableList<Thing>(){thing};
+                items.Add(tradeId, list);
+            }
         }
 
         /// <summary>
@@ -59,8 +78,16 @@ namespace PhinixClient
         /// <param name="things">Collection of <see cref="Thing"/>s to add</param>
         public void Add(string tradeId, IEnumerable<Thing> things)
         {
-            ExposableList<Thing> list = new ExposableList<Thing>("Things", LookMode.Deep, things);
-            reservedItems.Add(tradeId, list);
+            // Add to an existing list or create a new one
+            if (items.ContainsKey(tradeId))
+            {
+                items[tradeId].AddRange(things);
+            }
+            else
+            {
+                ExposableList<Thing> list = new ExposableList<Thing>(things);
+                items.Add(tradeId, list);
+            }
         }
     }
 }
