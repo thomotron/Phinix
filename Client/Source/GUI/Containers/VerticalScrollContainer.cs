@@ -24,12 +24,13 @@ namespace PhinixClient.GUI
         /// <summary>
         /// Scroll position of the container.
         /// </summary>
-        private Vector2 scrollPosition = Vector2.zero;
+        private Vector2 scrollPosition;
 
-        public VerticalScrollContainer(Displayable child, Action<Vector2> onScroll = null)
+        public VerticalScrollContainer(Displayable child, Action<Vector2> onScroll = null, Vector2 initialScrollPosition = default)
         {
             this.child = child;
             this.onScroll = onScroll;
+            this.scrollPosition = initialScrollPosition;
         }
 
         /// <inheritdoc />
