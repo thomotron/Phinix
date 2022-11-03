@@ -58,6 +58,9 @@ namespace PhinixClient
         /// <inheritdoc />
         public override void Draw(Rect container)
         {
+            // Don't draw empty item stacks
+            if (itemStack is null || !itemStack.Things.Any()) return;
+
             // Background
             if (alternateBackground) Widgets.DrawHighlight(container);
 
@@ -265,6 +268,9 @@ namespace PhinixClient
         /// <inheritdoc />
         public override float CalcHeight(float width)
         {
+            // Don't draw empty item stacks
+            if (itemStack is null || !itemStack.Things.Any()) return 0;
+
             // Get the text we will be calculating the height of
             string text = itemStack.Things.First().Label.CapitalizeFirst();
 
