@@ -13,6 +13,18 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
+  <Choose>
+    <When Condition="Exists('$(SolutionDir)\GameDlls\$(GameVersion)')">
+      <PropertyGroup>
+        <RimWorldDepDir>$(SolutionDir)\GameDlls\$(GameVersion)</RimWorldDepDir>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <RimWorldDepDir>$(SolutionDir)\GameDlls</RimWorldDepDir>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
   <PropertyGroup Condition=" $(Configuration.StartsWith('Debug')) And '$(Platform)' == 'AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -42,7 +54,7 @@
       <HintPath>..\..\.nuget\Lib.Harmony.2.2.2\lib\net472\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\GameDlls\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.10.0.1\lib\net472\HugsLib.dll</HintPath>
@@ -56,16 +68,16 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\GameDlls\UnityEngine.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
