@@ -231,7 +231,7 @@ namespace PhinixClient
         /// Queue of sounds to play on the next frame.
         /// Necessary because sounds are only played on the main Unity thread.
         /// </summary>
-        private Queue<SoundDef> soundQueue = new Queue<SoundDef>();
+        private List<SoundDef> soundQueue = new List<SoundDef>();
         /// <summary>
         /// Lock object to prevent race conditions when accessing soundQueue.
         /// </summary>
@@ -429,7 +429,7 @@ namespace PhinixClient
                     {
                         // Add a little tick noise to the sound queue
                         // (queue is necessary because sounds only play on the main Unity thread)
-                        soundQueue.Enqueue(SoundDefOf.Tick_Tiny);
+                        soundQueue.Add(SoundDefOf.Tick_Tiny);
                     }
                 }
             };
@@ -620,10 +620,11 @@ namespace PhinixClient
             lock (soundQueueLock)
             {
                 // Check if we have sounds to play
-                while (soundQueue.Count > 0)
+                while (soundQueue.Any())
                 {
                     // Dequeue and play a sound
-                    soundQueue.Dequeue().PlayOneShotOnCamera();
+                    SoundDef sound = soundQueue.Pop();
+                    sound.PlayOneShotOnCamera();
                 }
             }
         }

@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <GameVersion>$(Configuration.Split(" ")[1])</GameVersion>
     <ProjectGuid>{EE778185-FDC1-401F-80ED-5FCA6166DD4D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -12,7 +13,19 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <Choose>
+    <When Condition="Exists('$(SolutionDir)\GameDlls\$(GameVersion)')">
+      <PropertyGroup>
+        <RimWorldDepDir>$(SolutionDir)\GameDlls\$(GameVersion)</RimWorldDepDir>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <RimWorldDepDir>$(SolutionDir)\GameDlls</RimWorldDepDir>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <PropertyGroup Condition=" $(Configuration.StartsWith('Debug')) And '$(Platform)' == 'AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -21,7 +34,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" $(Configuration.StartsWith('Release')) And '$(Platform)' == 'AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -37,16 +50,14 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\.nuget\Lib.Harmony.2.1.0\lib\net472\0Harmony.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="0Harmony, Version=2.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\.nuget\Lib.Harmony.2.2.2\lib\net472\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\GameDlls\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.9.0.0\lib\net472\HugsLib.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="HugsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\.nuget\UnlimitedHugs.Rimworld.HugsLib.10.0.1\lib\net472\HugsLib.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -57,16 +68,16 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\GameDlls\UnityEngine.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\GameDlls\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(RimWorldDepDir)\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -164,7 +175,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="Clean">
     <RemoveDir Directories="$(SolutionDir)\Client\Common\Assemblies\" />
-    <RemoveDir Directories="$(SolutionDir)\Client\1.3\Assemblies\" />
+    <RemoveDir Directories="$(SolutionDir)\Client\$(GameVersion)\Assemblies\" />
   </Target>
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(TargetDir)\LiteNetLib.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\1-LiteNetLib.dll" />
@@ -175,6 +186,6 @@
     <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\6-UserManagement.dll" />
     <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\7-Chat.dll" />
     <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\8-Trading.dll" />
-    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\1.3\Assemblies\9-PhinixClient.dll" />
+    <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\$(GameVersion)\Assemblies\9-PhinixClient.dll" />
   </Target>
 </Project>
