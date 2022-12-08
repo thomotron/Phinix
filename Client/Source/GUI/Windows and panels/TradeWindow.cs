@@ -191,13 +191,24 @@ namespace PhinixClient
             // Update button
             if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
             {
-                // TODO: Update
+                // Split off all selected items
+                IEnumerable<Thing> things = availableItems.SelectMany(stack => stack.PopSelected());
+
+                // Send them up to the server
+                Client.Instance.AddTradeItems(trade.TradeId, things, Guid.NewGuid().ToString());
             }
 
             // Reset button
             if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
             {
-                // TODO: Reset
+                // Reset the trade
+                Client.Instance.ResetTradeItems(trade.TradeId);
+
+                // Reset all selected counts to zero
+                foreach (StackedThings stack in availableItems)
+                {
+                    stack.Selected = 0;
+                }
             }
 
             // Save GUI colour
@@ -295,7 +306,8 @@ namespace PhinixClient
 
             // Set up the content rect and start scrolling
             bool scrollbarsPresent = ROW_HEIGHT * stacks.Count > inRect.height;
-            Rect contentRect = new Rect(inRect.xMin, inRect.yMin, scrollbarsPresent ? inRect.width - SCROLLBAR_WIDTH : inRect.width, ROW_HEIGHT * stacks.Count);
+            int nonEmptyStacks = stacks.Count(stack => stack.Count != 0);
+            Rect contentRect = new Rect(inRect.xMin, inRect.yMin, scrollbarsPresent ? inRect.width - SCROLLBAR_WIDTH : inRect.width, ROW_HEIGHT * nonEmptyStacks);
             Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
 
             bool alternateBackground = false;

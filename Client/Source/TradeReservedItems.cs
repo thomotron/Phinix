@@ -9,21 +9,21 @@ namespace PhinixClient
         /// <summary>
         /// Items that have been put up for offer and removed from the game, organised by trade ID.
         /// </summary>
-        public Dictionary<string, ExposableList<Thing>> Items => items;
-        /// <inheritdoc cref="Items"/>
-        private Dictionary<string, ExposableList<Thing>> items = new Dictionary<string, ExposableList<Thing>>();
+        public Dictionary<string, ExposableList<Thing>> Things => things;
+        /// <inheritdoc cref="Things"/>
+        private Dictionary<string, ExposableList<Thing>> things = new Dictionary<string, ExposableList<Thing>>();
 
         /// <inheritdoc cref="Dictionary{TKey,TValue}.this"/>
-        public List<Thing> this[string index] => items[index];
+        public List<Thing> this[string index] => things[index];
         /// <inheritdoc cref="Dictionary{TKey,TValue}.ContainsKey(TKey)"/>
-        public bool ContainsKey(string tradeId) => items.ContainsKey(tradeId);
+        public bool ContainsKey(string tradeId) => things.ContainsKey(tradeId);
         /// <inheritdoc cref="Dictionary{TKey,TValue}.Remove(TKey)"/>
-        public bool Remove(string tradeId) => items.Remove(tradeId);
+        public bool Remove(string tradeId) => things.Remove(tradeId);
 
         /// <summary>
         /// Determines whether there are any items reserved.
         /// </summary>
-        public bool Any() => items.Values.Any(list => list.Any(thing => thing.stackCount > 0));
+        public bool Any() => things.Values.Any(list => list.Any(thing => thing.stackCount > 0));
 
         // Required for RimWorld startup
         public TradeReservedItems(Game game = null) {}
@@ -37,9 +37,9 @@ namespace PhinixClient
                 return;
             }
 
-            List<string> dictKeys = Items.Keys.ToList();
-            List<ExposableList<Thing>> dictValues = Items.Values.ToList();
-            Scribe_Collections.Look(ref items, "PhinixReservedItems", LookMode.Value, LookMode.Deep, ref dictKeys, ref dictValues);
+            List<string> dictKeys = Things.Keys.ToList();
+            List<ExposableList<Thing>> dictValues = Things.Values.ToList();
+            Scribe_Collections.Look(ref things, "PhinixReservedItems", LookMode.Value, LookMode.Deep, ref dictKeys, ref dictValues);
         }
 
         /// <summary>
@@ -60,14 +60,14 @@ namespace PhinixClient
         public void Add(string tradeId, Thing thing)
         {
             // Add to an existing list or create a new one
-            if (items.ContainsKey(tradeId))
+            if (things.ContainsKey(tradeId))
             {
-                items[tradeId].Add(thing);
+                things[tradeId].Add(thing);
             }
             else
             {
                 ExposableList<Thing> list = new ExposableList<Thing>(){thing};
-                items.Add(tradeId, list);
+                things.Add(tradeId, list);
             }
         }
 
@@ -79,14 +79,14 @@ namespace PhinixClient
         public void Add(string tradeId, IEnumerable<Thing> things)
         {
             // Add to an existing list or create a new one
-            if (items.ContainsKey(tradeId))
+            if (this.things.ContainsKey(tradeId))
             {
-                items[tradeId].AddRange(things);
+                this.things[tradeId].AddRange(things);
             }
             else
             {
                 ExposableList<Thing> list = new ExposableList<Thing>(things);
-                items.Add(tradeId, list);
+                this.things.Add(tradeId, list);
             }
         }
     }

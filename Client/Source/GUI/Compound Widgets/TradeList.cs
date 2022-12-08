@@ -76,6 +76,14 @@ namespace PhinixClient.GUI
                 }
             }
 
+            // Draw a placeholder if there are no trades
+            if (!filteredTrades.Any())
+            {
+                Widgets.DrawMenuSection(inRect);
+                Widgets.NoneLabelCenteredVertically(inRect, "Phinix_trade_noActiveTradesPlaceholder".Translate());
+                return;
+            }
+
             // Set up the scrollable container
             Rect contentRect = new Rect(
                 x: inRect.xMin,

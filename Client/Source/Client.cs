@@ -240,7 +240,7 @@ namespace PhinixClient
         /// <summary>
         /// Items on offer that have been reserved for one or more trades.
         /// </summary>
-        public TradeReservedItems ReservedItems
+        public TradeReservedItems ReservedThings
         {
             get
             {
@@ -258,6 +258,12 @@ namespace PhinixClient
                 }
             }
         }
+
+        /// <summary>
+        /// Things that have been sent to the server to be put on offer. Organised by concatenated trade ID and update
+        /// token.
+        /// </summary>
+        public readonly Dictionary<string, List<Thing>> PendingTradeThings = new Dictionary<string, List<Thing>>();
 
         /// <inheritdoc />
         /// <summary>
@@ -369,6 +375,13 @@ namespace PhinixClient
             trading.OnLogEntry += ILoggableHandler;
 
             #region Module Event Handlers
+            // Subscribe to net client events
+            netClient.OnDisconnect += (sender, args) =>
+            {
+                // Clear trade update cache
+                PendingTradeThings.Clear();
+            };
+
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
@@ -470,6 +483,31 @@ namespace PhinixClient
             };
             trading.OnTradeCompleted += (sender, args) =>
             {
+                // Remove any entries for this trade from the trade update cache
+                PendingTradeThings.RemoveAll(pair => pair.Key.StartsWith(args.TradeId));
+
+                // Return any reserved items
+                if (ReservedThings.ContainsKey(args.TradeId))
+                {
+                    foreach (Thing thing in ReservedThings[args.TradeId])
+                    {
+                        // TODO: Check if this will delete existing items in that spot? Need to make it not do that
+                        IntVec3 spawnPos;
+                        if (thing.Position.IsValid)
+                        {
+                            spawnPos = thing.Position;
+                        }
+                        else
+                        {
+                            spawnPos = DropCellFinder.TradeDropSpot(Find.CurrentMap);
+                            Log(new LogEventArgs($"Position for {thing.LabelCap} was invalid ({thing.Position}), using {spawnPos} instead.", LogLevel.DEBUG));
+                        }
+
+                        GenSpawn.Spawn(thing, spawnPos, Find.CurrentMap, WipeMode.VanishOrMoveAside);
+                    }
+                    ReservedThings.Remove(args.TradeId);
+                }
+
                 // Try get the other party's display name
                 if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -503,6 +541,20 @@ namespace PhinixClient
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
+                // Remove any entries for this trade from the trade update cache
+                PendingTradeThings.RemoveAll(pair => pair.Key.StartsWith(args.TradeId));
+
+                // Return any reserved items
+                if (ReservedThings.ContainsKey(args.TradeId))
+                {
+                    foreach (Thing thing in ReservedThings[args.TradeId])
+                    {
+                        // TODO: Check if this will delete existing items in that spot? Need to make it not do that
+                        GenSpawn.Spawn(thing, thing.Position, Find.CurrentMap, WipeMode.VanishOrMoveAside);
+                    }
+                    ReservedThings.Remove(args.TradeId);
+                }
+
                 // Don't display anything if the other party is blocked and we want to hide their trades
                 if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
 
@@ -535,6 +587,20 @@ namespace PhinixClient
                 Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCancelled_label".Translate(), "Phinix_trade_tradeCancelled_description".Translate(displayName), letterDef, dropSpotLookTarget);
 
                 Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
+            };
+            trading.OnTradeUpdateSuccess += (sender, args) =>
+            {
+                // Ignore trades without cached items
+                if (!PendingTradeThings.ContainsKey(args.TradeId + args.Token)) return;
+
+                // Despawn the cached items and stash them in the reserved items list
+                foreach (Thing thing in PendingTradeThings[args.TradeId + args.Token])
+                {
+                    if (thing.Spawned) thing.DeSpawn();
+                    ReservedThings.Add(args.TradeId, thing);
+                }
+
+                PendingTradeThings.Remove(args.TradeId + args.Token);
             };
             trading.OnTradeUpdateFailure += (sender, args) =>
             {
@@ -699,6 +765,89 @@ namespace PhinixClient
             message = new UIChatMessage(userManager, clientChatMessage);
 
             return true;
+        }
+
+        /// <summary>
+        /// Adds the given items to <see cref="PendingTradeThings"/> and sends them to the server.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="items">Items to append to offer</param>
+        /// <param name="token">Unique request token</param>
+        public void AddTradeItems(string tradeId, IEnumerable<Thing> items, string token)
+        {
+            // Iterate over the items and both cache them for later, and convert them to be sent out
+            List<Thing> itemList = new List<Thing>();
+            List<ProtoThing> protoList = new List<ProtoThing>();
+            foreach (Thing item in items)
+            {
+                itemList.Add(item);
+                protoList.Add(item.ConvertToProto());
+            }
+
+            // Cache the items against the trade ID and token
+            PendingTradeThings[tradeId + token] = itemList;
+
+            // Send them out
+            trading.AddItems(tradeId, protoList, token);
+        }
+
+        /// <summary>
+        /// Clears the items on offer for the given trade and returns any that were despawned as part of an earlier
+        /// update.
+        /// </summary>
+        /// <param name="tradeId">ID of the trade to reset</param>
+        public void ResetTradeItems(string tradeId)
+        {
+            // Respawn everything pending and clear the list
+            foreach (Thing thing in PendingTradeThings.Where(pair => pair.Key.StartsWith(tradeId)).SelectMany(p => p.Value))
+            {
+                // TODO: Figure out which map everything came from
+                GenSpawn.Spawn(thing, thing.Position, thing.Map);
+            }
+            PendingTradeThings.RemoveAll(pair => pair.Key.StartsWith(tradeId));
+
+            // Fetch our items on offer according to the server
+            if (!TryGetItemsOnOffer(tradeId, Uuid, out IEnumerable<ProtoThing> thingsOnOffer))
+            {
+                Instance.Log(new LogEventArgs("Failed to get our offer when resetting trade! Cannot spawn back items!", LogLevel.ERROR));
+            }
+
+            // Respawn everything from the local item cache
+            if (ReservedThings.ContainsKey(tradeId))
+            {
+                List<Thing> thingsToDrop = new List<Thing>();
+                foreach (Thing serverThing in thingsOnOffer.ConvertToVerseOrUnknown().Where(thing => thing.def.defName != "UnknownItem"))
+                {
+                    // Match everything in the local item cache
+                    IEnumerable<Thing> matchingReservedThings = ReservedThings[tradeId].Where(t => TradingThingConverter.CompareThings(t, serverThing));
+                    foreach (Thing thing in matchingReservedThings)
+                    {
+                        // Subtract the stack size of the match from serverThing
+                        serverThing.stackCount = Math.Max(0, serverThing.stackCount - thing.stackCount);
+                    }
+
+                    // Queue the remainder of serverThing into drop pods if the stack has anything left
+                    if (serverThing.stackCount > 0) thingsToDrop.Add(serverThing);
+                }
+
+                // Respawn the contents of the cache
+                foreach (Thing thing in ReservedThings[tradeId])
+                {
+                    // TODO: Figure out which map everything came from
+                    GenSpawn.Spawn(thing, thing.Position, Find.CurrentMap, thing.Rotation);
+                }
+
+                // Drop pods
+                if (thingsToDrop.Any()) Instance.DropPods(thingsToDrop);
+            }
+            else
+            {
+                // Convert and drop our items in pods
+                DropPods(thingsOnOffer.ConvertToVerse());
+            }
+
+            // Clear the items from the server
+            UpdateTradeItems(tradeId, Array.Empty<ProtoThing>());
         }
 
         /// <summary>
