@@ -76,6 +76,7 @@ namespace PhinixClient
             this.closeOnCancel = false;
             this.closeOnClickedOutside = false;
             this.forcePause = true;
+            this.draggable = true;
         }
 
         public override void PreOpen()
