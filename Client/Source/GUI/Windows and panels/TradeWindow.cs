@@ -35,10 +35,14 @@ namespace PhinixClient
         public override Vector2 InitialSize => new Vector2(1000f, 750f);
 
         private readonly Regex itemCountInputRegex = new Regex("\\d*");
+        private readonly Texture2D tradeArrows = ContentFinder<Texture2D>.Get("tradeArrows");
 
         private Vector2 ourOfferScrollPos = Vector2.zero;
         private Vector2 theirOfferScrollPos = Vector2.zero;
         private Vector2 availableItemsScrollPos = Vector2.zero;
+
+        private List<StackedThings> ourOfferCache = new List<StackedThings>();
+        private List<StackedThings> theirOfferCache = new List<StackedThings>();
 
         /// <summary>
         /// The trade this window contains.
@@ -106,6 +110,10 @@ namespace PhinixClient
 
             // Group all items and cache them for later
             availableItems = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
+
+            // Pre-fill offer caches as well
+            ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+            theirOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
         }
 
         public override void Close(bool doCloseSound = true)
@@ -126,6 +134,10 @@ namespace PhinixClient
                 {
                     // Copy the new trade details into place
                     trade = updatedTrade;
+
+                    // Refresh trade caches
+                    ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+                    theirOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
 
                     Monitor.Exit(updatedTradeLock);
                 }
@@ -160,14 +172,14 @@ namespace PhinixClient
             Text.Anchor = previousAnchor;
 
             // Trade arrows
-            Widgets.DrawTextureFitted(tradeArrowsRect, ContentFinder<Texture2D>.Get("tradeArrows"), 1f);
+            Widgets.DrawTextureFitted(tradeArrowsRect, tradeArrows, 1f);
 
             // Our offer
             // TODO: Maybe render our own checkbox with loading state based on trade update token???
             bool ourOfferAccepted = trade.Accepted;
             drawOffer(inRect: ourOfferRect,
                 title: "Phinix_trade_ourOfferLabel".Translate(),
-                itemStacks: StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)), // TODO: Hook this into a cached copy
+                itemStacks: ourOfferCache,
                 scrollPos: ref ourOfferScrollPos,
                 accepted: ref ourOfferAccepted,
                 acceptedLabel: ("Phinix_trade_confirmOurTradeCheckbox" + (trade.Accepted ? "Checked" : "Unchecked")).Translate()
@@ -183,7 +195,7 @@ namespace PhinixClient
             bool theirOfferAccepted = trade.OtherPartyAccepted;
             drawOffer(inRect: theirOfferRect,
                 title: "Phinix_trade_theirOfferLabel".Translate(),
-                itemStacks: StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown)), // TODO: Hook this into a cached copy
+                itemStacks: theirOfferCache,
                 scrollPos: ref theirOfferScrollPos,
                 accepted: ref theirOfferAccepted,
                 acceptedLabel: ("Phinix_trade_confirmTheirTradeCheckbox" + (trade.OtherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName))
