@@ -309,7 +309,8 @@ namespace PhinixClient
             bool scrollbarsPresent = ROW_HEIGHT * stacks.Count > inRect.height;
             int nonEmptyStacks = stacks.Count(stack => stack.Count != 0);
             Rect contentRect = new Rect(inRect.xMin, inRect.yMin, scrollbarsPresent ? inRect.width - SCROLLBAR_WIDTH : inRect.width, ROW_HEIGHT * nonEmptyStacks);
-            Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
+            bool scrollRequired = contentRect.height > inRect.height;
+            if (scrollRequired) Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
 
             bool alternateBackground = false;
             float currentY = contentRect.yMin;
@@ -396,7 +397,7 @@ namespace PhinixClient
                 currentY += ROW_HEIGHT;
             }
 
-            Widgets.EndScrollView();
+            if (scrollRequired) Widgets.EndScrollView();
         }
     }
 }
