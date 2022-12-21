@@ -139,6 +139,9 @@ namespace PhinixClient
                     ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
                     theirOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
 
+                    // Reset the update flag
+                    tradeUpdated = false;
+
                     Monitor.Exit(updatedTradeLock);
                 }
             }
