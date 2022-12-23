@@ -47,6 +47,7 @@ namespace PhinixClient.GUI
         public TradeList()
         {
             // Subscribe to update events
+            Client.Instance.OnDisconnect += onDisconnectHandler;
             Client.Instance.OnTradesSynced += onTradesSyncedHandler;
             Client.Instance.OnTradeCancelled += onTradeCompletedOrCancelledHandler;
             Client.Instance.OnTradeCompleted += onTradeCompletedOrCancelledHandler;
@@ -155,6 +156,16 @@ namespace PhinixClient.GUI
                 tradesChanged = true;
 
                 Client.Instance.Log(new LogEventArgs("Repopulated trade list", LogLevel.DEBUG));
+            }
+        }
+
+        private void onDisconnectHandler(object sender, EventArgs e)
+        {
+            lock (tradesLock)
+            {
+                // Clear out the trade list
+                trades.Clear();
+                tradesChanged = true;
             }
         }
 
