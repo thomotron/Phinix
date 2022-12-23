@@ -50,6 +50,8 @@
     <Phinix_trade_cancelButton>Cancel</Phinix_trade_cancelButton>
     <Phinix_trade_sortByLabel>Sort by</Phinix_trade_sortByLabel>
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
+    <Phinix_trade_noItemsAvailable>You have no items available to trade.</Phinix_trade_noItemsAvailable>
+    <Phinix_trade_noItemsAvailableWithSearch>No items found that match the search criteria.</Phinix_trade_noItemsAvailableWithSearch>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
     <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>

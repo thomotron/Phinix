@@ -269,7 +269,16 @@ namespace PhinixClient
             }
 
             // Available items
-            drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
+            if (!filteredAvailableItems.Any())
+            {
+                // Draw a placeholder when nothing is present
+                Widgets.DrawMenuSection(availableItemsRect);
+                Widgets.NoneLabelCenteredVertically(availableItemsRect, ("Phinix_trade_noItemsAvailable" + (availableItems.Any() ? "WithSearch" : "")).Translate());
+            }
+            else
+            {
+                drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
+            }
         }
 
         /// <summary>
