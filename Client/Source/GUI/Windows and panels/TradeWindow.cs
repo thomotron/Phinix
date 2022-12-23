@@ -345,7 +345,7 @@ namespace PhinixClient
             float ROW_HEIGHT = ICON_WIDTH;
             float BUTTON_WIDTH = 40f;
             float QUANTITY_FIELD_WIDTH = 70f;
-            float AVAILABLE_COUNT_WIDTH = 50f;
+            float AVAILABLE_COUNT_WIDTH = 70f;
             float RIGHT_PADDING = 5f;
 
             // Set up the content rect and start scrolling
@@ -413,7 +413,7 @@ namespace PhinixClient
                     // Available count
                     SaveTextFormat();
                     Text.Anchor = TextAnchor.MiddleLeft;
-                    Widgets.Label(availableCountRect, $"/ {stack.Count.ToStringSI()}");
+                    Widgets.Label(availableCountRect, $"/ {stack.Count}");
                     RestoreTextFormat();
                 }
                 else
