@@ -66,6 +66,16 @@ namespace PhinixClient
         /// All items that can be added to the trade.
         /// </summary>
         private List<StackedThings> availableItems = new List<StackedThings>();
+        /// <summary>
+        /// Items that can be added to the trade filtered by <see cref="searchText"/>.
+        /// </summary>
+        private List<StackedThings> filteredAvailableItems = new List<StackedThings>();
+        /// <summary>
+        /// Text to filter items that can be added to the trade.
+        /// </summary>
+        /// <seealso cref="availableItems"/>
+        /// <seealso cref="filteredAvailableItems"/>
+        private string searchText = string.Empty;
 
         /// <summary>
         /// Creates a new <see cref="TradeWindow"/> for the given trade ID.
@@ -110,6 +120,7 @@ namespace PhinixClient
 
             // Group all items and cache them for later
             availableItems = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
+            filteredAvailableItems = availableItems;
 
             // Pre-fill offer caches as well
             ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
@@ -159,7 +170,9 @@ namespace PhinixClient
             Rect updateButtonRect = new Rect(centreColumnRect.xMin, resetButtonRect.yMin - (TRADE_BUTTON_HEIGHT + DEFAULT_SPACING), centreColumnRect.width, TRADE_BUTTON_HEIGHT);
             Rect tradeArrowsRect = centreColumnRect.TopPartPixels(centreColumnRect.height - (cancelButtonRect.yMax - updateButtonRect.yMin) - DEFAULT_SPACING);
 
-            Rect availableItemsRect = new Rect(inRect.xMin, offerHalfRect.yMax + DEFAULT_SPACING, inRect.width, inRect.yMax - offerHalfRect.yMax - DEFAULT_SPACING);
+            Rect searchFieldRect = new Rect(inRect.xMax - SEARCH_TEXT_FIELD_WIDTH, offerHalfRect.yMax + DEFAULT_SPACING, SEARCH_TEXT_FIELD_WIDTH, SORT_HEIGHT);
+            Rect searchLabelRect = searchFieldRect.TranslatedBy(-(SEARCH_TEXT_FIELD_WIDTH + DEFAULT_SPACING));
+            Rect availableItemsRect = new Rect(inRect.xMin, searchFieldRect.yMax + DEFAULT_SPACING, inRect.width, inRect.yMax - searchFieldRect.yMax - DEFAULT_SPACING);
 
             // Save the current text settings
             GameFont previousFont = Text.Font;
@@ -240,8 +253,23 @@ namespace PhinixClient
             // Restore GUI colour
             UnityEngine.GUI.color = previousColour;
 
+            // Search label
+            GUIUtils.SaveTextFormat();
+            Text.Anchor = TextAnchor.MiddleRight;
+            Widgets.Label(searchLabelRect, "Phinix_trade_searchLabel".Translate());
+            GUIUtils.RestoreTextFormat();
+
+            // Search field
+            string oldSearchText = searchText;
+            searchText = Widgets.TextField(searchFieldRect, searchText);
+            if (searchText != oldSearchText)
+            {
+                // Repopulate filtered item list with the new search if necessary
+                filteredAvailableItems = availableItems.Where(stack => stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
+            }
+
             // Available items
-            drawItemStackList(availableItemsRect, availableItems, ref availableItemsScrollPos, true);
+            drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
         }
 
         /// <summary>
