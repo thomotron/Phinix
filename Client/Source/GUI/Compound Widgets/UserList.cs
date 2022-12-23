@@ -71,6 +71,16 @@ namespace PhinixClient.GUI
         private readonly object userListsLock = new object();
 
         /// <summary>
+        /// Collection of pre-calculated heights for each user. Used to wrap long usernames with a cached result for
+        /// better performance.
+        /// </summary>
+        private readonly Dictionary<ImmutableUser, (float Normal, float Scrollbar)> userRectHeights = new Dictionary<ImmutableUser, (float Normal, float Scrollbar)>();
+        /// <summary>
+        /// Total height of all users. Derived from <see cref="userRectHeights"/>.
+        /// </summary>
+        private (float Normal, float Scrollbar) userRectHeightsSum = (0f, 0f);
+
+        /// <summary>
         /// Search text to filter <see cref="filteredOnlineUsers"/> and <see cref="filteredBlockedUsers"/> by.
         /// </summary>
         private string searchText = "";
@@ -103,35 +113,58 @@ namespace PhinixClient.GUI
         /// <param name="inRect">Container to draw within</param>
         public void Draw(Rect inRect)
         {
-            // Update the online users list if it's been changed
-            if (onlineUsersChanged)
+            if (onlineUsersChanged || blockedUsersChanged)
             {
-                // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
-                if (Monitor.TryEnter(userListsLock))
+                // Update the online users list if it's been changed
+                if (onlineUsersChanged)
                 {
-                    // Repopulate the list content with users matching the search text
-                    filteredOnlineUsers.Clear();
-                    filteredOnlineUsers.AddRange(onlineUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
+                    // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
+                    if (Monitor.TryEnter(userListsLock))
+                    {
+                        // Repopulate the list content with users matching the search text
+                        filteredOnlineUsers.Clear();
+                        filteredOnlineUsers.AddRange(onlineUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
 
-                    // Unset the changed flag and release the lock
-                    onlineUsersChanged = false;
-                    Monitor.Exit(userListsLock);
+                        // Unset the changed flag and release the lock
+                        onlineUsersChanged = false;
+                        Monitor.Exit(userListsLock);
+                    }
                 }
-            }
 
-            // Update the blocked users list if it's been changed
-            if (blockedUsersChanged)
-            {
-                // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
-                if (Monitor.TryEnter(userListsLock))
+                // Update the blocked users list if it's been changed
+                if (blockedUsersChanged)
                 {
-                    // Repopulate the list content with users matching the search text
-                    filteredBlockedUsers.Clear();
-                    filteredBlockedUsers.AddRange(blockedUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
+                    // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
+                    if (Monitor.TryEnter(userListsLock))
+                    {
+                        // Repopulate the list content with users matching the search text
+                        filteredBlockedUsers.Clear();
+                        filteredBlockedUsers.AddRange(blockedUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
 
-                    // Unset the changed flag and release the lock
-                    blockedUsersChanged = false;
-                    Monitor.Exit(userListsLock);
+                        // Unset the changed flag and release the lock
+                        blockedUsersChanged = false;
+                        Monitor.Exit(userListsLock);
+                    }
+                }
+
+                // Recalculate user heights
+                userRectHeights.Clear();
+                userRectHeightsSum = (0f, 0f);
+                foreach (ImmutableUser user in filteredOnlineUsers)
+                {
+                    float normalHeight = Text.CalcHeight(formatDisplayName(user.DisplayName, false), inRect.width) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    float heightWithScrollbar = Text.CalcHeight(formatDisplayName(user.DisplayName, false), inRect.width - SCROLLBAR_WIDTH) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    userRectHeights.Add(user, (normalHeight, heightWithScrollbar));
+                    userRectHeightsSum.Normal += normalHeight;
+                    userRectHeightsSum.Scrollbar += heightWithScrollbar;
+                }
+                foreach (ImmutableUser user in filteredBlockedUsers)
+                {
+                    float normalHeight = Text.CalcHeight(formatDisplayName(user.DisplayName, true), inRect.width) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    float heightWithScrollbar = Text.CalcHeight(formatDisplayName(user.DisplayName, true), inRect.width - SCROLLBAR_WIDTH) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    userRectHeights.Add(user, (normalHeight, heightWithScrollbar));
+                    userRectHeightsSum.Normal += normalHeight;
+                    userRectHeightsSum.Scrollbar += heightWithScrollbar;
                 }
             }
 
@@ -140,11 +173,13 @@ namespace PhinixClient.GUI
                 x: inRect.xMin,
                 y: inRect.yMin,
                 width: inRect.width,
-                height: filteredBlockedUsers.Any()
-                    ? BLOCKED_SPACER_HEIGHT + ((filteredOnlineUsers.Count + filteredBlockedUsers.Count) * USER_BUTTON_HEIGHT)
-                    : filteredOnlineUsers.Count * USER_BUTTON_HEIGHT
+                height: filteredBlockedUsers.Any() ? BLOCKED_SPACER_HEIGHT + userRectHeightsSum.Normal : userRectHeightsSum.Normal
             );
-            if (contentRect.height > inRect.height) contentRect.width = inRect.width - SCROLLBAR_WIDTH;
+            if (contentRect.height > inRect.height)
+            {
+                contentRect.width = inRect.width - SCROLLBAR_WIDTH;
+                contentRect.height = filteredBlockedUsers.Any() ? BLOCKED_SPACER_HEIGHT + userRectHeightsSum.Scrollbar : userRectHeightsSum.Scrollbar;
+            }
 
             // Start scrolling
             Widgets.BeginScrollView(inRect, ref scrollPos, contentRect);
@@ -155,8 +190,9 @@ namespace PhinixClient.GUI
             // Normal users
             foreach (ImmutableUser user in filteredOnlineUsers)
             {
-                drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, USER_BUTTON_HEIGHT), user, false);
-                currentY += USER_BUTTON_HEIGHT;
+                float height = contentRect.height > inRect.height ? userRectHeights[user].Scrollbar : userRectHeights[user].Normal;
+                drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, false);
+                currentY += height;
             }
 
             // Blocked users
@@ -178,8 +214,9 @@ namespace PhinixClient.GUI
                 // ...then the blocked users
                 foreach (ImmutableUser user in filteredBlockedUsers)
                 {
-                    drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, USER_BUTTON_HEIGHT), user, true);
-                    currentY += USER_BUTTON_HEIGHT;
+                    float height = contentRect.height > inRect.height ? userRectHeights[user].Scrollbar : userRectHeights[user].Normal;
+                    drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, true);
+                    currentY += height;
                 }
             }
 
@@ -253,15 +290,12 @@ namespace PhinixClient.GUI
         /// <param name="blocked">Whether the user is blocked</param>
         private void drawUser(Rect inRect, ImmutableUser user, bool blocked = false)
         {
-            string formattedDisplayName = Client.Instance.ShowNameFormatting ? user.DisplayName : TextHelper.StripRichText(user.DisplayName);
+            string formattedDisplayName = formatDisplayName(user.DisplayName, blocked);
 
             if (blocked)
             {
                 // Draw a highlighted background
                 Widgets.DrawRectFast(inRect, blockedBackgroundColour);
-
-                // Strip display name formatting and grey it out
-                formattedDisplayName = TextHelper.StripRichText(formattedDisplayName).Colorize(blockedNameColour);
             }
 
             // Get a padded area to draw the text in
@@ -306,6 +340,25 @@ namespace PhinixClient.GUI
 
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        /// <summary>
+        /// Formats <paramref name="displayName"/> according to the user's settings.
+        /// </summary>
+        /// <param name="displayName">Name to be formatted</param>
+        /// <param name="blocked">Whether the user is blocked</param>
+        /// <returns>Formatted name</returns>
+        private string formatDisplayName(string displayName, bool blocked)
+        {
+            if (blocked)
+            {
+                // Strip display name formatting and grey it out
+                return TextHelper.StripRichText(displayName).Colorize(blockedNameColour);
+            }
+            else
+            {
+                return Client.Instance.ShowNameFormatting ? displayName : TextHelper.StripRichText(displayName);
+            }
         }
     }
 }
