@@ -82,9 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockedUsersChangedEventArgs.cs" />
-    <Compile Include="ExposableList.cs" />
     <Compile Include="GUI\GUIUtils.cs" />
-    <Compile Include="TradeReservedItems.cs" />
     <Compile Include="UIChatMessage.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="GUI\Basic Widgets\BlankWidget.cs" />

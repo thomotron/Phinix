@@ -411,26 +411,6 @@ namespace Trading
         }
 
         /// <summary>
-        /// Appends the given items to the given trade and sends an update to the server.
-        /// </summary>
-        /// <param name="tradeId">Trade ID</param>
-        /// <param name="items">Items to append to offer</param>
-        /// <param name="token">Unique request token</param>
-        /// <exception cref="ArgumentException">Trade does not exist</exception>
-        /// <exception cref="InvalidOperationException">Trade does not have a valid other party</exception>
-        public void AddItems(string tradeId, IEnumerable<ProtoThing> items, string token = "")
-        {
-            // Build a list of all items on offer and append the new items
-            List<ProtoThing> allItems = new List<ProtoThing>();
-            RaiseLogEntry(new LogEventArgs("Adding items to trade " + tradeId + "\n" +
-                                           "Active trades: " + string.Join(", ", activeTrades.Keys.Select(k => k.ToString()))));
-            allItems.AddRange(getTrade(tradeId).ItemsOnOffer);
-            allItems.AddRange(items);
-
-            UpdateItems(tradeId, allItems, token);
-        }
-
-        /// <summary>
         /// Sends a status update for the given trade to the server.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>

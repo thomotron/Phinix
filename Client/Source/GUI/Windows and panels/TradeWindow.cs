@@ -78,6 +78,15 @@ namespace PhinixClient
         private string searchText = string.Empty;
 
         /// <summary>
+        /// Collection of items that have been sent to the server and are waiting to be acknowledged organised by token.
+        /// </summary>
+        private Dictionary<string, PendingThings> pendingItemStacks = new Dictionary<string, PendingThings>();
+        /// <summary>
+        /// Lock object protecting <see cref="pendingItemStacks"/>.
+        /// </summary>
+        private object pendingItemStacksLock = new object();
+
+        /// <summary>
         /// Creates a new <see cref="TradeWindow"/> for the given trade ID.
         /// </summary>
         /// <param name="trade">Trade details</param>
@@ -220,24 +229,68 @@ namespace PhinixClient
             // Update button
             if (Widgets.ButtonText(updateButtonRect, "Phinix_trade_updateButton".Translate()))
             {
-                // Split off all selected items
-                IEnumerable<Thing> things = availableItems.SelectMany(stack => stack.PopSelected());
+                try
+                {
+                    // Create a new token
+                    string token = Guid.NewGuid().ToString();
+                    List <Thing> selectedThings = new List<Thing>();
 
-                // Send them up to the server
-                Client.Instance.AddTradeItems(trade.TradeId, things, Guid.NewGuid().ToString());
+                    // Collect all our things and despawn them all
+                    foreach (StackedThings itemStack in availableItems)
+                    {
+                        // Pop the selected things from the stack
+                        Thing[] things = itemStack.PopSelected().ToArray();
+
+                        // Despawn each spawned thing
+                        foreach (Thing thing in things)
+                        {
+                            if (thing.Spawned) thing.DeSpawn();
+                        }
+
+                        // Add them to the selected things list
+                        selectedThings.AddRange(things);
+                    }
+
+                    lock (pendingItemStacksLock)
+                    {
+                        // Add the items to the pending dictionary
+                        pendingItemStacks.Add(token, new PendingThings
+                        {
+                            Things = selectedThings.ToArray(),
+                            Timestamp = DateTime.UtcNow
+                        });
+                    }
+                    Log.Message("Added items to pending");
+
+
+                    // Get the items we have on offer and splice in the selected items
+                    IEnumerable<ProtoThing> actualOffer = trade.ItemsOnOffer.Concat(selectedThings.Select(TradingThingConverter.ConvertThingFromVerse));
+
+                    // Send an update to the server
+                    Client.Instance.UpdateTradeItems(trade.TradeId, actualOffer, token);
+                    Log.Message("Sent update");
+                }
+                catch (Exception e)
+                {
+                    Log.Message(e.ToString());
+                }
             }
 
             // Reset button
             if (Widgets.ButtonText(resetButtonRect, "Phinix_trade_resetButton".Translate()))
             {
-                // Reset the trade
-                Client.Instance.ResetTradeItems(trade.TradeId);
+                // Convert and drop our items in pods
+                Client.Instance.DropPods(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProto));
+
 
                 // Reset all selected counts to zero
                 foreach (StackedThings stack in availableItems)
                 {
                     stack.Selected = 0;
                 }
+
+                // Update trade items
+                Client.Instance.UpdateTradeItems(trade.TradeId, Array.Empty<ProtoThing>());
             }
 
             // Save GUI colour
@@ -303,6 +356,38 @@ namespace PhinixClient
             {
                 updatedTrade = args.Trade;
                 tradeUpdated = true;
+            }
+
+            // Check if there is a token we can process
+            if (!string.IsNullOrEmpty(args.Token))
+            {
+                lock (pendingItemStacksLock)
+                {
+                    // Check if there are pending item stacks for this token
+                    if (pendingItemStacks.ContainsKey(args.Token))
+                    {
+                        if (args.Success)
+                        {
+                            // Destroy and remove the pending items, they have been received by the server
+                            foreach (Thing thing in pendingItemStacks[args.Token].Things)
+                            {
+                                if (!thing.Destroyed) thing.Destroy();
+                            }
+
+                            pendingItemStacks.Remove(args.Token);
+                        }
+                        else
+                        {
+                            // Server failed to update the trade
+                            // Get all of the selected things from the item stacks and respawn them
+                            IEnumerable<Thing> things = pendingItemStacks[args.Token].Things;
+                            foreach (Thing thing in things)
+                            {
+                                GenSpawn.Spawn(thing, thing.Position, thing.Map, thing.Rotation, WipeMode.VanishOrMoveAside);
+                            }
+                        }
+                    }
+                }
             }
         }
 
