@@ -22,7 +22,7 @@ namespace PhinixClient
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
         private const float OFFER_WINDOW_ROW_HEIGHT = 30f;
-        private const float OFFER_WINDOW_CHECKBOX_HEIGHT = 40f;
+        private const float OFFER_WINDOW_CHECKBOX_HEIGHT = 25f;
 
         private const float SORT_HEIGHT = 30f;
 
@@ -207,7 +207,8 @@ namespace PhinixClient
                 itemStacks: ourOfferCache,
                 scrollPos: ref ourOfferScrollPos,
                 accepted: ref ourOfferAccepted,
-                acceptedLabel: ("Phinix_trade_confirmOurTradeCheckbox" + (trade.Accepted ? "Checked" : "Unchecked")).Translate()
+                acceptedLabel: ("Phinix_trade_confirmOurTradeCheckbox" + (trade.Accepted ? "Checked" : "Unchecked")).Translate(),
+                checkboxInteractive: true
             );
             if (ourOfferAccepted != trade.Accepted)
             {
@@ -223,7 +224,8 @@ namespace PhinixClient
                 itemStacks: theirOfferCache,
                 scrollPos: ref theirOfferScrollPos,
                 accepted: ref theirOfferAccepted,
-                acceptedLabel: ("Phinix_trade_confirmTheirTradeCheckbox" + (trade.OtherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName))
+                acceptedLabel: ("Phinix_trade_confirmTheirTradeCheckbox" + (trade.OtherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName)),
+                checkboxInteractive: false
             );
 
             // Update button
@@ -400,27 +402,44 @@ namespace PhinixClient
         /// <param name="scrollPos">Item list scroll position</param>
         /// <param name="accepted">Offer accepted state</param>
         /// <param name="acceptedLabel">Accepted state label</param>
-        private void drawOffer(Rect inRect, string title, List<StackedThings> itemStacks, ref Vector2 scrollPos, ref bool accepted, string acceptedLabel)
+        /// <param name="checkboxInteractive">Whether to draw the accepted state checkbox in a more distinctly interactive style</param>
+        private void drawOffer(Rect inRect, string title, List<StackedThings> itemStacks, ref Vector2 scrollPos, ref bool accepted, string acceptedLabel, bool checkboxInteractive)
         {
             Rect titleRect = inRect.TopPartPixels(OFFER_WINDOW_TITLE_HEIGHT);
-            Rect acceptedStateRect = inRect.BottomPartPixels(OFFER_WINDOW_CHECKBOX_HEIGHT);
+            Rect acceptedStateRect = new Rect(inRect.xMin, inRect.yMax - OFFER_WINDOW_CHECKBOX_HEIGHT - 2.5f, inRect.width, OFFER_WINDOW_CHECKBOX_HEIGHT);
+            Rect acceptedStateLabelRect = acceptedStateRect.LeftPartPixels(acceptedStateRect.width - OFFER_WINDOW_CHECKBOX_HEIGHT);
+            Rect checkboxRect = new Rect(acceptedStateRect.xMax - OFFER_WINDOW_CHECKBOX_HEIGHT, acceptedStateRect.yMin + ((acceptedStateRect.height - OFFER_WINDOW_CHECKBOX_HEIGHT) / 2), OFFER_WINDOW_CHECKBOX_HEIGHT, OFFER_WINDOW_CHECKBOX_HEIGHT);
             Rect itemListRect = new Rect(inRect.xMin, titleRect.yMax, inRect.width, acceptedStateRect.yMin - DEFAULT_SPACING - titleRect.yMax);
 
             // Save the current text settings
-            GameFont previousFont = Text.Font;
-            TextAnchor previousAnchor = Text.Anchor;
+            SaveTextFormat();
 
             // Title
             Text.Font = GameFont.Small;
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.LabelFit(titleRect, title);
 
-            // Accepted state
-            Widgets.CheckboxLabeled(acceptedStateRect, acceptedLabel, ref accepted);
-
             // Restore the text settings
-            Text.Font = previousFont;
-            Text.Anchor = previousAnchor;
+            RestoreTextFormat();
+
+            // Accepted state
+            // Show a work tab-style checkbox texture if interactive
+            if (checkboxInteractive)
+            {
+                SaveTextFormat();
+                Text.Anchor = TextAnchor.MiddleLeft;
+
+                Widgets.LabelFit(acceptedStateLabelRect, acceptedLabel);
+                Widgets.DrawOptionBackground(checkboxRect, false);
+                if (accepted) UnityEngine.GUI.DrawTexture(checkboxRect, WidgetsWork.WorkBoxCheckTex);
+                if (Widgets.ButtonInvisible(acceptedStateRect, true)) accepted = !accepted;
+
+                RestoreTextFormat();
+            }
+            else
+            {
+                Widgets.CheckboxLabeled(acceptedStateRect, acceptedLabel, ref accepted);
+            }
 
             // Items on offer
             drawItemStackList(itemListRect, itemStacks, ref scrollPos, false);
