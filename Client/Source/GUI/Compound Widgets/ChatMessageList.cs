@@ -65,6 +65,7 @@ namespace PhinixClient.GUI
             Client.Instance.OnBlockedUsersChanged += BlockedUsersChangedEventHandler;
             Client.Instance.OnChatSync += (s, e) => ReplaceWithBuffer();
             Client.Instance.OnDisconnect += (s, e) => Clear();
+            Client.Instance.OnChatMessageLimitChanged += (s, e) => ReplaceWithBuffer();
 
             // Populate the message list before first draw
             ReplaceWithBuffer();
@@ -190,7 +191,7 @@ namespace PhinixClient.GUI
                 Clear();
 
                 // Append the buffered messages to the list
-                messages.AddRange(Client.Instance.GetChatMessages());
+                messages.AddRange(Client.Instance.GetChatMessages().TakeLast(Client.Instance.ChatMessageLimit));
                 messagesChanged = true;
             }
         }
