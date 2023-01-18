@@ -200,7 +200,6 @@ namespace PhinixClient
             Widgets.DrawTextureFitted(tradeArrowsRect, tradeArrows, 1f);
 
             // Our offer
-            // TODO: Maybe render our own checkbox with loading state based on trade update token???
             bool ourOfferAccepted = trade.Accepted;
             drawOffer(inRect: ourOfferRect,
                 title: "Phinix_trade_ourOfferLabel".Translate(),
@@ -213,7 +212,6 @@ namespace PhinixClient
             if (ourOfferAccepted != trade.Accepted)
             {
                 // Update our accepted state
-                // TODO: Keep a handle on a single thread for this to prevent excessive calls
                 new Thread(() => Client.Instance.UpdateTradeStatus(trade.TradeId, accepted: ourOfferAccepted)).Start();
             }
 
