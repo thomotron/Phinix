@@ -426,6 +426,12 @@ namespace Trading
                     // Return the other party's items to them and check them off the pending notification list
                     sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
                     completedTrade.PendingNotification.Remove(otherPartyUuid);
+
+                    // Prune the trade if there aren't any parties awaiting notification
+                    if (completedTrade.PendingNotification.Count == 0)
+                    {
+                        completedTrades.Remove(trade.TradeId);
+                    }
                 }
                 else
                 {
@@ -475,6 +481,12 @@ namespace Trading
                         // Give the sender's items to the other party and check them off the pending notification list
                         sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, false, packet.Uuid, items);
                         completedTrade.PendingNotification.Remove(otherPartyUuid);
+
+                        // Prune the trade if there aren't any parties awaiting notification
+                        if (completedTrade.PendingNotification.Count == 0)
+                        {
+                            completedTrades.Remove(trade.TradeId);
+                        }
                     }
                     else
                     {

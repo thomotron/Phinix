@@ -141,6 +141,26 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Returns an array of all (optionally only logged in) users.
+        /// </summary>
+        /// <param name="loggedIn">Only return logged in users</param>
+        /// <returns>All users</returns>
+        public ImmutableUser[] GetUsers(bool loggedIn = false)
+        {
+            lock (userStoreLock)
+            {
+                if (loggedIn)
+                {
+                    return userStore.Users.Values.Where(u => u.LoggedIn).Select(u => new ImmutableUser(u.Uuid, u.DisplayName, u.LoggedIn, u.AcceptingTrades)).ToArray();
+                }
+                else
+                {
+                    return userStore.Users.Values.Select(u => new ImmutableUser(u.Uuid, u.DisplayName, u.LoggedIn, u.AcceptingTrades)).ToArray();
+                }
+            }
+        }
+
+        /// <summary>
         /// Updates the currently-logged in user locally and on the server.
         /// Returns whether the update was successful locally and was sent to server.
         /// </summary>

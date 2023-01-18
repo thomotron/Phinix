@@ -155,7 +155,7 @@ namespace Trading
         /// Returns a collection of all active trade IDs.
         /// </summary>
         /// <returns>Collection of all active trade IDs</returns>
-        public string[] GetTrades()
+        public string[] GetTradeIds()
         {
             lock (activeTradesLock)
             {
@@ -164,19 +164,76 @@ namespace Trading
         }
 
         /// <summary>
-        /// Returns a collection of all active trade IDs except those with another party.
+        /// Returns a collection of all active trade IDs except those with the given parties.
         /// </summary>
         /// <param name="otherPartyUuids">Other parties' UUIDs to ignore trades from</param>
-        /// <returns>Collection of all active trade IDs except those with another party</returns>
-        public string[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids)
+        /// <returns>Collection of all active trade IDs except those with the given parties</returns>
+        public string[] GetTradeIdsExceptWith(IEnumerable<string> otherPartyUuids)
         {
-            lock (activeTrades)
+            lock (activeTradesLock)
             {
                 return activeTrades.Values
                                    .Where(trade => trade.PartyUuids.All(uuid => !otherPartyUuids.Contains(uuid))) // Ignore the other parties
                                    .Select(trade => trade.TradeId) // Extract the trade ID
                                    .ToArray();
             }
+        }
+
+        /// <summary>
+        /// Returns a collection of of all active trades.
+        /// </summary>
+        /// <returns>Collection of all active trades</returns>
+        public ImmutableTrade[] GetTrades()
+        {
+            List<ImmutableTrade> trades = new List<ImmutableTrade>();
+            lock (activeTradesLock)
+            {
+                foreach (string tradeId in activeTrades.Keys)
+                {
+                    ImmutableTrade trade;
+                    try
+                    {
+                        trade = getTrade(tradeId);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+
+                    trades.Add(trade);
+                }
+            }
+
+            return trades.ToArray();
+        }
+
+        /// <summary>
+        /// Returns a collection of all active trades except those with the given parties.
+        /// </summary>
+        /// <param name="otherPartyUuids">Other parties' UUIDs to ignore trades from</param>
+        /// <returns>Collection of all active trades except those with the given parties</returns>
+        public ImmutableTrade[] GetTradesExceptWith(IEnumerable<string> otherPartyUuids)
+        {
+            List<ImmutableTrade> trades = new List<ImmutableTrade>();
+            lock (activeTradesLock)
+            {
+                foreach (string tradeId in activeTrades.Keys.Except(otherPartyUuids))
+                {
+                    ImmutableTrade trade;
+                    try
+                    {
+                        trade = getTrade(tradeId);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+
+                    trades.Add(trade);
+                }
+            }
+
+            return trades.ToArray();
         }
 
         /// <summary>
@@ -305,6 +362,29 @@ namespace Trading
         }
 
         /// <summary>
+        /// Tries to get the trade details for the given trade ID.
+        /// Returns whether the trade was retrieved successfully.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <param name="immutableTrade">Trade details output</param>
+        /// <returns>Whether the trade was received successfully</returns>
+        public bool TryGetTrade(string tradeId, out ImmutableTrade immutableTrade)
+        {
+            try
+            {
+                immutableTrade = getTrade(tradeId);
+            }
+            catch (Exception e)
+            {
+                immutableTrade = new ImmutableTrade();
+                RaiseLogEntry(new LogEventArgs($"Failed to get/convert trade {tradeId}: {e.Message}", LogLevel.ERROR));
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Sends an item update for the given trade with the given items to the server.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
@@ -354,6 +434,55 @@ namespace Trading
 
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Gets a trade's details.
+        /// </summary>
+        /// <param name="tradeId">Trade ID</param>
+        /// <returns>Trade details</returns>
+        /// <exception cref="ArgumentException">Trade does not exist</exception>
+        /// <exception cref="InvalidOperationException">Trade does not have a valid other party</exception>
+        private ImmutableTrade getTrade(string tradeId)
+        {
+            lock (activeTradesLock)
+            {
+                // Make sure the trade exists
+                if (!activeTrades.ContainsKey(tradeId))
+                {
+                    throw new ArgumentException("Trade does not exist", nameof(tradeId));
+                }
+
+                Trade trade = activeTrades[tradeId];
+
+                // Ensure we can get the other party's UUID
+                if (!trade.TryGetOtherParty(userManager.Uuid, out string otherPartyUuid))
+                {
+                    throw new InvalidOperationException("Trade does not have a valid other party");
+                }
+
+                // Try to pull out the other party from userManager, creating a barebones one if that fails
+                if (!userManager.TryGetUser(otherPartyUuid, out ImmutableUser otherParty))
+                {
+                    otherParty = new ImmutableUser(otherPartyUuid);
+                }
+
+                // Get both parties' items on offer, if any
+                if (!trade.ItemsOnOffer.TryGetValue(userManager.Uuid, out ProtoThing[] ourItemsOnOffer))
+                    ourItemsOnOffer = Array.Empty<ProtoThing>();
+                if (!trade.ItemsOnOffer.TryGetValue(otherPartyUuid, out ProtoThing[] otherPartyItemsOnOffer))
+                    otherPartyItemsOnOffer = Array.Empty<ProtoThing>();
+
+                // Build an immutable copy of the trade and return successfully
+                return new ImmutableTrade(
+                    tradeId: tradeId,
+                    otherParty: otherParty,
+                    ourItemsOnOffer: ourItemsOnOffer,
+                    otherPartyItemsOnOffer: otherPartyItemsOnOffer,
+                    accepted: trade.AcceptedParties.Contains(userManager.Uuid),
+                    otherPartyAccepted: trade.AcceptedParties.Contains(otherPartyUuid)
+                );
+            }
         }
 
         /// <summary>

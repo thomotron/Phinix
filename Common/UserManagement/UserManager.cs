@@ -251,5 +251,30 @@ namespace UserManagement
 
             return true;
         }
+
+        /// <summary>
+        /// Attempts to get the state of a user with the given UUID.
+        /// Returns whether the user was retrieved successfully.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="user">Output user state</param>
+        /// <returns>User was retrieved successfully</returns>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public bool TryGetUser(string uuid, out ImmutableUser user)
+        {
+            // Initialise user to something arbitrary
+            user = new ImmutableUser();
+
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                user = new ImmutableUser(uuid, userStore.Users[uuid].DisplayName, userStore.Users[uuid].LoggedIn, userStore.Users[uuid].AcceptingTrades);
+            }
+
+            return true;
+        }
     }
 }

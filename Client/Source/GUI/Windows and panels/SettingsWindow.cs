@@ -42,6 +42,7 @@ namespace PhinixClient
             doCloseX = true;
             doCloseButton = false;
             doWindowBackground = true;
+            draggable = true;
 
             // Create a flex container to hold our settings
             contents = new VerticalFlexContainer(DEFAULT_SPACING);

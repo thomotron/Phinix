@@ -1,5 +1,5 @@
-﻿using PhinixClient.GUI;
-using PhinixClient.GUI.Compound_Widgets;
+﻿using System.Collections.Generic;
+using PhinixClient.GUI;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -24,11 +24,7 @@ namespace PhinixClient
         private const float USER_SEARCH_HEIGHT = 30f;
         private const float USER_SEARCH_WIDTH = 210f;
 
-        private const float USER_LIST_WIDTH = 210f;
-
-        private const float USER_HEIGHT = 30f;
-
-        private const float RIGHT_COLUMN_CONTAINER_WIDTH = 210f;
+        private const float RIGHT_COLUMN_WIDTH = 210f;
 
         // TODO: Add some kind of option to resize chat tab. Maybe a draggable corner?
         public override Vector2 InitialSize => new Vector2(1000f, 680f);
@@ -36,48 +32,18 @@ namespace PhinixClient
         private static string message = "";
         private static string userSearch = "";
 
-        private static Vector2 activeTradesScroll = new Vector2(0, 0);
+        private readonly List<TabRecord> tabList = new List<TabRecord>();
+        private int activeTab = 0;
 
-        private static ChatMessageList chatMessageList;
-        private UserList userList;
-        private TextFieldWidget messageBox;
-
-        private static TabsContainer contents;
+        private readonly ChatMessageList chatMessageList = new ChatMessageList();
+        private readonly UserList userList = new UserList();
+        private readonly TradeList tradeList = new TradeList();
 
         public ServerTab()
         {
-            // Generate the chat and user list
-            chatMessageList = new ChatMessageList();
-            userList = new UserList(() => userSearch);
-            messageBox = new TextFieldWidget(
-                initialText: message,
-                onChange: newMessage => message = newMessage
-            );
-
-            // Create a tab container to hold the chat and trade list
-            contents = new TabsContainer();
-
-            // Create a flex container to hold the chat tab content
-            HorizontalFlexContainer chatRow = new HorizontalFlexContainer(DEFAULT_SPACING);
-
-            // Chat container
-            chatRow.Add(
-                GenerateChat()
-            );
-
-            // Right column (settings and user list) container
-            chatRow.Add(
-                new Container(
-                    GenerateRightColumn(),
-                    width: RIGHT_COLUMN_CONTAINER_WIDTH
-                )
-            );
-
-            // Add the chat row as a tab
-            contents.AddTab("Phinix_tabs_chat".Translate(), chatRow);
-
-            // Add the active trades tab
-            contents.AddTab("Phinix_tabs_trades".Translate(), new TradeList());
+            // Populate the tab list
+            tabList.Add(new TabRecord("Phinix_tabs_chat".Translate(), () => activeTab = 0, () => activeTab == 0));
+            tabList.Add(new TabRecord("Phinix_tabs_trades".Translate(), () => activeTab = 1, () => activeTab == 1));
         }
 
         ///<inheritdoc/>
@@ -95,103 +61,109 @@ namespace PhinixClient
         /// <param name="inRect">Container to draw within</param>
         public override void DoWindowContents(Rect inRect)
         {
-            // Draw the tabs
-            contents.Draw(inRect);
+            Rect usableRect = inRect.BottomPartPixels(inRect.height - TabDrawer.TabHeight);
+            Rect rightColumnRect = usableRect.RightPartPixels(RIGHT_COLUMN_WIDTH);
+            Rect chatRect = usableRect.LeftPartPixels(usableRect.width - (rightColumnRect.width + DEFAULT_SPACING));
+
+            // Tabs
+            TabDrawer.DrawTabs(usableRect, tabList, 1);
+
+            switch (activeTab)
+            {
+                case 0: // Chat tab
+                    GenerateChat(chatRect); // Chat
+                    GenerateRightColumn(rightColumnRect); // Right column
+                    break;
+                case 1: // Trades tab
+                    GenerateTrades(usableRect); // Trades
+                    break;
+                default:
+                    Widgets.DrawMenuSection(usableRect); // Placeholder
+                    break;
+            }
         }
 
         /// <summary>
-        /// Generates a <see cref="VerticalFlexContainer"/> containing a settings button, user search box, and a user list.
+        /// Draws a column containing a settings button, user search box, and a user list.
         /// </summary>
-        private VerticalFlexContainer GenerateRightColumn()
+        /// <param name="inRect">Container to draw within</param>
+        private void GenerateRightColumn(Rect inRect)
         {
-            // Create a flex container to hold the column elements
-            VerticalFlexContainer column = new VerticalFlexContainer();
+            Rect settingsButtonRect = inRect.TopPartPixels(SETTINGS_BUTTON_HEIGHT);
+            Rect userSearchRect = new Rect(inRect.x, settingsButtonRect.yMax + DEFAULT_SPACING, inRect.width, USER_SEARCH_HEIGHT);
+            Rect userListRect = new Rect(inRect.x, userSearchRect.yMax + DEFAULT_SPACING, inRect.width, inRect.yMax - (userSearchRect.yMax + DEFAULT_SPACING));
 
             // Settings button
-            column.Add(
-                new Container(
-                    new ButtonWidget(
-                        label: "Phinix_chat_settingsButton".Translate(),
-                        clickAction: () => Find.WindowStack.Add(new SettingsWindow())
-                    ),
-                    height: SETTINGS_BUTTON_HEIGHT
-                )
-            );
+            if (Widgets.ButtonText(settingsButtonRect, "Phinix_chat_settingsButton".Translate()))
+            {
+                Find.WindowStack.Add(new SettingsWindow());
+            }
 
             // User search box
-            column.Add(
-                new Container(
-                    new TextFieldWidget(
-                        initialText: userSearch,
-                        onChange: (newText) =>
-                        {
-                            userSearch = newText;
-                            userList.Update();
-                        }
-                    ),
-                    height: USER_SEARCH_HEIGHT
-                )
-            );
+            string userSearchOld = userSearch;
+            userSearch = Widgets.TextField(userSearchRect, userSearch);
+            if (!userSearch.Equals(userSearchOld))
+            {
+                userList.Filter(userSearch);
+            }
 
             // User list
-            column.Add(
-                new ConditionalContainer(
-                    childIfTrue: userList,
-                    childIfFalse: new PlaceholderWidget(),
-                    condition: () => Instance.Online
-                )
-            );
-
-            // Return the generated column
-            return column;
+            if (Instance.Online)
+            {
+                userList.Draw(userListRect);
+            }
+            else
+            {
+                Widgets.DrawMenuSection(userListRect);
+            }
         }
 
         /// <summary>
-        /// Generates a <see cref="VerticalFlexContainer"/> the chat window consisting of a message list, message entry box, and a send button.
+        /// Generates the chat window consisting of a message list, message entry box, and a send button.
         /// </summary>
-        private VerticalFlexContainer GenerateChat()
+        /// <param name="inRect">Container to draw within</param>
+        private void GenerateChat(Rect inRect)
         {
-            // Create a flex container to hold the column elements
-            VerticalFlexContainer column = new VerticalFlexContainer(DEFAULT_SPACING);
+            Rect sendButtonRect = inRect.BottomPartPixels(CHAT_TEXTBOX_HEIGHT).RightPartPixels(CHAT_SEND_BUTTON_WIDTH);
+            Rect messageBoxRect = inRect.BottomPartPixels(CHAT_TEXTBOX_HEIGHT).LeftPartPixels(inRect.width - (CHAT_SEND_BUTTON_WIDTH + DEFAULT_SPACING));
+            Rect chatRect = inRect.TopPartPixels(inRect.height - (messageBoxRect.height + DEFAULT_SPACING));
 
             // Chat message area
-            column.Add(
-                new ConditionalContainer(
-                    childIfTrue: chatMessageList,
-                    childIfFalse: new PlaceholderWidget(
-                        text: "Phinix_chat_pleaseLogInPlaceholder".Translate()
-                    ),
-                    condition: () => Instance.Online
-                )
-            );
-
-            // Create a flex container to hold the text field and button
-            HorizontalFlexContainer messageEntryFlexContainer = new HorizontalFlexContainer();
+            if (Instance.Online)
+            {
+                chatMessageList.Draw(chatRect);
+            }
+            else
+            {
+                Widgets.DrawMenuSection(chatRect);
+                Widgets.NoneLabelCenteredVertically(chatRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
+            }
 
             // Message entry field
-            messageEntryFlexContainer.Add(messageBox);
+            message = Widgets.TextField(messageBoxRect, message);
 
             // Send button
-            messageEntryFlexContainer.Add(
-                new WidthContainer(
-                    new ButtonWidget(
-                        label: "Phinix_chat_sendButton".Translate(),
-                        clickAction: sendChatMessage
-                    ),
-                    width: CHAT_SEND_BUTTON_WIDTH
-                )
-            );
+            if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate()))
+            {
+                sendChatMessage();
+            }
+        }
 
-            // Add the flex container to the column
-            column.Add(
-                new HeightContainer(
-                    messageEntryFlexContainer,
-                    height: CHAT_TEXTBOX_HEIGHT
-                )
-            );
-
-            // Return the generated column
-            return column;
+        /// <summary>
+        /// Generates the active trade list.
+        /// </summary>
+        /// <param name="inRect">Container to draw within</param>
+        private void GenerateTrades(Rect inRect)
+        {
+            if (Instance.Online)
+            {
+                tradeList.Draw(inRect);
+            }
+            else
+            {
+                Widgets.DrawMenuSection(inRect);
+                Widgets.NoneLabelCenteredVertically(inRect, "Phinix_chat_pleaseLogInPlaceholder".Translate());
+            }
         }
 
         /// <summary>
@@ -203,10 +175,9 @@ namespace PhinixClient
             {
                 // TODO: Make chat message 'sent' callback to remove message, preventing removal of lengthy messages for nothing and causing frustration
                 Instance.SendMessage(message);
+                chatMessageList.ScrollToBottom();
 
                 message = "";
-                messageBox.Text = "";
-                chatMessageList.ScrollToBottom();
             }
         }
     }
