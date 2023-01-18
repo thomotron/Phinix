@@ -66,7 +66,6 @@ namespace PhinixClient
         public event EventHandler OnChatSync;
 
         private ClientTrading trading;
-        public void CreateTrade(string uuid) => trading.CreateTrade(uuid);
         public void CancelTrade(string tradeId) => trading.CancelTrade(tradeId);
         public string[] GetTradeIds() => trading.GetTradeIds();
         public string[] GetTradeIdsExceptWith(IEnumerable<string> otherPartyUuids) => trading.GetTradeIdsExceptWith(otherPartyUuids);
@@ -237,6 +236,26 @@ namespace PhinixClient
         /// </summary>
         private object soundQueueLock = new object();
 
+        /// <summary>
+        /// Collection of UUIDs that we have created trades with and are waiting for a confirmation from the server for.
+        /// Used to display the trade immediately once it's confirmed.
+        /// </summary>
+        private HashSet<string> waitingForTradeCreationWith = new HashSet<string>();
+        /// <summary>
+        /// Lock object protecting <see cref="waitingForTradeCreationWith"/>
+        /// </summary>
+        private object waitingForTradeCreationWithLock = new object();
+
+        /// <summary>
+        /// Collection of trades queued to be opened on the next frame.
+        /// Necessary because textures and other assets can only be gotten on the main Unity thread.
+        /// </summary>
+        private List<ImmutableTrade> tradeWindowQueue = new List<ImmutableTrade>();
+        /// <summary>
+        /// Lock object protecting <see cref="tradeWindowQueue"/>.
+        /// </summary>
+        private object tradeWindowQueueLock = new object();
+
         /// <inheritdoc />
         /// <summary>
         /// Called by HugsLib shortly after the mod is loaded.
@@ -347,6 +366,13 @@ namespace PhinixClient
             trading.OnLogEntry += ILoggableHandler;
 
             #region Module Event Handlers
+            // Subscribe to connection events
+            netClient.OnDisconnect += (sender, args) =>
+            {
+                // Clear the waiting list for opening trades
+                lock (waitingForTradeCreationWithLock) waitingForTradeCreationWith.Clear();
+            };
+
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
@@ -420,6 +446,27 @@ namespace PhinixClient
                 // Don't display anything if the other party is blocked and we want to hide their trades
                 if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
 
+                // Check if we are waiting for this trade to be created. If so, show the trade window immediately.
+                lock (waitingForTradeCreationWithLock)
+                {
+                    // Check for and remove the other party's UUID in one go
+                    if (waitingForTradeCreationWith.Remove(args.OtherPartyUuid))
+                    {
+                        if (trading.TryGetTrade(args.TradeId, out ImmutableTrade trade))
+                        {
+                            // Show the trade window and skip any further processing. No need to generate a letter if
+                            // we already have the window up.
+                            lock (tradeWindowQueueLock) tradeWindowQueue.Add(trade);
+                            return;
+                        }
+                        else
+                        {
+                            // Log the failure and revert to the letter instead
+                            Log(new LogEventArgs($"Failed to get newly created trade {args.TradeId} when attempting to open immediately", LogLevel.WARNING));
+                        }
+                    }
+                }
+
                 // Try get the other party's display name
                 if (Instance.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
                 {
@@ -445,6 +492,9 @@ namespace PhinixClient
                 Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
 
                 Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+
+                // Remove the other party from the waiting list
+                lock (waitingForTradeCreationWithLock) waitingForTradeCreationWith.Remove(args.OtherPartyUuid);
             };
             trading.OnTradeCompleted += (sender, args) =>
             {
@@ -605,6 +655,16 @@ namespace PhinixClient
                     sound.PlayOneShotOnCamera();
                 }
             }
+
+            lock (tradeWindowQueueLock)
+            {
+                // Check if we have any trade windows to open
+                while (tradeWindowQueue.Any())
+                {
+                    // Dequeue and open the window
+                    Find.WindowStack.Add(new TradeWindow(tradeWindowQueue.Pop()));
+                }
+            }
         }
 
         /// <summary>
@@ -677,6 +737,27 @@ namespace PhinixClient
             message = new UIChatMessage(userManager, clientChatMessage);
 
             return true;
+        }
+
+        /// <summary>
+        /// Creates a trade with the given user.
+        /// </summary>
+        /// <param name="uuid">Other party's UUID</param>
+        /// <exception cref="ArgumentException">UUID cannot be null or empty</exception>
+        public void CreateTrade(string uuid)
+        {
+            if (string.IsNullOrEmpty(uuid))
+            {
+                throw new ArgumentException("UUID cannot be null or empty", nameof(uuid));
+            }
+
+            // Add the other party to the waiting list so we can open it immediately
+            lock (waitingForTradeCreationWithLock)
+            {
+                waitingForTradeCreationWith.Add(uuid);
+            }
+
+            trading.CreateTrade(uuid);
         }
 
         /// <summary>
