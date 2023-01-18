@@ -326,7 +326,7 @@ namespace PhinixClient.GUI
             if (Mouse.IsOver(inRect))
             {
                 // Draw a highlighted background
-                Widgets.DrawRectFast(inRect, backgroundHighlightColour);
+                Widgets.DrawHighlight(inRect);
             }
 
             // Draw the message
