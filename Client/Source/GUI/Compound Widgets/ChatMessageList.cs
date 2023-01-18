@@ -262,7 +262,7 @@ namespace PhinixClient.GUI
                 Rect messageRect = new Rect(
                     x: inRect.x,
                     y: currentY,
-                    width: inRect.width,
+                    width: inRect.width - SCROLLBAR_WIDTH,
                     height: Text.CalcHeight(formattedMessage, inRect.width)
                 );
 
