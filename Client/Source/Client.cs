@@ -201,6 +201,17 @@ namespace PhinixClient
             }
         }
 
+        private SettingHandle<bool> forceMessageFieldFocus;
+        public bool ForceMessageFieldFocus
+        {
+            get => forceMessageFieldFocus.Value;
+            set
+            {
+                forceMessageFieldFocus.Value = value;
+                HugsLibController.SettingsManager.SaveChanges();
+            }
+        }
+
         private SettingHandle<bool> allItemsTradable;
         public bool AllItemsTradable
         {
@@ -329,6 +340,12 @@ namespace PhinixClient
                 title: "Phinix_hugslibsettings_chatMessageLimit".Translate(),
                 description: null,
                 defaultValue: 40
+            );
+            forceMessageFieldFocus = Settings.GetHandle(
+                settingName: "forceMessageFieldFocus",
+                title: "Phinix_hugsLibSettings_forceMessageFieldFocus".Translate(),
+                description: "Phinix_hugsLibSettings_forceMessageFieldFocus_description".Translate(),
+                defaultValue: true
             );
             allItemsTradable = Settings.GetHandle(
                 settingName: "allItemsTradable",

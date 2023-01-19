@@ -39,6 +39,8 @@ namespace PhinixClient
         private readonly UserList userList = new UserList();
         private readonly TradeList tradeList = new TradeList();
 
+        private bool chatMessageFieldFocused = false;
+
         public ServerTab()
         {
             // Populate the tab list
@@ -140,7 +142,18 @@ namespace PhinixClient
             }
 
             // Message entry field
+            UnityEngine.GUI.SetNextControlName("Phinix_chatMessageField");
             message = Widgets.TextField(messageBoxRect, message);
+
+            if (Client.Instance.ForceMessageFieldFocus)
+            {
+                // Aggressively hold the focus on the chat field until clicked out of
+                if (Input.GetMouseButtonDown(0))
+                {
+                    chatMessageFieldFocused = Mouse.IsOver(messageBoxRect);
+                }
+                if (chatMessageFieldFocused) UnityEngine.GUI.FocusControl("Phinix_chatMessageField");
+            }
 
             // Send button
             if (Widgets.ButtonText(sendButtonRect, "Phinix_chat_sendButton".Translate()))
