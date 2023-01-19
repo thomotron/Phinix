@@ -20,7 +20,7 @@ jobs:
       run: |
         echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
         echo "##[set-output name=pwd;]$(pwd)"
-        curl ${{ secrets.RIMWORLD_DLLS_PREFIX }}-{{ matrix.version }}.zip -o rimworld-dlls.zip
+        curl ${{ secrets.RIMWORLD_DLLS_PREFIX }}-${{ matrix.version }}.zip -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
         curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
       
@@ -28,7 +28,7 @@ jobs:
       run: mono nuget.exe restore ./Phinix.sln
       
     - name: Build Phinix
-      run: "msbuild /property:Configuration=\"Release {{ matrix.version }}\" ./Phinix.sln"
+      run: "msbuild /property:Configuration=\"Release ${{ matrix.version }}\" ./Phinix.sln"
     
     - name: Prepare artifacts
       id: artifacts
