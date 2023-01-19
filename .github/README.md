@@ -73,6 +73,7 @@ The client project depends on several assemblies from RimWorld's data directory 
 - `UnityEngine.dll`
 - `UnityEngine.CoreModule.dll`
 - `UnityEngine.IMGUIModule.dll`
+- `UnityEngine.InputLegacyModule.dll`
 - `UnityEngine.TextRenderingModule.dll`
 
 All of these need to be present in the `GameDlls/` directory to build the client project. Either copy them in directly or make a symbolic link.
