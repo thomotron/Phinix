@@ -4,7 +4,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <GameVersion>$(Configuration.Split(" ")[1])</GameVersion>
     <ProjectGuid>{EE778185-FDC1-401F-80ED-5FCA6166DD4D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -13,6 +12,19 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
+  <Choose>
+    <!-- Travis doesn't need a game version so substitute one in -->
+    <When Condition="!$(Configuration.Contains(' ')) Or '$(Configuration)' == 'TravisCI' ">
+      <PropertyGroup>
+        <GameVersion>Any</GameVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <GameVersion>$(Configuration.Split(" ")[1])</GameVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
   <Choose>
     <When Condition="Exists('$(SolutionDir)\GameDlls\$(GameVersion)')">
       <PropertyGroup>
