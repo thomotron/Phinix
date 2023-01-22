@@ -23,6 +23,11 @@ jobs:
         curl ${{ secrets.RIMWORLD_DLLS_PREFIX }}-${{ matrix.version }}.zip -o rimworld-dlls.zip
         unzip rimworld-dlls.zip -d GameDlls
         curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
+
+    - name: Remove the world's most incessant and frustrating project-level package
+      id: kill-sourcelink
+      run: |
+        sed -i -Es "s/<PackageReference.+?Include=\"Microsoft.SourceLink.GitHub\".+>//g" Dependencies/protobuf/csharp/src/Google.Protobuf/Google.Protobuf.csproj
       
     - name: Restore project via Nuget
       run: mono nuget.exe restore ./Phinix.sln
