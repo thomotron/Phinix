@@ -1,13 +1,31 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Trading;
+using Utils;
 using Verse;
 
 namespace PhinixClient
 {
     public static class TradingThingConverter
     {
+        // Extension method signatures for the three conversions below
+        /// <inheritdoc cref="ConvertThingFromVerse"/>
+        public static ProtoThing ConvertToProto(this Verse.Thing verseThing) => ConvertThingFromVerse(verseThing);
+        /// <inheritdoc cref="ConvertThingFromProto"/>
+        public static Verse.Thing ConvertToVerse(this ProtoThing protoThing) => ConvertThingFromProto(protoThing);
+        /// <inheritdoc cref="ConvertThingFromProtoOrUnknown"/>
+        public static Verse.Thing ConvertToVerseOrUnknown(this ProtoThing protoThing) => ConvertThingFromProtoOrUnknown(protoThing);
+
+        // Collection extension method signatures similar to the above
+        /// <inheritdoc cref="ConvertThingFromVerse"/>
+        public static IEnumerable<ProtoThing> ConvertToProto(this IEnumerable<Verse.Thing> verseThings) => verseThings.Select(ConvertThingFromVerse);
+        /// <inheritdoc cref="ConvertThingFromProto"/>
+        public static IEnumerable<Verse.Thing> ConvertToVerse(this IEnumerable<ProtoThing> protoThings) => protoThings.Select(ConvertThingFromProto);
+        /// <inheritdoc cref="ConvertThingFromProtoOrUnknown"/>
+        public static IEnumerable<Verse.Thing> ConvertToVerseOrUnknown(this IEnumerable<ProtoThing> protoThings) => protoThings.Select(ConvertThingFromProtoOrUnknown);
+
         /// <summary>
         /// Converts a <c>Verse.Thing</c> into a <c>Trading.Thing</c>.
         /// Used for preparing a <c>Verse.Thing</c> for transport.
@@ -135,6 +153,79 @@ namespace PhinixClient
                 // Return the constructed Verse.Thing
                 return verseThing;
             }
+        }
+
+        /// <summary>
+        /// Compares two <see cref="Thing"/>s for equality in a trading context. This method only checks the necessary
+        /// fields which are handled as part of the trade serialisation/deserialisation process, and cannot guarantee
+        /// that two <see cref="Thing"/>s are equal in a game context.
+        /// </summary>
+        /// <param name="thing">First thing to compare</param>
+        /// <param name="other">Second thing to compare</param>
+        /// <returns></returns>
+        public static bool CompareThings(Verse.Thing thing, Verse.Thing other)
+        {
+            if (thing == null && other == null)
+            {
+                Client.Instance.Log(new LogEventArgs("Both things are null", LogLevel.DEBUG));
+                return true;
+            }
+            if (thing == null || other == null)
+            {
+                if (thing == null)
+                {
+                    Client.Instance.Log(new LogEventArgs($"Left thing is null, right thing is {other.Label}", LogLevel.DEBUG));
+                }
+                else
+                {
+                    Client.Instance.Log(new LogEventArgs($"Right thing is null, left thing is {thing.Label}", LogLevel.DEBUG));
+                }
+                return false;
+            }
+
+            if (thing.def.defName != other.def.defName)
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on def name", LogLevel.DEBUG));
+                return false;
+            }
+
+            if (thing.HitPoints != other.HitPoints)
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on hitpoints", LogLevel.DEBUG));
+                return false;
+            }
+
+            if (thing.Stuff?.defName != other.Stuff?.defName)
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on stuff def", LogLevel.DEBUG));
+                return false;
+            }
+
+            if (!thing.TryGetQuality(out QualityCategory q1))
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on quality category, can't get category of {thing.Label}", LogLevel.DEBUG));
+                return false;
+            }
+            if (!other.TryGetQuality(out QualityCategory q2))
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on quality category, can't get category of {other.Label}", LogLevel.DEBUG));
+                return false;
+            }
+
+            if (q1 != q2)
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on quality category", LogLevel.DEBUG));
+                return false;
+            }
+
+            if (!CompareThings(thing.GetInnerIfMinified(), other.GetInnerIfMinified()))
+            {
+                Client.Instance.Log(new LogEventArgs($"{thing.Label} doesn't match {other.Label} on inner minified thing", LogLevel.DEBUG));
+                return false;
+            }
+
+            Client.Instance.Log(new LogEventArgs($"{thing.Label} matches {other.Label}", LogLevel.DEBUG));
+            return true;
         }
 
         /// <summary>

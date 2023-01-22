@@ -12,6 +12,11 @@ namespace PhinixClient
 
         public int Count => Things.Sum(thing => thing.stackCount);
 
+        public string Label => Things.First().LabelCapNoCount;
+        public ThingDef ThingDef => Things.First()?.def;
+        public ThingDef StuffDef => Things.First()?.Stuff;
+        public ThingStyleDef StyleDef => Things.First()?.StyleDef;
+
         public int Selected = 0;
 
         public StackedThings(IEnumerable<Thing> things)
