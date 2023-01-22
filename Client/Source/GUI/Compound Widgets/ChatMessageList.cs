@@ -62,7 +62,7 @@ namespace PhinixClient.GUI
             // TODO: Unsubscribe from the event when being destroyed (not that it will be until Phinix shuts down)
             Client.Instance.OnChatMessageReceived += ChatMessageReceivedEventHandler;
             Client.Instance.OnUserDisplayNameChanged += UserChangedEventHandler;
-            Client.Instance.OnBlockedUsersChanged += BlockedUsersChangedEventHandler;
+            Client.Instance.OnBlockedUsersChanged += (s, e) => ReplaceWithBuffer();
             Client.Instance.OnChatSync += (s, e) => ReplaceWithBuffer();
             Client.Instance.OnDisconnect += (s, e) => Clear();
             Client.Instance.OnChatMessageLimitChanged += (s, e) => ReplaceWithBuffer();
@@ -190,8 +190,8 @@ namespace PhinixClient.GUI
             {
                 Clear();
 
-                // Append the buffered messages to the list
-                messages.AddRange(Client.Instance.GetChatMessages().TakeLast(Client.Instance.ChatMessageLimit));
+                // Append the buffered messages to the list, filtering out any blocked users and trimming it to the limit
+                messages.AddRange(Client.Instance.GetChatMessages().Where(m => !Client.Instance.BlockedUsers.Contains(m.SenderUuid)).TakeLast(Client.Instance.ChatMessageLimit));
                 messagesChanged = true;
             }
         }
@@ -217,26 +217,6 @@ namespace PhinixClient.GUI
                 foreach (UIChatMessage chatMessage in messages.Where(m => m.User.Uuid == args.Uuid))
                 {
                     chatMessage.User = new ImmutableUser(chatMessage.User.Uuid, args.NewDisplayName, chatMessage.User.LoggedIn, chatMessage.User.AcceptingTrades);
-                }
-
-                messagesChanged = true;
-            }
-        }
-
-        private void BlockedUsersChangedEventHandler(object sender, BlockedUsersChangedEventArgs args)
-        {
-            lock (messagesLock)
-            {
-                if (args.IsBlocked)
-                {
-                    // Remove all their messages from the list
-                    messages.RemoveAll(m => m.User.Uuid == args.Uuid);
-                }
-                else
-                {
-                    // Pull in the chat buffer to repopulate messages from the now-unblocked user
-                    // TODO: Make this less expensive
-                    ReplaceWithBuffer();
                 }
 
                 messagesChanged = true;
