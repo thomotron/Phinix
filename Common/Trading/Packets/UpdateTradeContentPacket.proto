@@ -2,8 +2,9 @@ syntax = "proto3";
 package Trading;
 
 import "Packets/Thing.proto";
+import "Packets/Pawn.proto";
 
-message UpdateTradeItemsPacket
+message UpdateTradeContentPacket
 {
     // Session ID of the sender
     string SessionId = 1;
@@ -20,6 +21,12 @@ message UpdateTradeItemsPacket
     // Items the sender is offering
     repeated ProtoThing Items = 4;
     
+    // Pawns the sender is offering
+    repeated ProtoPawn Pawns = 7;
+    
     // Items the other party is offering
     repeated ProtoThing OtherPartyItems = 5;
+    
+    // Pawns the other party is offering
+    repeated ProtoPawn OtherPartyPawns = 8;
 };

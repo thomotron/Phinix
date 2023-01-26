@@ -2,6 +2,7 @@ syntax = "proto3";
 package Trading;
 
 import "Packets/Thing.proto";
+import "Packets/Pawn.proto";
 
 message TradeProto
 {
@@ -11,7 +12,11 @@ message TradeProto
 
     repeated ProtoThing Items = 3;
 
+    repeated ProtoPawn Pawns = 7;
+
     repeated ProtoThing OtherPartyItems = 4;
+
+    repeated ProtoPawn OtherPartyPawns = 8;
 
     bool Accepted = 5;
 

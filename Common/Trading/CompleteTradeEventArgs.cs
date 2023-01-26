@@ -9,7 +9,7 @@ namespace Trading
         /// Trade ID.
         /// </summary>
         public string TradeId;
-        
+
         /// <summary>
         /// Whether the trade finished successfully.
         /// </summary>
@@ -25,12 +25,18 @@ namespace Trading
         /// </summary>
         public IEnumerable<ProtoThing> Items;
 
-        public CompleteTradeEventArgs(string tradeId, bool success, string otherPartyUuid, IEnumerable<ProtoThing> items)
+        /// <summary>
+        /// Pawns received.
+        /// </summary>
+        public IEnumerable<ProtoPawn> Pawns;
+
+        public CompleteTradeEventArgs(string tradeId, bool success, string otherPartyUuid, IEnumerable<ProtoThing> items, IEnumerable<ProtoPawn> pawns)
         {
             this.TradeId = tradeId;
             this.Success = success;
             this.OtherPartyUuid = otherPartyUuid;
             this.Items = items;
+            this.Pawns = pawns;
         }
     }
 }

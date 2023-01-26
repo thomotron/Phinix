@@ -156,6 +156,62 @@ namespace PhinixClient
         }
 
         /// <summary>
+        /// Converts a <see cref="Pawn"/> into a <see cref="ProtoPawn"/>.
+        /// Used for preparing a <see cref="Pawn"/> for transport.
+        /// </summary>
+        /// <param name="pawn">Pawn to convert</param>
+        /// <returns>Converted pawn</returns>
+        public static ProtoPawn ConvertPawnFromVerse(Pawn pawn)
+        {
+            ProtoPawn protoPawn = new ProtoPawn()
+            {
+                DefName = pawn.kindDef.defName,
+                Gender = (Trading.Gender) pawn.gender,
+                Name = pawn.Name.ToStringFull,
+                BiologicalTicks = pawn.ageTracker.AgeBiologicalTicks,
+                ChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks
+            };
+
+            return protoPawn;
+        }
+
+        /// <summary>
+        /// Converts a <see cref="ProtoPawn"/> into a <see cref="Pawn"/>.
+        /// Used for safely unloading a <see cref="ProtoPawn"/> after transport.
+        /// </summary>
+        /// <param name="protoPawn">Pawn to convert</param>
+        /// <returns>Converted pawn</returns>
+        /// <exception cref="InvalidOperationException">Could not find a single def that matches ProtoPawn def name</exception>
+        public static Pawn ConvertPawnFromProto(ProtoPawn protoPawn)
+        {
+            // Try to get the ThingDef for protoThing
+            PawnKindDef pawnDef;
+            try
+            {
+                pawnDef = DefDatabase<PawnKindDef>.AllDefs.Single(def => def.defName == protoPawn.DefName);
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new InvalidOperationException(string.Format("Could not find a single def that matches def name '{0}'", protoPawn.DefName), e);
+            }
+
+            // Make our base pawn and give it protoPawn's def and associated details
+            Pawn pawn = new Pawn
+            {
+                kindDef = pawnDef,
+                Name = new NameSingle(protoPawn.Name),
+                gender = (Verse.Gender) protoPawn.Gender
+            };
+            pawn.ageTracker = new Pawn_AgeTracker(pawn)
+            {
+                AgeBiologicalTicks = protoPawn.BiologicalTicks,
+                AgeChronologicalTicks = protoPawn.ChronologicalTicks
+            };
+
+            return pawn;
+        }
+
+        /// <summary>
         /// Compares two <see cref="Thing"/>s for equality in a trading context. This method only checks the necessary
         /// fields which are handled as part of the trade serialisation/deserialisation process, and cannot guarantee
         /// that two <see cref="Thing"/>s are equal in a game context.

@@ -23,6 +23,11 @@ namespace Trading
         public readonly Dictionary<string, ProtoThing[]> ItemsOnOffer;
 
         /// <summary>
+        /// Pawns currently on offer organised by the owner's UUID.
+        /// </summary>
+        public readonly Dictionary<string, ProtoPawn[]> PawnsOnOffer;
+
+        /// <summary>
         /// List containing UUIDs of each party that has accepted the trade.
         /// </summary>
         public readonly List<string> AcceptedParties;
@@ -37,6 +42,7 @@ namespace Trading
 
             this.TradeId = Guid.NewGuid().ToString();
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
+            this.PawnsOnOffer = new Dictionary<string, ProtoPawn[]>();
             this.AcceptedParties = new List<string>();
         }
 
@@ -51,6 +57,7 @@ namespace Trading
             this.PartyUuids = partyUuids.ToArray();
 
             this.ItemsOnOffer = new Dictionary<string, ProtoThing[]>();
+            this.PawnsOnOffer = new Dictionary<string, ProtoPawn[]>();
             this.AcceptedParties = new List<string>();
         }
 
@@ -145,6 +152,87 @@ namespace Trading
             {
                 // Having no items is not a failure condition so set items to a blank array
                 items = new ProtoThing[0];
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to set the pawns on offer for the given party and resets the accepted status of all parties.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="pawns">Pawns to set as on offer</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TrySetPawnsOnOffer(string partyUuid, IEnumerable<ProtoPawn> pawns)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // Set the party's pawns on offer
+            if (!PawnsOnOffer.ContainsKey(partyUuid))
+            {
+                PawnsOnOffer.Add(partyUuid, pawns.ToArray());
+            }
+            else
+            {
+                PawnsOnOffer[partyUuid] = pawns.ToArray();
+            }
+
+            // Reset all parties' accepted states
+            AcceptedParties.Clear();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to clear the pawns on offer for the given party and resets the accepted status of all parties.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TryClearPawnsOnOffer(string partyUuid)
+        {
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // Set the party's pawns on offer
+            if (PawnsOnOffer.ContainsKey(partyUuid))
+            {
+                PawnsOnOffer.Remove(partyUuid);
+            }
+
+            // Reset all parties' accepted states
+            AcceptedParties.Clear();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to get the pawns on offer for the given party.
+        /// Returns whether the operation completed successfully.
+        /// </summary>
+        /// <param name="partyUuid">Party's UUID</param>
+        /// <param name="pawns">Pawns array output</param>
+        /// <returns>Whether the operation completed successfully</returns>
+        public bool TryGetPawnsOnOffer(string partyUuid, out ProtoPawn[] pawns)
+        {
+            // Set pawns to something arbitrary
+            pawns = null;
+
+            // Check if the party UUID is present in this trade
+            if (!PartyUuids.Contains(partyUuid)) return false;
+
+            // Check if the party has pawns on offer
+            if (PawnsOnOffer.ContainsKey(partyUuid))
+            {
+                // Set pawns to the party's pawns on offer
+                pawns = PawnsOnOffer[partyUuid];
+            }
+            else
+            {
+                // Having no pawns is not a failure condition so set pawns to a blank array
+                pawns = Array.Empty<ProtoPawn>();
             }
 
             return true;

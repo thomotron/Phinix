@@ -396,7 +396,7 @@ namespace Trading
             if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
 
             // Create and pack an UpdateTradeItems packet
-            UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
+            UpdateTradeContentPacket packet = new UpdateTradeContentPacket
             {
                 SessionId = authenticator.SessionId,
                 Uuid = userManager.Uuid,
@@ -467,18 +467,24 @@ namespace Trading
                     otherParty = new ImmutableUser(otherPartyUuid);
                 }
 
-                // Get both parties' items on offer, if any
+                // Get both parties' items and pawns on offer, if any
                 if (!trade.ItemsOnOffer.TryGetValue(userManager.Uuid, out ProtoThing[] ourItemsOnOffer))
                     ourItemsOnOffer = Array.Empty<ProtoThing>();
                 if (!trade.ItemsOnOffer.TryGetValue(otherPartyUuid, out ProtoThing[] otherPartyItemsOnOffer))
                     otherPartyItemsOnOffer = Array.Empty<ProtoThing>();
+                if (!trade.PawnsOnOffer.TryGetValue(userManager.Uuid, out ProtoPawn[] ourPawnsOnOffer))
+                    ourPawnsOnOffer = Array.Empty<ProtoPawn>();
+                if (!trade.PawnsOnOffer.TryGetValue(otherPartyUuid, out ProtoPawn[] otherPartyPawnsOnOffer))
+                    otherPartyPawnsOnOffer = Array.Empty<ProtoPawn>();
 
                 // Build an immutable copy of the trade and return successfully
                 return new ImmutableTrade(
                     tradeId: tradeId,
                     otherParty: otherParty,
                     ourItemsOnOffer: ourItemsOnOffer,
+                    ourPawnsOnOffer: ourPawnsOnOffer,
                     otherPartyItemsOnOffer: otherPartyItemsOnOffer,
+                    otherPartyPawnsOnOffer: otherPartyPawnsOnOffer,
                     accepted: trade.AcceptedParties.Contains(userManager.Uuid),
                     otherPartyAccepted: trade.AcceptedParties.Contains(otherPartyUuid)
                 );
@@ -507,13 +513,13 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs("Got a CompleteTradePacket", LogLevel.DEBUG));
                     completeTradePacketHandler(connectionId, message.Unpack<CompleteTradePacket>());
                     break;
-                case "UpdateTradeItemsPacket":
-                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsPacket", LogLevel.DEBUG));
-                    updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
+                case "UpdateTradeContentPacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeContentPacket", LogLevel.DEBUG));
+                    UpdateTradeContentPacketHandler(connectionId, message.Unpack<UpdateTradeContentPacket>());
                     break;
-                case "UpdateTradeItemsResponsePacket":
-                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeItemsResponsePacket", LogLevel.DEBUG));
-                    updateTradeItemsResponsePacketHandler(connectionId, message.Unpack<UpdateTradeItemsResponsePacket>());
+                case "UpdateTradeContentResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got an UpdateTradeContentResponsePacket", LogLevel.DEBUG));
+                    UpdateTradeContentResponsePacketHandler(connectionId, message.Unpack<UpdateTradeContentResponsePacket>());
                     break;
                 case "UpdateTradeStatusPacket":
                     RaiseLogEntry(new LogEventArgs("Got an UpdateTradeStatusPacket", LogLevel.DEBUG));
@@ -567,11 +573,11 @@ namespace Trading
             // Raise finalised trade events
             if (packet.Success)
             {
-                OnTradeCompleted?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, true, packet.OtherPartyUuid, packet.Items));
+                OnTradeCompleted?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, true, packet.OtherPartyUuid, packet.Items, packet.Pawns));
             }
             else
             {
-                OnTradeCancelled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
+                OnTradeCancelled?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items, packet.Pawns));
             }
 
             lock (activeTradesLock)
@@ -582,11 +588,11 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
+        /// Handles incoming <see cref="UpdateTradeContentPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <see cref="UpdateTradeItemsPacket"/></param>
-        private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
+        /// <param name="packet">Incoming <see cref="UpdateTradeContentPacket"/></param>
+        private void UpdateTradeContentPacketHandler(string connectionId, UpdateTradeContentPacket packet)
         {
             lock (activeTradesLock)
             {
@@ -615,11 +621,11 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <see cref="UpdateTradeItemsResponsePacket"/>s.
+        /// Handles incoming <see cref="UpdateTradeContentResponsePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <see cref="UpdateTradeItemsResponsePacket"/></param>
-        private void updateTradeItemsResponsePacketHandler(string connectionId, UpdateTradeItemsResponsePacket packet)
+        /// <param name="packet">Incoming <see cref="UpdateTradeContentResponsePacket"/></param>
+        private void UpdateTradeContentResponsePacketHandler(string connectionId, UpdateTradeContentResponsePacket packet)
         {
             lock (activeTradesLock)
             {

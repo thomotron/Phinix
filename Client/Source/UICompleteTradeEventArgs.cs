@@ -13,17 +13,17 @@ namespace PhinixClient
         /// Trade details.
         /// </summary>
         public readonly ImmutableTrade Trade;
-        
+
         /// <inheritdoc cref="CompleteTradeEventArgs.TradeId"/>
         public new string TradeId => Trade.TradeId;
-        
+
         /// <inheritdoc cref="CompleteTradeEventArgs.OtherPartyUuid"/>
         public new string OtherPartyUuid => Trade.OtherPartyUuid;
 
         /// <inheritdoc cref="CompleteTradeEventArgs.Items"/>
         public new IEnumerable<ProtoThing> Items => Trade.OtherPartyItemsOnOffer;
-        
-        public UICompleteTradeEventArgs(ImmutableTrade trade, bool success) : base(trade.TradeId, success, trade.OtherPartyUuid, trade.OtherPartyItemsOnOffer)
+
+        public UICompleteTradeEventArgs(ImmutableTrade trade, bool success) : base(trade.TradeId, success, trade.OtherPartyUuid, trade.OtherPartyItemsOnOffer, trade.OtherPartyPawnsOnOffer)
         {
             this.Trade = trade;
         }
@@ -42,11 +42,13 @@ namespace PhinixClient
             {
                 otherParty = new ImmutableUser(args.OtherPartyUuid);
             }
-            
+
             ProtoThing[] ourItems = !args.Success ? args.Items.ToArray() : Array.Empty<ProtoThing>();
             ProtoThing[] theirItems = args.Success ? args.Items.ToArray() : Array.Empty<ProtoThing>();
+            ProtoPawn[] ourPawns = !args.Success ? args.Pawns.ToArray() : Array.Empty<ProtoPawn>();
+            ProtoPawn[] theirPawns = args.Success ? args.Pawns.ToArray() : Array.Empty<ProtoPawn>();
 
-            return new UICompleteTradeEventArgs(new ImmutableTrade(args.TradeId, otherParty, ourItems, theirItems, args.Success, args.Success), args.Success);
+            return new UICompleteTradeEventArgs(new ImmutableTrade(args.TradeId, otherParty, ourItems, ourPawns, theirItems, theirPawns, args.Success, args.Success), args.Success);
         }
     }
 }

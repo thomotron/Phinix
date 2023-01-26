@@ -2,9 +2,10 @@ syntax = "proto3";
 package Trading;
 
 import "Packets/Thing.proto";
+import "Packets/Pawn.proto";
 import "Packets/TradeFailureReason.proto";
 
-message UpdateTradeItemsResponsePacket
+message UpdateTradeContentResponsePacket
 {
     // ID of the trade this is for
     string TradeId = 1;
@@ -23,4 +24,7 @@ message UpdateTradeItemsResponsePacket
 
     // Items the sender is offering
     repeated ProtoThing Items = 6;
+    
+    // Pawns the sender is offering
+    repeated ProtoPawn Pawns = 7;
 };

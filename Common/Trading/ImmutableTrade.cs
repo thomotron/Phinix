@@ -14,7 +14,7 @@ namespace Trading
         /// This trade's unique ID.
         /// </summary>
         public string TradeId { get; }
-        
+
         /// <summary>
         /// The other party's user details.
         /// </summary>
@@ -36,9 +36,19 @@ namespace Trading
         public ProtoThing[] ItemsOnOffer { get; }
 
         /// <summary>
+        /// Our pawns on offer.
+        /// </summary>
+        public ProtoPawn[] PawnsOnOffer { get; }
+
+        /// <summary>
         /// The other party's items currently on offer.
         /// </summary>
         public ProtoThing[] OtherPartyItemsOnOffer { get; }
+
+        /// <summary>
+        /// The other party's pawns currently on offer.
+        /// </summary>
+        public ProtoPawn[] OtherPartyPawnsOnOffer { get; }
 
         /// <summary>
         /// Whether we have accepted the trade.
@@ -51,18 +61,20 @@ namespace Trading
         public bool OtherPartyAccepted { get; }
 
         /// <summary>
-        /// Creates a blank <see cref="ImmutableTrade"/> with the given trade ID and other party's details. 
+        /// Creates a blank <see cref="ImmutableTrade"/> with the given trade ID and other party's details.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="otherParty">Other party's user details</param>
-        public ImmutableTrade(string tradeId, ImmutableUser otherParty) : this(tradeId, otherParty, Array.Empty<ProtoThing>(), Array.Empty<ProtoThing>(), false, false) {}
+        public ImmutableTrade(string tradeId, ImmutableUser otherParty) : this(tradeId, otherParty, Array.Empty<ProtoThing>(), Array.Empty<ProtoPawn>(), Array.Empty<ProtoThing>(), Array.Empty<ProtoPawn>(), false, false) {}
 
-        public ImmutableTrade(string tradeId, ImmutableUser otherParty, IEnumerable<ProtoThing> ourItemsOnOffer, IEnumerable<ProtoThing> otherPartyItemsOnOffer, bool accepted, bool otherPartyAccepted)
+        public ImmutableTrade(string tradeId, ImmutableUser otherParty, IEnumerable<ProtoThing> ourItemsOnOffer, IEnumerable<ProtoPawn> ourPawnsOnOffer, IEnumerable<ProtoThing> otherPartyItemsOnOffer, IEnumerable<ProtoPawn> otherPartyPawnsOnOffer, bool accepted, bool otherPartyAccepted)
         {
             TradeId = tradeId;
             OtherParty = otherParty;
             ItemsOnOffer = ourItemsOnOffer.ToArray();
+            PawnsOnOffer = ourPawnsOnOffer.ToArray();
             OtherPartyItemsOnOffer = otherPartyItemsOnOffer.ToArray();
+            OtherPartyPawnsOnOffer = otherPartyPawnsOnOffer.ToArray();
             Accepted = accepted;
             OtherPartyAccepted = otherPartyAccepted;
         }
@@ -72,7 +84,9 @@ namespace Trading
             return TradeId == other.TradeId &&
                    OtherParty.Equals(other.OtherParty) &&
                    Equals(ItemsOnOffer, other.ItemsOnOffer) &&
+                   Equals(PawnsOnOffer, other.PawnsOnOffer) &&
                    Equals(OtherPartyItemsOnOffer, other.OtherPartyItemsOnOffer) &&
+                   Equals(OtherPartyPawnsOnOffer, other.OtherPartyPawnsOnOffer) &&
                    Accepted == other.Accepted &&
                    OtherPartyAccepted == other.OtherPartyAccepted;
         }
@@ -88,8 +102,10 @@ namespace Trading
             {
                 var hashCode = TradeId.GetHashCode();
                 hashCode = (hashCode * 397) ^ OtherParty.GetHashCode();
-                hashCode = (hashCode * 397) ^ ItemsOnOffer.GetHashCode();
-                hashCode = (hashCode * 397) ^ OtherPartyItemsOnOffer.GetHashCode();
+                hashCode = (hashCode * 397) ^ (ItemsOnOffer != null ? ItemsOnOffer.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (PawnsOnOffer != null ? PawnsOnOffer.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (OtherPartyItemsOnOffer != null ? OtherPartyItemsOnOffer.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (OtherPartyPawnsOnOffer != null ? OtherPartyPawnsOnOffer.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ Accepted.GetHashCode();
                 hashCode = (hashCode * 397) ^ OtherPartyAccepted.GetHashCode();
                 return hashCode;

@@ -159,9 +159,9 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a CreateTradePacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     createTradePacketHandler(connectionId, message.Unpack<CreateTradePacket>());
                     break;
-                case "UpdateTradeItemsPacket":
-                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeItemsPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
-                    updateTradeItemsPacketHandler(connectionId, message.Unpack<UpdateTradeItemsPacket>());
+                case "UpdateTradeContentPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeContentPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
+                    UpdateTradeContentPacketHandler(connectionId, message.Unpack<UpdateTradeContentPacket>());
                     break;
                 case "UpdateTradeStatusPacket":
                     RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeStatusPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
@@ -570,11 +570,11 @@ namespace Trading
         }
 
         /// <summary>
-        /// Handles incoming <see cref="UpdateTradeItemsPacket"/>s.
+        /// Handles incoming <see cref="UpdateTradeContentPacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
-        /// <param name="packet">Incoming <see cref="UpdateTradeItemsPacket"/></param>
-        private void updateTradeItemsPacketHandler(string connectionId, UpdateTradeItemsPacket packet)
+        /// <param name="packet">Incoming <see cref="UpdateTradeContentPacket"/></param>
+        private void UpdateTradeContentPacketHandler(string connectionId, UpdateTradeContentPacket packet)
         {
             // Ignore packets from non-authenticated and non-logged in users
             if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
@@ -586,7 +586,7 @@ namespace Trading
                 if (!activeTrades.ContainsKey(packet.TradeId))
                 {
                     // Send a failed response
-                    sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.TradeDoesNotExist, "The trade does not exist.");
+                    sendFailedUpdateTradeContentResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.TradeDoesNotExist, "The trade does not exist.");
 
                     // Stop here
                     return;
@@ -616,7 +616,7 @@ namespace Trading
                     if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
 
                     // Send a successful response to the sender
-                    sendSuccessfulUpdateTradeItemsResponsePacket(connectionId, trade.TradeId, packet.Token, packet.Items);
+                    sendSuccessfulUpdateTradeContentResponsePacket(connectionId, trade.TradeId, packet.Token, packet.Items);
 
                     // Check if the other party is logged in
                     if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
@@ -625,7 +625,7 @@ namespace Trading
                     if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
 
                     // Send an update to the other party
-                    sendUpdateTradeItemsPacket(otherPartyConnectionId, trade.TradeId, otherPartyItems, packet.Items);
+                    sendUpdateTradeContentPacket(otherPartyConnectionId, trade.TradeId, otherPartyItems, packet.Items);
                 }
                 else
                 {
@@ -633,28 +633,28 @@ namespace Trading
                     if (trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items))
                     {
                         // Send a failed response with their current items on offer
-                        sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, items, TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
+                        sendFailedUpdateTradeContentResponsePacket(connectionId, packet.TradeId, packet.Token, items, TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
                     }
                     else
                     {
                         // Send a failed response with no items (gotta be having a bad day to get this far)
-                        sendFailedUpdateTradeItemsResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
+                        sendFailedUpdateTradeContentResponsePacket(connectionId, packet.TradeId, packet.Token, new ProtoThing[0], TradeFailureReason.InternalServerError, "An error occurred on the server. Please try again.");
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Sends an <see cref="UpdateTradeItemsPacket"/> with the given items of both parties for the given trade.
+        /// Sends an <see cref="UpdateTradeContentPacket"/> with the given items of both parties for the given trade.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="items">Party's items</param>
         /// <param name="otherPartyItems">Other party's items</param>
-        private void sendUpdateTradeItemsPacket(string connectionId, string tradeId, IEnumerable<ProtoThing> items, IEnumerable<ProtoThing> otherPartyItems)
+        private void sendUpdateTradeContentPacket(string connectionId, string tradeId, IEnumerable<ProtoThing> items, IEnumerable<ProtoThing> otherPartyItems)
         {
             // Create and pack a response
-            UpdateTradeItemsPacket packet = new UpdateTradeItemsPacket
+            UpdateTradeContentPacket packet = new UpdateTradeContentPacket
             {
                 TradeId = tradeId,
                 Items = {items},
@@ -665,21 +665,21 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeContentPacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
         /// <summary>
-        /// Sends a successful <see cref="UpdateTradeItemsResponsePacket"/> with the given items of the sender for the given trade and token.
+        /// Sends a successful <see cref="UpdateTradeContentResponsePacket"/> with the given items of the sender for the given trade and token.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
         /// <param name="token">Token sent with the request</param>
         /// <param name="items">Sender's items</param>
-        private void sendSuccessfulUpdateTradeItemsResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items)
+        private void sendSuccessfulUpdateTradeContentResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items)
         {
             // Create and pack a response
-            UpdateTradeItemsResponsePacket packet = new UpdateTradeItemsResponsePacket
+            UpdateTradeContentResponsePacket packet = new UpdateTradeContentResponsePacket
             {
                 TradeId = tradeId,
                 Token = token,
@@ -691,12 +691,12 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeContentResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 
         /// <summary>
-        /// Sends a failed <see cref="UpdateTradeItemsResponsePacket"/> with the given items of the sender for the given trade and token.
+        /// Sends a failed <see cref="UpdateTradeContentResponsePacket"/> with the given items of the sender for the given trade and token.
         /// </summary>
         /// <param name="connectionId">Destination connection ID</param>
         /// <param name="tradeId">Trade ID</param>
@@ -704,10 +704,10 @@ namespace Trading
         /// <param name="items">Sender's items</param>
         /// <param name="failureReason">Failure reason</param>
         /// <param name="failureMessage">Failure message</param>
-        private void sendFailedUpdateTradeItemsResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items, TradeFailureReason failureReason, string failureMessage)
+        private void sendFailedUpdateTradeContentResponsePacket(string connectionId, string tradeId, string token, IEnumerable<ProtoThing> items, TradeFailureReason failureReason, string failureMessage)
         {
             // Create and pack a response
-            UpdateTradeItemsResponsePacket packet = new UpdateTradeItemsResponsePacket
+            UpdateTradeContentResponsePacket packet = new UpdateTradeContentResponsePacket
             {
                 TradeId = tradeId,
                 Token = token,
@@ -721,7 +721,7 @@ namespace Trading
             // Send it on its way
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
-                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeItemsResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
+                RaiseLogEntry(new LogEventArgs("Failed to send UpdateTradeContentResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
             }
         }
 

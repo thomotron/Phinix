@@ -237,7 +237,9 @@ namespace PhinixClient.GUI
                         tradeId: trades[matchIndex].TradeId,
                         otherParty: user,
                         ourItemsOnOffer: trades[matchIndex].ItemsOnOffer,
+                        ourPawnsOnOffer: trades[matchIndex].PawnsOnOffer,
                         otherPartyItemsOnOffer: trades[matchIndex].OtherPartyItemsOnOffer,
+                        otherPartyPawnsOnOffer: trades[matchIndex].OtherPartyPawnsOnOffer,
                         accepted: trades[matchIndex].Accepted,
                         otherPartyAccepted: trades[matchIndex].OtherPartyAccepted
                     );

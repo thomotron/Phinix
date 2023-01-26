@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Trading;
+
+enum Gender
+{
+    GENDER_NONE = 0;
+    GENDR_MALE = 1;
+    GENDER_FEMALE = 2;
+}

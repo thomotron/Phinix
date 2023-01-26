@@ -41,7 +41,7 @@ namespace PhinixClient
                     otherParty = new ImmutableUser(args.OtherPartyUuid);
                 }
                 
-                return new UICreateTradeEventArgs(new ImmutableTrade(args.TradeId, otherParty, Array.Empty<ProtoThing>(), Array.Empty<ProtoThing>(), false, false));
+                return new UICreateTradeEventArgs(new ImmutableTrade(args.TradeId, otherParty, Array.Empty<ProtoThing>(), Array.Empty<ProtoPawn>(), Array.Empty<ProtoThing>(), Array.Empty<ProtoPawn>(), false, false));
             }
             else
             {
