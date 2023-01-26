@@ -54,6 +54,8 @@
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
     <Phinix_trade_noItemsAvailable>You have no items available to trade.</Phinix_trade_noItemsAvailable>
     <Phinix_trade_noItemsAvailableWithSearch>No items found that match the search criteria.</Phinix_trade_noItemsAvailableWithSearch>
+    <Phinix_trade_noAnimalsAvailable>You have no animals available to trade.</Phinix_trade_noAnimalsAvailable>
+    <Phinix_trade_noAnimalsAvailableWithSearch>No animals found that match the search criteria.</Phinix_trade_noAnimalsAvailableWithSearch>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
     <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>
@@ -66,6 +68,8 @@
     <Phinix_trade_activeTrade_theyHaveNotAccepted>They have not accepted</Phinix_trade_activeTrade_theyHaveNotAccepted>
     <Phinix_trade_activeTrade_openButton>Open</Phinix_trade_activeTrade_openButton>
     <Phinix_trade_activeTrade_cancelButton>Cancel</Phinix_trade_activeTrade_cancelButton>
+    <Phinix_trade_tabs_items>Items</Phinix_trade_tabs_items>
+    <Phinix_trade_tabs_animals>Animals</Phinix_trade_tabs_animals>
 
     <Phinix_error_loginFailedTitle>Login failed</Phinix_error_loginFailedTitle>
     <Phinix_error_loginFailedMessage>Failed to log in to the server: {0} ({1})</Phinix_error_loginFailedMessage>

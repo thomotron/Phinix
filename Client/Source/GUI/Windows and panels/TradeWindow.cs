@@ -24,7 +24,7 @@ namespace PhinixClient
         private const float OFFER_WINDOW_ROW_HEIGHT = 30f;
         private const float OFFER_WINDOW_CHECKBOX_HEIGHT = 25f;
 
-        private const float SORT_HEIGHT = 30f;
+        private const float SORT_HEIGHT = TabDrawer.TabHeight - (DEFAULT_SPACING / 2);
 
         private const float SEARCH_TEXT_FIELD_WIDTH = 135f;
 
@@ -34,6 +34,9 @@ namespace PhinixClient
 
         public override Vector2 InitialSize => new Vector2(1000f, 750f);
 
+        private readonly List<TabRecord> tabList = new List<TabRecord>();
+        private int activeTab = 0;
+
         private readonly Regex itemCountInputRegex = new Regex("\\d*");
         private readonly Texture2D tradeArrows = ContentFinder<Texture2D>.Get("tradeArrows");
 
@@ -41,8 +44,10 @@ namespace PhinixClient
         private Vector2 theirOfferScrollPos = Vector2.zero;
         private Vector2 availableItemsScrollPos = Vector2.zero;
 
-        private List<StackedThings> ourOfferCache = new List<StackedThings>();
-        private List<StackedThings> theirOfferCache = new List<StackedThings>();
+        private List<StackedThings> ourItemOfferCache = new List<StackedThings>();
+        private List<StackedThings> theirItemOfferCache = new List<StackedThings>();
+        private List<Pawn> ourPawnOfferCache = new List<Pawn>();
+        private List<Pawn> theirPawnOfferCache = new List<Pawn>();
 
         /// <summary>
         /// The trade this window contains.
@@ -78,6 +83,15 @@ namespace PhinixClient
         private string searchText = string.Empty;
 
         /// <summary>
+        /// All animals that can be added to the trade
+        /// </summary>
+        private List<Pawn> availableAnimals = new List<Pawn>();
+        /// <summary>
+        /// Animals that can be added to the trade filtered by <see cref="searchText"/>.
+        /// </summary>
+        private List<Pawn> filteredAvailableAnimals = new List<Pawn>();
+
+        /// <summary>
         /// Collection of items that have been sent to the server and are waiting to be acknowledged organised by token.
         /// </summary>
         private Dictionary<string, PendingThings> pendingItemStacks = new Dictionary<string, PendingThings>();
@@ -100,6 +114,10 @@ namespace PhinixClient
             this.closeOnClickedOutside = false;
             this.forcePause = true;
             this.draggable = true;
+
+            // Populate the tab list
+            tabList.Add(new TabRecord("Phinix_trade_tabs_items".Translate(), () => activeTab = 0, () => activeTab == 0));
+            tabList.Add(new TabRecord("Phinix_trade_tabs_animals".Translate(), () => activeTab = 1, () => activeTab == 1));
         }
 
         public override void PreOpen()
@@ -131,9 +149,15 @@ namespace PhinixClient
             availableItems = StackedThings.GroupThings(things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse));
             filteredAvailableItems = availableItems;
 
+            // Select animals from all maps as well
+            availableAnimals = homeMaps.SelectMany(map => map.mapPawns.SpawnedColonyAnimals).ToList();
+            filteredAvailableAnimals = availableAnimals;
+
             // Pre-fill offer caches as well
-            ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
-            theirOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+            ourItemOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+            theirItemOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+            ourPawnOfferCache = trade.PawnsOnOffer.Select(TradingThingConverter.ConvertPawnFromProto).ToList();
+            theirPawnOfferCache = trade.OtherPartyPawnsOnOffer.Select(TradingThingConverter.ConvertPawnFromProto).ToList();
         }
 
         public override void Close(bool doCloseSound = true)
@@ -156,8 +180,10 @@ namespace PhinixClient
                     trade = updatedTrade;
 
                     // Refresh trade caches
-                    ourOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
-                    theirOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+                    ourItemOfferCache = StackedThings.GroupThings(trade.ItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+                    theirItemOfferCache = StackedThings.GroupThings(trade.OtherPartyItemsOnOffer.Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+                    ourPawnOfferCache = trade.PawnsOnOffer.Select(TradingThingConverter.ConvertPawnFromProto).ToList();
+                    theirPawnOfferCache = trade.OtherPartyPawnsOnOffer.Select(TradingThingConverter.ConvertPawnFromProto).ToList();
 
                     // Reset the update flag
                     tradeUpdated = false;
@@ -181,7 +207,7 @@ namespace PhinixClient
 
             Rect searchFieldRect = new Rect(inRect.xMax - SEARCH_TEXT_FIELD_WIDTH, offerHalfRect.yMax + DEFAULT_SPACING, SEARCH_TEXT_FIELD_WIDTH, SORT_HEIGHT);
             Rect searchLabelRect = searchFieldRect.TranslatedBy(-(SEARCH_TEXT_FIELD_WIDTH + DEFAULT_SPACING));
-            Rect availableItemsRect = new Rect(inRect.xMin, searchFieldRect.yMax + DEFAULT_SPACING, inRect.width, inRect.yMax - searchFieldRect.yMax - DEFAULT_SPACING);
+            Rect availableItemsRect = new Rect(inRect.xMin, offerHalfRect.yMax + DEFAULT_SPACING + TabDrawer.TabHeight, inRect.width, inRect.yMax - offerHalfRect.yMax - DEFAULT_SPACING - TabDrawer.TabHeight);
 
             // Save the current text settings
             GameFont previousFont = Text.Font;
@@ -203,7 +229,7 @@ namespace PhinixClient
             bool ourOfferAccepted = trade.Accepted;
             drawOffer(inRect: ourOfferRect,
                 title: "Phinix_trade_ourOfferLabel".Translate(),
-                itemStacks: ourOfferCache,
+                itemStacks: ourItemOfferCache,
                 scrollPos: ref ourOfferScrollPos,
                 accepted: ref ourOfferAccepted,
                 acceptedLabel: ("Phinix_trade_confirmOurTradeCheckbox" + (trade.Accepted ? "Checked" : "Unchecked")).Translate(),
@@ -219,7 +245,7 @@ namespace PhinixClient
             bool theirOfferAccepted = trade.OtherPartyAccepted;
             drawOffer(inRect: theirOfferRect,
                 title: "Phinix_trade_theirOfferLabel".Translate(),
-                itemStacks: theirOfferCache,
+                itemStacks: theirItemOfferCache,
                 scrollPos: ref theirOfferScrollPos,
                 accepted: ref theirOfferAccepted,
                 acceptedLabel: ("Phinix_trade_confirmTheirTradeCheckbox" + (trade.OtherPartyAccepted ? "Checked" : "Unchecked")).Translate(TextHelper.StripRichText(trade.OtherPartyDisplayName)),
@@ -321,16 +347,39 @@ namespace PhinixClient
                 filteredAvailableItems = availableItems.Where(stack => stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
             }
 
-            // Available items
-            if (!filteredAvailableItems.Any())
+            // Available items/pawns tab header
+            TabDrawer.DrawTabs(availableItemsRect, tabList);
+
+            // Available items/pawns tab content
+            switch (activeTab)
             {
-                // Draw a placeholder when nothing is present
-                Widgets.DrawMenuSection(availableItemsRect);
-                Widgets.NoneLabelCenteredVertically(availableItemsRect, ("Phinix_trade_noItemsAvailable" + (availableItems.Any() ? "WithSearch" : "")).Translate());
-            }
-            else
-            {
-                drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
+                case 0: // Items
+                    if (!filteredAvailableItems.Any())
+                    {
+                        // Draw a placeholder when nothing is present
+                        Widgets.DrawMenuSection(availableItemsRect);
+                        Widgets.NoneLabelCenteredVertically(availableItemsRect, ("Phinix_trade_noItemsAvailable" + (availableItems.Any() ? "WithSearch" : "")).Translate());
+                    }
+                    else
+                    {
+                        drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
+                    }
+                    break;
+                case 1: // Animals
+                    // TODO: Animals
+                    if (!filteredAvailableAnimals.Any())
+                    {
+                        // Draw a placeholder when nothing is present
+                        Widgets.DrawMenuSection(availableItemsRect);
+                        Widgets.NoneLabelCenteredVertically(availableItemsRect, ("Phinix_trade_noAnimalsAvailable" + (availableAnimals.Any() ? "WithSearch" : "")).Translate());
+                    }
+                    else
+                    {
+                        // Draw a placeholder for now
+                        Widgets.DrawMenuSection(availableItemsRect);
+                        Widgets.NoneLabelCenteredVertically(availableItemsRect, ("Phinix_trade_noAnimalsAvailable").Translate());
+                    }
+                    break;
             }
         }
 
