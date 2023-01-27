@@ -27,14 +27,14 @@ jobs:
         curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
 
       # Windows flavour
-    - name: Remove the world's most incessant and frustrating project-level package (via PowerShell)
+    - name: Remove Protobuf Source Link (via PowerShell)
       id: kill-sourcelink-ps
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
         (Get-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj -Raw) -Replace '<PackageReference.+?Include="Microsoft.SourceLink.GitHub".+>', '' | Set-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj
 
       # Linux flavour
-    - name: Remove the world's most incessant and frustrating project-level package (via sed)
+    - name: Remove Protobuf Source Link (via sed)
       id: kill-sourcelink-sed
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
