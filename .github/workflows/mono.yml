@@ -78,11 +78,11 @@ jobs:
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
       with:
-        name: PhinixClient-${{ steps.init.outputs.sha8 }}
+        name: PhinixClient-${{ steps.init.outputs.sha8 }}-${{ matrix.version }}-${{ matrix.os }}
         path: ${{ format('{0}/{1}', steps.init.outputs.pwd, 'PhinixClient') }}
           
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
-        name: PhinixServer-${{ steps.init.outputs.sha8 }}
+        name: PhinixServer-${{ steps.init.outputs.sha8 }}-${{ matrix.version }}-${{ matrix.os }}
         path: ${{ format('{0}/{1}', steps.init.outputs.pwd, 'PhinixServer') }}
