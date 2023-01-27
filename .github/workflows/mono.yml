@@ -1,4 +1,4 @@
-name: Mono on Ubuntu Latest
+name: Full project build
 
 on: [push]
 
@@ -39,14 +39,14 @@ jobs:
 
       # Windows flavour
     - name: Remove Protobuf Source Link (via PowerShell)
-      id: kill-sourcelink-ps
       if: ${{ matrix.os == 'windows-latest' }}
+      id: kill-sourcelink-ps
       run: |
         (Get-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj -Raw) -Replace '<PackageReference.+?Include="Microsoft.SourceLink.GitHub".+>', '' | Set-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj
       # Linux flavour
     - name: Remove Protobuf Source Link (via sed)
-      id: kill-sourcelink-sed
       if: ${{ matrix.os == 'ubuntu-latest' }}
+      id: kill-sourcelink-sed
       run: |
         sed -i -Es "s/<PackageReference.+?Include=\"Microsoft.SourceLink.GitHub\".+>//g" Dependencies/protobuf/csharp/src/Google.Protobuf/Google.Protobuf.csproj
 
@@ -56,11 +56,11 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
       # Windows flavour
-    - name: Restore project via Nuget
+    - name: Restore project via Nuget (native)
       if: ${{ matrix.os == 'windows-latest' }}
       run: nuget.exe restore ./Phinix.sln
       # Linux flavour
-    - name: Restore project via Nuget
+    - name: Restore project via Nuget (mono)
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: mono nuget.exe restore ./Phinix.sln
 
@@ -68,7 +68,7 @@ jobs:
       run: "msbuild /restore /property:Configuration=\"Release ${{ matrix.version }}\" ./Phinix.sln"
 
       # Windows flavour
-    - name: Prepare artifacts
+    - name: Prepare artifacts (via PowerShell)
       if: ${{ matrix.os == 'windows-latest' }}
       id: artifacts-ps
       run: |
@@ -77,7 +77,7 @@ jobs:
         Move-Item -Path .\Client\ -Destination .\PhinixClient\
         Move-Item -Path .\Server\bin\Release\ .\PhinixServer\
       # Linux flavour
-    - name: Prepare artifacts
+    - name: Prepare artifacts (via sh)
       if: ${{ matrix.os == 'ubuntu-latest' }}
       id: artifacts-sh
       run: |
