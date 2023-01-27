@@ -4,11 +4,12 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ ubuntu-latest, windows-latest ]
         version: [ 1.3, 1.4 ]
       fail-fast: false
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Pull repo
       uses: actions/checkout@master
@@ -25,17 +26,38 @@ jobs:
         unzip rimworld-dlls.zip -d GameDlls/${{ matrix.version }}
         curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
 
-    - name: Remove the world's most incessant and frustrating project-level package
-      id: kill-sourcelink
+      # Windows flavour
+    - name: Remove the world's most incessant and frustrating project-level package (via PowerShell)
+      id: kill-sourcelink-ps
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        (Get-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj -Raw) -Replace '<PackageReference.+?Include="Microsoft.SourceLink.GitHub".+>', '' | Set-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj
+
+      # Linux flavour
+    - name: Remove the world's most incessant and frustrating project-level package (via sed)
+      id: kill-sourcelink-sed
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sed -i -Es "s/<PackageReference.+?Include=\"Microsoft.SourceLink.GitHub\".+>//g" Dependencies/protobuf/csharp/src/Google.Protobuf/Google.Protobuf.csproj
-      
+
+      # Windows only
+    - name: Add msbuild to PATH
+      if: ${{ matrix.os == 'windows-latest' }}
+      uses: microsoft/setup-msbuild@v1.1
+
+      # Windows flavour
     - name: Restore project via Nuget
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: nuget.exe restore ./Phinix.sln
+
+      # Linux flavour
+    - name: Restore project via Nuget
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: mono nuget.exe restore ./Phinix.sln
-      
+
     - name: Build Phinix
-      run: "msbuild /property:Configuration=\"Release ${{ matrix.version }}\" ./Phinix.sln"
-    
+      run: "msbuild /restore /property:Configuration=\"Release ${{ matrix.version }}\" ./Phinix.sln"
+
     - name: Prepare artifacts
       id: artifacts
       run: |
