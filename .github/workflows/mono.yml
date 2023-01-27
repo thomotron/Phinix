@@ -32,7 +32,6 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
         (Get-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj -Raw) -Replace '<PackageReference.+?Include="Microsoft.SourceLink.GitHub".+>', '' | Set-Content Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj
-
       # Linux flavour
     - name: Remove Protobuf Source Link (via sed)
       id: kill-sourcelink-sed
@@ -49,7 +48,6 @@ jobs:
     - name: Restore project via Nuget
       if: ${{ matrix.os == 'windows-latest' }}
       run: nuget.exe restore ./Phinix.sln
-
       # Linux flavour
     - name: Restore project via Nuget
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -67,7 +65,6 @@ jobs:
         Remove-Item -Recurse .\Client\Source\
         Move-Item -Path .\Client\ -Destination .\PhinixClient\
         Move-Item -Path .\Server\bin\Release\ .\PhinixServer\
-
       # Linux flavour
     - name: Prepare artifacts
       if: ${{ matrix.os == 'ubuntu-latest' }}
