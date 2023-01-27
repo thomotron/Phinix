@@ -58,8 +58,20 @@ jobs:
     - name: Build Phinix
       run: "msbuild /restore /property:Configuration=\"Release ${{ matrix.version }}\" ./Phinix.sln"
 
+      # Windows flavour
     - name: Prepare artifacts
-      id: artifacts
+      if: ${{ matrix.os == 'windows-latest' }}
+      id: artifacts-ps
+      run: |
+        Remove-Item .\Server\bin\Release\*.pdb
+        Remove-Item -Recurse .\Client\Source\
+        Move-Item -Path .\Client\ -Destination .\PhinixClient\
+        Move-Item -Path .\Server\bin\Release\ .\PhinixServer\
+
+      # Linux flavour
+    - name: Prepare artifacts
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      id: artifacts-sh
       run: |
         rm ./Server/bin/Release/*.pdb
         rm -rf ./Client/Source/
