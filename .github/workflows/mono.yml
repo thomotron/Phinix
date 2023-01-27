@@ -15,12 +15,23 @@ jobs:
       uses: actions/checkout@master
       with:
         submodules: recursive
+
+      # Windows flavour
+    - name: Define variables (via PowerShell)
+      if: ${{ matrix.os == 'windows-latest' }}
+      id: variables-ps
+      run: |
+        echo "SHA8=$("${{ github.sha }}".Substring(0, 8))" >> $Env:GITHUB_ENV
+      # Linux flavour
+    - name: Define variables (via sh)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      id: variables-sh
+      run: |
+        echo "SHA8=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
       
     - name: Setup build environment
       id: init
       run: |
-        echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
-        echo "##[set-output name=pwd;]$(pwd)"
         curl ${{ secrets.RIMWORLD_DLLS_PREFIX }}-${{ matrix.version }}.zip -o rimworld-dlls.zip
         mkdir -p GameDLLs/${{ matrix.version }}
         unzip rimworld-dlls.zip -d GameDlls/${{ matrix.version }}
@@ -78,11 +89,11 @@ jobs:
     - name: Upload client artifact
       uses: actions/upload-artifact@v1
       with:
-        name: PhinixClient-${{ steps.init.outputs.sha8 }}-${{ matrix.version }}-${{ matrix.os }}
-        path: ${{ format('{0}/{1}', steps.init.outputs.pwd, 'PhinixClient') }}
-          
+        name: PhinixClient-${{ env.SHA8 }}-${{ matrix.version }}-${{ matrix.os }}
+        path: './PhinixClient'
+
     - name: Upload server artifact
       uses: actions/upload-artifact@v1
       with:
-        name: PhinixServer-${{ steps.init.outputs.sha8 }}-${{ matrix.version }}-${{ matrix.os }}
-        path: ${{ format('{0}/{1}', steps.init.outputs.pwd, 'PhinixServer') }}
+        name: PhinixServer-${{ env.SHA8 }}-${{ matrix.version }}-${{ matrix.os }}
+        path: './PhinixServer'
