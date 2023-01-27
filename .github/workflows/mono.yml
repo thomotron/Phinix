@@ -21,7 +21,8 @@ jobs:
         echo "##[set-output name=sha8;]$(echo ${GITHUB_SHA:0:8})"
         echo "##[set-output name=pwd;]$(pwd)"
         curl ${{ secrets.RIMWORLD_DLLS_PREFIX }}-${{ matrix.version }}.zip -o rimworld-dlls.zip
-        unzip rimworld-dlls.zip -d GameDlls
+        mkdir -p GameDLLs/${{ matrix.version }}
+        unzip rimworld-dlls.zip -d GameDlls/${{ matrix.version }}
         curl https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o nuget.exe
 
     - name: Remove the world's most incessant and frustrating project-level package
