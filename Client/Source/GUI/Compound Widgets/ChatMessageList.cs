@@ -191,7 +191,11 @@ namespace PhinixClient.GUI
                 Clear();
 
                 // Append the buffered messages to the list, filtering out any blocked users and trimming it to the limit
-                messages.AddRange(Client.Instance.GetChatMessages().Where(m => !Client.Instance.BlockedUsers.Contains(m.SenderUuid)).TakeLast(Client.Instance.ChatMessageLimit));
+                messages.AddRange(
+                    Client.Instance.GetChatMessages()
+                        .Where(m => !Client.Instance.BlockedUsers.Contains(m.SenderUuid))
+                        .Skip(Math.Max(0, messages.Count() - Client.Instance.ChatMessageLimit))
+                );
                 messagesChanged = true;
             }
         }
