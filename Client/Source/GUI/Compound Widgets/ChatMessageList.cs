@@ -202,6 +202,8 @@ namespace PhinixClient.GUI
 
         private void ChatMessageReceivedEventHandler(object sender, UIChatMessageEventArgs args)
         {
+            if (Client.Instance.BlockedUsers.Contains(args.Message.User.Uuid)) return;
+
             lock (messagesLock)
             {
                 // Append the new message to the list
