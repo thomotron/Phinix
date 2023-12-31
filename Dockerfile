@@ -22,7 +22,7 @@ FROM frolvlad/alpine-mono:latest
 WORKDIR /server/
 
 # Copy the build result into the server dir
-COPY --from=build /src/Server/bin/Debug/*.dll /src/Server/bin/Debug/PhinixServer.exe ./
+COPY --from=build /src/Server/bin/Release/*.dll /src/Server/bin/Release/PhinixServer.exe ./
 
 # Expose the default port
 EXPOSE 16200
