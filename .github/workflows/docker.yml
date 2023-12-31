@@ -1,0 +1,45 @@
+name: Publish docker image
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'dev'
+    tags:
+      - 'v*'
+  release:
+    types:
+      - 'published'
+
+jobs:
+  build_and_push:
+    name: Build and push image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Pull repo
+      uses: actions/checkout@master
+      with:
+        submodules: recursive
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@master
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+    - name: Extract tags
+      id: tags
+      uses: docker/metadata-action@master
+      with:
+        images: thomotron/phinix
+        tags: |
+          # Publish 'latest' on master, and '1.2.3' on any 'v1.2.3' tags
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', 'dev') }}
+          type=semver,pattern={{version}}
+
+    - name: Publish to Docker Hub
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ steps.tags.outputs.tags }}
