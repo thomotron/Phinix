@@ -6,14 +6,8 @@
   <a href="https://github.com/thomotron/Phinix/issues">
     <img src="https://img.shields.io/github/issues/thomotron/Phinix.svg?style=flat-square" alt="Issues">
   </a>
-  <a href="https://travis-ci.org/PhinixTeam/Phinix">
-    <img src="https://img.shields.io/travis/PhinixTeam/Phinix.svg?style=flat-square" alt="Travis CI">
-  </a>
-  <a href="https://ci.cocytus.services/repos/64/">
-    <img src="https://ci.cocytus.services/badge/ca953ca7?branch=master" alt="Abstruse">
-  </a>
   <a href="https://hub.docker.com/r/thomotron/phinix">
-    <img alt="Docker Build Status" src="https://img.shields.io/docker/cloud/build/thomotron/phinix.svg?label=docker&style=flat-square">
+    <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/thomotron/phinix?style=flat-square">
   </a>
   <a href="https://discord.gg/d4Y5xks">
     <img src="https://img.shields.io/discord/363547745564360704.svg?colorB=7289DA&label=Discord&style=flat-square" alt="Discord">
