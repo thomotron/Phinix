@@ -126,7 +126,15 @@ namespace PhinixClient
                 width: container.width,
                 height: SERVER_DESCRIPTION_HEIGHT
             );
-            Widgets.TextAreaScrollable(serverDescriptionRect, ServerDescription, ref serverDescriptionScrollPosition, true);
+            Rect serverDescriptionViewRect = new Rect(
+                x: container.xMin,
+                y: container.yMin,
+                width: container.width,
+                height: Text.CalcHeight(ServerDescription, container.width)
+            );
+            Widgets.BeginScrollView(serverDescriptionViewRect, ref serverDescriptionScrollPosition, serverDescriptionRect, true);
+            Widgets.TextArea(serverDescriptionRect, ServerDescription);
+            Widgets.EndScrollView();
         }
     }
 }
