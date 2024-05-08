@@ -68,7 +68,7 @@ namespace PhinixClient
             Rect chatRect = usableRect.LeftPartPixels(usableRect.width - (rightColumnRect.width + DEFAULT_SPACING));
 
             // Tabs
-            TabDrawer.DrawTabs(usableRect, tabList, 1);
+            TabDrawer.DrawTabs(usableRect, tabList, 1, 200f);
 
             switch (activeTab)
             {
