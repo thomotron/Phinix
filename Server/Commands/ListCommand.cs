@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Utils;
 
 namespace PhinixServer
@@ -11,12 +10,30 @@ namespace PhinixServer
 
         public override HelpEntry[] HelpEntries => new HelpEntry[]
         {
-            new HelpEntry("list", "Lists all currently connected users")
+            new HelpEntry("list", "Lists all currently connected users"),
+            new HelpEntry("list users", "Lists all currently connected users"),
+            new HelpEntry("list all", "Lists all users"),
+            new HelpEntry("list bans", "Lists banned users")
         };
 
         public override bool Execute(List<string> args)
         {
-            var cols = 6;
+            switch (args?.FirstOrDefault())
+            {
+                case null:
+                case "users":
+                    return ExecuteListUsers(true);
+                case "all":
+                    return ExecuteListUsers(false);
+                case "bans":
+                    return ExecuteListBans();
+                default:
+                    return false;
+            }
+        }
+
+        private bool ExecuteListUsers(bool onlineOnly)
+        {
             var rows = new List<string[]>
             {
                 new[] { "User", "UUID", "Username", "Session", "Connection", "IP Address" }
@@ -26,7 +43,19 @@ namespace PhinixServer
             foreach (string sessionId in Server.Authenticator.GetSessions())
             {
                 if (!Server.Authenticator.TryGetConnectionId(sessionId, out string connectionId)) connectionId = "Unknown";
-                if (!Server.Connections.TryGetEndpoint(connectionId, out string endpoint)) endpoint = "Unknown";
+
+                if (!Server.Connections.TryGetEndpoint(connectionId, out string endpoint))
+                {
+                    if (onlineOnly)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        endpoint = "Unknown";
+                    }
+                }
+
                 if (!Server.Authenticator.TryGetUsername(connectionId, sessionId, out string username)) username = "Unknown";
                 if (!Server.UserManager.TryGetUserUuid(username, out string uuid)) uuid = "Unknown";
                 if (!Server.UserManager.TryGetDisplayName(uuid, out string displayName)) displayName = "Unknown";
@@ -34,44 +63,30 @@ namespace PhinixServer
                 rows.Add(new[] { TextHelper.StripRichText(displayName), uuid, username, sessionId, connectionId, endpoint });
             }
 
-            // Calculate column widths
-            int[] columnWidths = GetColumnWidths(rows, cols);
-
-            // Print everything
-            var sb = new StringBuilder();
-            for (int row = 0; row < rows.Count; row++)
-            {
-                for (int col = 0; col < cols - 1; col++)
-                {
-                    sb.Append(rows[row][col].PadRight(columnWidths[col])).Append(' ');
-                }
-                sb.AppendLine(rows[row][cols - 1]);
-
-                Console.WriteLine(sb.ToString());
-                sb.Clear();
-            }
+            WriteTabulated(rows);
 
             return true;
         }
 
-        /// <summary>
-        /// Calculates the column widths required to fit the contents of each row.
-        /// </summary>
-        /// <param name="rows">Rows to calculate widths from.</param>
-        /// <param name="columns">Number of columns.</param>
-        /// <returns>Array containing the width of each column.</returns>
-        private static int[] GetColumnWidths(IList<string[]> rows, int columns)
+        private bool ExecuteListBans()
         {
-            var columnWidths = new int[columns];
-            for (int row = 0; row < rows.Count; row++)
+            var rows = new List<string[]>
             {
-                for (int col = 0; col < columns; col++)
-                {
-                    columnWidths[col] = Math.Max(columnWidths[col], rows[row][col].Length);
-                }
+                new[] { "User", "UUID", "Username" }
+            };
+
+            // Fetch details for each banned user
+            foreach (string uuid in Server.UserManager.GetBanned())
+            {
+                if (!Server.UserManager.TryGetDisplayName(uuid, out string displayName)) displayName = "Unknown";
+                if (!Server.UserManager.TryGetUsername(uuid, out string username)) username = "Unknown";
+
+                rows.Add(new[] { TextHelper.StripRichText(displayName), uuid, username });
             }
 
-            return columnWidths;
+            WriteTabulated(rows);
+
+            return true;
         }
     }
 }

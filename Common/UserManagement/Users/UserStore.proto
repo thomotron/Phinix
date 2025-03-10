@@ -6,4 +6,6 @@ import "Users/User.proto";
 message UserStore
 {
     map<string, User> Users = 1;
+
+    repeated string BannedUsers = 2;
 }

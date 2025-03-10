@@ -8,4 +8,6 @@ enum LoginFailureReason
     DisplayName = 2;
     
     InternalServerError = 1;
+
+    Banned = 3;
 };

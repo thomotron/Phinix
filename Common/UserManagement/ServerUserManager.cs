@@ -342,6 +342,89 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Attempts to get the username for the given user.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <returns>Whether the username was retrieved successfully</returns>
+        public bool TryGetUsername(string uuid, out string username)
+        {
+            username = string.Empty;
+
+            if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                username = userStore.Users[uuid].Username;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Bans a user.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <returns>Whether the user exists and was banned successfully</returns>
+        public bool TryBan(string uuid)
+        {
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.ContainsKey(uuid)) return false;
+
+                if (!userStore.BannedUsers.Contains(uuid))
+                {
+                    userStore.BannedUsers.Add(uuid);
+                }
+            }
+
+            // Disconnect them immediately
+            if (!TryGetConnection(uuid, out string connectionId)) return false;
+            netServer.Disconnect(connectionId);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Unbans a user.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <returns>Whether the user was unbanned successfully</returns>
+        public bool TryUnban(string uuid)
+        {
+            lock (userStoreLock)
+            {
+                return userStore.BannedUsers.Remove(uuid);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the given user is banned.
+        /// </summary>
+        /// <param name="uuid">User's UUID</param>
+        /// <returns>Whether the user is banned</returns>
+        public bool IsBanned(string uuid)
+        {
+            lock (userStoreLock)
+            {
+                return userStore.BannedUsers.Contains(uuid);
+            }
+        }
+
+        /// <summary>
+        /// Returns the UUIDs of all banned users.
+        /// </summary>
+        /// <returns>UUIDs of all banned users</returns>
+        public string[] GetBanned()
+        {
+            lock (userStoreLock)
+            {
+                return userStore.BannedUsers.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Handles incoming packets.
         /// </summary>
         /// <param name="module">Destination module</param>
@@ -404,22 +487,7 @@ namespace UserManagement
             // Passed authentication checks, time to accept the login attempt
 
             // Try to get the user by their username
-            if (TryGetUserUuid(username, out string uuid))
-            {
-                // Try to log them in
-                if (!TryLogIn(uuid))
-                {
-                    // This shouldn't happen because we just got their UUID but ok.
-                    RaiseLogEntry(new LogEventArgs(string.Format("Failed to log in user {0} after getting their UUID. This shouldn't happen.", uuid.Highlight(HighlightType.UUID)), LogLevel.ERROR));
-
-                    // Fail the login attempt due to a weird error
-                    sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Failed to log in after retrieving UUID. This should not happen, please report it to the developer.");
-
-                    // Stop here
-                    return;
-                }
-            }
-            else
+            if (!TryGetUserUuid(username, out string uuid))
             {
                 try
                 {
@@ -436,6 +504,28 @@ namespace UserManagement
                     // Stop here
                     return;
                 }
+            }
+
+            // Check if they've been banned
+            if (IsBanned(uuid))
+            {
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed to log in user {0}: User is banned", uuid.Highlight(HighlightType.SessionID))));
+                sendFailedLoginResponsePacket(connectionId, LoginFailureReason.Banned, "You have been banned from the server.");
+
+                return;
+            }
+
+            // Try to log them in
+            if (!TryLogIn(uuid))
+            {
+                // This shouldn't happen because we just got their UUID but ok.
+                RaiseLogEntry(new LogEventArgs(string.Format("Failed to log in user {0} after getting their UUID. This shouldn't happen.", uuid.Highlight(HighlightType.UUID)), LogLevel.ERROR));
+
+                // Fail the login attempt due to a weird error
+                sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Failed to log in after retrieving UUID. This should not happen, please report it to the developer.");
+
+                // Stop here
+                return;
             }
 
             // Check if they want to use the display name stored on the server
