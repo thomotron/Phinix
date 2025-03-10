@@ -42,6 +42,7 @@
     <Compile Include="CommandInterpreter.cs" />
     <Compile Include="Commands\ExitCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="Commands\ListCommand.cs" />
     <Compile Include="Commands\LogCommand.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigItemDeserialisationException.cs" />

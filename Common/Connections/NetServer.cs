@@ -213,5 +213,24 @@ namespace Connections
                 return false;
             }
         }
+
+        /// <summary>
+        /// Tries to get the endpoint address for the given connection.
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="endpoint">Output endpoint address</param>
+        /// <returns>Whether a connected endpoint was found for the given connection</returns>
+        /// <exception cref="ArgumentException">Connection ID cannot be null or empty</exception>
+        public bool TryGetEndpoint(string connectionId, out string endpoint)
+        {
+            endpoint = null;
+
+            if (string.IsNullOrEmpty(connectionId)) throw new ArgumentException("Connection ID cannot be null or empty", nameof(connectionId));
+
+            if (!connectedPeers.TryGetValue(connectionId, out NetPeer netPeer) || netPeer.ConnectionState != ConnectionState.Connected) return false;
+
+            endpoint = netPeer.EndPoint.Host;
+            return true;
+        }
     }
 }
