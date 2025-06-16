@@ -20,7 +20,7 @@ namespace PhinixClient
                 Rect iconRect = inRect.RightPartPixels(inRect.height + PADDING).LeftPartPixels(inRect.height);
 
                 // Get the number of unread messages depending on if blocked users should be included
-                int messageCount = Client.Instance.ShowBlockedUnreadMessageCount ? Client.Instance.UnreadMessages : Client.Instance.UnreadMessagesExcludingBlocked;
+                int messageCount = Client.Instance.Settings.ShowBlockedUnreadMessageCount ? Client.Instance.UnreadMessages : Client.Instance.UnreadMessagesExcludingBlocked;
 
                 // Format the unread message count
                 string formattedMessageCount = messageCount > 99 ? "99+" : messageCount.ToString();

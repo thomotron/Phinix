@@ -115,7 +115,7 @@ namespace PhinixClient
             // Select things from all maps that are player homes
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
             IEnumerable<Thing> things;
-            if (Client.Instance.AllItemsTradable)
+            if (Client.Instance.Settings.AllItemsTradable)
             {
                 // Get *everything*
                 things = homeMaps.SelectMany(map => map.listerThings.AllThings);

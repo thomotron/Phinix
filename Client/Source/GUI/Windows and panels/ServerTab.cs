@@ -145,7 +145,7 @@ namespace PhinixClient
             UnityEngine.GUI.SetNextControlName("Phinix_chatMessageField");
             message = Widgets.TextField(messageBoxRect, message);
 
-            if (Client.Instance.ForceMessageFieldFocus)
+            if (Client.Instance.Settings.ForceMessageFieldFocus)
             {
                 // Aggressively hold the focus on the chat field until clicked out of
                 if (Input.GetMouseButtonDown(0))

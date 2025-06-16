@@ -269,7 +269,7 @@ namespace PhinixClient.GUI
             {
                 // Repopulate the online list
                 blockedUsers.Clear();
-                foreach (string uuid in Client.Instance.BlockedUsers)
+                foreach (string uuid in Client.Instance.Settings.BlockedUsers)
                 {
                     if (Client.Instance.TryGetUser(uuid, out ImmutableUser user))
                     {
@@ -329,10 +329,10 @@ namespace PhinixClient.GUI
             );
             items.Add(
                 new FloatMenuOption(
-                    label: (Client.Instance.BlockedUsers.Contains(user.Uuid) ? "Phinix_chat_contextMenu_unblockUser" : "Phinix_chat_contextMenu_blockUser").Translate(),
+                    label: (Client.Instance.Settings.BlockedUsers.Contains(user.Uuid) ? "Phinix_chat_contextMenu_unblockUser" : "Phinix_chat_contextMenu_blockUser").Translate(),
                     action: () =>
                     {
-                        if (Client.Instance.BlockedUsers.Contains(user.Uuid)) Client.Instance.UnBlockUser(user.Uuid);
+                        if (Client.Instance.Settings.BlockedUsers.Contains(user.Uuid)) Client.Instance.UnBlockUser(user.Uuid);
                         else Client.Instance.BlockUser(user.Uuid);
                     }
                 )
@@ -357,7 +357,7 @@ namespace PhinixClient.GUI
             }
             else
             {
-                return Client.Instance.ShowNameFormatting ? displayName : TextHelper.StripRichText(displayName);
+                return Client.Instance.Settings.ShowNameFormatting ? displayName : TextHelper.StripRichText(displayName);
             }
         }
     }
