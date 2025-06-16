@@ -1,4 +1,4 @@
-﻿using PhinixClient.GUI;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -114,6 +114,14 @@ namespace PhinixClient
             set => showBlockedTrades = value;
         }
 
+        private bool originalMigrated;
+        private bool migrated;
+        public bool Migrated
+        {
+            get => migrated;
+            set => migrated = value;
+        }
+
         private HashSet<string> originalBlockedUsers;
         private HashSet<string> blockedUsers;
         public HashSet<string> BlockedUsers => blockedUsers;
@@ -136,7 +144,8 @@ namespace PhinixClient
                        forceMessageFieldFocus != originalForceMessageFieldFocus ||
                        allItemsTradable != originalAllItemsTradable ||
                        showBlockedTrades != originalShowBlockedTrades ||
-                       !blockedUsers.SequenceEqual(originalBlockedUsers);
+                       !blockedUsers.SequenceEqual(originalBlockedUsers) ||
+                       migrated != originalMigrated;
             }
         }
 
@@ -160,6 +169,7 @@ namespace PhinixClient
             forceMessageFieldFocus = true;
             allItemsTradable = false;
             showBlockedTrades = false;
+            migrated = false;
 
             originalBlockedUsers = new HashSet<string>();
             blockedUsers = new HashSet<string>();
@@ -186,6 +196,7 @@ namespace PhinixClient
             Scribe_Values.Look(ref forceMessageFieldFocus, "forceMessageFieldFocus", true);
             Scribe_Values.Look(ref allItemsTradable, "allItemsTradable", false);
             Scribe_Values.Look(ref showBlockedTrades, "showBlockedTrades", false);
+            Scribe_Values.Look(ref migrated, "migrated", false);
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
 
             // Prevent scribe from interpreting a missing value as null
@@ -196,6 +207,40 @@ namespace PhinixClient
         public void AcceptChanges()
         {
             SetOriginalValues();
+        }
+
+        /// <summary>
+        /// Attempts to load settings saved in the HugsLib format and applies them to the current instance. Changes are saved immediately.
+        /// </summary>
+        public void MigrateFromHugsLib()
+        {
+            LegacySettings legacySettings = LegacySettings.FromHugsLibSettings(System.IO.Path.Combine(GenFilePaths.SaveDataFolderPath, "HugsLib", "ModSettings.xml"));
+            if (legacySettings != null)
+            {
+                ServerAddress = legacySettings.ServerAddress ?? ServerAddress;
+                ServerPort = legacySettings.ServerPort ?? ServerPort;
+                DisplayName = legacySettings.DisplayName ?? DisplayName;
+                AcceptingTrades = legacySettings.AcceptingTrades ?? AcceptingTrades;
+                ShowNameFormatting = legacySettings.ShowNameFormatting ?? ShowNameFormatting;
+                ShowChatFormatting = legacySettings.ShowChatFormatting ?? ShowChatFormatting;
+                PlayNoiseOnMessageReceived = legacySettings.PlayNoiseOnMessageReceived ?? PlayNoiseOnMessageReceived;
+                ShowUnreadMessageCount = legacySettings.ShowUnreadMessageCount ?? ShowUnreadMessageCount;
+                ShowBlockedUnreadMessageCount = legacySettings.ShowBlockedUnreadMessageCount ?? ShowBlockedUnreadMessageCount;
+                ChatMessageLimit = legacySettings.ChatMessageLimit ?? ChatMessageLimit;
+                ForceMessageFieldFocus = legacySettings.ForceMessageFieldFocus ?? ForceMessageFieldFocus;
+                AllItemsTradable = legacySettings.AllItemsTradable ?? AllItemsTradable;
+                ShowBlockedTrades = legacySettings.ShowBlockedTrades ?? ShowBlockedTrades;
+
+                BlockedUsers.Clear();
+                BlockedUsers.AddRange(legacySettings.BlockedUsers);
+            }
+
+            Migrated = true;
+
+            Write();
+            AcceptChanges();
+
+            Log.Message("Migrated settings from HugsLib.");
         }
 
         /// <summary>
@@ -216,16 +261,12 @@ namespace PhinixClient
             originalForceMessageFieldFocus = forceMessageFieldFocus;
             originalAllItemsTradable = allItemsTradable;
             originalShowBlockedTrades = showBlockedTrades;
+            originalMigrated = migrated;
 
             originalBlockedUsers.Clear();
             originalBlockedUsers.AddRange(blockedUsers);
         }
 
         #endregion
-    }
-
-    public class LegacySettings
-    {
-        // TODO: Make a replica of the Hugs settings and load them manually from the XML file.
     }
 }

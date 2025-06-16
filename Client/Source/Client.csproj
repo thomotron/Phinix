@@ -95,6 +95,7 @@
   <ItemGroup>
     <Compile Include="BlockedUsersChangedEventArgs.cs" />
     <Compile Include="GUI\GUIUtils.cs" />
+    <Compile Include="LegacySettings.cs" />
     <Compile Include="Patches\RootPatch.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UIChatMessage.cs" />

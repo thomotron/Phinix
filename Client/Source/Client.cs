@@ -130,6 +130,7 @@ namespace PhinixClient
 
             // Load in Settings
             Settings = GetSettings<Settings>();
+            if (!Settings.Migrated) Settings.MigrateFromHugsLib();
 
             // Set up our module instances
             netClient = new NetClient();
