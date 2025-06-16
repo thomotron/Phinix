@@ -14,7 +14,7 @@ namespace PhinixClient
             base.DoButton(inRect);
 
             // Check if we should draw the unread messages count
-            if (Client.Instance.UnreadMessages > 0 && Client.Instance.ShowUnreadMessageCount && Client.Instance.ShowBlockedUnreadMessageCount)
+            if (Client.Instance.UnreadMessages > 0 && Client.Instance.Settings.ShowUnreadMessageCount)
             {
                 // Get a square on the right of the tab with some padding on the right side
                 Rect iconRect = inRect.RightPartPixels(inRect.height + PADDING).LeftPartPixels(inRect.height);
