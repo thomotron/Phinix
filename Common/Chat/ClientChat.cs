@@ -193,7 +193,7 @@ namespace Chat
         /// </summary>
         /// <param name="uuids">UUIDs to exclude messages from</param>
         /// <returns>The number of unread messages excluding any from the given UUIDs</returns>
-        public int GetUnreadMessagesExcluding(List<string> uuids)
+        public int GetUnreadMessagesExcluding(IEnumerable<string> uuids)
         {
             List<ClientChatMessage> newMessages;
             lock (messageHistoryLock)

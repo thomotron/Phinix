@@ -11,4 +11,8 @@
     <li>Common</li>
     <li>1.5</li>
   </1.5>
+  <v1.6>
+    <li>Common</li>
+    <li>1.6</li>
+  </1.6>
 </loadFolders>
