@@ -114,9 +114,9 @@ namespace PhinixClient
             set => showBlockedTrades = value;
         }
 
-        private List<string> originalBlockedUsers;
-        private List<string> blockedUsers;
-        public List<string> BlockedUsers => blockedUsers;
+        private HashSet<string> originalBlockedUsers;
+        private HashSet<string> blockedUsers;
+        public HashSet<string> BlockedUsers => blockedUsers;
 
         /// <inheritdoc/>
         public bool IsChanged
@@ -161,8 +161,8 @@ namespace PhinixClient
             allItemsTradable = false;
             showBlockedTrades = false;
 
-            originalBlockedUsers = new List<string>();
-            blockedUsers = new List<string>();
+            originalBlockedUsers = new HashSet<string>();
+            blockedUsers = new HashSet<string>();
 
             SetOriginalValues();
         }
@@ -189,7 +189,7 @@ namespace PhinixClient
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
 
             // Prevent scribe from interpreting a missing value as null
-            if (blockedUsers is null) blockedUsers = new List<string>();
+            if (blockedUsers is null) blockedUsers = new HashSet<string>();
         }
 
         /// <inheritdoc/>

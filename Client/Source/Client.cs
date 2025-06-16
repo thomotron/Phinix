@@ -469,7 +469,8 @@ namespace PhinixClient
         /// <param name="senderUuid">UUID of user to block</param>
         public void BlockUser(string senderUuid)
         {
-            Settings.BlockedUsers.AddDistinct(senderUuid);
+            if (!Settings.BlockedUsers.Add(senderUuid)) return;
+
             base.WriteSettings();
             Settings.AcceptChanges();
 
@@ -482,7 +483,8 @@ namespace PhinixClient
         /// <param name="senderUuid">UUID of the user to unblock</param>
         public void UnBlockUser(string senderUuid)
         {
-            Settings.BlockedUsers.Remove(senderUuid);
+            if (!Settings.BlockedUsers.Remove(senderUuid)) return;
+
             base.WriteSettings();
             Settings.AcceptChanges();
 
