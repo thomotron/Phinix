@@ -222,6 +222,7 @@ namespace PhinixClient
                             // Save the connection details to the client settings
                             Client.Instance.Settings.ServerAddress = serverAddress;
                             Client.Instance.Settings.ServerPort = int.Parse(serverPortString);
+                            Client.Instance.Settings.AcceptChanges();
 
                             // Run this on another thread otherwise the UI will lock up.
                             new Thread(() => {
@@ -262,6 +263,7 @@ namespace PhinixClient
                     onChange: newDisplayName =>
                     {
                         Client.Instance.Settings.DisplayName = newDisplayName;
+                        Client.Instance.Settings.AcceptChanges();
                         namePreview.Update();
                     }
                 )
