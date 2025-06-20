@@ -459,7 +459,6 @@ namespace PhinixClient
         {
             if (!Settings.IsChanged) return;
 
-            base.WriteSettings();
             Settings.AcceptChanges();
             userManager.UpdateSelf(Settings.DisplayName, Settings.AcceptingTrades);
         }
@@ -472,7 +471,6 @@ namespace PhinixClient
         {
             if (!Settings.BlockedUsers.Add(senderUuid)) return;
 
-            base.WriteSettings();
             Settings.AcceptChanges();
 
             OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, true));
@@ -486,7 +484,6 @@ namespace PhinixClient
         {
             if (!Settings.BlockedUsers.Remove(senderUuid)) return;
 
-            base.WriteSettings();
             Settings.AcceptChanges();
 
             OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, false));
