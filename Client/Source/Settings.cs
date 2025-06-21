@@ -206,6 +206,7 @@ namespace PhinixClient
         /// <inheritdoc/>
         public void AcceptChanges()
         {
+            Write();
             SetOriginalValues();
         }
 
