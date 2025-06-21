@@ -166,7 +166,7 @@ namespace PhinixClient
             {
                 Verse.Log.Message(string.Format("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_MessageBox("Phinix_error_authFailedTitle".Translate(), "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_authFailedTitle".Translate(), text: "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 Disconnect();
             };
@@ -180,7 +180,7 @@ namespace PhinixClient
             {
                 Verse.Log.Message(string.Format("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_MessageBox("Phinix_error_loginFailedTitle".Translate(), "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_loginFailedTitle".Translate(), text: "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 Disconnect();
             };
@@ -271,7 +271,7 @@ namespace PhinixClient
             {
                 if (Prefs.DevMode) Verse.Log.Message(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_MessageBox("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_tradeCreationFailedTitle".Translate(), text: "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 // Remove the other party from the waiting list
                 lock (waitingForTradeCreationWithLock) waitingForTradeCreationWith.Remove(args.OtherPartyUuid);
@@ -359,7 +359,7 @@ namespace PhinixClient
                     displayName = "???";
                 }
 
-                Find.WindowStack.Add(new Dialog_MessageBox("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_tradeUpdateFailedTitle".Translate(), text: "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
             trading.OnTradesSynced += (sender, args) =>
             {
@@ -535,7 +535,7 @@ namespace PhinixClient
             {
                 Verse.Log.Message(string.Format("Could not connect to {0}:{1}", Settings.ServerAddress, Settings.ServerPort));
 
-                Find.WindowStack.Add(new Dialog_MessageBox("Phinix_error_connectionFailedTitle".Translate(), "Phinix_error_connectionFailedMessage".Translate(Settings.ServerAddress, Settings.ServerPort)));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_connectionFailedTitle".Translate(), text: "Phinix_error_connectionFailedMessage".Translate(Settings.ServerAddress, Settings.ServerPort)));
             }
         }
 
