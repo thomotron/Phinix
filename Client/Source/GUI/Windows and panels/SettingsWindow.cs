@@ -25,8 +25,8 @@ namespace PhinixClient
 
         public override Vector2 InitialSize => new Vector2(600f, 156f); // (30f * rows) + (10f * (rows - 1)) + 36f
 
-        private static string serverAddress = Client.Instance.ServerAddress;
-        private static string serverPortString = Client.Instance.ServerPort.ToString();
+        private static string serverAddress = Client.Instance.Settings.ServerAddress;
+        private static string serverPortString = Client.Instance.Settings.ServerPort.ToString();
 
         /// <summary>
         /// The pre-generated window contents.
@@ -220,8 +220,9 @@ namespace PhinixClient
                         clickAction: () =>
                         {
                             // Save the connection details to the client settings
-                            Client.Instance.ServerAddress = serverAddress;
-                            Client.Instance.ServerPort = int.Parse(serverPortString);
+                            Client.Instance.Settings.ServerAddress = serverAddress;
+                            Client.Instance.Settings.ServerPort = int.Parse(serverPortString);
+                            Client.Instance.Settings.AcceptChanges();
 
                             // Run this on another thread otherwise the UI will lock up.
                             new Thread(() => {
@@ -245,7 +246,7 @@ namespace PhinixClient
         {
             // Make the name preview early so we can bind to it's update method
             DynamicTextWidget namePreview = new DynamicTextWidget(
-                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.DisplayName).Resolve(),
+                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.Settings.DisplayName).Resolve(),
                 wrap: false
             );
 
@@ -258,10 +259,11 @@ namespace PhinixClient
             // Editable display name text box
             editableRow.Add(
                 new TextFieldWidget(
-                    initialText: Client.Instance.DisplayName,
+                    initialText: Client.Instance.Settings.DisplayName,
                     onChange: newDisplayName =>
                     {
-                        Client.Instance.DisplayName = newDisplayName;
+                        Client.Instance.Settings.DisplayName = newDisplayName;
+                        Client.Instance.Settings.AcceptChanges();
                         namePreview.Update();
                     }
                 )
@@ -272,7 +274,7 @@ namespace PhinixClient
                 new Container(
                     new ButtonWidget(
                         label: "Phinix_settings_setDisplayNameButton".Translate(),
-                        clickAction: () => Client.Instance.UpdateDisplayName(Client.Instance.DisplayName)
+                        clickAction: () => Client.Instance.UpdateDisplayName(Client.Instance.Settings.DisplayName)
                     ),
                     width: DISPLAY_NAME_SET_BUTTON_WIDTH
                 )

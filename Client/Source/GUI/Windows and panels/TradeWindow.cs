@@ -115,7 +115,7 @@ namespace PhinixClient
             // Select things from all maps that are player homes
             IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
             IEnumerable<Thing> things;
-            if (Client.Instance.AllItemsTradable)
+            if (Client.Instance.Settings.AllItemsTradable)
             {
                 // Get *everything*
                 things = homeMaps.SelectMany(map => map.listerThings.AllThings);
@@ -318,11 +318,11 @@ namespace PhinixClient
             if (searchText != oldSearchText)
             {
                 // Repopulate filtered item list with the new search if necessary
-                filteredAvailableItems = availableItems.Where(stack => stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
+                filteredAvailableItems = availableItems.Where(stack => stack.Count > 0 && stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
             }
 
             // Available items
-            if (!filteredAvailableItems.Any())
+            if (!filteredAvailableItems.Any(stack => stack.Count > 0))
             {
                 // Draw a placeholder when nothing is present
                 Widgets.DrawMenuSection(availableItemsRect);

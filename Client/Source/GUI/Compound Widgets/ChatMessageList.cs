@@ -193,8 +193,8 @@ namespace PhinixClient.GUI
                 // Append the buffered messages to the list, filtering out any blocked users and trimming it to the limit
                 messages.AddRange(
                     Client.Instance.GetChatMessages()
-                        .Where(m => !Client.Instance.BlockedUsers.Contains(m.SenderUuid))
-                        .Skip(Math.Max(0, messages.Count() - Client.Instance.ChatMessageLimit))
+                        .Where(m => !Client.Instance.Settings.BlockedUsers.Contains(m.SenderUuid))
+                        .Skip(Math.Max(0, messages.Count() - Client.Instance.Settings.ChatMessageLimit))
                 );
                 messagesChanged = true;
             }
@@ -202,7 +202,7 @@ namespace PhinixClient.GUI
 
         private void ChatMessageReceivedEventHandler(object sender, UIChatMessageEventArgs args)
         {
-            if (Client.Instance.BlockedUsers.Contains(args.Message.User.Uuid)) return;
+            if (Client.Instance.Settings.BlockedUsers.Contains(args.Message.User.Uuid)) return;
 
             lock (messagesLock)
             {
@@ -211,7 +211,7 @@ namespace PhinixClient.GUI
                 messagesChanged = true;
 
                 // Trim the list down to the buffer limit if needed
-                messages.RemoveRange(0, Math.Max(0, messages.Count - Client.Instance.ChatMessageLimit));
+                messages.RemoveRange(0, Math.Max(0, messages.Count - Client.Instance.Settings.ChatMessageLimit));
             }
         }
 
@@ -241,8 +241,8 @@ namespace PhinixClient.GUI
                 string formattedMessage = string.Format(
                     "[{0:HH:mm}] {1}: {2}",
                     chatMessage.Timestamp,
-                    Client.Instance.ShowNameFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName),
-                    Client.Instance.ShowChatFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.Message : TextHelper.StripRichText(chatMessage.Message)
+                    Client.Instance.Settings.ShowNameFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName),
+                    Client.Instance.Settings.ShowChatFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.Message : TextHelper.StripRichText(chatMessage.Message)
                 );
 
                 // Calculate the message sizing
@@ -281,7 +281,7 @@ namespace PhinixClient.GUI
                 height: timestampSize.y
             );
 
-            string displayName = Client.Instance.ShowNameFormatting ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName);
+            string displayName = Client.Instance.Settings.ShowNameFormatting ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName);
             Vector2 displayNameSize = Text.CurFontStyle.CalcSize(new GUIContent(displayName));
             Rect displayNameRect = new Rect(
                 x: inRect.x + timestampRect.width,
@@ -291,7 +291,7 @@ namespace PhinixClient.GUI
             );
 
             string message = chatMessage.Message;
-            if (!Client.Instance.ShowChatFormatting) message = TextHelper.StripRichText(message);
+            if (!Client.Instance.Settings.ShowChatFormatting) message = TextHelper.StripRichText(message);
 
             // Put all the pieces together
             string formattedText = string.Format("{0}{1}: {2}", timestamp, displayName, message);
@@ -345,7 +345,7 @@ namespace PhinixClient.GUI
                 items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(user.DisplayName)), () => Client.Instance.CreateTrade(user.Uuid)));
 
                 // Block/Unblock user
-                if (Client.Instance.BlockedUsers.Contains(user.Uuid))
+                if (Client.Instance.Settings.BlockedUsers.Contains(user.Uuid))
                 {
                     // Unblock
                     items.Add(new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(), () => Client.Instance.UnBlockUser(user.Uuid)));

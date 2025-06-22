@@ -68,7 +68,7 @@ namespace PhinixClient
             Rect chatRect = usableRect.LeftPartPixels(usableRect.width - (rightColumnRect.width + DEFAULT_SPACING));
 
             // Tabs
-            TabDrawer.DrawTabs(usableRect, tabList, 1, 200f);
+            TabDrawer.DrawTabs(usableRect, tabList, 200f);
 
             switch (activeTab)
             {
@@ -145,7 +145,7 @@ namespace PhinixClient
             UnityEngine.GUI.SetNextControlName("Phinix_chatMessageField");
             message = Widgets.TextField(messageBoxRect, message);
 
-            if (Client.Instance.ForceMessageFieldFocus)
+            if (Client.Instance.Settings.ForceMessageFieldFocus)
             {
                 // Aggressively hold the focus on the chat field until clicked out of
                 if (Input.GetMouseButtonDown(0))

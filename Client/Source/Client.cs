@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Authentication;
+﻿using Authentication;
 using Chat;
 using Connections;
-using HugsLib;
-using HugsLib.Settings;
 using RimWorld;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Trading;
-using HugsLib.Utils;
+using UnityEngine;
 using UserManagement;
 using Utils;
 using Verse;
@@ -18,13 +15,15 @@ using Thing = Verse.Thing;
 
 namespace PhinixClient
 {
-    public class Client : ModBase
+    public class Client : Mod
     {
         public static Client Instance;
-        public static readonly Version Version = Assembly.GetAssembly(typeof(Client)).GetName().Version;
+        public static readonly Version Version = typeof(Client).Assembly.GetName().Version;
+        public const string PackageId = "Thomotron.Phinix";
+
         public void Log(LogEventArgs e) => ILoggableHandler(null, e);
 
-        public override string ModIdentifier => "Phinix";
+        public override string SettingsCategory() => "Phinix";
 
         #region Modules
         private NetClient netClient;
@@ -61,7 +60,7 @@ namespace PhinixClient
         public void MarkAsRead() => chat.MarkAsRead();
         public UIChatMessage[] GetUnreadChatMessages(bool markAsRead = true) => GetChatMessages(markAsRead, true);
         public int UnreadMessages => chat.UnreadMessages;
-        public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(BlockedUsers);
+        public int UnreadMessagesExcludingBlocked => chat.GetUnreadMessagesExcluding(Settings.BlockedUsers);
         public event EventHandler<UIChatMessageEventArgs> OnChatMessageReceived;
         public event EventHandler OnChatSync;
 
@@ -90,153 +89,7 @@ namespace PhinixClient
         public event EventHandler<BlockedUsersChangedEventArgs> OnBlockedUsersChanged;
         public event EventHandler OnChatMessageLimitChanged;
 
-        #region Setting Handles
-        private SettingHandle<string> serverAddressHandle;
-        public string ServerAddress
-        {
-            get => serverAddressHandle.Value;
-            set
-            {
-                serverAddressHandle.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<int> serverPortHandle;
-        public int ServerPort
-        {
-            get => serverPortHandle.Value;
-            set
-            {
-                serverPortHandle.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<string> displayNameHandle;
-        public string DisplayName
-        {
-            get => displayNameHandle.Value;
-            set
-            {
-                displayNameHandle.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> acceptingTradesHandle;
-        public bool AcceptingTrades
-        {
-            get => acceptingTradesHandle.Value;
-            set
-            {
-                acceptingTradesHandle.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> showNameFormatting;
-        public bool ShowNameFormatting
-        {
-            get => showNameFormatting.Value;
-            set
-            {
-                showNameFormatting.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> showChatFormatting;
-        public bool ShowChatFormatting
-        {
-            get => showChatFormatting.Value;
-            set
-            {
-                showChatFormatting.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> playNoiseOnMessageReceived;
-        public bool PlayNoiseOnMessageReceived
-        {
-            get => playNoiseOnMessageReceived.Value;
-            set
-            {
-                playNoiseOnMessageReceived.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> showUnreadMessageCount;
-        public bool ShowUnreadMessageCount
-        {
-            get => showUnreadMessageCount.Value;
-            set
-            {
-                showUnreadMessageCount.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> showBlockedUnreadMessageCount;
-        public bool ShowBlockedUnreadMessageCount
-        {
-            get => showBlockedUnreadMessageCount.Value;
-            set
-            {
-                showBlockedUnreadMessageCount.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<int> chatMessageLimit;
-        public int ChatMessageLimit
-        {
-            get => chatMessageLimit.Value;
-            set
-            {
-                chatMessageLimit.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> forceMessageFieldFocus;
-        public bool ForceMessageFieldFocus
-        {
-            get => forceMessageFieldFocus.Value;
-            set
-            {
-                forceMessageFieldFocus.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> allItemsTradable;
-        public bool AllItemsTradable
-        {
-            get => allItemsTradable.Value;
-            set
-            {
-                allItemsTradable.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<bool> showBlockedTrades;
-        public bool ShowBlockedTrades
-        {
-            get => showBlockedTrades.Value;
-            set
-            {
-                showBlockedTrades.Value = value;
-                HugsLibController.SettingsManager.SaveChanges();
-            }
-        }
-
-        private SettingHandle<ListSetting<string>> blockedUsers;
-        public List<string> BlockedUsers => blockedUsers.Value.List;
-        #endregion
+        public Settings Settings { get; }
 
         /// <summary>
         /// Queue of sounds to play on the next frame.
@@ -268,117 +121,23 @@ namespace PhinixClient
         /// </summary>
         private object tradeWindowQueueLock = new object();
 
-        /// <inheritdoc />
-        /// <summary>
-        /// Called by HugsLib shortly after the mod is loaded.
-        /// Used for initial setup only.
-        /// </summary>
-        public override void Initialize()
+        public Client(ModContentPack content) : base(content)
         {
-            base.Initialize();
-            Client.Instance = this;
+            Instance = this;
+
+            // Apply Harmony patches
+            new HarmonyLib.Harmony(PackageId).PatchAll();
 
             // Load in Settings
-            #region Settings
-            serverAddressHandle = Settings.GetHandle(
-                settingName: "serverAddress",
-                title: "Phinix_hugslibsettings_serverAddressTitle".Translate(),
-                description: null,
-                defaultValue: "phinix.chat"
-            );
-            serverPortHandle = Settings.GetHandle(
-                settingName: "serverPort",
-                title: "Phinix_hugslibsettings_serverPortTitle".Translate(),
-                description: null,
-                defaultValue: 16200,
-                validator: value => int.TryParse(value, out _)
-            );
-            displayNameHandle = Settings.GetHandle(
-                settingName: "displayName",
-                title: "Phinix_hugslibsettings_displayNameTitle".Translate(),
-                description: null,
-                defaultValue: SteamUtility.SteamPersonaName
-            );
-            acceptingTradesHandle = Settings.GetHandle(
-                settingName: "acceptingTrades",
-                title: "Phinix_hugslibsettings_acceptingTradesTitle".Translate(),
-                description: null,
-                defaultValue: true
-            );
-            showNameFormatting = Settings.GetHandle(
-                settingName: "showNameFormatting",
-                title: "Phinix_hugslibsettings_showNameFormatting".Translate(),
-                description: null,
-                defaultValue: true
-            );
-            showChatFormatting = Settings.GetHandle(
-                settingName: "showChatFormatting",
-                title: "Phinix_hugslibsettings_showChatFormatting".Translate(),
-                description: null,
-                defaultValue: true
-            );
-            playNoiseOnMessageReceived = Settings.GetHandle(
-                settingName: "playNoiseOnMessageReceived",
-                title: "Phinix_hugslibsettings_playNoiseOnMessageReceived".Translate(),
-                description: null,
-                defaultValue: true
-            );
-            showUnreadMessageCount = Settings.GetHandle(
-                settingName: "showUnreadMessageCount",
-                title: "Phinix_hugslibsettings_showUnreadMessageCount".Translate(),
-                description: null,
-                defaultValue: true
-            );
-            showBlockedUnreadMessageCount = Settings.GetHandle(
-                settingName: "showUnreadMessageCount",
-                title: "Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(),
-                description: "Phinix_hugslibsettings_showBlockedUnreadMessageCount_description".Translate(),
-                defaultValue: true
-            );
-            chatMessageLimit = Settings.GetHandle(
-                settingName: "chatMessageLimit",
-                title: "Phinix_hugslibsettings_chatMessageLimit".Translate(),
-                description: null,
-                defaultValue: 40
-            );
-            forceMessageFieldFocus = Settings.GetHandle(
-                settingName: "forceMessageFieldFocus",
-                title: "Phinix_hugsLibSettings_forceMessageFieldFocus".Translate(),
-                description: "Phinix_hugsLibSettings_forceMessageFieldFocus_description".Translate(),
-                defaultValue: true
-            );
-            allItemsTradable = Settings.GetHandle(
-                settingName: "allItemsTradable",
-                title: "Phinix_hugslibsettings_allItemsTradable".Translate(),
-                description: null,
-                defaultValue: false
-            );
-            showBlockedTrades = Settings.GetHandle(
-                settingName: "showBlockedTrades",
-                title: "Phinix_hugslibsettings_showBlockedTrades".Translate(),
-                description: null,
-                defaultValue: false
-            );
-            blockedUsers = Settings.GetHandle<ListSetting<string>>(
-                settingName: "blockedUsers",
-                title: "Phinix_hugslibsettings_blockedUsers".Translate(),
-                description: null
-            );
-            blockedUsers.NeverVisible = true;
-            // Always initialise a new value otherwise it will use the reference of the default value, resulting in the
-            // default list being updated and the save mechanism never being able to differentiate any changes.
-            if (blockedUsers.Value == null) blockedUsers.Value = new ListSetting<string>();
-
-            // Forward chat message limit changes through our own event
-            chatMessageLimit.ValueChanged += _ => OnChatMessageLimitChanged?.Invoke(this, EventArgs.Empty);
-            #endregion
+            Settings = GetSettings<Settings>();
+            if (!Settings.Migrated) Settings.MigrateFromHugsLib();
 
             // Set up our module instances
-            this.netClient = new NetClient();
-            this.authenticator = new ClientAuthenticator(netClient, getCredentials);
-            this.userManager = new ClientUserManager(netClient, authenticator);
-            this.chat = new ClientChat(netClient, authenticator, userManager);
-            this.trading = new ClientTrading(netClient, authenticator, userManager);
+            netClient = new NetClient();
+            authenticator = new ClientAuthenticator(netClient, getCredentials);
+            userManager = new ClientUserManager(netClient, authenticator);
+            chat = new ClientChat(netClient, authenticator, userManager);
+            trading = new ClientTrading(netClient, authenticator, userManager);
 
             // Subscribe to log events
             authenticator.OnLogEntry += ILoggableHandler;
@@ -397,17 +156,17 @@ namespace PhinixClient
             // Subscribe to authentication events
             authenticator.OnAuthenticationSuccess += (sender, args) =>
             {
-                Logger.Message("Successfully authenticated with server.");
+                Verse.Log.Message("Successfully authenticated with server.");
                 userManager.SendLogin(
-                    displayName: DisplayName,
-                    acceptingTrades: AcceptingTrades
+                    displayName: Settings.DisplayName,
+                    acceptingTrades: Settings.AcceptingTrades
                 );
             };
             authenticator.OnAuthenticationFailure += (sender, args) =>
             {
-                Logger.Message("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+                Verse.Log.Message(string.Format("Failed to authenticate with server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_Message("Phinix_error_authFailedTitle".Translate(), "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_authFailedTitle".Translate(), text: "Phinix_error_authFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 Disconnect();
             };
@@ -415,40 +174,40 @@ namespace PhinixClient
             // Subscribe to user management events
             userManager.OnLoginSuccess += (sender, args) =>
             {
-                Logger.Message("Successfully logged in with UUID {0}", userManager.Uuid);
+                Verse.Log.Message(string.Format("Successfully logged in with UUID {0}", userManager.Uuid));
             };
             userManager.OnLoginFailure += (sender, args) =>
             {
-                Logger.Message("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString());
+                Verse.Log.Message(string.Format("Failed to log in to server: {0} ({1})", args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_Message("Phinix_error_loginFailedTitle".Translate(), "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_loginFailedTitle".Translate(), text: "Phinix_error_loginFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 Disconnect();
             };
             userManager.OnUserDisplayNameChanged += (sender, args) =>
             {
-                Logger.Trace(string.Format("User with UUID {0} changed their display name from \"{1}\" to \"{2}\"", args.Uuid, args.OldDisplayName, args.NewDisplayName));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("User with UUID {0} changed their display name from \"{1}\" to \"{2}\"", args.Uuid, args.OldDisplayName, args.NewDisplayName));
             };
             userManager.OnUserLoggedIn += (sender, args) =>
             {
-                Logger.Trace(string.Format("User {0} logged in", args.Uuid));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("User {0} logged in", args.Uuid));
             };
             userManager.OnUserLoggedOut += (sender, args) =>
             {
-                Logger.Trace(string.Format("User {0} logged out", args.Uuid));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("User {0} logged out", args.Uuid));
             };
             userManager.OnUserCreated += (sender, args) =>
             {
-                Logger.Trace(string.Format("New user created: {0} ({1}) - {2}ogged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("New user created: {0} ({1}) - {2}ogged in", args.DisplayName, args.Uuid, args.LoggedIn ? "L" : "Not l"));
             };
 
             // Subscribe to chat events
             chat.OnChatMessageReceived += (sender, args) =>
             {
-                Logger.Trace("Received chat message from UUID " + args.Message.SenderUuid);
+                if (Prefs.DevMode) Verse.Log.Message("Received chat message from UUID " + args.Message.SenderUuid);
 
                 // Check if the message wasn't ours, chat noises are enabled, and if we are in-game before playing a sound
-                if (args.Message.SenderUuid != Uuid && PlayNoiseOnMessageReceived && Current.Game != null && !BlockedUsers.Contains(args.Message.SenderUuid))
+                if (args.Message.SenderUuid != Uuid && Settings.PlayNoiseOnMessageReceived && Current.Game != null && !Settings.BlockedUsers.Contains(args.Message.SenderUuid))
                 {
                     lock (soundQueueLock)
                     {
@@ -462,10 +221,10 @@ namespace PhinixClient
             // Subscribe to trading events
             trading.OnTradeCreationSuccess += (sender, args) =>
             {
-                Logger.Trace(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("Created trade {0} with {1}", args.TradeId, args.OtherPartyUuid));
 
                 // Don't display anything if the other party is blocked and we want to hide their trades
-                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+                if (!Settings.ShowBlockedTrades && Instance.Settings.BlockedUsers.Contains(args.OtherPartyUuid)) return;
 
                 // Check if we are waiting for this trade to be created. If so, show the trade window immediately.
                 lock (waitingForTradeCreationWithLock)
@@ -483,7 +242,7 @@ namespace PhinixClient
                         else
                         {
                             // Log the failure and revert to the letter instead
-                            Log(new LogEventArgs($"Failed to get newly created trade {args.TradeId} when attempting to open immediately", LogLevel.WARNING));
+                            Verse.Log.Warning(string.Format("Failed to get newly created trade {0} when attempting to open immediately", args.TradeId));
                         }
                     }
                 }
@@ -510,9 +269,9 @@ namespace PhinixClient
             };
             trading.OnTradeCreationFailure += (sender, args) =>
             {
-                Logger.Trace(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("Failed to create trade with {0}: {1} ({2})", args.OtherPartyUuid, args.FailureMessage, args.FailureReason.ToString()));
 
-                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeCreationFailedTitle".Translate(), "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_tradeCreationFailedTitle".Translate(), text: "Phinix_error_tradeCreationFailedMessage".Translate(args.FailureMessage, args.FailureReason.ToString())));
 
                 // Remove the other party from the waiting list
                 lock (waitingForTradeCreationWithLock) waitingForTradeCreationWith.Remove(args.OtherPartyUuid);
@@ -548,12 +307,12 @@ namespace PhinixClient
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeAccepted");
                 Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCompletedLetter_label".Translate(), "Phinix_trade_tradeCompletedLetter_description".Translate(displayName), letterDef, dropSpotLookTarget);
 
-                Logger.Trace(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("Trade with {0} completed successfully", args.OtherPartyUuid));
             };
             trading.OnTradeCancelled += (sender, args) =>
             {
                 // Don't display anything if the other party is blocked and we want to hide their trades
-                if (!ShowBlockedTrades && Instance.BlockedUsers.Contains(args.OtherPartyUuid)) return;
+                if (!Settings.ShowBlockedTrades && Instance.Settings.BlockedUsers.Contains(args.OtherPartyUuid)) return;
 
                 // Try get the other party's display name
                 if (userManager.TryGetDisplayName(args.OtherPartyUuid, out string displayName))
@@ -583,7 +342,7 @@ namespace PhinixClient
                 LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCancelled");
                 Find.LetterStack.ReceiveLetter("Phinix_trade_tradeCancelled_label".Translate(), "Phinix_trade_tradeCancelled_description".Translate(displayName), letterDef, dropSpotLookTarget);
 
-                Logger.Trace(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("Trade with {0} cancelled", args.OtherPartyUuid));
             };
             trading.OnTradeUpdateFailure += (sender, args) =>
             {
@@ -600,16 +359,13 @@ namespace PhinixClient
                     displayName = "???";
                 }
 
-                Find.WindowStack.Add(new Dialog_Message("Phinix_error_tradeUpdateFailedTitle".Translate(), "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_tradeUpdateFailedTitle".Translate(), text: "Phinix_error_tradeUpdateFailedMessage".Translate(displayName, args.FailureMessage, args.FailureReason.ToString())));
             };
             trading.OnTradesSynced += (sender, args) =>
             {
-                Logger.Trace(string.Format("Synced {0} trade{1} from server", args.TradeIds.Length, args.TradeIds.Length != 1 ? "s" : ""));
+                if (Prefs.DevMode) Verse.Log.Message(string.Format("Synced {0} trade{1} from server", args.TradeIds.Length, args.TradeIds.Length != 1 ? "s" : ""));
             };
             #endregion
-
-            // Subscribe to setting handle value change events
-            acceptingTradesHandle.ValueChanged += (handle) => { userManager.UpdateSelf(acceptingTrades: acceptingTradesHandle.Value); };
 
             // Forward events so the UI can handle them
             netClient.OnConnecting += (sender, e) => { OnConnecting?.Invoke(sender, e); };
@@ -634,7 +390,80 @@ namespace PhinixClient
             trading.OnTradesSynced += (sender, e) => { OnTradesSynced?.Invoke(sender, UITradesSyncedEventArgs.FromTradesSyncedEventArgs(e, trading, userManager)); };
 
             // Connect to the server set in the config
-            Connect(ServerAddress, ServerPort);
+            Connect(Settings.ServerAddress, Settings.ServerPort);
+        }
+
+        public override void DoSettingsWindowContents(Rect inRect)
+        {
+            Listing_Standard listing = new Listing_Standard()
+            {
+                ColumnWidth = Math.Min(600f, inRect.width / 2)
+            };
+            listing.Begin(inRect);
+
+            listing.Label("Phinix_modSettings_serverAddressTitle".Translate());
+            Settings.ServerAddress = listing.TextEntry(Settings.ServerAddress);
+
+            listing.Label("Phinix_modSettings_serverPortTitle".Translate());
+            string portStr = Settings.ServerPort.ToString();
+            portStr = listing.TextEntry(portStr);
+            int.TryParse(portStr, out int serverPort);
+            Settings.ServerPort = serverPort;
+
+            listing.Label("Phinix_modSettings_displayNameTitle".Translate());
+            Settings.DisplayName = listing.TextEntry(Settings.DisplayName);
+
+            bool acceptingTrades = Settings.AcceptingTrades;
+            listing.CheckboxLabeled("Phinix_modSettings_acceptingTradesTitle".Translate(), ref acceptingTrades);
+            Settings.AcceptingTrades = acceptingTrades;
+
+            bool showNameFormatting = Settings.ShowNameFormatting;
+            listing.CheckboxLabeled("Phinix_modSettings_showNameFormatting".Translate(), ref showNameFormatting);
+            Settings.ShowNameFormatting = showNameFormatting;
+
+            bool showChatFormatting = Settings.ShowChatFormatting;
+            listing.CheckboxLabeled("Phinix_modSettings_showChatFormatting".Translate(), ref showChatFormatting);
+            Settings.ShowChatFormatting = showChatFormatting;
+
+            bool playNoiseOnMessageReceived = Settings.PlayNoiseOnMessageReceived;
+            listing.CheckboxLabeled("Phinix_modSettings_playNoiseOnMessageReceived".Translate(), ref playNoiseOnMessageReceived);
+            Settings.PlayNoiseOnMessageReceived = playNoiseOnMessageReceived;
+
+            bool showUnreadMessageCount = Settings.ShowUnreadMessageCount;
+            listing.CheckboxLabeled("Phinix_modSettings_showUnreadMessageCount".Translate(), ref showUnreadMessageCount);
+            Settings.ShowUnreadMessageCount = showUnreadMessageCount;
+
+            bool showBlockedUnreadMessageCount = Settings.ShowBlockedUnreadMessageCount;
+            listing.CheckboxLabeled("Phinix_modSettings_showBlockedUnreadMessageCount".Translate(), ref showBlockedUnreadMessageCount);
+            Settings.ShowBlockedUnreadMessageCount = showBlockedUnreadMessageCount;
+
+            listing.Label("Phinix_modSettings_chatMessageLimit".Translate());
+            string limitStr = Settings.ChatMessageLimit.ToString();
+            limitStr = listing.TextEntry(limitStr);
+            int.TryParse(limitStr, out int chatMessageLimit);
+            Settings.ChatMessageLimit = chatMessageLimit;
+
+            bool forceMessageFieldFocus = Settings.ForceMessageFieldFocus;
+            listing.CheckboxLabeled("Phinix_modSettings_forceMessageFieldFocus".Translate(), ref forceMessageFieldFocus);
+            Settings.ForceMessageFieldFocus = forceMessageFieldFocus;
+
+            bool allItemsTradable = Settings.AllItemsTradable;
+            listing.CheckboxLabeled("Phinix_modSettings_allItemsTradable".Translate(), ref allItemsTradable);
+            Settings.AllItemsTradable = allItemsTradable;
+
+            bool showBlockedTrades = Settings.ShowBlockedTrades;
+            listing.CheckboxLabeled("Phinix_modSettings_showBlockedTrades".Translate(), ref showBlockedTrades);
+            Settings.ShowBlockedTrades = showBlockedTrades;
+
+            listing.End();
+        }
+
+        public override void WriteSettings()
+        {
+            if (!Settings.IsChanged) return;
+
+            Settings.AcceptChanges();
+            userManager.UpdateSelf(Settings.DisplayName, Settings.AcceptingTrades);
         }
 
         /// <summary>
@@ -643,9 +472,9 @@ namespace PhinixClient
         /// <param name="senderUuid">UUID of user to block</param>
         public void BlockUser(string senderUuid)
         {
-            BlockedUsers.AddDistinct(senderUuid);
-            blockedUsers.HasUnsavedChanges = true;
-            HugsLibController.SettingsManager.SaveChanges();
+            if (!Settings.BlockedUsers.Add(senderUuid)) return;
+
+            Settings.AcceptChanges();
 
             OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, true));
         }
@@ -656,15 +485,18 @@ namespace PhinixClient
         /// <param name="senderUuid">UUID of the user to unblock</param>
         public void UnBlockUser(string senderUuid)
         {
-            BlockedUsers.Remove(senderUuid);
-            blockedUsers.HasUnsavedChanges = true;
-            HugsLibController.SettingsManager.SaveChanges();
+            if (!Settings.BlockedUsers.Remove(senderUuid)) return;
+
+            Settings.AcceptChanges();
 
             OnBlockedUsersChanged?.Invoke(this, new BlockedUsersChangedEventArgs(senderUuid, false));
         }
 
-        /// <inheritdoc />
-        public override void Update()
+        /// <summary>
+        /// A hook into the main update loop. Periodically updates state.
+        /// </summary>
+        /// <seealso cref="Patches.RootPatch.Update"/>
+        public void Update()
         {
             lock (soundQueueLock)
             {
@@ -704,9 +536,9 @@ namespace PhinixClient
             }
             catch
             {
-                Logger.Message("Could not connect to {0}:{1}", ServerAddress, ServerPort);
+                Verse.Log.Message(string.Format("Could not connect to {0}:{1}", Settings.ServerAddress, Settings.ServerPort));
 
-                Find.WindowStack.Add(new Dialog_Message("Phinix_error_connectionFailedTitle".Translate(), "Phinix_error_connectionFailedMessage".Translate(ServerAddress, ServerPort)));
+                Find.WindowStack.Add(new Dialog_MessageBox(title: "Phinix_error_connectionFailedTitle".Translate(), text: "Phinix_error_connectionFailedMessage".Translate(Settings.ServerAddress, Settings.ServerPort)));
             }
         }
 
@@ -783,7 +615,7 @@ namespace PhinixClient
 
         /// <summary>
         /// Handler for <see cref="ILoggable"/> <c>OnLogEvent</c> events.
-        /// Raised by modules as a way to hook into the HugsLib log.
+        /// Raised by modules as a way to hook into the log.
         /// </summary>
         /// <param name="sender">Object that raised the event</param>
         /// <param name="args">Event arguments</param>
@@ -792,18 +624,18 @@ namespace PhinixClient
             switch (args.LogLevel)
             {
                 case LogLevel.DEBUG:
-                    Logger.Trace(args.Message);
+                    if (Prefs.DevMode) Verse.Log.Message(args.Message);
                     break;
                 case LogLevel.WARNING:
-                    Logger.Warning(args.Message);
+                    Verse.Log.Warning(args.Message);
                     break;
                 case LogLevel.ERROR:
                 case LogLevel.FATAL:
-                    Logger.Error(args.Message);
+                    Verse.Log.Error(args.Message);
                     break;
                 case LogLevel.INFO:
                 default:
-                    Logger.Message(args.Message);
+                    Verse.Log.Message(args.Message);
                     break;
             }
         }
@@ -819,7 +651,7 @@ namespace PhinixClient
         /// <param name="callback">Callback delegate to pass entered credentials to</param>
         private void getCredentials(string sessionId, string serverName, string serverDescription, AuthTypes authType, ClientAuthenticator.ReturnCredentialsDelegate callback)
         {
-            Logger.Trace("Authentication needs more credentials for the server \"{0}\" with authentication type \"{1}\"", serverName, authType.ToString());
+            if (Prefs.DevMode) Verse.Log.Message(string.Format("Authentication needs more credentials for the server \"{0}\" with authentication type \"{1}\"", serverName, authType.ToString()));
 
             Find.WindowStack.Add(new CredentialsWindow
             {
