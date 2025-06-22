@@ -401,58 +401,58 @@ namespace PhinixClient
             };
             listing.Begin(inRect);
 
-            listing.Label("Phinix_hugslibsettings_serverAddressTitle".Translate());
+            listing.Label("Phinix_modSettings_serverAddressTitle".Translate());
             Settings.ServerAddress = listing.TextEntry(Settings.ServerAddress);
 
-            listing.Label("Phinix_hugslibsettings_serverPortTitle".Translate());
+            listing.Label("Phinix_modSettings_serverPortTitle".Translate());
             string portStr = Settings.ServerPort.ToString();
             portStr = listing.TextEntry(portStr);
             int.TryParse(portStr, out int serverPort);
             Settings.ServerPort = serverPort;
 
-            listing.Label("Phinix_hugslibsettings_displayNameTitle".Translate());
+            listing.Label("Phinix_modSettings_displayNameTitle".Translate());
             Settings.DisplayName = listing.TextEntry(Settings.DisplayName);
 
             bool acceptingTrades = Settings.AcceptingTrades;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_acceptingTradesTitle".Translate(), ref acceptingTrades);
+            listing.CheckboxLabeled("Phinix_modSettings_acceptingTradesTitle".Translate(), ref acceptingTrades);
             Settings.AcceptingTrades = acceptingTrades;
 
             bool showNameFormatting = Settings.ShowNameFormatting;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_showNameFormatting".Translate(), ref showNameFormatting);
+            listing.CheckboxLabeled("Phinix_modSettings_showNameFormatting".Translate(), ref showNameFormatting);
             Settings.ShowNameFormatting = showNameFormatting;
 
             bool showChatFormatting = Settings.ShowChatFormatting;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_showChatFormatting".Translate(), ref showChatFormatting);
+            listing.CheckboxLabeled("Phinix_modSettings_showChatFormatting".Translate(), ref showChatFormatting);
             Settings.ShowChatFormatting = showChatFormatting;
 
             bool playNoiseOnMessageReceived = Settings.PlayNoiseOnMessageReceived;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_playNoiseOnMessageReceived".Translate(), ref playNoiseOnMessageReceived);
+            listing.CheckboxLabeled("Phinix_modSettings_playNoiseOnMessageReceived".Translate(), ref playNoiseOnMessageReceived);
             Settings.PlayNoiseOnMessageReceived = playNoiseOnMessageReceived;
 
             bool showUnreadMessageCount = Settings.ShowUnreadMessageCount;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_showUnreadMessageCount".Translate(), ref showUnreadMessageCount);
+            listing.CheckboxLabeled("Phinix_modSettings_showUnreadMessageCount".Translate(), ref showUnreadMessageCount);
             Settings.ShowUnreadMessageCount = showUnreadMessageCount;
 
             bool showBlockedUnreadMessageCount = Settings.ShowBlockedUnreadMessageCount;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_showBlockedUnreadMessageCount".Translate(), ref showBlockedUnreadMessageCount);
+            listing.CheckboxLabeled("Phinix_modSettings_showBlockedUnreadMessageCount".Translate(), ref showBlockedUnreadMessageCount);
             Settings.ShowBlockedUnreadMessageCount = showBlockedUnreadMessageCount;
 
-            listing.Label("Phinix_hugslibsettings_chatMessageLimit".Translate());
+            listing.Label("Phinix_modSettings_chatMessageLimit".Translate());
             string limitStr = Settings.ChatMessageLimit.ToString();
             limitStr = listing.TextEntry(limitStr);
             int.TryParse(limitStr, out int chatMessageLimit);
             Settings.ChatMessageLimit = chatMessageLimit;
 
             bool forceMessageFieldFocus = Settings.ForceMessageFieldFocus;
-            listing.CheckboxLabeled("Phinix_hugsLibSettings_forceMessageFieldFocus".Translate(), ref forceMessageFieldFocus);
+            listing.CheckboxLabeled("Phinix_modSettings_forceMessageFieldFocus".Translate(), ref forceMessageFieldFocus);
             Settings.ForceMessageFieldFocus = forceMessageFieldFocus;
 
             bool allItemsTradable = Settings.AllItemsTradable;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_allItemsTradable".Translate(), ref allItemsTradable);
+            listing.CheckboxLabeled("Phinix_modSettings_allItemsTradable".Translate(), ref allItemsTradable);
             Settings.AllItemsTradable = allItemsTradable;
 
             bool showBlockedTrades = Settings.ShowBlockedTrades;
-            listing.CheckboxLabeled("Phinix_hugslibsettings_showBlockedTrades".Translate(), ref showBlockedTrades);
+            listing.CheckboxLabeled("Phinix_modSettings_showBlockedTrades".Translate(), ref showBlockedTrades);
             Settings.ShowBlockedTrades = showBlockedTrades;
 
             listing.End();

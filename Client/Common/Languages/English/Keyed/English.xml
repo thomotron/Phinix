@@ -20,22 +20,22 @@
     <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
     <Phinix_settings_displayNamePreview>Your name will look like: {0}</Phinix_settings_displayNamePreview>
 
-    <Phinix_hugslibsettings_serverAddressTitle>Server address</Phinix_hugslibsettings_serverAddressTitle>
-    <Phinix_hugslibsettings_serverPortTitle>Server port</Phinix_hugslibsettings_serverPortTitle>
-    <Phinix_hugslibsettings_displayNameTitle>Display name</Phinix_hugslibsettings_displayNameTitle>
-    <Phinix_hugslibsettings_acceptingTradesTitle>Accepting trades</Phinix_hugslibsettings_acceptingTradesTitle>
-    <Phinix_hugslibsettings_showNameFormatting>Show name formatting</Phinix_hugslibsettings_showNameFormatting>
-    <Phinix_hugslibsettings_showChatFormatting>Show chat formatting</Phinix_hugslibsettings_showChatFormatting>
-    <Phinix_hugslibsettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_hugslibsettings_playNoiseOnMessageReceived>
-    <Phinix_hugslibsettings_showUnreadMessageCount>Show unread message count</Phinix_hugslibsettings_showUnreadMessageCount>
-    <Phinix_hugslibsettings_showBlockedUnreadMessageCount>Show unread message count for blocked users</Phinix_hugslibsettings_showBlockedUnreadMessageCount>
-    <Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>Includes blocked users in the total number of unread messages when showing the unread message count</Phinix_hugslibsettings_showBlockedUnreadMessageCount_description>
-    <Phinix_hugslibsettings_allItemsTradable>Allow trading items that are not in storage</Phinix_hugslibsettings_allItemsTradable>
-    <Phinix_hugslibsettings_showBlockedTrades>Show trades from blocked users</Phinix_hugslibsettings_showBlockedTrades>
-    <Phinix_hugslibsettings_blockedUsers>Blocked users</Phinix_hugslibsettings_blockedUsers>
-    <Phinix_hugslibsettings_chatMessageLimit>Number of chat messages to keep</Phinix_hugslibsettings_chatMessageLimit>
-    <Phinix_hugsLibSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_hugsLibSettings_forceMessageFieldFocus>
-    <Phinix_hugsLibSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_hugsLibSettings_forceMessageFieldFocus_description>
+    <Phinix_modSettings_serverAddressTitle>Server address</Phinix_modSettings_serverAddressTitle>
+    <Phinix_modSettings_serverPortTitle>Server port</Phinix_modSettings_serverPortTitle>
+    <Phinix_modSettings_displayNameTitle>Display name</Phinix_modSettings_displayNameTitle>
+    <Phinix_modSettings_acceptingTradesTitle>Accepting trades</Phinix_modSettings_acceptingTradesTitle>
+    <Phinix_modSettings_showNameFormatting>Show name formatting</Phinix_modSettings_showNameFormatting>
+    <Phinix_modSettings_showChatFormatting>Show chat formatting</Phinix_modSettings_showChatFormatting>
+    <Phinix_modSettings_playNoiseOnMessageReceived>Play chat message sound</Phinix_modSettings_playNoiseOnMessageReceived>
+    <Phinix_modSettings_showUnreadMessageCount>Show unread message count</Phinix_modSettings_showUnreadMessageCount>
+    <Phinix_modSettings_showBlockedUnreadMessageCount>Show unread message count for blocked users</Phinix_modSettings_showBlockedUnreadMessageCount>
+    <Phinix_modSettings_showBlockedUnreadMessageCount_description>Includes blocked users in the total number of unread messages when showing the unread message count</Phinix_modSettings_showBlockedUnreadMessageCount_description>
+    <Phinix_modSettings_allItemsTradable>Allow trading items that are not in storage</Phinix_modSettings_allItemsTradable>
+    <Phinix_modSettings_showBlockedTrades>Show trades from blocked users</Phinix_modSettings_showBlockedTrades>
+    <Phinix_modSettings_blockedUsers>Blocked users</Phinix_modSettings_blockedUsers>
+    <Phinix_modSettings_chatMessageLimit>Number of chat messages to keep</Phinix_modSettings_chatMessageLimit>
+    <Phinix_modSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_modSettings_forceMessageFieldFocus>
+    <Phinix_modSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_modSettings_forceMessageFieldFocus_description>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
