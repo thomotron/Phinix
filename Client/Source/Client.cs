@@ -395,7 +395,10 @@ namespace PhinixClient
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Listing_Standard listing = new Listing_Standard();
+            Listing_Standard listing = new Listing_Standard()
+            {
+                ColumnWidth = Math.Min(600f, inRect.width / 2)
+            };
             listing.Begin(inRect);
 
             listing.Label("Phinix_hugslibsettings_serverAddressTitle".Translate());
