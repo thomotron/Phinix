@@ -318,11 +318,11 @@ namespace PhinixClient
             if (searchText != oldSearchText)
             {
                 // Repopulate filtered item list with the new search if necessary
-                filteredAvailableItems = availableItems.Where(stack => stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
+                filteredAvailableItems = availableItems.Where(stack => stack.Count > 0 && stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
             }
 
             // Available items
-            if (!filteredAvailableItems.Any())
+            if (!filteredAvailableItems.Any(stack => stack.Count > 0))
             {
                 // Draw a placeholder when nothing is present
                 Widgets.DrawMenuSection(availableItemsRect);
