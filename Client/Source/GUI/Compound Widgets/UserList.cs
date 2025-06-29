@@ -123,7 +123,7 @@ namespace PhinixClient.GUI
                     {
                         // Repopulate the list content with users matching the search text
                         filteredOnlineUsers.Clear();
-                        filteredOnlineUsers.AddRange(onlineUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
+                        filteredOnlineUsers.AddRange(onlineUsers.Where(u => u.DisplayName.StripTags().IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1));
 
                         // Unset the changed flag and release the lock
                         onlineUsersChanged = false;
@@ -139,7 +139,7 @@ namespace PhinixClient.GUI
                     {
                         // Repopulate the list content with users matching the search text
                         filteredBlockedUsers.Clear();
-                        filteredBlockedUsers.AddRange(blockedUsers.Where(u => u.DisplayName.StripTags().Contains(searchText)));
+                        filteredBlockedUsers.AddRange(blockedUsers.Where(u => u.DisplayName.StripTags().IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1));
 
                         // Unset the changed flag and release the lock
                         blockedUsersChanged = false;
