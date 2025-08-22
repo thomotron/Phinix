@@ -36,6 +36,7 @@
     <Phinix_modSettings_chatMessageLimit>Number of chat messages to keep</Phinix_modSettings_chatMessageLimit>
     <Phinix_modSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_modSettings_forceMessageFieldFocus>
     <Phinix_modSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_modSettings_forceMessageFieldFocus_description>
+	<Phinix_modSettings_dropCurrentMap>Always drop traded items on the current map</Phinix_modSettings_dropCurrentMap>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
