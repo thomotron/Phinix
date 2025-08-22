@@ -126,6 +126,22 @@ namespace PhinixClient
         private HashSet<string> blockedUsers;
         public HashSet<string> BlockedUsers => blockedUsers;
 
+        private bool originalDropCurrentMap;
+        private bool dropCurrentMap;
+        public bool DropCurrentMap
+        {
+            get => dropCurrentMap;
+            set => dropCurrentMap = value;
+        }
+
+        private bool originalCollapseBlockedUsers;
+        private bool collapseBlockedUsers;
+        public bool CollapseBlockedUsers
+        {
+            get => collapseBlockedUsers;
+            set => collapseBlockedUsers = value;
+        }
+
         /// <inheritdoc/>
         public bool IsChanged
         {
@@ -145,7 +161,9 @@ namespace PhinixClient
                        allItemsTradable != originalAllItemsTradable ||
                        showBlockedTrades != originalShowBlockedTrades ||
                        !blockedUsers.SequenceEqual(originalBlockedUsers) ||
-                       migrated != originalMigrated;
+                       migrated != originalMigrated ||
+                       dropCurrentMap != originalDropCurrentMap ||
+                       collapseBlockedUsers != originalCollapseBlockedUsers;
             }
         }
 
@@ -170,6 +188,8 @@ namespace PhinixClient
             allItemsTradable = false;
             showBlockedTrades = false;
             migrated = false;
+            dropCurrentMap = false;
+            collapseBlockedUsers = true;
 
             originalBlockedUsers = new HashSet<string>();
             blockedUsers = new HashSet<string>();
@@ -198,6 +218,8 @@ namespace PhinixClient
             Scribe_Values.Look(ref showBlockedTrades, "showBlockedTrades", false);
             Scribe_Values.Look(ref migrated, "migrated", false);
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
+            Scribe_Values.Look(ref dropCurrentMap, "dropCurrentMap", false);
+            Scribe_Values.Look(ref collapseBlockedUsers, "collapseBlockedUsers", true);
 
             // Prevent scribe from interpreting a missing value as null
             if (blockedUsers is null) blockedUsers = new HashSet<string>();
@@ -263,6 +285,8 @@ namespace PhinixClient
             originalAllItemsTradable = allItemsTradable;
             originalShowBlockedTrades = showBlockedTrades;
             originalMigrated = migrated;
+            originalDropCurrentMap = dropCurrentMap;
+            originalCollapseBlockedUsers = collapseBlockedUsers;
 
             originalBlockedUsers.Clear();
             originalBlockedUsers.AddRange(blockedUsers);

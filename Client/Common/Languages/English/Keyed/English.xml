@@ -11,6 +11,7 @@
     <Phinix_chat_blockedUsers>Blocked users</Phinix_chat_blockedUsers>
     <Phinix_chat_contextMenu_blockUser>Block user</Phinix_chat_contextMenu_blockUser>
     <Phinix_chat_contextMenu_unblockUser>Unblock user</Phinix_chat_contextMenu_unblockUser>
+    <Phinix_chat_contextMenu_openInBrowser>Open link in browser: {0}</Phinix_chat_contextMenu_openInBrowser>
 
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
     <Phinix_settings_disconnectButton>Disconnect</Phinix_settings_disconnectButton>
@@ -36,6 +37,7 @@
     <Phinix_modSettings_chatMessageLimit>Number of chat messages to keep</Phinix_modSettings_chatMessageLimit>
     <Phinix_modSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_modSettings_forceMessageFieldFocus>
     <Phinix_modSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_modSettings_forceMessageFieldFocus_description>
+	<Phinix_modSettings_dropCurrentMap>Always drop traded items on the current map</Phinix_modSettings_dropCurrentMap>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
