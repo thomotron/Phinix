@@ -21,6 +21,8 @@ namespace PhinixClient.GUI
         private const float USER_BUTTON_PADDING_HORIZONTAL = 3f;
         private const float USER_BUTTON_PADDING_VERTICAL = 5f;
 
+        private readonly Texture2D blockedSpacerCollapseIcon = ContentFinder<Texture2D>.Get("collapse");
+
         /// <summary>
         /// Background colour for blocked users.
         /// </summary>
@@ -79,6 +81,16 @@ namespace PhinixClient.GUI
         /// Total height of all users. Derived from <see cref="userRectHeights"/>.
         /// </summary>
         private (float Normal, float Scrollbar) userRectHeightsSum = (0f, 0f);
+
+        /// <summary>
+        /// Collection of pre-calculated heights for each blocked user. Used to wrap long usernames with a cached
+        /// result for better performance.
+        /// </summary>
+        private readonly Dictionary<ImmutableUser, (float Normal, float Scrollbar)> blockedUserRectHeights = new Dictionary<ImmutableUser, (float Normal, float Scrollbar)>();
+        /// <summary>
+        /// Total height of all blocked users. Derived from <see cref="blockedUserRectHeights"/>.
+        /// </summary>
+        private (float Normal, float Scrollbar) blockedUserRectHeightsSum = (0f, 0f);
 
         /// <summary>
         /// Search text to filter <see cref="filteredOnlineUsers"/> and <see cref="filteredBlockedUsers"/> by.
@@ -158,27 +170,43 @@ namespace PhinixClient.GUI
                     userRectHeightsSum.Normal += normalHeight;
                     userRectHeightsSum.Scrollbar += heightWithScrollbar;
                 }
+                blockedUserRectHeights.Clear();
+                blockedUserRectHeightsSum = (0f, 0f);
                 foreach (ImmutableUser user in filteredBlockedUsers)
                 {
                     float normalHeight = Text.CalcHeight(formatDisplayName(user.DisplayName, true), inRect.width) + (USER_BUTTON_PADDING_VERTICAL * 2);
                     float heightWithScrollbar = Text.CalcHeight(formatDisplayName(user.DisplayName, true), inRect.width - SCROLLBAR_WIDTH) + (USER_BUTTON_PADDING_VERTICAL * 2);
-                    userRectHeights.Add(user, (normalHeight, heightWithScrollbar));
-                    userRectHeightsSum.Normal += normalHeight;
-                    userRectHeightsSum.Scrollbar += heightWithScrollbar;
+                    blockedUserRectHeights.Add(user, (normalHeight, heightWithScrollbar));
+                    blockedUserRectHeightsSum.Normal += normalHeight;
+                    blockedUserRectHeightsSum.Scrollbar += heightWithScrollbar;
                 }
             }
 
             // Set up the scrollable container
+            float totalHeight = userRectHeightsSum.Normal;
+            if (filteredBlockedUsers.Any())
+            {
+                totalHeight += BLOCKED_SPACER_HEIGHT;
+                if (!Client.Instance.Settings.CollapseBlockedUsers) totalHeight += blockedUserRectHeightsSum.Normal;
+            }
+
             Rect contentRect = new Rect(
                 x: inRect.xMin,
                 y: inRect.yMin,
                 width: inRect.width,
-                height: filteredBlockedUsers.Any() ? BLOCKED_SPACER_HEIGHT + userRectHeightsSum.Normal : userRectHeightsSum.Normal
+                height: totalHeight
             );
             if (contentRect.height > inRect.height)
             {
+                totalHeight = userRectHeightsSum.Scrollbar;
+                if (filteredBlockedUsers.Any())
+                {
+                    totalHeight += BLOCKED_SPACER_HEIGHT;
+                    if (!Client.Instance.Settings.CollapseBlockedUsers) totalHeight += blockedUserRectHeightsSum.Scrollbar;
+                }
+
                 contentRect.width = inRect.width - SCROLLBAR_WIDTH;
-                contentRect.height = filteredBlockedUsers.Any() ? BLOCKED_SPACER_HEIGHT + userRectHeightsSum.Scrollbar : userRectHeightsSum.Scrollbar;
+                contentRect.height = totalHeight;
             }
 
             // Start scrolling
@@ -209,14 +237,41 @@ namespace PhinixClient.GUI
                 Text.Anchor = TextAnchor.MiddleCenter;
                 Widgets.Label(paddedRect, "Phinix_chat_blockedUsers".Translate());
                 Text.Anchor = oldTextAnchor;
+
+                // Handle clicks on it
+                if (Widgets.ButtonInvisible(paddedRect, false))
+                {
+                    Client.Instance.Settings.CollapseBlockedUsers = !Client.Instance.Settings.CollapseBlockedUsers;
+                    Client.Instance.Settings.AcceptChanges();
+                }
+
+                // Draw the collapse arrow
+                Rect collapseIconRect = new Rect(
+                    x: paddedRect.xMin + USER_BUTTON_PADDING_HORIZONTAL,
+                    y: paddedRect.yMin - 1f,
+                    width: paddedRect.height,
+                    height: paddedRect.height
+                );
+                Widgets.DrawTextureFitted(
+                    outerRect: collapseIconRect,
+                    tex: blockedSpacerCollapseIcon,
+                    scale: 0.4f,
+                    texProportions: new Vector2(blockedSpacerCollapseIcon.width, blockedSpacerCollapseIcon.height),
+                    texCoords: new Rect(0f, 0f, 1f, 1f),
+                    angle: Client.Instance.Settings.CollapseBlockedUsers ? 0 : 90
+                );
+
                 currentY += BLOCKED_SPACER_HEIGHT;
 
                 // ...then the blocked users
-                foreach (ImmutableUser user in filteredBlockedUsers)
+                if (!Client.Instance.Settings.CollapseBlockedUsers)
                 {
-                    float height = contentRect.height > inRect.height ? userRectHeights[user].Scrollbar : userRectHeights[user].Normal;
-                    drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, true);
-                    currentY += height;
+                    foreach (ImmutableUser user in filteredBlockedUsers)
+                    {
+                        float height = contentRect.height > inRect.height ? blockedUserRectHeights[user].Scrollbar : blockedUserRectHeights[user].Normal;
+                        drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, true);
+                        currentY += height;
+                    }
                 }
             }
 
