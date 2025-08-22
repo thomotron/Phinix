@@ -455,6 +455,10 @@ namespace PhinixClient
             listing.CheckboxLabeled("Phinix_modSettings_showBlockedTrades".Translate(), ref showBlockedTrades);
             Settings.ShowBlockedTrades = showBlockedTrades;
 
+            bool dropCurrentMap = Settings.DropCurrentMap;
+            listing.CheckboxLabeled("Phinix_modSettings_dropCurrentMap".Translate(), ref dropCurrentMap);
+            Settings.DropCurrentMap = dropCurrentMap;
+
             listing.End();
         }
 
@@ -671,7 +675,7 @@ namespace PhinixClient
         private LookTargets dropPods(IEnumerable<Thing> things)
         {
             // Launch drop pods to a trade spot on a home tile
-            Map map = Find.AnyPlayerHomeMap;
+            Map map = Settings.DropCurrentMap ? Find.CurrentMap : Find.AnyPlayerHomeMap ?? Find.CurrentMap;
             IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
             DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false);
 
