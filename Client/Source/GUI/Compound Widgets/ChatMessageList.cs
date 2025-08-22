@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Chat;
 using Trading;
@@ -14,6 +15,8 @@ namespace PhinixClient.GUI
     public class ChatMessageList
     {
         private const float SCROLLBAR_WIDTH = 16f;
+
+        private static readonly Regex UrlRegex = new Regex(@"https?:\/\/\S+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly Color pendingMessageColour = new Color(1f, 1f, 1f, 0.8f);
         private readonly Color deniedMessageColour = new Color(0.94f, 0.28f, 0.28f);
@@ -365,10 +368,36 @@ namespace PhinixClient.GUI
         {
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
-            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => { GUIUtility.systemCopyBuffer = chatMessage.Message; }));
+
+            foreach (string url in parseUrls(chatMessage.Message.StripTags()))
+            {
+                string ellipsisedUrl = url.Length > 100 ? $"{url.Substring(0, 100)}..." : url;
+                items.Add(new FloatMenuOption(string.Format("Phinix_chat_contextMenu_openInBrowser".Translate(), ellipsisedUrl), () => Application.OpenURL(url)));
+            }
+
+            items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => GUIUtility.systemCopyBuffer = chatMessage.Message));
 
             // Draw the context menu
             if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        /// <summary>
+        /// Attempts to parse one or more URLs from a message.
+        /// </summary>
+        /// <param name="message">Message to parse.</param>
+        /// <returns>A collection of URLs contained in the message.</returns>
+        private IEnumerable<string> parseUrls(string message)
+        {
+            if (message == null || message.Length == 0) yield break;
+
+            MatchCollection matches = UrlRegex.Matches(message);
+            foreach (Match match in matches)
+            {
+                if (Uri.TryCreate(match.Value, UriKind.Absolute, out Uri matchUri))
+                {
+                    yield return matchUri.ToString();
+                }
+            }
         }
     }
 }
