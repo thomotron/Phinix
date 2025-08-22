@@ -318,7 +318,7 @@ namespace PhinixClient
             if (searchText != oldSearchText)
             {
                 // Repopulate filtered item list with the new search if necessary
-                filteredAvailableItems = availableItems.Where(stack => stack.Count > 0 && stack.Label.ToLower().Contains(searchText.ToLower())).ToList();
+                filteredAvailableItems = availableItems.Where(stack => stack.Count > 0 && stack.Label.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1).ToList();
             }
 
             // Available items

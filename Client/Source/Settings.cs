@@ -134,6 +134,14 @@ namespace PhinixClient
             set => dropCurrentMap = value;
         }
 
+        private bool originalCollapseBlockedUsers;
+        private bool collapseBlockedUsers;
+        public bool CollapseBlockedUsers
+        {
+            get => collapseBlockedUsers;
+            set => collapseBlockedUsers = value;
+        }
+
         /// <inheritdoc/>
         public bool IsChanged
         {
@@ -154,7 +162,8 @@ namespace PhinixClient
                        showBlockedTrades != originalShowBlockedTrades ||
                        !blockedUsers.SequenceEqual(originalBlockedUsers) ||
                        migrated != originalMigrated ||
-                       dropCurrentMap != originalDropCurrentMap;
+                       dropCurrentMap != originalDropCurrentMap ||
+                       collapseBlockedUsers != originalCollapseBlockedUsers;
             }
         }
 
@@ -180,6 +189,7 @@ namespace PhinixClient
             showBlockedTrades = false;
             migrated = false;
             dropCurrentMap = false;
+            collapseBlockedUsers = true;
 
             originalBlockedUsers = new HashSet<string>();
             blockedUsers = new HashSet<string>();
@@ -209,6 +219,7 @@ namespace PhinixClient
             Scribe_Values.Look(ref migrated, "migrated", false);
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
             Scribe_Values.Look(ref dropCurrentMap, "dropCurrentMap", false);
+            Scribe_Values.Look(ref collapseBlockedUsers, "collapseBlockedUsers", true);
 
             // Prevent scribe from interpreting a missing value as null
             if (blockedUsers is null) blockedUsers = new HashSet<string>();
@@ -275,6 +286,7 @@ namespace PhinixClient
             originalShowBlockedTrades = showBlockedTrades;
             originalMigrated = migrated;
             originalDropCurrentMap = dropCurrentMap;
+            originalCollapseBlockedUsers = collapseBlockedUsers;
 
             originalBlockedUsers.Clear();
             originalBlockedUsers.AddRange(blockedUsers);
