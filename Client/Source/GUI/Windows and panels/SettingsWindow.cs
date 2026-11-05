@@ -259,7 +259,7 @@ namespace PhinixClient
         {
             // Make the name preview early so we can bind to it's update method
             DynamicTextWidget namePreview = new DynamicTextWidget(
-                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.Settings.DisplayName).Resolve(),
+                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.ShownName(Client.Instance.Settings.DisplayName)).Resolve(),
                 wrap: false
             );
 

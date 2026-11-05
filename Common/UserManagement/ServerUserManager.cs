@@ -260,9 +260,9 @@ namespace UserManagement
         /// <param name="acceptingTrades">Whether the user is accepting trades</param>
         /// <param name="bio">The user's bio, already cleaned with <see cref="UserManager.CleanBio"/></param>
         /// <returns>User updated successfully</returns>
-        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null, string bio = null)
+        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null, string bio = null, ColonyStats colony = null)
         {
-            if (!base.UpdateUser(uuid, displayName, acceptingTrades, bio)) return false;
+            if (!base.UpdateUser(uuid, displayName, acceptingTrades, bio, colony)) return false;
 
             User user;
             lock (userStoreLock)
@@ -783,8 +783,9 @@ namespace UserManagement
             if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength || user.DisplayName.Length > maxDisplayNameLength * 10) return;
 
             // Update the user
-            // Bios are left as they are while profiles are switched off
-            UpdateUser(user.Uuid, TextHelper.SanitiseRichText(user.DisplayName), user.AcceptingTrades, DisabledFeatures.Contains(Features.PROFILES) ? null : CleanBio(user.Bio));
+            // Bios and colony stats are left as they are while profiles are switched off
+            bool profiles = !DisabledFeatures.Contains(Features.PROFILES);
+            UpdateUser(user.Uuid, TextHelper.SanitiseRichText(user.DisplayName), user.AcceptingTrades, profiles ? CleanBio(user.Bio) : null, profiles ? CleanColony(user.Colony) : null);
         }
     }
 }

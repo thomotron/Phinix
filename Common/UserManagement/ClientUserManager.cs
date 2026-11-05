@@ -212,14 +212,15 @@ namespace UserManagement
         /// <param name="displayName">New display name</param>
         /// <param name="acceptingTrades">Whether to accept trades from other users</param>
         /// <param name="bio">New bio</param>
+        /// <param name="colony">Colony stats to share, or an empty <see cref="ColonyStats"/> to stop sharing them</param>
         /// <returns>User update was successful and sent to server</returns>
-        public bool UpdateSelf(string displayName = null, bool? acceptingTrades = null, string bio = null)
+        public bool UpdateSelf(string displayName = null, bool? acceptingTrades = null, string bio = null, ColonyStats colony = null)
         {
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
 
             // Don't do anything if the parameters are all null
-            if (displayName == null && acceptingTrades == null && bio == null) return false;
+            if (displayName == null && acceptingTrades == null && bio == null && colony == null) return false;
 
             lock (userStoreLock)
             {
@@ -237,6 +238,9 @@ namespace UserManagement
 
                 // Set the user's bio if it is present
                 if (bio != null) user.Bio = CleanBio(bio);
+
+                // Set the user's colony stats if they are present
+                if (colony != null) user.Colony = CleanColony(colony);
 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket

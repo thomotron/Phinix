@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Where trades and returned items land, like the caravan packing spot -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>PhinixDropSpot</defName>
+    <label>trade drop spot</label>
+    <description>Designates where items from Phinix trades land. Without one, they land near the middle of the colony, like goods bought from orbital traders. There can only be one: placing a new one removes the old one, even on another map.</description>
+    <thingClass>PhinixClient.DropSpot</thingClass>
+    <graphicData>
+      <texPath>Things/PhinixDropSpot</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+    </graphicData>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
+    <statBases>
+      <WorkToBuild>0</WorkToBuild>
+    </statBases>
+    <rotatable>false</rotatable>
+    <scatterableOnMapGen>false</scatterableOnMapGen>
+    <useHitPoints>False</useHitPoints>
+    <designationCategory>Misc</designationCategory>
+    <passability>Standable</passability>
+    <building>
+      <sowTag>SupportPlantsOnly</sowTag>
+      <canPlaceOverImpassablePlant>false</canPlaceOverImpassablePlant>
+      <ai_chillDestination>false</ai_chillDestination>
+      <wakeDormantPawnsOnConstruction>false</wakeDormantPawnsOnConstruction>
+      <artificialForMeditationPurposes>false</artificialForMeditationPurposes>
+    </building>
+  </ThingDef>
+
+</Defs>

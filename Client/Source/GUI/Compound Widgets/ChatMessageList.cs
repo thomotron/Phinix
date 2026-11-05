@@ -244,7 +244,7 @@ namespace PhinixClient.GUI
                 string formattedMessage = string.Format(
                     "[{0:HH:mm}] {1}: {2}",
                     chatMessage.Timestamp,
-                    Client.Instance.Settings.ShowNameFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName),
+                    chatMessage.Status == ChatMessageStatus.CONFIRMED ? Client.ShownName(chatMessage.User.DisplayName) : TextHelper.StripRichText(chatMessage.User.DisplayName),
                     ScreenshotSharing.ShowLinks(Emoji.Placeholders(Emoji.Mark(Client.Instance.Settings.ShowChatFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.Message : TextHelper.StripRichText(chatMessage.Message), new List<string>()), hidden: false), colour: false)
                 );
 
@@ -284,7 +284,7 @@ namespace PhinixClient.GUI
                 height: timestampSize.y
             );
 
-            string displayName = Client.Instance.Settings.ShowNameFormatting ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName);
+            string displayName = Client.ShownName(chatMessage.User.DisplayName);
             Vector2 displayNameSize = Text.CurFontStyle.CalcSize(new GUIContent(displayName));
             Rect displayNameRect = new Rect(
                 x: inRect.x + timestampRect.width,
@@ -394,6 +394,9 @@ namespace PhinixClient.GUI
                     items.Add(new FloatMenuOption("Phinix_chat_contextMenu_blockUser".Translate(), () => Client.Instance.BlockUser(user.Uuid)));
                 }
             }
+
+            // Dev mode only: their name with its formatting tags, for looking into names that draw wrong
+            if (Prefs.DevMode) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyRawName".Translate(), () => GUIUtility.systemCopyBuffer = user.DisplayName));
 
             // Draw the context menu
             if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));

@@ -249,7 +249,9 @@ namespace PhinixClient
                 // For returning items it's the other way round: accepted means they're ours again
                 if (success != entry.Returning)
                 {
-                    // The server has them now, so ours are no longer needed
+                    // The server has them now, so ours are no longer needed. Note where a traded item sat, so if it
+                    // comes back off the offer it goes back there rather than to the drop spot
+                    if (!entry.Returning && entry.Module == TRADING) rememberOrigin(entry);
                     letGo(entry.Thing);
                 }
                 else
@@ -303,8 +305,77 @@ namespace PhinixClient
         /// <summary>
         /// Puts one held item back on the map, as close to where it came from as possible.
         /// </summary>
+        /// <summary>Most remembered spots kept, oldest forgotten first</summary>
+        private const int MAX_ORIGINS = 300;
+
+        private static List<ItemOrigin> origins => Current.Game.GetComponent<EscrowGameComponent>().Origins;
+
+        /// <summary>
+        /// Remembers where an item put on a trade offer was taken from.
+        /// </summary>
+        private static void rememberOrigin(HeldEntry entry)
+        {
+            if (entry.Thing == null || entry.Thing is Pawn || entry.Map == null) return;
+            origins.Add(new ItemOrigin { Key = TradeHistory.ItemKey(entry.Thing), Map = entry.Map, Position = entry.Position });
+            if (origins.Count > MAX_ORIGINS) origins.RemoveRange(0, origins.Count - MAX_ORIGINS);
+        }
+
+        /// <summary>
+        /// Where an item coming back off a trade offer was taken from, if we remember (newest first), forgetting it
+        /// once used.
+        /// </summary>
+        private static bool takeOrigin(Thing thing, out Map map, out IntVec3 position)
+        {
+            map = null;
+            position = IntVec3.Invalid;
+            if (thing == null || thing is Pawn) return false;
+
+            string key = TradeHistory.ItemKey(thing);
+            for (int i = origins.Count - 1; i >= 0; i--)
+            {
+                ItemOrigin origin = origins[i];
+                if (origin.Key != key) continue;
+                origins.RemoveAt(i);
+                if (origin.Map == null || !Find.Maps.Contains(origin.Map)) continue;
+
+                map = origin.Map;
+                position = origin.Position;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Puts things coming back from a cancelled trade where they were taken from, as far as we remember.
+        /// Must run on the main thread, in a game.
+        /// </summary>
+        /// <returns>The things that couldn't be put back that way, to be dropped in as usual</returns>
+        public static Thing[] ReturnToOrigins(IEnumerable<Thing> things)
+        {
+            List<Thing> rest = new List<Thing>();
+            if (Current.Game == null) return things.ToArray();
+
+            foreach (Thing thing in things)
+            {
+                if (takeOrigin(thing, out Map map, out IntVec3 position) && GenPlace.TryPlaceThing(thing, position, map, ThingPlaceMode.Near))
+                {
+                    thing.SetForbidden(false, warnOnFail: false);
+                    continue;
+                }
+                rest.Add(thing);
+            }
+            return rest.ToArray();
+        }
+
         private static void putBack(HeldEntry entry)
         {
+            // Something coming back off a trade offer goes back to where it was taken from, if we remember
+            if (entry.Returning && entry.Map == null && takeOrigin(entry.Thing, out Map originMap, out IntVec3 originPosition))
+            {
+                entry.Map = originMap;
+                entry.Position = originPosition;
+            }
+
             // The original map might be gone since (e.g. a temporary map was abandoned while we were offline).
             // Fall back to the home colony's drop spot, the same place trades arrive
             Map map = entry.Map != null && Find.Maps.Contains(entry.Map) ? entry.Map : Find.AnyPlayerHomeMap ?? Find.CurrentMap;
@@ -314,13 +385,13 @@ namespace PhinixClient
                 PendingDrops.DropOrKeep(new[] { entry.Thing });
                 return;
             }
-            IntVec3 position = map == entry.Map ? entry.Position : DropCellFinder.TradeDropSpot(map);
+            IntVec3 position = map == entry.Map ? entry.Position : PendingDrops.DropSpot(map);
 
             // "Near" lets the game pick a free spot if the original cell has filled up since. If even that fails
             // (a completely packed area), send it in by drop pod instead so it's never lost
             if (!GenPlace.TryPlaceThing(entry.Thing, position, map, ThingPlaceMode.Near))
             {
-                DropPodUtility.DropThingsNear(DropCellFinder.TradeDropSpot(map), map, new[] { entry.Thing }, canRoofPunch: false);
+                DropPodUtility.DropThingsNear(PendingDrops.DropSpot(map), map, new[] { entry.Thing }, canRoofPunch: false);
             }
         }
     }
@@ -371,6 +442,9 @@ namespace PhinixClient
     {
         public List<HeldEntry> Entries = new List<HeldEntry>();
 
+        /// <summary>Where items now on trade offers were taken from (see ItemEscrow.rememberOrigin)</summary>
+        public List<ItemOrigin> Origins = new List<ItemOrigin>();
+
         // RimWorld needs this exact constructor to create the component
         public EscrowGameComponent(Game game)
         {
@@ -382,6 +456,28 @@ namespace PhinixClient
 
             // Loading a save from before this existed gives null, so start an empty list instead
             if (Entries == null) Entries = new List<HeldEntry>();
+
+            Scribe_Collections.Look(ref Origins, "phinixItemOrigins", LookMode.Deep);
+            if (Origins == null) Origins = new List<ItemOrigin>();
+            Origins.RemoveAll(origin => origin == null);
+        }
+    }
+
+    /// <summary>
+    /// Where an item put on a trade offer was taken from, so it can go back there if it's taken off again.
+    /// </summary>
+    public class ItemOrigin : IExposable
+    {
+        /// <summary>What kind of item (see TradeHistory.ItemKey)</summary>
+        public string Key;
+        public Map Map;
+        public IntVec3 Position;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref Key, "key");
+            Scribe_References.Look(ref Map, "map");
+            Scribe_Values.Look(ref Position, "position");
         }
     }
 }

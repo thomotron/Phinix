@@ -54,7 +54,8 @@ namespace PhinixClient
         public event EventHandler<UserCreatedEventArgs> OnUserCreated;
         public event EventHandler OnUserSync;
 
-        public bool Online => Connected && Authenticated && LoggedIn;
+        // False until the modules exist: on RimWorld 1.7 the game can start updating before the mod has finished loading
+        public bool Online => netClient != null && authenticator != null && userManager != null && Connected && Authenticated && LoggedIn;
 
         private ClientChat chat;
         public void SendMessage(string message) => chat.Send(message);
@@ -330,7 +331,7 @@ namespace PhinixClient
         /// <summary>
         /// Whether we're logged in to a companion server.
         /// </summary>
-        public bool CompanionOnline => companionNetClient.Connected && companionAuthenticator.Authenticated && companionUserManager.LoggedIn;
+        public bool CompanionOnline => companionNetClient != null && companionAuthenticator != null && companionUserManager != null && companionNetClient.Connected && companionAuthenticator.Authenticated && companionUserManager.LoggedIn;
 
         /// <summary>
         /// Where private messages go: the main server if it has them turned on, otherwise the companion if we're on one.
@@ -405,6 +406,7 @@ namespace PhinixClient
         /// When we last checked for contract deliveries that need making, in seconds since the game started.
         /// </summary>
         private float lastDeliveryReminderCheck = -999f;
+        private float lastColonyShare = -999f;
 
         /// <summary>
         /// Number of chat messages that arrived since the chat tab was last open.
@@ -821,7 +823,7 @@ namespace PhinixClient
 
                     RunOnMainThread(() =>
                     {
-                        Messages.Message("Phinix_dm_received".Translate(displayNameOf(message.SenderUuid), shorten(ScreenshotSharing.ShowLinks(message.Text, colour: false))), MessageTypeDefOf.NeutralEvent, historical: false);
+                        Messages.Message("Phinix_dm_received".Translate(displayNameOf(message.SenderUuid), shorten(ScreenshotSharing.ShowLinks(TradeRequests.Readable(message.Text), colour: false))), MessageTypeDefOf.NeutralEvent, historical: false);
                         if (Settings.PlayNoiseOnMessageReceived) SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
                     });
                 };
@@ -948,11 +950,10 @@ namespace PhinixClient
                     // it's called from the network thread
                     RunOnMainThread(() =>
                     {
-                        LetterDef letterDef = DefDatabase<LetterDef>.GetNamed("TradeCreated");
-                        Find.LetterStack.ReceiveLetter(
-                            label: "Phinix_trade_tradeReceivedLetter_label".Translate(messageName),
-                            text: "Phinix_trade_tradeReceivedLetter_description".Translate(messageName),
-                            textLetterDef: letterDef
+                        TradeOfferLetter.Offer(
+                            args.TradeId,
+                            "Phinix_trade_tradeReceivedLetter_label".Translate(messageName),
+                            "Phinix_trade_tradeReceivedLetter_description".Translate(messageName)
                         );
                     });
                 };
@@ -1061,8 +1062,9 @@ namespace PhinixClient
                         //// off of the converter's checks and strip them out afterward.
                         Verse.Thing[] verseItems = buildReceivedItems(args.Items, out string lostNote, out List<int> unusable);
 
-                        // Launch drop pods to a trade spot on a home tile
-                        LookTargets dropSpotLookTarget = dropPods(verseItems);
+                        // Our things go back where they were taken from, as far as we remember; anything else is
+                        // dropped in at a trade spot on a home tile
+                        LookTargets dropSpotLookTarget = dropPods(ItemEscrow.ReturnToOrigins(verseItems));
                         confirmReceived(trader, "trade:" + args.TradeId, args.TradeId, unusable);
 
                         // Generate a letter
@@ -1143,6 +1145,7 @@ namespace PhinixClient
 
             // Remember trade happenings for the Inbox's conversations
             TradeEventLog.Subscribe(this);
+            TradeHistory.Subscribe(this);
 
             // We don't connect here, since the game starts on the main menu. Update() connects once a colony is loaded
         }
@@ -1251,6 +1254,10 @@ namespace PhinixClient
             listing.CheckboxLabeled("Phinix_modSettings_showBlockedTrades".Translate(), ref showBlockedTrades);
             Settings.ShowBlockedTrades = showBlockedTrades;
 
+            bool shareColonyStats = Settings.ShareColonyStats;
+            listing.CheckboxLabeled("Phinix_modSettings_shareColonyStats".Translate(), ref shareColonyStats);
+            Settings.ShareColonyStats = shareColonyStats;
+
             bool dropCurrentMap = Settings.DropCurrentMap;
             listing.CheckboxLabeled("Phinix_modSettings_dropCurrentMap".Translate(), ref dropCurrentMap);
             Settings.DropCurrentMap = dropCurrentMap;
@@ -1298,6 +1305,76 @@ namespace PhinixClient
         }
 
         /// <summary>
+        /// The colony a player has shared for their player card. Nothing for players we've blocked or who aren't sharing.
+        /// </summary>
+        /// <param name="uuid">UUID of the player</param>
+        /// <param name="colony">Their colony</param>
+        /// <returns>Whether there's a colony to show</returns>
+        public bool TryGetColony(string uuid, out ColonyStats colony)
+        {
+            colony = null;
+            if (string.IsNullOrEmpty(uuid) || IsBlocked(uuid) || !FeatureEnabled(Features.PROFILES)) return false;
+            return userManager.TryGetColony(uuid, out colony) || companionUserManager.TryGetColony(uuid, out colony);
+        }
+
+        /// <summary>
+        /// The colony we're playing, as our player card shows it: the current map if it's a colony, otherwise any of
+        /// ours. Null when there's no colony to show.
+        /// </summary>
+        private static ColonyStats currentColony()
+        {
+            if (Current.ProgramState != ProgramState.Playing || Current.Game == null) return null;
+            Map map = Find.CurrentMap != null && Find.CurrentMap.IsPlayerHome ? Find.CurrentMap : Find.AnyPlayerHomeMap;
+            if (map == null) return null;
+
+            return UserManager.CleanColony(new ColonyStats
+            {
+                Name = map.Parent?.Label ?? "",
+                Biome = map.Biome?.label ?? "",
+                Days = GenDate.DaysPassed,
+                Colonists = map.mapPawns.FreeColonistsSpawnedCount,
+                Animals = map.mapPawns.SpawnedColonyAnimals.Count,
+                // Rounded, so small changes don't send an update every minute
+                Wealth = Mathf.Round(map.wealthWatcher.WealthTotal / 100f) * 100f
+            });
+        }
+
+        /// <summary>
+        /// Sends our colony to the servers when it's changed from what they have, or clears it there when we've stopped
+        /// sharing. Only while profiles are on.
+        /// </summary>
+        private void shareColony()
+        {
+            if (Current.ProgramState != ProgramState.Playing || !FeatureEnabled(Features.PROFILES)) return;
+
+            // An empty one clears it. While there's no colony (between games), what's there is kept
+            ColonyStats colony = Settings.ShareColonyStats ? currentColony() : new ColonyStats();
+            if (colony == null) return;
+
+            void send(ClientUserManager manager)
+            {
+                if (!manager.LoggedIn) return;
+                bool has = manager.TryGetColony(manager.Uuid, out ColonyStats shared);
+                if (has ? shared.Equals(colony) : string.IsNullOrEmpty(colony.Name)) return;
+                manager.UpdateSelf(colony: colony);
+            }
+
+            send(userManager);
+            if (CompanionOnline) send(companionUserManager);
+        }
+
+        /// <summary>
+        /// Turns sharing our colony on our player card on or off, and updates the servers straight away.
+        /// </summary>
+        public void SetShareColonyStats(bool share)
+        {
+            if (Settings.ShareColonyStats == share) return;
+            Settings.ShareColonyStats = share;
+            Settings.AcceptChanges();
+            shareColony();
+        }
+
+        /// <summary>
         /// When a player last logged out, in Unix seconds by the server's clock. False if no server knows.
         /// </summary>
         public bool TryGetLastSeen(string uuid, out long lastSeen)
@@ -1316,7 +1393,11 @@ namespace PhinixClient
             if (seconds < 60) return "Phinix_chat_lastSeenJustNow".Translate();
 
             TimeSpan ago = TimeSpan.FromSeconds(seconds);
-            string amount = ago.TotalDays >= 1 ? (int) ago.TotalDays + "d"
+            // Long gaps go up to weeks, months and years rather than "400d"
+            string amount = ago.TotalDays >= 365 ? (int) (ago.TotalDays / 365) + "y"
+                          : ago.TotalDays >= 30 ? (int) (ago.TotalDays / 30) + "mo"
+                          : ago.TotalDays >= 7 ? (int) (ago.TotalDays / 7) + "w"
+                          : ago.TotalDays >= 1 ? (int) ago.TotalDays + "d"
                           : ago.TotalHours >= 1 ? (int) ago.TotalHours + "h"
                           : (int) ago.TotalMinutes + "m";
             return "Phinix_chat_lastSeen".Translate(amount);
@@ -1469,6 +1550,13 @@ namespace PhinixClient
             // Deliveries that arrived when there was no colony map to drop them on
             PendingDrops.Update();
 
+            // Once a minute, keep the colony on our player card up to date
+            if (Time.realtimeSinceStartup - lastColonyShare > 60f)
+            {
+                lastColonyShare = Time.realtimeSinceStartup;
+                shareColony();
+            }
+
             // Every 30 seconds, remind the player about contract deliveries they can make now
             if (Time.realtimeSinceStartup - lastDeliveryReminderCheck > 30f)
             {
@@ -1602,6 +1690,22 @@ namespace PhinixClient
                 Verse.Log.Warning(string.Format("Could not connect to companion server {0}:{1}: {2}", Settings.CompanionAddress, Settings.CompanionPort, e.Message));
                 Messages.Message("Phinix_companion_failed".Translate(e.Message), MessageTypeDefOf.RejectInput, historical: false);
             }
+        }
+
+        /// <summary>
+        /// A display name as it should be drawn: with its formatting if the player shows name formatting (repaired if
+        /// its tags are out of order, see <see cref="TextHelper.RepairRichText"/>), otherwise plain.
+        /// </summary>
+        /// <param name="displayName">Display name, as sent</param>
+        public static string ShownName(string displayName)
+        {
+            if (displayName == null) return null;
+            if (!Instance.Settings.ShowNameFormatting) return TextHelper.StripRichText(displayName);
+
+            // Some name generators close tags out of order, which the game can't draw, so put them right first
+            if (TextHelper.CanDrawRichText(displayName)) return displayName;
+            string repaired = TextHelper.RepairRichText(displayName);
+            return TextHelper.CanDrawRichText(repaired) ? repaired : TextHelper.StripRichText(displayName);
         }
 
         /// <summary>

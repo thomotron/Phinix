@@ -9,7 +9,7 @@ using Verse;
 namespace PhinixClient
 {
     /// <summary>
-    /// A player's card: their name, whether they're on (or when they were last seen), their bio, and how their mods
+    /// A player's card: their name, whether they're on (or when they were last seen), their bio, their colony, and how their mods
     /// compare to ours, with buttons for the usual things to do with them.
     /// </summary>
     /// <remarks>
@@ -21,10 +21,11 @@ namespace PhinixClient
         private const float SPACING = 10f;
         private const float TITLE_HEIGHT = 35f;
         private const float BIO_BOX_HEIGHT = 62f;
+        private const float COLONY_BOX_HEIGHT = 52f;
         private const float BUTTON_HEIGHT = 32f;
         private const float BUTTON_GAP = 6f;
 
-        public override Vector2 InitialSize => new Vector2(480f, 460f);
+        public override Vector2 InitialSize => new Vector2(480f, 540f);
 
         private readonly string uuid;
         private Vector2 modsScroll = Vector2.zero;
@@ -49,7 +50,7 @@ namespace PhinixClient
 
             // Name, as they've formatted it if the player shows formatting. Long names wrap onto more lines (up to
             // three) rather than being cut off, and the mods box below gives up the room
-            string shownName = Client.Instance.Settings.ShowNameFormatting ? name : TextHelper.StripRichText(name);
+            string shownName = Client.ShownName(name);
             Text.Font = GameFont.Medium;
             float titleWidth = inRect.width - 30f;
             float titleHeight = Mathf.Clamp(Text.CalcHeight(shownName, titleWidth), TITLE_HEIGHT, Text.LineHeight * 3f);
@@ -76,6 +77,27 @@ namespace PhinixClient
             else PhimeStyle.Label(bioRect.ContractedBy(6f), "Phinix_card_noBio".Translate(), PhimeStyle.Dim);
             y = bioRect.yMax + SPACING;
 
+            // Colony. Our own card has the switch for sharing it
+            bool own = uuid == Client.Instance.Uuid;
+            Rect colonyHeadingRect = new Rect(inRect.x, y, inRect.width, 18f);
+            PhimeStyle.Heading(colonyHeadingRect, "Phinix_card_colonyHeading".Translate());
+            if (own)
+            {
+                bool share = Client.Instance.Settings.ShareColonyStats;
+                Text.Font = GameFont.Tiny;
+                string shareLabel = "Phinix_card_colonyShare".Translate();
+                float shareWidth = Text.CalcSize(shareLabel).x + 30f;
+                Widgets.CheckboxLabeled(new Rect(colonyHeadingRect.xMax - shareWidth, y - 2f, shareWidth, 22f), shareLabel, ref share);
+                Text.Font = GameFont.Small;
+                Client.Instance.SetShareColonyStats(share);
+            }
+            y += 20f;
+            Rect colonyRect = new Rect(inRect.x, y, inRect.width, COLONY_BOX_HEIGHT);
+            Widgets.DrawMenuSection(colonyRect);
+            if (Client.Instance.TryGetColony(uuid, out ColonyStats colony)) Widgets.Label(colonyRect.ContractedBy(6f), colonyText(colony));
+            else PhimeStyle.Label(colonyRect.ContractedBy(6f), "Phinix_card_noColony".Translate(), PhimeStyle.Dim);
+            y = colonyRect.yMax + SPACING;
+
             // Mods, filling the space down to the buttons
             bool self = uuid == Client.Instance.Uuid;
             float buttonsTop = self ? inRect.yMax : inRect.yMax - BUTTON_HEIGHT;
@@ -86,6 +108,22 @@ namespace PhinixClient
             drawMods(modsRect.ContractedBy(6f), self);
 
             if (!self) drawButtons(new Rect(inRect.x, inRect.yMax - BUTTON_HEIGHT, inRect.width, BUTTON_HEIGHT), known && user.LoggedIn);
+        }
+
+        /// <summary>
+        /// "New Hope · Temperate forest" over "Day 84 · 6 colonists · 11 animals · $92,400".
+        /// </summary>
+        private static string colonyText(ColonyStats colony)
+        {
+            string where = string.IsNullOrEmpty(colony.Biome) ? colony.Name : colony.Name + " · " + colony.Biome.CapitalizeFirst();
+            List<string> facts = new List<string>
+            {
+                "Phinix_card_colonyDay".Translate(colony.Days + 1),
+                (colony.Colonists == 1 ? "Phinix_card_colonyColonist" : "Phinix_card_colonyColonists").Translate(colony.Colonists),
+                (colony.Animals == 1 ? "Phinix_card_colonyAnimal" : "Phinix_card_colonyAnimals").Translate(colony.Animals),
+                "Phinix_card_colonyWealth".Translate(colony.Wealth.Money())
+            };
+            return where + "\n" + string.Join(" · ", facts).Colorize(PhimeStyle.Muted);
         }
 
         /// <summary>

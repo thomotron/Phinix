@@ -207,7 +207,7 @@ namespace PhinixClient.GUI
                     DirectMessage last = Client.Instance.GetConversation(uuid).LastOrDefault();
                     if (last != null)
                     {
-                        string lastText = ScreenshotSharing.ShowLinks(last.Text, colour: false);
+                        string lastText = ScreenshotSharing.ShowLinks(TradeRequests.Readable(last.Text), colour: false);
                         string preview = last.SenderUuid == Client.Instance.Uuid ? "Phinix_inbox_youPrefix".Translate(lastText).ToString() : lastText;
                         preview = TextHelper.StripRichText(preview).Replace('\n', ' ');
                         PhimeStyle.Label(subRect, PhimeStyle.Fit(preview, textWidth, GameFont.Tiny), PhimeStyle.Muted, GameFont.Tiny, TextAnchor.MiddleLeft);
@@ -247,6 +247,13 @@ namespace PhinixClient.GUI
             // Top: who this is, and whether they're around
             Rect headerRect = inRect.TopPartPixels(HEADER_HEIGHT);
             drawHeader(headerRect, rawName, online.Contains(SelectedUuid));
+
+            // Past trades with them, in the header's top right corner
+            Rect historyButtonRect = new Rect(headerRect.xMax - BUTTON_WIDTH, headerRect.y + (headerRect.height - 24f) / 2f, BUTTON_WIDTH, 24f);
+            if (PhimeStyle.Button(historyButtonRect, "Phinix_tradeHistory_button".Translate()))
+            {
+                Find.WindowStack.Add(new TradeHistoryWindow(SelectedUuid, name));
+            }
 
             // Then any open trades with them
             int tradeRows = Math.Min(theirTrades.Length, MAX_TRADE_ROWS);
@@ -487,7 +494,7 @@ namespace PhinixClient.GUI
                 {
                     // "19:02  Rook  hey there", time dimmed and the name in its colour
                     bool mine = line.Message.SenderUuid == Client.Instance.Uuid;
-                    placed.Text = PhimeStyle.Colored(line.Time.ToString("HH:mm"), PhimeStyle.Dim) + "  " + (mine ? yourName : theirName) + "  " + ScreenshotSharing.ShowLinks(Emoji.Mark(line.Message.Text, placed.Emojis = new List<string>()), colour: true);
+                    placed.Text = PhimeStyle.Colored(line.Time.ToString("HH:mm"), PhimeStyle.Dim) + "  " + (mine ? yourName : theirName) + "  " + ScreenshotSharing.ShowLinks(Emoji.Mark(TradeRequests.Readable(line.Message.Text), placed.Emojis = new List<string>()), colour: true);
                     placed.Height = Text.CalcHeight(Emoji.Placeholders(placed.Text, hidden: false), width) + MESSAGE_PADDING;
                     if (lastSender != null && lastSender != line.Message.SenderUuid) placed.Gap = SENDER_CHANGE_GAP;
                     placed.Height += placed.Gap;

@@ -27,6 +27,23 @@ namespace PhinixClient
         public static IEnumerable<Verse.Thing> ConvertToVerseOrUnknown(this IEnumerable<ProtoThing> protoThings) => protoThings.Select(ConvertThingFromProtoOrUnknown);
 
         /// <summary>
+        /// What one of a thing is worth in silver in this game, or 0 if it can't be worked out.
+        /// </summary>
+        public static float MarketValueOf(Verse.Thing thing)
+        {
+            // A modded item's value can depend on parts of it that aren't set up properly yet (a rebuilt item, say),
+            // and a price isn't worth failing a trade over
+            try
+            {
+                return thing.MarketValue;
+            }
+            catch (Exception)
+            {
+                return 0f;
+            }
+        }
+
+        /// <summary>
         /// Converts a <c>Verse.Thing</c> into a <c>Trading.Thing</c>.
         /// Used for preparing a <c>Verse.Thing</c> for transport.
         /// </summary>
@@ -62,6 +79,9 @@ namespace PhinixClient
 
             // Name the mods it comes from, so a player who doesn't have them can be told which
             protoThing.Mods.AddRange(ModsOf(verseThing));
+
+            // What one is worth here, so the other player can compare it with their own game's price
+            protoThing.MarketValue = MarketValueOf(verseThing);
 
             // Name the pawn it was made from, so the original can come back if it's returned (see ParkedPawns)
             if (verseThing is Pawn originalPawn) protoThing.OriginId = ParkedPawns.OriginIdOf(originalPawn);

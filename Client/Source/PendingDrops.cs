@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace PhinixClient
@@ -29,7 +30,7 @@ namespace PhinixClient
         /// <returns>Where they landed, or nothing if they're waiting</returns>
         public static LookTargets DropOrKeep(IEnumerable<Thing> things)
         {
-            List<Thing> list = splitOversizedStacks(things);
+            List<Thing> list = splitOversizedStacks(mergeStacks(things));
             if (list.Count == 0) return null;
 
             Map map = targetMap();
@@ -78,11 +79,45 @@ namespace PhinixClient
             return map != null && Find.Maps.Contains(map) ? map : null;
         }
 
+        /// <summary>
+        /// Where trades land on a map: the player's trade drop spot if they've placed one, otherwise the same
+        /// place the game drops goods bought from orbital traders.
+        /// </summary>
+        public static IntVec3 DropSpot(Map map)
+        {
+            ThingDef spotDef = DefDatabase<ThingDef>.GetNamedSilentFail("PhinixDropSpot");
+            if (spotDef != null)
+            {
+                foreach (Thing spot in map.listerThings.ThingsOfDef(spotDef))
+                {
+                    if (spot.Spawned && spot.Faction == Faction.OfPlayer) return spot.Position;
+                }
+            }
+            return DropCellFinder.TradeDropSpot(map);
+        }
+
         private static LookTargets drop(List<Thing> things, Map map)
         {
-            IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
-            DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false);
-            return new LookTargets(dropSpot, map);
+            IntVec3 dropSpot = DropSpot(map);
+
+            // Note the pods already falling, so the new ones can be told apart
+            HashSet<Thing> alreadyFalling = new HashSet<Thing>(map.listerThings.ThingsOfDef(ThingDefOf.DropPodIncoming));
+
+            // Not forbidden, like things bought from an orbital trader, so they get hauled in without allowing each one.
+            // Things keep whatever forbidden state they had in the sender's game, so clear that too
+            foreach (Thing thing in things)
+            {
+                if (!(thing is Pawn)) thing.SetForbidden(false, warnOnFail: false);
+            }
+            DropPodUtility.DropThingsNear(dropSpot, map, things, canRoofPunch: false, forbid: false);
+
+            // Point at every spot a pod is coming down, so the letter shows where it all landed, not just the middle
+            List<GlobalTargetInfo> landings = new List<GlobalTargetInfo> { new GlobalTargetInfo(dropSpot, map) };
+            foreach (Thing pod in map.listerThings.ThingsOfDef(ThingDefOf.DropPodIncoming))
+            {
+                if (!alreadyFalling.Contains(pod) && pod.Position != dropSpot) landings.Add(new GlobalTargetInfo(pod.Position, map));
+            }
+            return new LookTargets(landings);
         }
 
         private static void keep(List<Thing> things)
@@ -90,6 +125,32 @@ namespace PhinixClient
             PendingDropsGameComponent component = Current.Game?.GetComponent<PendingDropsGameComponent>();
             if (component != null) component.Things.AddRange(things);
             else waitingWithoutGame.AddRange(things);
+        }
+
+        /// <summary>
+        /// Merges part stacks that the game would stack together anyway (same item, and the game's own rules for
+        /// things like meals' ingredients), so ten single meals come in as one stack and one pod, not ten.
+        /// Pawns and things that don't stack are passed through untouched.
+        /// </summary>
+        private static List<Thing> mergeStacks(IEnumerable<Thing> things)
+        {
+            List<Thing> result = new List<Thing>();
+            foreach (Thing thing in things)
+            {
+                if (thing == null) continue;
+                if (!(thing is Pawn) && thing.def.stackLimit > 1)
+                {
+                    // Pour it into any earlier part stack with room; whatever doesn't fit stays as its own stack
+                    foreach (Thing earlier in result)
+                    {
+                        if (earlier is Pawn || earlier.stackCount >= earlier.def.stackLimit || !earlier.CanStackWith(thing)) continue;
+                        if (earlier.TryAbsorbStack(thing, respectStackLimit: true)) break;
+                    }
+                    if (thing.Destroyed) continue;
+                }
+                result.Add(thing);
+            }
+            return result;
         }
 
         /// <summary>

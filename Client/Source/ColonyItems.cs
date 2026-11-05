@@ -26,7 +26,8 @@ namespace PhinixClient
             IEnumerable<Thing> things;
             if (Client.Instance.Settings.AllItemsTradable)
             {
-                things = homeMaps.SelectMany(map => map.listerThings.AllThings);
+                // Everything except what's still hidden under fog, which the colony hasn't found yet
+                things = homeMaps.SelectMany(map => map.listerThings.AllThings).Where(thing => !thing.Position.Fogged(thing.Map));
             }
             else
             {

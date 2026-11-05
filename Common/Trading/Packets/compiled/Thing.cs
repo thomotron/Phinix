@@ -25,7 +25,7 @@ namespace Trading {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChNQYWNrZXRzL1RoaW5nLnByb3RvEgdUcmFkaW5nGhVQYWNrZXRzL1F1YWxp",
-            "dHkucHJvdG8aGVBhY2tldHMvUHJvdG9BbmltYWwucHJvdG8i+wIKClByb3Rv",
+            "dHkucHJvdG8aGVBhY2tldHMvUHJvdG9BbmltYWwucHJvdG8ikAMKClByb3Rv",
             "VGhpbmcSDwoHRGVmTmFtZRgBIAEoCRISCgpTdGFja0NvdW50GAIgASgFEhQK",
             "DFN0dWZmRGVmTmFtZRgDIAEoCRIhCgdRdWFsaXR5GAQgASgOMhAuVHJhZGlu",
             "Zy5RdWFsaXR5EhEKCUhpdFBvaW50cxgFIAEoBRIsCg9Jbm5lclByb3RvVGhp",
@@ -34,51 +34,52 @@ namespace Trading {
             "YWRpbmcuUHJvdG9Db2xvbmlzdBIQCghTYXZlRGF0YRgJIAEoCRIfCgRNb2Rz",
             "GAogAygLMhEuVHJhZGluZy5Qcm90b01vZBIeCgNBcnQYCyABKAsyES5UcmFk",
             "aW5nLlByb3RvQXJ0EhkKEUJpb2NvZGVkVG9DYXJyaWVyGAwgASgIEhAKCE9y",
-            "aWdpbklkGA0gASgJIj4KCFByb3RvQXJ0Eg0KBVRpdGxlGAEgASgJEg4KBkF1",
-            "dGhvchgCIAEoCRITCgtEZXNjcmlwdGlvbhgDIAEoCSIrCghQcm90b01vZBIR",
-            "CglQYWNrYWdlSWQYASABKAkSDAoETmFtZRgCIAEoCSLzBQoNUHJvdG9Db2xv",
-            "bmlzdBIPCgdEZWZOYW1lGAEgASgJEhMKC0tpbmREZWZOYW1lGAIgASgJEhEK",
-            "CUZpcnN0TmFtZRgDIAEoCRIQCghOaWNrTmFtZRgEIAEoCRIQCghMYXN0TmFt",
-            "ZRgFIAEoCRIaChJCaW9sb2dpY2FsQWdlVGlja3MYBiABKAMSHQoVQ2hyb25v",
-            "bG9naWNhbEFnZVRpY2tzGAcgASgDEhAKCElzRmVtYWxlGAggASgIEhoKEkRl",
-            "dmVsb3BtZW50YWxTdGFnZRgJIAEoBRIYChBDaGlsZGhvb2REZWZOYW1lGAog",
-            "ASgJEhgKEEFkdWx0aG9vZERlZk5hbWUYCyABKAkSIwoGVHJhaXRzGAwgAygL",
-            "MhMuVHJhZGluZy5Qcm90b1RyYWl0EiMKBlNraWxscxgNIAMoCzITLlRyYWRp",
-            "bmcuUHJvdG9Ta2lsbBIlCgdIZWRpZmZzGA4gAygLMhQuVHJhZGluZy5Qcm90",
-            "b0hlZGlmZhIXCg9YZW5vdHlwZURlZk5hbWUYDyABKAkSGgoSQ3VzdG9tWGVu",
-            "b3R5cGVOYW1lGBAgASgJEhEKCUVuZG9nZW5lcxgRIAMoCRIRCglYZW5vZ2Vu",
-            "ZXMYEiADKAkSLAoKQXBwZWFyYW5jZRgTIAEoCzIYLlRyYWRpbmcuUHJvdG9B",
-            "cHBlYXJhbmNlEiQKB0FwcGFyZWwYFCADKAsyEy5UcmFkaW5nLlByb3RvVGhp",
-            "bmcSJgoJRXF1aXBtZW50GBUgAygLMhMuVHJhZGluZy5Qcm90b1RoaW5nEiYK",
-            "CUludmVudG9yeRgWIAMoCzITLlRyYWRpbmcuUHJvdG9UaGluZxIiCgVIb25v",
-            "chgXIAMoCzITLlRyYWRpbmcuUHJvdG9Ib25vchIoCghQc3ljYXN0cxgYIAEo",
-            "CzIWLlRyYWRpbmcuUHJvdG9Qc3ljYXN0cxIqCgpJbW11bml0aWVzGBkgAygL",
-            "MhYuVHJhZGluZy5Qcm90b0ltbXVuaXR5IlAKDVByb3RvUHN5Y2FzdHMSFwoP",
-            "VmFuaWxsYVBzeWNhc3RzGAEgAygJEiYKA1ZwZRgCIAEoCzIZLlRyYWRpbmcu",
-            "UHJvdG9WcGVQc3ljYXN0cyKAAgoQUHJvdG9WcGVQc3ljYXN0cxINCgVMZXZl",
-            "bBgBIAEoBRISCgpFeHBlcmllbmNlGAIgASgCEg4KBlBvaW50cxgDIAEoBRIS",
-            "CgpTdGF0UG9pbnRzGAQgASgFEg0KBVBhdGhzGAUgAygJEhMKC0xvY2tlZFBh",
-            "dGhzGAYgAygJEhYKDk1lZGl0YXRpb25Gb2NpGAcgAygJEhEKCUFiaWxpdGll",
-            "cxgIIAMoCRIlCgdQc3lTZXRzGAkgAygLMhQuVHJhZGluZy5Qcm90b1BzeVNl",
-            "dBITCgtQc3lTZXRJbmRleBgKIAEoBRIaChJNYXhMZXZlbEZyb21UaXRsZXMY",
-            "CyABKAUiLgoLUHJvdG9Qc3lTZXQSDAoETmFtZRgBIAEoCRIRCglBYmlsaXRp",
-            "ZXMYAiADKAkiOAoKUHJvdG9Ib25vchIWCg5GYWN0aW9uRGVmTmFtZRgBIAEo",
-            "CRISCgpUb3RhbEhvbm9yGAIgASgFIi0KClByb3RvVHJhaXQSDwoHRGVmTmFt",
-            "ZRgBIAEoCRIOCgZEZWdyZWUYAiABKAUiVwoKUHJvdG9Ta2lsbBIPCgdEZWZO",
-            "YW1lGAEgASgJEg0KBUxldmVsGAIgASgFEhgKEFhwU2luY2VMYXN0TGV2ZWwY",
-            "AyABKAISDwoHUGFzc2lvbhgEIAEoBSKuAgoPUHJvdG9BcHBlYXJhbmNlEhcK",
-            "D0JvZHlUeXBlRGVmTmFtZRgBIAEoCRIXCg9IZWFkVHlwZURlZk5hbWUYAiAB",
-            "KAkSEwoLSGFpckRlZk5hbWUYAyABKAkSFAoMQmVhcmREZWZOYW1lGAQgASgJ",
-            "EhkKEUZhY2VUYXR0b29EZWZOYW1lGAUgASgJEhkKEUJvZHlUYXR0b29EZWZO",
-            "YW1lGAYgASgJEhIKCkZ1ckRlZk5hbWUYByABKAkSHAoURmF2b3JpdGVDb2xv",
-            "ckRlZk5hbWUYCCABKAkSJgoJSGFpckNvbG9yGAkgASgLMhMuVHJhZGluZy5Q",
-            "cm90b0NvbG9yEi4KEVNraW5Db2xvck92ZXJyaWRlGAogASgLMhMuVHJhZGlu",
-            "Zy5Qcm90b0NvbG9yIjgKClByb3RvQ29sb3ISCQoBUhgBIAEoAhIJCgFHGAIg",
-            "ASgCEgkKAUIYAyABKAISCQoBQRgEIAEoAmIGcHJvdG8z"));
+            "aWdpbklkGA0gASgJEhMKC01hcmtldFZhbHVlGA4gASgCIj4KCFByb3RvQXJ0",
+            "Eg0KBVRpdGxlGAEgASgJEg4KBkF1dGhvchgCIAEoCRITCgtEZXNjcmlwdGlv",
+            "bhgDIAEoCSIrCghQcm90b01vZBIRCglQYWNrYWdlSWQYASABKAkSDAoETmFt",
+            "ZRgCIAEoCSLzBQoNUHJvdG9Db2xvbmlzdBIPCgdEZWZOYW1lGAEgASgJEhMK",
+            "C0tpbmREZWZOYW1lGAIgASgJEhEKCUZpcnN0TmFtZRgDIAEoCRIQCghOaWNr",
+            "TmFtZRgEIAEoCRIQCghMYXN0TmFtZRgFIAEoCRIaChJCaW9sb2dpY2FsQWdl",
+            "VGlja3MYBiABKAMSHQoVQ2hyb25vbG9naWNhbEFnZVRpY2tzGAcgASgDEhAK",
+            "CElzRmVtYWxlGAggASgIEhoKEkRldmVsb3BtZW50YWxTdGFnZRgJIAEoBRIY",
+            "ChBDaGlsZGhvb2REZWZOYW1lGAogASgJEhgKEEFkdWx0aG9vZERlZk5hbWUY",
+            "CyABKAkSIwoGVHJhaXRzGAwgAygLMhMuVHJhZGluZy5Qcm90b1RyYWl0EiMK",
+            "BlNraWxscxgNIAMoCzITLlRyYWRpbmcuUHJvdG9Ta2lsbBIlCgdIZWRpZmZz",
+            "GA4gAygLMhQuVHJhZGluZy5Qcm90b0hlZGlmZhIXCg9YZW5vdHlwZURlZk5h",
+            "bWUYDyABKAkSGgoSQ3VzdG9tWGVub3R5cGVOYW1lGBAgASgJEhEKCUVuZG9n",
+            "ZW5lcxgRIAMoCRIRCglYZW5vZ2VuZXMYEiADKAkSLAoKQXBwZWFyYW5jZRgT",
+            "IAEoCzIYLlRyYWRpbmcuUHJvdG9BcHBlYXJhbmNlEiQKB0FwcGFyZWwYFCAD",
+            "KAsyEy5UcmFkaW5nLlByb3RvVGhpbmcSJgoJRXF1aXBtZW50GBUgAygLMhMu",
+            "VHJhZGluZy5Qcm90b1RoaW5nEiYKCUludmVudG9yeRgWIAMoCzITLlRyYWRp",
+            "bmcuUHJvdG9UaGluZxIiCgVIb25vchgXIAMoCzITLlRyYWRpbmcuUHJvdG9I",
+            "b25vchIoCghQc3ljYXN0cxgYIAEoCzIWLlRyYWRpbmcuUHJvdG9Qc3ljYXN0",
+            "cxIqCgpJbW11bml0aWVzGBkgAygLMhYuVHJhZGluZy5Qcm90b0ltbXVuaXR5",
+            "IlAKDVByb3RvUHN5Y2FzdHMSFwoPVmFuaWxsYVBzeWNhc3RzGAEgAygJEiYK",
+            "A1ZwZRgCIAEoCzIZLlRyYWRpbmcuUHJvdG9WcGVQc3ljYXN0cyKAAgoQUHJv",
+            "dG9WcGVQc3ljYXN0cxINCgVMZXZlbBgBIAEoBRISCgpFeHBlcmllbmNlGAIg",
+            "ASgCEg4KBlBvaW50cxgDIAEoBRISCgpTdGF0UG9pbnRzGAQgASgFEg0KBVBh",
+            "dGhzGAUgAygJEhMKC0xvY2tlZFBhdGhzGAYgAygJEhYKDk1lZGl0YXRpb25G",
+            "b2NpGAcgAygJEhEKCUFiaWxpdGllcxgIIAMoCRIlCgdQc3lTZXRzGAkgAygL",
+            "MhQuVHJhZGluZy5Qcm90b1BzeVNldBITCgtQc3lTZXRJbmRleBgKIAEoBRIa",
+            "ChJNYXhMZXZlbEZyb21UaXRsZXMYCyABKAUiLgoLUHJvdG9Qc3lTZXQSDAoE",
+            "TmFtZRgBIAEoCRIRCglBYmlsaXRpZXMYAiADKAkiOAoKUHJvdG9Ib25vchIW",
+            "Cg5GYWN0aW9uRGVmTmFtZRgBIAEoCRISCgpUb3RhbEhvbm9yGAIgASgFIi0K",
+            "ClByb3RvVHJhaXQSDwoHRGVmTmFtZRgBIAEoCRIOCgZEZWdyZWUYAiABKAUi",
+            "VwoKUHJvdG9Ta2lsbBIPCgdEZWZOYW1lGAEgASgJEg0KBUxldmVsGAIgASgF",
+            "EhgKEFhwU2luY2VMYXN0TGV2ZWwYAyABKAISDwoHUGFzc2lvbhgEIAEoBSKu",
+            "AgoPUHJvdG9BcHBlYXJhbmNlEhcKD0JvZHlUeXBlRGVmTmFtZRgBIAEoCRIX",
+            "Cg9IZWFkVHlwZURlZk5hbWUYAiABKAkSEwoLSGFpckRlZk5hbWUYAyABKAkS",
+            "FAoMQmVhcmREZWZOYW1lGAQgASgJEhkKEUZhY2VUYXR0b29EZWZOYW1lGAUg",
+            "ASgJEhkKEUJvZHlUYXR0b29EZWZOYW1lGAYgASgJEhIKCkZ1ckRlZk5hbWUY",
+            "ByABKAkSHAoURmF2b3JpdGVDb2xvckRlZk5hbWUYCCABKAkSJgoJSGFpckNv",
+            "bG9yGAkgASgLMhMuVHJhZGluZy5Qcm90b0NvbG9yEi4KEVNraW5Db2xvck92",
+            "ZXJyaWRlGAogASgLMhMuVHJhZGluZy5Qcm90b0NvbG9yIjgKClByb3RvQ29s",
+            "b3ISCQoBUhgBIAEoAhIJCgFHGAIgASgCEgkKAUIYAyABKAISCQoBQRgEIAEo",
+            "AmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Trading.QualityReflection.Descriptor, global::Trading.ProtoAnimalReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoThing), global::Trading.ProtoThing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerProtoThing", "Animal", "Colonist", "SaveData", "Mods", "Art", "BiocodedToCarrier", "OriginId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoThing), global::Trading.ProtoThing.Parser, new[]{ "DefName", "StackCount", "StuffDefName", "Quality", "HitPoints", "InnerProtoThing", "Animal", "Colonist", "SaveData", "Mods", "Art", "BiocodedToCarrier", "OriginId", "MarketValue" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoArt), global::Trading.ProtoArt.Parser, new[]{ "Title", "Author", "Description" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoMod), global::Trading.ProtoMod.Parser, new[]{ "PackageId", "Name" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Trading.ProtoColonist), global::Trading.ProtoColonist.Parser, new[]{ "DefName", "KindDefName", "FirstName", "NickName", "LastName", "BiologicalAgeTicks", "ChronologicalAgeTicks", "IsFemale", "DevelopmentalStage", "ChildhoodDefName", "AdulthoodDefName", "Traits", "Skills", "Hediffs", "XenotypeDefName", "CustomXenotypeName", "Endogenes", "Xenogenes", "Appearance", "Apparel", "Equipment", "Inventory", "Honor", "Psycasts", "Immunities" }, null, null, null, null),
@@ -134,6 +135,7 @@ namespace Trading {
       art_ = other.art_ != null ? other.art_.Clone() : null;
       biocodedToCarrier_ = other.biocodedToCarrier_;
       originId_ = other.originId_;
+      marketValue_ = other.marketValue_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -310,6 +312,21 @@ namespace Trading {
       }
     }
 
+    /// <summary>Field number for the "MarketValue" field.</summary>
+    public const int MarketValueFieldNumber = 14;
+    private float marketValue_;
+    /// <summary>
+    /// What one of this is worth in silver in the sender's game (for a stack, each one). Shown next to what it's worth
+    /// in the receiver's game, so players can see when a mod has changed prices on one side. 0 from older mods
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float MarketValue {
+      get { return marketValue_; }
+      set {
+        marketValue_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ProtoThing);
@@ -336,6 +353,7 @@ namespace Trading {
       if (!object.Equals(Art, other.Art)) return false;
       if (BiocodedToCarrier != other.BiocodedToCarrier) return false;
       if (OriginId != other.OriginId) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(MarketValue, other.MarketValue)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -355,6 +373,7 @@ namespace Trading {
       if (art_ != null) hash ^= Art.GetHashCode();
       if (BiocodedToCarrier != false) hash ^= BiocodedToCarrier.GetHashCode();
       if (OriginId.Length != 0) hash ^= OriginId.GetHashCode();
+      if (MarketValue != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(MarketValue);
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -417,6 +436,10 @@ namespace Trading {
         output.WriteRawTag(106);
         output.WriteString(OriginId);
       }
+      if (MarketValue != 0F) {
+        output.WriteRawTag(117);
+        output.WriteFloat(MarketValue);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -461,6 +484,9 @@ namespace Trading {
       }
       if (OriginId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(OriginId);
+      }
+      if (MarketValue != 0F) {
+        size += 1 + 4;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -521,6 +547,9 @@ namespace Trading {
       }
       if (other.OriginId.Length != 0) {
         OriginId = other.OriginId;
+      }
+      if (other.MarketValue != 0F) {
+        MarketValue = other.MarketValue;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -595,6 +624,10 @@ namespace Trading {
           }
           case 106: {
             OriginId = input.ReadString();
+            break;
+          }
+          case 117: {
+            MarketValue = input.ReadFloat();
             break;
           }
         }

@@ -19,6 +19,7 @@
 
   <LetterDef>
     <defName>TradeCreated</defName>
+    <letterClass>PhinixClient.TradeOfferLetter</letterClass>
     <color>(120, 176, 216)</color>
     <flashColor>(106, 179, 231)</flashColor>
     <flashInterval>90</flashInterval>

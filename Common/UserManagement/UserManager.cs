@@ -35,6 +35,45 @@ namespace UserManagement
             return clean.Length > MAX_BIO_LENGTH ? clean.Substring(0, MAX_BIO_LENGTH).TrimEnd() : clean;
         }
         
+        /// <summary>
+        /// Longest colony name kept, in characters.
+        /// </summary>
+        public const int MAX_COLONY_NAME_LENGTH = 40;
+
+        /// <summary>
+        /// Tidies shared colony stats the same way on both ends: a plain, short name and biome, and no negative or
+        /// absurd numbers. An empty <see cref="ColonyStats"/> means the player isn't sharing one.
+        /// </summary>
+        /// <param name="colony">Stats as sent, or null</param>
+        /// <returns>The stats to keep, or null if none were sent</returns>
+        public static ColonyStats CleanColony(ColonyStats colony)
+        {
+            if (colony == null) return null;
+
+            float wealth = colony.Wealth;
+            if (float.IsNaN(wealth) || float.IsInfinity(wealth)) wealth = 0f;
+
+            return new ColonyStats
+            {
+                Name = cleanLine(colony.Name, MAX_COLONY_NAME_LENGTH),
+                Biome = cleanLine(colony.Biome, MAX_COLONY_NAME_LENGTH),
+                Days = Math.Max(0, Math.Min(colony.Days, 10000000)),
+                Colonists = Math.Max(0, Math.Min(colony.Colonists, 100000)),
+                Animals = Math.Max(0, Math.Min(colony.Animals, 100000)),
+                Wealth = Math.Max(0f, Math.Min(wealth, 1e12f))
+            };
+        }
+
+        /// <summary>
+        /// Text with no colours or formatting, on one line, cut to <paramref name="max"/> characters.
+        /// </summary>
+        private static string cleanLine(string text, int max)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+            string plain = string.Join(" ", TextHelper.StripRichText(text).Split((char[]) null, StringSplitOptions.RemoveEmptyEntries));
+            return plain.Length > max ? plain.Substring(0, max).TrimEnd() : plain;
+        }
+
         /// <inheritdoc />
         public abstract event EventHandler<LogEventArgs> OnLogEntry;
         /// <inheritdoc />
@@ -122,7 +161,7 @@ namespace UserManagement
         /// <returns>User updated successfully</returns>
         /// <exception cref="ArgumentNullException">UUID cannot be null or empty</exception>
         /// <param name="bio">The user's bio, already cleaned with <see cref="CleanBio"/></param>
-        public virtual bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null, string bio = null)
+        public virtual bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null, string bio = null, ColonyStats colony = null)
         {
             if (string.IsNullOrEmpty(uuid)) throw new ArgumentException("UUID cannot be null or empty.", nameof(uuid));
 
@@ -135,6 +174,8 @@ namespace UserManagement
                 if (acceptingTrades.HasValue) userStore.Users[uuid].AcceptingTrades = acceptingTrades.Value;
 
                 if (bio != null) userStore.Users[uuid].Bio = bio;
+
+                if (colony != null) userStore.Users[uuid].Colony = colony;
             }
 
             return true;
@@ -292,6 +333,28 @@ namespace UserManagement
                 if (!userStore.Users.TryGetValue(uuid, out User user)) return false;
 
                 bio = user.Bio;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to get the colony a user has shared.
+        /// Returns whether they've shared one.
+        /// </summary>
+        /// <param name="uuid">UUID of the user</param>
+        /// <param name="colony">Output stats, a copy</param>
+        /// <returns>Whether stats were shared</returns>
+        public bool TryGetColony(string uuid, out ColonyStats colony)
+        {
+            colony = null;
+            if (string.IsNullOrEmpty(uuid)) return false;
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.TryGetValue(uuid, out User user) || user.Colony == null || string.IsNullOrEmpty(user.Colony.Name)) return false;
+
+                colony = user.Colony.Clone();
             }
 
             return true;

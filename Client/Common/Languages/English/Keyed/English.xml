@@ -18,6 +18,7 @@
     <Phinix_chat_contextMenu_sendGift>Send gift</Phinix_chat_contextMenu_sendGift>
     <Phinix_chat_contextMenu_proposeContract>Propose contract</Phinix_chat_contextMenu_proposeContract>
     <Phinix_chat_contextMenu_copyToClipboard>Copy message to clipboard</Phinix_chat_contextMenu_copyToClipboard>
+    <Phinix_chat_contextMenu_copyRawName>Copy raw name (dev)</Phinix_chat_contextMenu_copyRawName>
     <Phinix_report_menuOption>Report message</Phinix_report_menuOption>
     <Phinix_report_title>Report message</Phinix_report_title>
     <Phinix_report_from>From {0} · {1}</Phinix_report_from>
@@ -65,6 +66,15 @@
     <Phinix_card_blocked>Blocked</Phinix_card_blocked>
     <Phinix_card_bioHeading>Bio</Phinix_card_bioHeading>
     <Phinix_card_noBio>No bio yet.</Phinix_card_noBio>
+    <Phinix_card_colonyHeading>Colony</Phinix_card_colonyHeading>
+    <Phinix_card_colonyShare>Show mine</Phinix_card_colonyShare>
+    <Phinix_card_noColony>Not sharing a colony.</Phinix_card_noColony>
+    <Phinix_card_colonyDay>Day {0}</Phinix_card_colonyDay>
+    <Phinix_card_colonyColonist>{0} colonist</Phinix_card_colonyColonist>
+    <Phinix_card_colonyColonists>{0} colonists</Phinix_card_colonyColonists>
+    <Phinix_card_colonyAnimal>{0} animal</Phinix_card_colonyAnimal>
+    <Phinix_card_colonyAnimals>{0} animals</Phinix_card_colonyAnimals>
+    <Phinix_card_colonyWealth>{0} wealth</Phinix_card_colonyWealth>
     <Phinix_card_modsHeading>Mods</Phinix_card_modsHeading>
     <Phinix_card_modsOwn>You have {0} mods loaded.</Phinix_card_modsOwn>
     <Phinix_card_modsUnknown>Their mods aren't known yet. The server only knows the mods of players who have logged in since it last started.</Phinix_card_modsUnknown>
@@ -123,6 +133,7 @@
     <Phinix_modSettings_chatMessageLimit>Number of chat messages to keep</Phinix_modSettings_chatMessageLimit>
     <Phinix_modSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_modSettings_forceMessageFieldFocus>
     <Phinix_modSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_modSettings_forceMessageFieldFocus_description>
+	<Phinix_modSettings_shareColonyStats>Show my colony on my player card</Phinix_modSettings_shareColonyStats>
 	<Phinix_modSettings_dropCurrentMap>Always drop traded items on the current map</Phinix_modSettings_dropCurrentMap>
 	<Phinix_modSettings_giftsFromStrangers>Gifts from people who aren't friends</Phinix_modSettings_giftsFromStrangers>
 	<Phinix_modSettings_giftsFromStrangers_AlwaysAccept>Always accept</Phinix_modSettings_giftsFromStrangers_AlwaysAccept>
@@ -141,6 +152,29 @@
     <Phinix_trade_confirmTheirTradeCheckboxChecked>{0} has confirmed</Phinix_trade_confirmTheirTradeCheckboxChecked>
     <Phinix_trade_confirmTheirTradeCheckboxUnchecked>{0} has not confirmed</Phinix_trade_confirmTheirTradeCheckboxUnchecked>
     <Phinix_trade_updateButton>Update</Phinix_trade_updateButton>
+    <Phinix_trade_takeBackTip>Right-click to take this back off your offer.</Phinix_trade_takeBackTip>
+    <Phinix_trade_takeBackAsked>Take back {0}, as {1} asked</Phinix_trade_takeBackAsked>
+    <Phinix_trade_ignoreAsked>Ignore {0}'s request</Phinix_trade_ignoreAsked>
+    <Phinix_trade_askedTip>{0} asked you to take {1} of this out of the trade. Right-click to take it back or ignore the request.</Phinix_trade_askedTip>
+    <Phinix_trade_askTip>Right-click to ask them to take this out of the trade.</Phinix_trade_askTip>
+    <Phinix_trade_youAskedTip>You asked them to take {0} of this out.</Phinix_trade_youAskedTip>
+    <Phinix_trade_askSome>Ask them to take out {0}</Phinix_trade_askSome>
+    <Phinix_trade_askAll>Ask them to take it all out</Phinix_trade_askAll>
+    <Phinix_trade_askAmount>Ask them to take out...</Phinix_trade_askAmount>
+    <Phinix_trade_askAmountTitle>Ask them to take out how many?</Phinix_trade_askAmountTitle>
+    <Phinix_trade_askLeaves>Leaves {0} of {1} on their offer</Phinix_trade_askLeaves>
+    <Phinix_trade_askText>Could you take {0} x {1} out of the trade?</Phinix_trade_askText>
+    <Phinix_trade_takeBackSome>Take back {0}</Phinix_trade_takeBackSome>
+    <Phinix_trade_takeBackAll>Take back all</Phinix_trade_takeBackAll>
+    <Phinix_trade_takeBackAmount>Take back...</Phinix_trade_takeBackAmount>
+    <Phinix_trade_takeBackAmountTitle>Take back how many?</Phinix_trade_takeBackAmountTitle>
+    <Phinix_trade_takeBackLeaves>Leaves {0} of {1} on your offer</Phinix_trade_takeBackLeaves>
+    <Phinix_trade_offerValue>Value: {0}</Phinix_trade_offerValue>
+    <Phinix_trade_offerValueTheirs>({0}'s game: {1})</Phinix_trade_offerValueTheirs>
+    <Phinix_trade_offerValueTip>What this offer is worth in silver at your game's prices. Colonists and animals use the price from the game they come from.</Phinix_trade_offerValueTip>
+    <Phinix_trade_valueYours>In your game: {0}</Phinix_trade_valueYours>
+    <Phinix_trade_valueTheirs>In {0}'s game: {1}</Phinix_trade_valueTheirs>
+    <Phinix_trade_pricesDifferTip>Your games price this quite differently, probably because one of you has a mod that changes prices.</Phinix_trade_pricesDifferTip>
     <Phinix_trade_resetButton>Reset</Phinix_trade_resetButton>
     <Phinix_trade_waitingForServer>Still waiting for the server to confirm your last change. Try again in a moment.</Phinix_trade_waitingForServer>
     <Phinix_trade_strippedWarning>This trade with {0} goes through a server running the original Phinix, which only passes on what an item is, its material, quality, condition and count. These would arrive changed:\n\n{1}\n\nTo keep them intact, you and {0} can both link to the same companion server first (in Phinix's settings). Offer them anyway?</Phinix_trade_strippedWarning>
@@ -157,7 +191,40 @@
     <Phinix_trade_noItemsAvailableWithSearch>No items found that match the search criteria.</Phinix_trade_noItemsAvailableWithSearch>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
     <Phinix_trade_tradeReceivedMessage>{0} wants to trade with you.</Phinix_trade_tradeReceivedMessage>
-    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nOpen it below, or find it later in the Inbox tab of the Phinix chat panel.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_tradeHistory_button>Past trades</Phinix_tradeHistory_button>
+    <Phinix_tradeHistory_title>Past trades with {0}</Phinix_tradeHistory_title>
+    <Phinix_tradeHistory_none>No finished trades with this player yet.</Phinix_tradeHistory_none>
+    <Phinix_tradeHistory_completed>Completed</Phinix_tradeHistory_completed>
+    <Phinix_tradeHistory_cancelled>Cancelled</Phinix_tradeHistory_cancelled>
+    <Phinix_tradeHistory_gave>You gave</Phinix_tradeHistory_gave>
+    <Phinix_tradeHistory_got>{0} gave</Phinix_tradeHistory_got>
+    <Phinix_tradeHistory_cameBack>Your offer came back</Phinix_tradeHistory_cameBack>
+    <Phinix_tradeHistory_nothing>Nothing</Phinix_tradeHistory_nothing>
+    <Phinix_trade_foodVegetarian>vegetarian</Phinix_trade_foodVegetarian>
+    <Phinix_trade_foodMeat>meat</Phinix_trade_foodMeat>
+    <Phinix_trade_foodMixed>meat + veg</Phinix_trade_foodMixed>
+    <Phinix_trade_foodHumanMeat>human meat</Phinix_trade_foodHumanMeat>
+    <Phinix_trade_foodInsectMeat>insect meat</Phinix_trade_foodInsectMeat>
+    <Phinix_trade_variantPlain>standard</Phinix_trade_variantPlain>
+    <Phinix_trade_variantCondition>{0} condition</Phinix_trade_variantCondition>
+    <Phinix_trade_sortButton>Sort: {0}</Phinix_trade_sortButton>
+    <Phinix_trade_sortDefault>Default</Phinix_trade_sortDefault>
+    <Phinix_trade_sortName>Name</Phinix_trade_sortName>
+    <Phinix_trade_sortValue>Value</Phinix_trade_sortValue>
+    <Phinix_trade_sortAmount>Amount</Phinix_trade_sortAmount>
+    <Phinix_trade_copyLastButton>Copy last trade</Phinix_trade_copyLastButton>
+    <Phinix_trade_stepTip>Each + and - changes the amount by {0}. Hold Shift for 10, Ctrl for 100, or both for 1,000.</Phinix_trade_stepTip>
+    <Phinix_trade_valueEach>{0} each</Phinix_trade_valueEach>
+    <Phinix_trade_valueAll>{1} for all {0}</Phinix_trade_valueAll>
+    <Phinix_trade_copyLastTip>Pick the same things you gave in your last trade with this player. Check the amounts, then press Update.</Phinix_trade_copyLastTip>
+    <Phinix_trade_copyLastNone>You haven't finished a trade with this player yet.</Phinix_trade_copyLastNone>
+    <Phinix_trade_copyLastShort>Picked what you have. Short of: {0}</Phinix_trade_copyLastShort>
+    <Phinix_trade_copyLastDone>Picked everything from your last trade. Press Update to offer it.</Phinix_trade_copyLastDone>
+    <Phinix_trade_offerSearchHint>Search this offer</Phinix_trade_offerSearchHint>
+    <Phinix_trade_offerSearchNone>Nothing in this offer matches</Phinix_trade_offerSearchNone>
+    <Phinix_trade_letter_open>Open trade</Phinix_trade_letter_open>
+    <Phinix_trade_letter_gone>That trade has ended, or you're not connected.</Phinix_trade_letter_gone>
     <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>
     <Phinix_trade_tradeCompletedLetter_description>Your trade with {0} was successful.</Phinix_trade_tradeCompletedLetter_description>
     <Phinix_trade_tradeCancelled_label>Trade cancelled</Phinix_trade_tradeCancelled_label>

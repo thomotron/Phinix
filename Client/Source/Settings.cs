@@ -168,6 +168,17 @@ namespace PhinixClient
         /// </remarks>
         public Dictionary<string, string> Friends => friends;
 
+        private bool originalShareColonyStats;
+        private bool shareColonyStats;
+        /// <summary>
+        /// Whether our player card shows the colony we're playing: its name, biome, day, colonists, animals and wealth.
+        /// </summary>
+        public bool ShareColonyStats
+        {
+            get => shareColonyStats;
+            set => shareColonyStats = value;
+        }
+
         private bool originalDropCurrentMap;
         private bool dropCurrentMap;
         public bool DropCurrentMap
@@ -221,6 +232,7 @@ namespace PhinixClient
                        friends.Any(friend => !originalFriends.TryGetValue(friend.Key, out string name) || name != friend.Value) ||
                        migrated != originalMigrated ||
                        dropCurrentMap != originalDropCurrentMap ||
+                       shareColonyStats != originalShareColonyStats ||
                        giftsFromStrangers != originalGiftsFromStrangers ||
                        collapseBlockedUsers != originalCollapseBlockedUsers;
             }
@@ -251,6 +263,7 @@ namespace PhinixClient
             showBlockedTrades = false;
             migrated = false;
             dropCurrentMap = false;
+            shareColonyStats = true;
             giftsFromStrangers = GiftsFromStrangers.AskFirst;
             collapseBlockedUsers = true;
 
@@ -288,6 +301,7 @@ namespace PhinixClient
             Scribe_Values.Look(ref migrated, "migrated", false);
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
             Scribe_Values.Look(ref dropCurrentMap, "dropCurrentMap", false);
+            Scribe_Values.Look(ref shareColonyStats, "shareColonyStats", true);
             Scribe_Values.Look(ref giftsFromStrangers, "giftsFromStrangers", GiftsFromStrangers.AskFirst);
             Scribe_Values.Look(ref collapseBlockedUsers, "collapseBlockedUsers", true);
             Scribe_Collections.Look(ref friends, "friends", LookMode.Value, LookMode.Value);
@@ -361,6 +375,7 @@ namespace PhinixClient
             originalShowBlockedTrades = showBlockedTrades;
             originalMigrated = migrated;
             originalDropCurrentMap = dropCurrentMap;
+            originalShareColonyStats = shareColonyStats;
             originalGiftsFromStrangers = giftsFromStrangers;
             originalCollapseBlockedUsers = collapseBlockedUsers;
 

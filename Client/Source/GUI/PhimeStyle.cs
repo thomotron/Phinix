@@ -21,6 +21,15 @@ namespace PhinixClient.GUI
     [StaticConstructorOnStartup]
     public static class PhimeStyle
     {
+        /// <summary>
+        /// Silver as "$1,240", with commas so big values are easy to read. Like the game, cents only show under $10.
+        /// </summary>
+        public static string Money(this float value)
+        {
+            string number = value.ToString(value >= 10f || value == 0f ? "N0" : "N2", CultureInfo.InvariantCulture);
+            return "$" + number;
+        }
+
         public static readonly Color Gold = new Color(0.90f, 0.77f, 0.40f);
         public static readonly Color GoldHighlight = new Color(1f, 0.94f, 0.5f, 0.18f);
         public static readonly Color GoldCardFill = new Color(0.19f, 0.18f, 0.155f);

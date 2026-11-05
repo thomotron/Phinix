@@ -43,6 +43,10 @@ message ProtoThing
     // Names the very pawn an animal or colonist was made from (the sender's world and the pawn's ID), so if it comes
     // back to that world (a cancelled trade, market stock taken back) the original returns instead of a rebuilt copy
     string OriginId = 13;
+
+    // What one of this is worth in silver in the sender's game (for a stack, each one). Shown next to what it's worth
+    // in the receiver's game, so players can see when a mod has changed prices on one side. 0 from older mods
+    float MarketValue = 14;
 };
 
 // An artwork: a sculpture, or the art on a weapon or piece of furniture

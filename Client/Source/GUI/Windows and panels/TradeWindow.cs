@@ -23,10 +23,17 @@ namespace PhinixClient
         /// <summary>Colour for offered pawns with parts our game doesn't have (see <see cref="PawnCheck"/>)</summary>
         public static readonly Color MISSING_PARTS_COLOR = new Color(1f, 0.65f, 0.3f);
 
+        /// <summary>
+        /// Silver values, a little brighter than other muted text so they're easy to read.
+        /// </summary>
+        private static readonly Color VALUE_COLOR = new Color(0.74f, 0.75f, 0.76f);
+
         private const float DEFAULT_SPACING = 10f;
 
         private const float OFFER_WINDOW_WIDTH = 400f;
         private const float OFFER_WINDOW_TITLE_HEIGHT = 20f;
+        private const float OFFER_VALUE_HEIGHT = 18f;
+        private const float OFFER_SEARCH_HEIGHT = 24f;
         private const float OFFER_WINDOW_ROW_HEIGHT = 30f;
         private const float OFFER_WINDOW_CHECKBOX_HEIGHT = 25f;
 
@@ -52,6 +59,11 @@ namespace PhinixClient
 
         private List<StackedThings> ourOfferCache = new List<StackedThings>();
         private List<StackedThings> theirOfferCache = new List<StackedThings>();
+
+        /// <summary>
+        /// Open requests to take things out of an offer, both ways (see <see cref="TradeRequests"/>).
+        /// </summary>
+        private List<TradeRequests.Request> activeRequests = new List<TradeRequests.Request>();
 
         /// <summary>
         /// Mods their offer needs that we don't have, and mods ours needs that they don't. See <see cref="ModCheck"/>.
@@ -80,6 +92,43 @@ namespace PhinixClient
         /// Will be overwritten with <see cref="updatedTrade"/> by the UI thread if <see cref="tradeUpdated"/> is set.
         /// </summary>
         private ImmutableTrade trade;
+
+        /// <summary>Colonist and animal pictures for the rows, built as they're needed</summary>
+        private readonly PawnPortraits portraits = new PawnPortraits();
+
+        /// <summary>Set when the trade has completed or been cancelled, so the window closes on its next frame</summary>
+        private volatile bool tradeFinished;
+
+        /// <summary>What's typed in each offer's search box, by side ("ours:" or "theirs:")</summary>
+        private readonly Dictionary<string, string> offerSearch = new Dictionary<string, string>();
+
+        /// <summary>How a list is sorted</summary>
+        private enum SortMode { Default, Name, Value, Amount }
+
+        /// <summary>How each list is sorted, by side ("ours:", "theirs:" or "available:")</summary>
+        private readonly Dictionary<string, SortMode> sortModes = new Dictionary<string, SortMode>();
+
+        /// <summary>
+        /// How much each + and - on an available row moves the amount by, picked in the row above the list.
+        /// </summary>
+        private int stepSize = 1;
+        private static readonly int[] STEP_SIZES = { 1, 10, 100 };
+        private const float STEP_BUTTON_WIDTH = 45f;
+
+        /// <summary>Things taken back off our offer, listed to be offered again once they're home</summary>
+        private readonly List<Thing> returnedThings = new List<Thing>();
+
+        /// <summary>The token they're coming back under, until the server answers</summary>
+        private string returningToken;
+
+        private const float SORT_BUTTON_WIDTH = 110f;
+        private const float COPY_BUTTON_WIDTH = 130f;
+
+        /// <summary>The frame to next check the trade still exists on</summary>
+        private int nextExistsCheck;
+
+        /// <summary>The trade this window shows</summary>
+        public string TradeId => trade.TradeId;
         /// <summary>
         /// Updated copy of <see cref="trade"/>.
         /// </summary>
@@ -146,41 +195,7 @@ namespace PhinixClient
             Client.Instance.OnTradeUpdateSuccess += OnTradeUpdated;
             Client.Instance.OnTradeUpdateFailure += OnTradeUpdated;
 
-            // Select things from all maps that are player homes
-            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
-            IEnumerable<Thing> things;
-            if (Client.Instance.Settings.AllItemsTradable)
-            {
-                // Get *everything*
-                things = homeMaps.SelectMany(map => map.listerThings.AllThings);
-            }
-            else
-            {
-                // From each map, select all haul destinations, then everything stored there
-                IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
-                things = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
-            }
-
-            // Only items go in this list; pawns are added separately below. Biocoded items can only go with the colonist
-            // they're coded to
-            things = things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse && ColonyItems.CanLeaveOnItsOwn(thing));
-
-            // Add every tame animal on our home maps, skipping dead ones
-            // Animals can't stack with each other, so GroupThings gives each one its own row
-            IEnumerable<Thing> animals = homeMaps
-                .SelectMany(map => map.mapPawns.SpawnedColonyAnimals)
-                .Where(animal => !animal.Dead);
-            things = things.Concat(animals);
-
-            // Add every free colonist on our home maps (see ColonistConverter.CanTrade for who counts)
-            IEnumerable<Thing> colonists = homeMaps
-                .SelectMany(map => map.mapPawns.FreeColonistsSpawned)
-                .Where(ColonistConverter.CanTrade);
-            things = things.Concat(colonists);
-
-            // Group all items and cache them for later
-            availableItems = StackedThings.GroupThings(things);
-            filteredAvailableItems = availableItems;
+            gatherAvailableItems();
 
             // Pre-fill offer caches as well
             ourOfferCache = buildOfferCache(trade.ItemsOnOffer);
@@ -200,17 +215,41 @@ namespace PhinixClient
             ourMissingMods = ourMissingModsFor != null ? ModCheck.MissingForThem(trade.ItemsOnOffer, ourMissingModsFor) : new List<ModCheck.MissingMod>();
         }
 
-        public override void Close(bool doCloseSound = true)
+        public override void PostClose()
         {
-            base.Close(doCloseSound);
+            base.PostClose();
+            portraits.Clear();
 
-            // Unsubscribe from events
+            // Unsubscribe from events here, which every way of closing the window goes through
             Client.Instance.OnTradeCompleted -= OnTradeFinished;
             Client.Instance.OnTradeCancelled -= OnTradeFinished;
+            Client.Instance.OnTradeUpdateSuccess -= OnTradeUpdated;
+            Client.Instance.OnTradeUpdateFailure -= OnTradeUpdated;
         }
 
         public override void DoWindowContents(Rect inRect)
         {
+            // Close once the trade is over. Checked here, on the main thread, since the events arrive on the network
+            // thread where closing a window doesn't reliably work. The trade disappearing from the list (every second
+            // or so) also catches an end whose event this window missed
+            if (Time.frameCount >= nextExistsCheck)
+            {
+                nextExistsCheck = Time.frameCount + 60;
+                if (Client.Instance.Online && !Client.Instance.GetTradeIds().Contains(trade.TradeId)) tradeFinished = true;
+            }
+            if (tradeFinished)
+            {
+                Close();
+                return;
+            }
+
+            // Things taken back have landed (or the server said no): list what's home again
+            if (returningToken != null && !ItemEscrow.IsHolding(returningToken))
+            {
+                returningToken = null;
+                gatherAvailableItems();
+            }
+
             // Update trade if requested
             if (tradeUpdated)
             {
@@ -266,6 +305,9 @@ namespace PhinixClient
 
             // Trade arrows
             Widgets.DrawTextureFitted(tradeArrowsRect, tradeArrows, 1f);
+
+            // Requests to take things out, either way, read once a frame for both offers
+            activeRequests = TradeRequests.For(trade.TradeId, trade.OtherPartyUuid);
 
             // Our offer
             bool ourOfferAccepted = trade.Accepted;
@@ -358,6 +400,8 @@ namespace PhinixClient
                     // both on offer and back home (or, the other way round, gone from both)
                     List<Thing> comingBack = trade.ItemsOnOffer.Select(TradingThingConverter.ConvertReceivedThing).ToList();
                     waitingToken = ItemEscrow.HoldReturning(comingBack, Client.Instance.TradeEscrowModule(trade.TradeId));
+                    returningToken = waitingToken;
+                    returnedThings.AddRange(comingBack);
 
                     // Reset all selected counts to zero
                     foreach (StackedThings stack in availableItems)
@@ -383,6 +427,26 @@ namespace PhinixClient
             // Restore GUI colour
             UnityEngine.GUI.color = previousColour;
 
+            // Along the left of the search row: copy last trade, and how to sort the list
+            Rect copyButtonRect = new Rect(inRect.xMin, searchFieldRect.y, COPY_BUTTON_WIDTH, SORT_HEIGHT);
+            Rect availableSortRect = new Rect(copyButtonRect.xMax + DEFAULT_SPACING, searchFieldRect.y, SORT_BUTTON_WIDTH, SORT_HEIGHT);
+
+            if (Widgets.ButtonText(copyButtonRect, "Phinix_trade_copyLastButton".Translate())) copyLastTrade();
+            TooltipHandler.TipRegion(copyButtonRect, "Phinix_trade_copyLastTip".Translate());
+
+            drawSortButton(availableSortRect, "available:");
+
+            // x1 / x10 / x100: how far each + and - moves. The picked one is gold
+            Rect stepRect = new Rect(availableSortRect.xMax + DEFAULT_SPACING, searchFieldRect.y, STEP_BUTTON_WIDTH, SORT_HEIGHT);
+            foreach (int size in STEP_SIZES)
+            {
+                UnityEngine.GUI.color = size == stepSize ? PhimeStyle.Gold : Color.white;
+                if (Widgets.ButtonText(stepRect, "x" + size)) stepSize = size;
+                UnityEngine.GUI.color = Color.white;
+                TooltipHandler.TipRegion(stepRect, "Phinix_trade_stepTip".Translate(size));
+                stepRect = stepRect.TranslatedBy(STEP_BUTTON_WIDTH + 2f);
+            }
+
             // Search label
             GUIUtils.SaveTextFormat();
             Text.Anchor = TextAnchor.MiddleRight;
@@ -392,11 +456,7 @@ namespace PhinixClient
             // Search field
             string oldSearchText = searchText;
             searchText = Widgets.TextField(searchFieldRect, searchText);
-            if (searchText != oldSearchText)
-            {
-                // Repopulate filtered item list with the new search if necessary
-                filteredAvailableItems = availableItems.Where(stack => stack.Count > 0 && stack.Label.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1).ToList();
-            }
+            if (searchText != oldSearchText) refilterAvailable();
 
             // Available items
             if (!filteredAvailableItems.Any(stack => stack.Count > 0))
@@ -408,6 +468,154 @@ namespace PhinixClient
             else
             {
                 drawItemStackList(availableItemsRect, filteredAvailableItems, ref availableItemsScrollPos, true);
+            }
+        }
+
+        /// <summary>
+        /// Lists everything in the colony that could be added to the trade.
+        /// </summary>
+        private void gatherAvailableItems()
+        {
+            // Select things from all maps that are player homes
+            IEnumerable<Map> homeMaps = Find.Maps.Where(map => map.IsPlayerHome);
+            IEnumerable<Thing> things;
+            if (Client.Instance.Settings.AllItemsTradable)
+            {
+                // Get *everything*, except what's still hidden under fog (the colony hasn't found it yet)
+                things = homeMaps.SelectMany(map => map.listerThings.AllThings).Where(thing => !thing.Position.Fogged(thing.Map));
+            }
+            else
+            {
+                // From each map, select all haul destinations, then everything stored there
+                IEnumerable<SlotGroup> haulDestinations = homeMaps.SelectMany(map => map.haulDestinationManager.AllGroups);
+                things = haulDestinations.SelectMany(haulDestination => haulDestination.HeldThings);
+            }
+
+            // Only items go in this list; pawns are added separately below. Biocoded items can only go with the colonist
+            // they're coded to
+            things = things.Where(thing => thing.def.category == ThingCategory.Item && !thing.def.IsCorpse && ColonyItems.CanLeaveOnItsOwn(thing));
+
+            // Add every tame animal on our home maps, skipping dead ones
+            // Animals can't stack with each other, so GroupThings gives each one its own row
+            IEnumerable<Thing> animals = homeMaps
+                .SelectMany(map => map.mapPawns.SpawnedColonyAnimals)
+                .Where(animal => !animal.Dead);
+            things = things.Concat(animals);
+
+            // Add every free colonist on our home maps (see ColonistConverter.CanTrade for who counts)
+            IEnumerable<Thing> colonists = homeMaps
+                .SelectMany(map => map.mapPawns.FreeColonistsSpawned)
+                .Where(ColonistConverter.CanTrade);
+            things = things.Concat(colonists);
+
+            // Group all items and cache them for later
+            // Things just taken back off our offer land at the trade drop spot, which may not be a stockpile. They're
+            // listed anyway so they can be offered again straight away
+            things = things.Concat(returnedThings.Where(thing => thing.Spawned && !thing.Destroyed && !(thing is Pawn))).Distinct();
+
+            // Group all items, keeping any amounts already picked
+            Dictionary<string, int> picked = new Dictionary<string, int>();
+            foreach (StackedThings stack in availableItems.Where(stack => stack.Selected > 0 && stack.Things.Count > 0))
+            {
+                picked[TradeHistory.ItemKey(stack.Things[0]) + "|" + stack.Label] = stack.Selected;
+            }
+            availableItems = StackedThings.GroupThings(things);
+            foreach (StackedThings stack in availableItems.Where(stack => stack.Things.Count > 0))
+            {
+                // Prices are worked out once here, not every frame, since there can be a lot of things
+                stack.YourValue = stack.Things.Sum(thing => TradingThingConverter.MarketValueOf(thing) * thing.stackCount);
+
+                if (picked.TryGetValue(TradeHistory.ItemKey(stack.Things[0]) + "|" + stack.Label, out int selected)) stack.Selected = Math.Min(selected, stack.Count);
+            }
+            refilterAvailable();
+        }
+
+        /// <summary>
+        /// Rebuilds the list of things we could add, from the search and sort.
+        /// </summary>
+        private void refilterAvailable()
+        {
+            List<StackedThings> matches = availableItems.Where(stack => stack.Count > 0 && stack.Label.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1).ToList();
+
+            filteredAvailableItems = sorted(matches, "available:", stack => stack.YourValue);
+        }
+
+        private SortMode sortModeOf(string side) => sortModes.TryGetValue(side, out SortMode mode) ? mode : SortMode.Default;
+
+        /// <summary>
+        /// A list in the order picked for its side: as it came, by name, most valuable (each) first, or most first.
+        /// </summary>
+        private List<StackedThings> sorted(List<StackedThings> stacks, string side, Func<StackedThings, float> value)
+        {
+            switch (sortModeOf(side))
+            {
+                case SortMode.Name: return stacks.OrderBy(stack => stack.Label, StringComparer.CurrentCultureIgnoreCase).ToList();
+                // Worth of one, so a single rifle comes before a big pile of cheap steel
+                case SortMode.Value: return stacks.OrderByDescending(stack => value(stack) / Math.Max(1, stack.Count)).ToList();
+                case SortMode.Amount: return stacks.OrderByDescending(stack => stack.Count).ToList();
+                default: return stacks;
+            }
+        }
+
+        /// <summary>
+        /// A "Sort: Name" button that opens a menu of the ways to sort.
+        /// </summary>
+        /// <returns>Whether it was clicked (the pick itself happens when the menu is closed)</returns>
+        private bool drawSortButton(Rect rect, string side)
+        {
+            if (!Widgets.ButtonText(rect, "Phinix_trade_sortButton".Translate(("Phinix_trade_sort" + sortModeOf(side)).Translate()))) return false;
+
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+            foreach (SortMode mode in Enum.GetValues(typeof(SortMode)))
+            {
+                SortMode picked = mode;
+                options.Add(new FloatMenuOption(("Phinix_trade_sort" + mode).Translate(), () =>
+                {
+                    sortModes[side] = picked;
+                    if (side == "available:") refilterAvailable();
+                }));
+            }
+            Find.WindowStack.Add(new FloatMenu(options));
+            return true;
+        }
+
+        /// <summary>
+        /// Picks the same things we gave in our last completed trade with this player, as far as we still have them.
+        /// They're only picked: the player still checks the amounts and presses Update.
+        /// </summary>
+        private void copyLastTrade()
+        {
+            List<TradeHistory.Line> lastGave = TradeHistory.LastGave(trade.OtherPartyUuid);
+            if (lastGave == null)
+            {
+                Messages.Message("Phinix_trade_copyLastNone".Translate(), MessageTypeDefOf.RejectInput, historical: false);
+                return;
+            }
+
+            List<string> shortOf = new List<string>();
+            foreach (TradeHistory.Line line in lastGave)
+            {
+                if (string.IsNullOrEmpty(line.Key)) continue;
+
+                int wanted = line.Count;
+                foreach (StackedThings stack in availableItems.Where(stack => stack.Things.Count > 0 && TradeHistory.ItemKey(stack.Things[0]) == line.Key))
+                {
+                    int take = Math.Min(wanted, stack.Count - stack.Selected);
+                    if (take <= 0) continue;
+                    stack.Selected += take;
+                    wanted -= take;
+                    if (wanted == 0) break;
+                }
+                if (wanted > 0) shortOf.Add(wanted + " x " + line.Label);
+            }
+
+            if (shortOf.Count > 0)
+            {
+                Messages.Message("Phinix_trade_copyLastShort".Translate(string.Join(", ", shortOf)), MessageTypeDefOf.CautionInput, historical: false);
+            }
+            else
+            {
+                Messages.Message("Phinix_trade_copyLastDone".Translate(), MessageTypeDefOf.NeutralEvent, historical: false);
             }
         }
 
@@ -518,15 +726,48 @@ namespace PhinixClient
             // ToList() runs the query once so we don't loop over protoThings twice
             List<ProtoThing> offer = protoThings.ToList();
 
-            // Like Python's [t for t in offer if not is_display_pawn(t)]
-            List<StackedThings> rows = StackedThings.GroupThings(offer
-                .Where(protoThing => !StackedThings.IsDisplayPawn(protoThing))
-                .Select(TradingThingConverter.ConvertThingFromProtoOrUnknown));
+            // Rebuild the items, remembering what each was worth in the sender's game so the rows can add it up
+            List<Thing> things = new List<Thing>();
+            Dictionary<Thing, float> sentValues = new Dictionary<Thing, float>();
+            Dictionary<Thing, ProtoThing> madeFrom = new Dictionary<Thing, ProtoThing>();
+            foreach (ProtoThing protoThing in offer.Where(protoThing => !StackedThings.IsDisplayPawn(protoThing)))
+            {
+                // From the full copy where there is one, so details like what a meal is made from show
+                Thing thing = null;
+                try
+                {
+                    // Only for things this game has, so a modded item we can't load doesn't log a warning every update
+                    if (DefDatabase<ThingDef>.GetNamedSilentFail(protoThing.DefName) != null) thing = ItemSaveData.Load(protoThing);
+                }
+                catch (Exception)
+                {
+                    // Falls back to the basic version below
+                }
+                if (thing == null) thing = TradingThingConverter.ConvertThingFromProtoOrUnknown(protoThing);
+                things.Add(thing);
+                sentValues[thing] = protoThing.MarketValue * thing.stackCount;
+                madeFrom[thing] = protoThing;
+            }
 
-            // Animals and colonists get a display-only row each
-            rows.AddRange(offer
-                .Where(StackedThings.IsDisplayPawn)
-                .Select(StackedThings.ForDisplayPawn));
+            List<StackedThings> rows = StackedThings.GroupThings(things);
+            foreach (StackedThings row in rows)
+            {
+                // Worked out once here rather than every frame. An unknown item (from a mod we don't have) has no
+                // price of ours to give
+                row.YourValue = row.Things.Where(thing => !(thing is UnknownItem)).Sum(thing => TradingThingConverter.MarketValueOf(thing) * thing.stackCount);
+                row.TheirValue = row.Things.Sum(thing => sentValues.TryGetValue(thing, out float value) ? value : 0f);
+                row.OfferedProtos = row.Things.Where(madeFrom.ContainsKey).Select(thing => madeFrom[thing]).ToList();
+            }
+
+            // Animals and colonists get a display-only row each. Pricing them in our game would mean building the
+            // whole pawn, so they only show the sender's price
+            foreach (ProtoThing protoThing in offer.Where(StackedThings.IsDisplayPawn))
+            {
+                StackedThings row = StackedThings.ForDisplayPawn(protoThing);
+                row.TheirValue = protoThing.MarketValue;
+                row.OfferedProtos.Add(protoThing);
+                rows.Add(row);
+            }
 
             return rows;
         }
@@ -538,7 +779,8 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeFinished(object sender, CompleteTradeEventArgs args)
         {
-            Close();
+            // Only this window's trade, and the window is closed on the next frame (see DoWindowContents)
+            if (args.TradeId == trade.TradeId) tradeFinished = true;
         }
 
         /// <summary>
@@ -548,6 +790,9 @@ namespace PhinixClient
         /// <param name="args"></param>
         private void OnTradeUpdated(object sender, UITradeUpdateEventArgs args)
         {
+            // Updates to other trades are for their own windows
+            if (args.TradeId != trade.TradeId) return;
+
             // Save the updated trade and flag the current one to be replaced
             lock (updatedTradeLock)
             {
@@ -613,6 +858,30 @@ namespace PhinixClient
                 Widgets.CheckboxLabeled(acceptedStateRect, acceptedLabel, ref accepted);
             }
 
+            // What the offer is worth: in our game, and for their offer in theirs too when the prices differ
+            bool theirs = side == "theirs:";
+            Rect valueRect = new Rect(itemListRect.x, itemListRect.y, itemListRect.width, OFFER_VALUE_HEIGHT);
+            itemListRect.yMin = valueRect.yMax + 2f;
+            drawOfferValue(valueRect, itemStacks, theirs);
+
+            // A search box, to find things in a big offer, and how to sort it. The value above still counts everything
+            Rect searchRow = new Rect(itemListRect.x, itemListRect.y, itemListRect.width, OFFER_SEARCH_HEIGHT);
+            itemListRect.yMin = searchRow.yMax + 4f;
+            Rect searchRect = new Rect(searchRow.x, searchRow.y, searchRow.width - SORT_BUTTON_WIDTH - 4f, searchRow.height);
+            drawSortButton(new Rect(searchRect.xMax + 4f, searchRow.y, SORT_BUTTON_WIDTH, searchRow.height), side);
+            string search = offerSearch.TryGetValue(side, out string current) ? current : "";
+            search = Widgets.TextField(searchRect, search);
+            offerSearch[side] = search;
+            if (search.Length == 0)
+            {
+                PhimeStyle.Label(new Rect(searchRect.x + 6f, searchRect.y, searchRect.width - 6f, searchRect.height), "Phinix_trade_offerSearchHint".Translate(), PhimeStyle.Dim, GameFont.Small, TextAnchor.MiddleLeft);
+            }
+            else
+            {
+                itemStacks = itemStacks.Where(stack => stack.Label.IndexOf(search.Trim(), StringComparison.InvariantCultureIgnoreCase) > -1).ToList();
+            }
+            itemStacks = sorted(itemStacks, side, shownValue);
+
             // A warning under the title when mods are missing. Clicking it swaps the items for the list of missing mods
             if (missingMods.Count > 0)
             {
@@ -627,7 +896,51 @@ namespace PhinixClient
 
             // Items on offer, or the missing mods
             if (modWarningOpen) drawMissingModList(itemListRect, missingMods, ref modWarningScrollPos, side);
-            else drawItemStackList(itemListRect, itemStacks, ref scrollPos, false);
+            else if (itemStacks.Count == 0 && search.Length > 0) Widgets.NoneLabelCenteredVertically(itemListRect, "Phinix_trade_offerSearchNone".Translate());
+            else drawItemStackList(itemListRect, itemStacks, ref scrollPos, false, showValues: true, theirs: theirs);
+        }
+
+        /// <summary>
+        /// Whether two prices for the same thing are far enough apart to point out: more than 10% and 1 silver.
+        /// Small differences come from rounding and hit points.
+        /// </summary>
+        private static bool pricesDiffer(float yours, float theirs) =>
+            yours > 0f && theirs > 0f && Mathf.Abs(yours - theirs) > 1f && Mathf.Abs(yours - theirs) > 0.1f * Mathf.Max(yours, theirs);
+
+        /// <summary>
+        /// What a row is worth in our game, falling back on the sender's price where we can't tell (pawns on offer).
+        /// </summary>
+        private static float shownValue(StackedThings stack) => stack.YourValue > 0f ? stack.YourValue : stack.TheirValue;
+
+        /// <summary>
+        /// Draws "Value: $1,240" above an offer. For their offer, adds what it comes to in their game when that's
+        /// different, with both explained in the tooltip.
+        /// </summary>
+        private void drawOfferValue(Rect rect, List<StackedThings> stacks, bool theirs)
+        {
+            if (stacks.Count == 0) return;
+
+            float yours = stacks.Sum(shownValue);
+            float sent = stacks.Sum(stack => stack.TheirValue);
+            string otherName = TextHelper.StripRichText(trade.OtherPartyDisplayName);
+
+            string text = "Phinix_trade_offerValue".Translate(yours.Money());
+            string tip = "Phinix_trade_offerValueTip".Translate();
+            bool differ = theirs && pricesDiffer(yours, sent);
+            if (differ)
+            {
+                text += "  " + "Phinix_trade_offerValueTheirs".Translate(otherName, sent.Money());
+                tip += "\n\n" + "Phinix_trade_pricesDifferTip".Translate(otherName);
+            }
+
+            SaveTextFormat();
+            Text.Font = GameFont.Tiny;
+            Text.Anchor = TextAnchor.MiddleCenter;
+            UnityEngine.GUI.color = differ ? MISSING_PARTS_COLOR : VALUE_COLOR;
+            Widgets.Label(rect, text);
+            UnityEngine.GUI.color = Color.white;
+            RestoreTextFormat();
+            TooltipHandler.TipRegion(rect, tip);
         }
 
         /// <summary>
@@ -743,8 +1056,11 @@ namespace PhinixClient
         /// <param name="stacks">List of item stacks to draw</param>
         /// <param name="scrollPos">Scroll position</param>
         /// <param name="interactive">Whether to draw interactive buttons and quantity fields</param>
-        private void drawItemStackList(Rect inRect, List<StackedThings> stacks, ref Vector2 scrollPos, bool interactive = false)
+        /// <param name="showValues">Whether to show what each row is worth, for an offer</param>
+        /// <param name="theirs">Whether the rows are the other player's offer, whose prices from their game can be compared</param>
+        private void drawItemStackList(Rect inRect, List<StackedThings> stacks, ref Vector2 scrollPos, bool interactive = false, bool showValues = false, bool theirs = false)
         {
+            float VALUE_WIDTH = 70f;
             float ICON_WIDTH = 30f;
             float ROW_HEIGHT = ICON_WIDTH;
             float BUTTON_WIDTH = 40f;
@@ -772,42 +1088,38 @@ namespace PhinixClient
                 // Background
                 if (alternateBackground) Widgets.DrawHighlight(rowRect);
 
+                // The row under the mouse gets a gold tint, which stands out from the alternating grey either way
+                if (Mouse.IsOver(rowRect)) Widgets.DrawBoxSolid(rowRect, PhimeStyle.GoldHighlight);
+
+                // Right-clicking a row of our offer takes some or all of it back, without clearing the whole offer.
+                // A row of theirs can be asked about instead
+                if (showValues && !theirs) drawTakeBackMenu(rowRect, stack);
+                if (showValues && theirs) drawAskMenu(rowRect, stack);
+
                 // Icon
-                Widgets.ThingIcon(iconRect, stack.ThingDef, stack.StuffDef, stack.StyleDef, 0.9f);
+                if (!portraits.Draw(iconRect, stack)) Widgets.ThingIcon(iconRect, stack.ThingDef, stack.StuffDef, stack.StyleDef, 0.9f);
 
                 Rect itemNameRect;
                 if (interactive)
                 {
-                    float buttonAreaWidth = ((BUTTON_WIDTH * 6) + QUANTITY_FIELD_WIDTH + AVAILABLE_COUNT_WIDTH + (DEFAULT_SPACING * 3));
+                    float buttonAreaWidth = ((BUTTON_WIDTH * 2) + QUANTITY_FIELD_WIDTH + AVAILABLE_COUNT_WIDTH + (DEFAULT_SPACING * 3));
                     Rect buttonAreaRect = new Rect(rowRect.xMax - (RIGHT_PADDING + buttonAreaWidth), rowRect.yMin, buttonAreaWidth, rowRect.height);
-                    Rect quantityButton1Rect = new Rect(buttonAreaRect.xMin, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
-                    Rect quantityButton2Rect = quantityButton1Rect.TranslatedBy(BUTTON_WIDTH);
-                    Rect quantityButton3Rect = quantityButton2Rect.TranslatedBy(BUTTON_WIDTH);
-                    Rect quantityFieldRect = new Rect(quantityButton3Rect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, QUANTITY_FIELD_WIDTH, buttonAreaRect.height);
+                    Rect minusButtonRect = new Rect(buttonAreaRect.xMin, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
+                    Rect quantityFieldRect = new Rect(minusButtonRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, QUANTITY_FIELD_WIDTH, buttonAreaRect.height);
                     Rect availableCountRect = new Rect(quantityFieldRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, AVAILABLE_COUNT_WIDTH, buttonAreaRect.height);
-                    Rect quantityButton4Rect = new Rect(availableCountRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
-                    Rect quantityButton5Rect = quantityButton4Rect.TranslatedBy(BUTTON_WIDTH);
-                    Rect quantityButton6Rect = quantityButton5Rect.TranslatedBy(BUTTON_WIDTH);
+                    Rect plusButtonRect = new Rect(availableCountRect.xMax + DEFAULT_SPACING, buttonAreaRect.yMin, BUTTON_WIDTH, buttonAreaRect.height);
 
-                    itemNameRect = new Rect(iconRect.xMax + DEFAULT_SPACING, rowRect.yMin, buttonAreaRect.xMin - iconRect.xMax - (DEFAULT_SPACING * 2), rowRect.height);
+                    // What one of it is worth, just before the buttons
+                    Rect eachValueRect = new Rect(buttonAreaRect.xMin - DEFAULT_SPACING - VALUE_WIDTH, rowRect.yMin, VALUE_WIDTH, rowRect.height);
+                    itemNameRect = new Rect(iconRect.xMax + DEFAULT_SPACING, rowRect.yMin, eachValueRect.xMin - iconRect.xMax - (DEFAULT_SPACING * 2), rowRect.height);
+                    if (stack.YourValue > 0f) drawEachValue(eachValueRect, stack);
 
-                    // -100 button
-                    if (Widgets.ButtonText(quantityButton1Rect, "-100")) stack.Selected = Clamp(stack.Selected - 100, 0, stack.Count);
-
-                    // -10 button
-                    if (Widgets.ButtonText(quantityButton2Rect, "-10")) stack.Selected = Clamp(stack.Selected - 10, 0, stack.Count);
-
-                    // -1 button
-                    if (Widgets.ButtonText(quantityButton3Rect, "-1")) stack.Selected = Clamp(stack.Selected - 1, 0, stack.Count);
-
-                    // +1 button
-                    if (Widgets.ButtonText(quantityButton4Rect, "+1")) stack.Selected = Clamp(stack.Selected + 1, 0, stack.Count);
-
-                    // +10 button
-                    if (Widgets.ButtonText(quantityButton5Rect, "+10")) stack.Selected = Clamp(stack.Selected + 10, 0, stack.Count);
-
-                    // +100 button
-                    if (Widgets.ButtonText(quantityButton6Rect, "+100")) stack.Selected = Clamp(stack.Selected + 100, 0, stack.Count);
+                    // Each press moves by the size picked above the list. Like vanilla, holding Shift makes it 10,
+                    // Ctrl 100 and both 1,000, whatever is picked
+                    int held = GenUI.CurrentAdjustmentMultiplier();
+                    int step = held > 1 ? held : stepSize;
+                    if (Widgets.ButtonText(minusButtonRect, "-")) stack.Selected = Clamp(stack.Selected - step, 0, stack.Count);
+                    if (Widgets.ButtonText(plusButtonRect, "+")) stack.Selected = Clamp(stack.Selected + step, 0, stack.Count);
 
                     // Quantity text field
                     string buf = stack.Selected == 0 ? "" : stack.Selected.ToString();
@@ -824,6 +1136,14 @@ namespace PhinixClient
                 {
                     Rect itemCountRect = new Rect(rowRect.xMax - QUANTITY_FIELD_WIDTH - RIGHT_PADDING, rowRect.yMin, QUANTITY_FIELD_WIDTH, rowRect.height);
                     itemNameRect = new Rect(iconRect.xMax + DEFAULT_SPACING, rowRect.yMin, itemCountRect.xMin - iconRect.xMax - DEFAULT_SPACING, rowRect.height);
+
+                    // What it's worth, just before the count. Orange when their game prices it quite differently
+                    if (showValues && shownValue(stack) > 0f)
+                    {
+                        Rect valueRect = new Rect(itemCountRect.xMin - VALUE_WIDTH, rowRect.yMin, VALUE_WIDTH, rowRect.height);
+                        itemNameRect.width -= VALUE_WIDTH;
+                        drawRowValue(valueRect, stack, theirs);
+                    }
 
                     // Item count
                     SaveTextFormat();
@@ -865,6 +1185,9 @@ namespace PhinixClient
                 UnityEngine.GUI.color = Color.white;
                 RestoreTextFormat();
 
+                // What's in the row when its things differ: what meals are made from, worn condition
+                if (Mouse.IsOver(itemNameRect) && stack.VariantsTip is string variants) TooltipHandler.TipRegion(itemNameRect, variants);
+
                 // Toggle alternate background colour
                 alternateBackground = !alternateBackground;
 
@@ -872,6 +1195,173 @@ namespace PhinixClient
             }
 
             if (scrollRequired) Widgets.EndScrollView();
+        }
+
+        /// <summary>
+        /// Opens the take-back menu when a row of our offer is right-clicked: take back all of it, or 1 or 10 from a
+        /// bigger stack.
+        /// </summary>
+        private void drawTakeBackMenu(Rect rowRect, StackedThings stack)
+        {
+            if (stack.OfferedProtos.Count == 0) return;
+            string otherName = TextHelper.StripRichText(trade.OtherPartyDisplayName);
+
+            // The other player asked for some of this to be taken out: an orange box around it, and the request first
+            // on the menu
+            List<TradeRequests.Request> asked = TradeRequests.ForRow(activeRequests, stack, fromThem: true);
+            int askedCount = Math.Min(stack.Count, asked.Sum(request => request.Count));
+            if (asked.Count > 0)
+            {
+                UnityEngine.GUI.color = MISSING_PARTS_COLOR;
+                Widgets.DrawBox(rowRect, 2);
+                UnityEngine.GUI.color = Color.white;
+                TooltipHandler.TipRegion(rowRect, "Phinix_trade_askedTip".Translate(otherName, askedCount));
+            }
+
+            if (Mouse.IsOver(rowRect)) TooltipHandler.TipRegion(rowRect, "Phinix_trade_takeBackTip".Translate());
+            if (Event.current.type != EventType.MouseDown || Event.current.button != 1 || !Mouse.IsOver(rowRect)) return;
+            Event.current.Use();
+
+            int count = stack.Count;
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+            if (asked.Count > 0)
+            {
+                options.Add(new FloatMenuOption("Phinix_trade_takeBackAsked".Translate(askedCount, otherName), () =>
+                {
+                    TradeRequests.Dismiss(asked);
+                    takeBack(stack, askedCount);
+                }));
+                options.Add(new FloatMenuOption("Phinix_trade_ignoreAsked".Translate(otherName), () => TradeRequests.Dismiss(asked)));
+            }
+            if (count > 1) options.Add(new FloatMenuOption("Phinix_trade_takeBackSome".Translate(1), () => takeBack(stack, 1)));
+            if (count > 10) options.Add(new FloatMenuOption("Phinix_trade_takeBackSome".Translate(10), () => takeBack(stack, 10)));
+            if (count > 2) options.Add(new FloatMenuOption("Phinix_trade_takeBackAmount".Translate(), () =>
+                Find.WindowStack.Add(new TakeBackWindow(stack.Label, count, amount => { if (!tradeFinished) takeBack(stack, amount); }))));
+            options.Add(new FloatMenuOption("Phinix_trade_takeBackAll".Translate(), () => takeBack(stack, count)));
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
+        /// <summary>
+        /// Lets us ask the other player to take some or all of a row of their offer out, when private messages work.
+        /// Rows we've already asked about say so in their tooltip.
+        /// </summary>
+        private void drawAskMenu(Rect rowRect, StackedThings stack)
+        {
+            if (stack.OfferedProtos.Count == 0 || !Client.Instance.DirectMessagesEnabled) return;
+
+            List<TradeRequests.Request> ours = TradeRequests.ForRow(activeRequests, stack, fromThem: false);
+            if (Mouse.IsOver(rowRect))
+            {
+                TooltipHandler.TipRegion(rowRect, ours.Count > 0
+                    ? "Phinix_trade_youAskedTip".Translate(ours.Sum(request => request.Count))
+                    : "Phinix_trade_askTip".Translate());
+            }
+            if (Event.current.type != EventType.MouseDown || Event.current.button != 1 || !Mouse.IsOver(rowRect)) return;
+            Event.current.Use();
+
+            int count = stack.Count;
+            string tradeId = trade.TradeId;
+            string otherUuid = trade.OtherPartyUuid;
+            string label = stack.Label;
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+            if (count > 1) options.Add(new FloatMenuOption("Phinix_trade_askSome".Translate(1), () => TradeRequests.Send(tradeId, otherUuid, stack, 1, label)));
+            if (count > 10) options.Add(new FloatMenuOption("Phinix_trade_askSome".Translate(10), () => TradeRequests.Send(tradeId, otherUuid, stack, 10, label)));
+            if (count > 2) options.Add(new FloatMenuOption("Phinix_trade_askAmount".Translate(), () =>
+                Find.WindowStack.Add(new TakeBackWindow(label, count, amount => { if (!tradeFinished) TradeRequests.Send(tradeId, otherUuid, stack, amount, label); }, theirs: true))));
+            options.Add(new FloatMenuOption("Phinix_trade_askAll".Translate(), () => TradeRequests.Send(tradeId, otherUuid, stack, count, label)));
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
+        /// <summary>
+        /// Takes <paramref name="count"/> of a row back off our offer and sends the smaller offer. Like the Reset
+        /// button, what's taken back is held until the server confirms it's off the offer, then put on the map.
+        /// </summary>
+        private void takeBack(StackedThings stack, int count)
+        {
+            if (ItemEscrow.IsHolding(waitingToken))
+            {
+                Messages.Message("Phinix_trade_waitingForServer".Translate(), MessageTypeDefOf.RejectInput, historical: false);
+                return;
+            }
+
+            // Take whole offered stacks while they fit in what's left to take, and split the last one
+            List<ProtoThing> newOffer = trade.ItemsOnOffer.ToList();
+            List<ProtoThing> takenBack = new List<ProtoThing>();
+            int remaining = count;
+            foreach (ProtoThing protoThing in stack.OfferedProtos)
+            {
+                if (remaining <= 0) break;
+                int index = newOffer.IndexOf(protoThing);
+                if (index < 0) continue;
+
+                int stackCount = Math.Max(1, protoThing.StackCount);
+                if (stackCount <= remaining)
+                {
+                    newOffer.RemoveAt(index);
+                    takenBack.Add(protoThing);
+                    remaining -= stackCount;
+                }
+                else
+                {
+                    ProtoThing kept = protoThing.Clone();
+                    kept.StackCount = stackCount - remaining;
+                    newOffer[index] = kept;
+
+                    ProtoThing taken = protoThing.Clone();
+                    taken.StackCount = remaining;
+                    takenBack.Add(taken);
+                    remaining = 0;
+                }
+            }
+            if (takenBack.Count == 0) return;
+
+            List<Thing> comingBack = takenBack.Select(TradingThingConverter.ConvertReceivedThing).ToList();
+            waitingToken = ItemEscrow.HoldReturning(comingBack, Client.Instance.TradeEscrowModule(trade.TradeId));
+            returningToken = waitingToken;
+            returnedThings.AddRange(comingBack);
+            Client.Instance.UpdateTradeItems(trade.TradeId, newOffer, waitingToken);
+        }
+
+        /// <summary>
+        /// Draws what one of an available row's things is worth, with the whole row's worth in the tooltip.
+        /// </summary>
+        private void drawEachValue(Rect rect, StackedThings stack)
+        {
+            float each = stack.YourValue / Math.Max(1, stack.Count);
+
+            SaveTextFormat();
+            Text.Anchor = TextAnchor.MiddleRight;
+            UnityEngine.GUI.color = VALUE_COLOR;
+            Widgets.Label(rect, each.Money());
+            UnityEngine.GUI.color = Color.white;
+            RestoreTextFormat();
+
+            string tip = "Phinix_trade_valueEach".Translate(each.Money());
+            if (stack.Count > 1) tip += "\n" + "Phinix_trade_valueAll".Translate(stack.Count, stack.YourValue.Money());
+            TooltipHandler.TipRegion(rect, tip);
+        }
+
+        /// <summary>
+        /// Draws what an offered row is worth, with a tooltip giving both games' prices where they're known.
+        /// </summary>
+        private void drawRowValue(Rect rect, StackedThings stack, bool theirs)
+        {
+            string otherName = TextHelper.StripRichText(trade.OtherPartyDisplayName);
+            bool differ = theirs && pricesDiffer(stack.YourValue, stack.TheirValue);
+
+            SaveTextFormat();
+            Text.Anchor = TextAnchor.MiddleRight;
+            UnityEngine.GUI.color = differ ? MISSING_PARTS_COLOR : VALUE_COLOR;
+            Widgets.Label(rect, shownValue(stack).Money());
+            UnityEngine.GUI.color = Color.white;
+            RestoreTextFormat();
+
+            List<string> lines = new List<string>();
+            if (stack.YourValue > 0f) lines.Add("Phinix_trade_valueYours".Translate(stack.YourValue.Money()));
+            if (theirs && stack.TheirValue > 0f) lines.Add("Phinix_trade_valueTheirs".Translate(otherName, stack.TheirValue.Money()));
+            else if (stack.YourValue <= 0f && stack.TheirValue > 0f) lines.Add("Phinix_trade_valueYours".Translate(stack.TheirValue.Money()));
+            if (differ) lines.Add("Phinix_trade_pricesDifferTip".Translate(otherName));
+            TooltipHandler.TipRegion(rect, string.Join("\n", lines));
         }
     }
 }

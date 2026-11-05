@@ -29,6 +29,11 @@ namespace PhinixClient
         private const int MAX_STOPS = 4;
 
         /// <summary>
+        /// The most colour tags a gradient uses, so a long name's formatting stays well inside the server's limit.
+        /// </summary>
+        private const int GRADIENT_STEPS = 24;
+
+        /// <summary>
         /// The most raw characters a name may have, matching the server's check with its default name length.
         /// </summary>
         private const int MAX_RAW_LENGTH = 1000;
@@ -220,8 +225,11 @@ namespace PhinixClient
             }
             else
             {
-                // Spread the stops evenly over the letters (spaces are skipped so they don't stretch the gradient)
+                // Spread the stops evenly over the letters (spaces are skipped so they don't stretch the gradient).
+                // Long names get the gradient in steps of a few letters each, at most GRADIENT_STEPS of them, which
+                // keeps the name's formatting short
                 int letters = text.Count(c => !char.IsWhiteSpace(c));
+                int steps = Mathf.Min(letters, GRADIENT_STEPS);
                 int letter = 0;
                 string runHex = null;
                 foreach (char c in text)
@@ -232,7 +240,8 @@ namespace PhinixClient
                         continue;
                     }
 
-                    string hex = toHex(sample(letters <= 1 ? 0f : letter / (float) (letters - 1)));
+                    int step = letter * steps / letters;
+                    string hex = toHex(sample(steps <= 1 ? 0f : step / (float) (steps - 1)));
                     if (hex != runHex)
                     {
                         if (runHex != null) builder.Append("</color>");

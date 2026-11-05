@@ -576,6 +576,9 @@ namespace PhinixClient.GUI
                 )
             );
 
+            // Dev mode only: their name with its formatting tags, for looking into names that draw wrong
+            if (Prefs.DevMode) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyRawName".Translate(), () => GUIUtility.systemCopyBuffer = user.DisplayName));
+
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
         }
@@ -621,7 +624,7 @@ namespace PhinixClient.GUI
             }
             else
             {
-                return Client.Instance.Settings.ShowNameFormatting ? displayName : TextHelper.StripRichText(displayName);
+                return Client.ShownName(displayName);
             }
         }
     }
