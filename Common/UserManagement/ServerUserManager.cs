@@ -47,18 +47,91 @@ namespace UserManagement
         private object connectedUsersLock = new object();
 
         /// <summary>
+        /// The mods each player had loaded when they last logged in, by UUID. Kept in memory only, so it's empty again
+        /// after a restart until people log back in.
+        /// </summary>
+        private Dictionary<string, List<ModInfo>> modLists = new Dictionary<string, List<ModInfo>>();
+        /// <summary>
+        /// Lock for <see cref="modLists"/>.
+        /// </summary>
+        private object modListsLock = new object();
+
+        /// <summary>
+        /// Most mods kept for one player, and the longest package ID or name kept, so nobody can fill the server's
+        /// memory with a made-up list. Big mod lists are a few hundred.
+        /// </summary>
+        private const int MAX_MODS_PER_USER = 2000;
+        private const int MAX_MOD_FIELD_LENGTH = 200;
+
+        /// <summary>
+        /// Features switched off in server.conf (names from <see cref="Features"/>), sent to each player at login so the
+        /// mod hides them.
+        /// </summary>
+        public HashSet<string> DisabledFeatures { get; set; } = new HashSet<string>();
+
+        /// <summary>
         /// Stores each user in an easily-serialisable format.
         /// </summary>
         protected override UserStore userStore { get; set; }
         /// <summary>
         /// Lock for user store operations.
         /// </summary>
-        protected override object userStoreLock => new object();
+        /// <remarks>
+        /// This used to be <c>=> new object()</c>, which hands out a brand new object every time it's read. A lock only
+        /// works if everyone locks the <i>same</i> object (think of Python's <c>threading.Lock()</c>: creating a fresh
+        /// one inside every <c>with</c> block means nobody ever waits). So the network thread could add a user while the
+        /// UI thread was listing them, and the list crashed with "Collection was modified". One shared object fixes it.
+        /// </remarks>
+        protected override object userStoreLock { get; } = new object();
 
         /// <summary>
         /// Maximum display name length for new logins.
         /// </summary>
         private int maxDisplayNameLength;
+
+        /// <summary>
+        /// Whether this server is a companion: new users who log in with a <see cref="CompanionClaim"/> get the UUID
+        /// they have on their main server, and the first client to claim a UUID keeps it.
+        /// </summary>
+        /// <remarks>
+        /// Using the same UUID as the main server means a client can message or trade with a player it sees in the main
+        /// server's user list without translating between two sets of IDs. Logins without a claim work as normal.
+        /// </remarks>
+        public bool CompanionMode { get; set; }
+
+        /// <summary>
+        /// The main server a player linked to this companion from, as <see cref="CompanionClaim.NormaliseServer"/>
+        /// writes it. Null when this isn't a companion, or the player logged in without a claim.
+        /// </summary>
+        /// <remarks>
+        /// A companion player's username is their claim, so the main server is read back out of it and nothing extra
+        /// has to be saved.
+        /// </remarks>
+        /// <param name="uuid">Player's UUID</param>
+        /// <returns>Their main server, or null</returns>
+        public string HomeServerOf(string uuid)
+        {
+            if (!CompanionMode || string.IsNullOrEmpty(uuid)) return null;
+
+            lock (userStoreLock)
+            {
+                if (!userStore.Users.TryGetValue(uuid, out User user)) return null;
+                return CompanionClaim.TryParse(user.Username, out _, out string server, out _) ? server : null;
+            }
+        }
+
+        /// <summary>
+        /// Whether two players share a main server, and so can see each other's listings, bounties and contracts and
+        /// send each other gifts. Always true on a server that isn't a companion.
+        /// </summary>
+        /// <remarks>
+        /// One companion can serve players from several main servers. They can't see each other on their main servers,
+        /// so each main server's players get a board of their own here.
+        /// </remarks>
+        /// <param name="uuid">One player's UUID</param>
+        /// <param name="otherUuid">The other player's UUID</param>
+        /// <returns>Whether they share a main server</returns>
+        public bool SameHomeServer(string uuid, string otherUuid) => HomeServerOf(uuid) == HomeServerOf(otherUuid);
 
         /// <summary>
         /// Creates a new <see cref="ServerUserManager"/> instance.
@@ -117,11 +190,12 @@ namespace UserManagement
                 }
                 else
                 {
-                    // Try to log them out
-                    TryLogOut(connectedUsers[e.ConnectionId]);
-
-                    // Drop them from the connected user dictionary
+                    // Drop them from the connected user dictionary first, so the logout below isn't sent to the
+                    // connection that just closed (which can't receive it, and logged an error every time)
                     connectedUsers.Remove(e.ConnectionId);
+
+                    // Try to log them out
+                    TryLogOut(uuid);
                 }
             }
         }
@@ -164,6 +238,10 @@ namespace UserManagement
             {
                 if (!userStore.Users.ContainsKey(uuid)) return false;
 
+                // Remember when they left, for "last seen" in the user list. Only for people who were actually on, since
+                // shutting down logs out everyone the server has ever seen
+                if (userStore.Users[uuid].LoggedIn) userStore.Users[uuid].LastSeen = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
                 userStore.Users[uuid].LoggedIn = false;
 
                 broadcastUserUpdate(userStore.Users[uuid]);
@@ -180,10 +258,11 @@ namespace UserManagement
         /// <param name="uuid">UUID of the user</param>
         /// <param name="displayName">Display name of the user</param>
         /// <param name="acceptingTrades">Whether the user is accepting trades</param>
+        /// <param name="bio">The user's bio, already cleaned with <see cref="UserManager.CleanBio"/></param>
         /// <returns>User updated successfully</returns>
-        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null)
+        public override bool UpdateUser(string uuid, string displayName = null, bool? acceptingTrades = null, string bio = null, ColonyStats colony = null)
         {
-            if (!base.UpdateUser(uuid, displayName, acceptingTrades)) return false;
+            if (!base.UpdateUser(uuid, displayName, acceptingTrades, bio, colony)) return false;
 
             User user;
             lock (userStoreLock)
@@ -210,17 +289,8 @@ namespace UserManagement
 
             lock (userStoreLock)
             {
-                // Write the user store
-                FileStream fs = File.Exists(filePath)
-                    ? File.Open(filePath, FileMode.Truncate, FileAccess.Write)
-                    : File.Create(filePath);
-                using (fs)
-                {
-                    using (CodedOutputStream cos = new CodedOutputStream(fs))
-                    {
-                        userStore.WriteTo(cos);
-                    }
-                }
+                // Write the user store without ever leaving a half-written file (see SafeFile)
+                SafeFile.WriteAllBytes(filePath, userStore.ToByteArray());
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} user{1}", userStore.Users.Count, userStore.Users.Count != 1 ? "s" : "")));
             }
@@ -238,26 +308,17 @@ namespace UserManagement
 
             lock (userStoreLock)
             {
-                // Generate a fresh user store if it doesn't exist
-                if (!File.Exists(filePath))
+                // Generate a fresh user store if there's no copy of it at all. A damaged one throws instead, so it
+                // never gets replaced by an empty one
+                if (!SafeFile.TryRead(filePath, UserStore.Parser.ParseFrom, out UserStore loaded, out string usedPath))
                 {
                     RaiseLogEntry(new LogEventArgs("No user database, generating a new one"));
-
-                    // Create the user store
-                    lock (userStoreLock) userStore = new UserStore();
-
-                    // Save it
+                    userStore = new UserStore();
                     Save(filePath);
+                    return;
                 }
-
-                // Load the user store
-                using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
-                {
-                    using (CodedInputStream cis = new CodedInputStream(fs))
-                    {
-                        userStore = UserStore.Parser.ParseFrom(cis);
-                    }
-                }
+                if (usedPath != filePath) RaiseLogEntry(new LogEventArgs(string.Format("The user database was damaged or missing, so loaded {0} instead", usedPath), LogLevel.WARNING));
+                userStore = loaded;
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} user{1}", userStore.Users.Count, userStore.Users.Count != 1 ? "s" : "")));
             }
@@ -289,6 +350,17 @@ namespace UserManagement
         public string[] GetConnections()
         {
             lock (connectedUsersLock) return connectedUsers.Keys.ToArray();
+        }
+
+        /// <summary>
+        /// Gets the UUID of the player logged in on a connection.
+        /// </summary>
+        /// <param name="connectionId">Connection ID</param>
+        /// <param name="uuid">Their UUID, or null if nobody is logged in there</param>
+        /// <returns>Whether someone is logged in on that connection</returns>
+        public bool TryGetUuid(string connectionId, out string uuid)
+        {
+            lock (connectedUsersLock) return connectedUsers.TryGetValue(connectionId, out uuid);
         }
 
         /// <summary>
@@ -363,6 +435,10 @@ namespace UserManagement
                     RaiseLogEntry(new LogEventArgs(string.Format("Got a UserUpdatePacket from {0}", connectionId.Highlight(HighlightType.ConnectionID))));
                     handleUserUpdatePacket(connectionId, message.Unpack<UserUpdatePacket>());
                     break;
+                case "ModListRequestPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a ModListRequestPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
+                    handleModListRequestPacket(connectionId, message.Unpack<ModListRequestPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -421,10 +497,28 @@ namespace UserManagement
             }
             else
             {
+                // A companion gives a claiming client the UUID it has on its main server, unless someone else already
+                // claimed it (first claim wins: their key is part of their username, so a different key never matches)
+                string claimedUuid = null;
+                if (CompanionMode && CompanionClaim.TryParse(username, out _, out string claimedServer, out claimedUuid))
+                {
+                    bool taken;
+                    lock (userStoreLock) taken = userStore.Users.ContainsKey(claimedUuid);
+                    if (taken)
+                    {
+                        RaiseLogEntry(new LogEventArgs(string.Format("Refused companion login claiming {0} on {1}: already claimed by another client", claimedUuid.Highlight(HighlightType.UUID), claimedServer)));
+
+                        sendFailedLoginResponsePacket(connectionId, LoginFailureReason.InternalServerError, "Another client has already linked this player to the companion server. Ask the companion's owner to reset the link.");
+                        return;
+                    }
+
+                    RaiseLogEntry(new LogEventArgs(string.Format("Linking {0} on {1} to a new companion user", claimedUuid.Highlight(HighlightType.UUID), claimedServer)));
+                }
+
                 try
                 {
                     // Otherwise create a new user
-                    uuid = CreateUser(username, packet.DisplayName, true);
+                    uuid = CreateUser(username, packet.DisplayName, true, claimedUuid);
                 }
                 catch (ArgumentException)
                 {
@@ -457,8 +551,9 @@ namespace UserManagement
             }
             else
             {
-                // Check the length of their username without markup
-                if (TextHelper.StripRichText(packet.DisplayName).Length > maxDisplayNameLength)
+                // Check the length of their username without markup, and with it (so a name can't be padded out with
+                // thousands of empty formatting tags that don't count towards the visible length)
+                if (TextHelper.StripRichText(packet.DisplayName).Length > maxDisplayNameLength || packet.DisplayName.Length > maxDisplayNameLength * 10)
                 {
                     // Fail the login attempt due to display name length
                     sendFailedLoginResponsePacket(connectionId, LoginFailureReason.DisplayName, "Display name is too long.");
@@ -471,8 +566,11 @@ namespace UserManagement
                 UpdateUser(uuid, TextHelper.SanitiseRichText(packet.DisplayName));
             }
 
-            // Set whether they are accepting trades
-            UpdateUser(uuid, acceptingTrades: packet.AcceptingTrades);
+            // Set whether they are accepting trades, and their bio (an older mod sends none, which clears it)
+            UpdateUser(uuid, acceptingTrades: packet.AcceptingTrades, bio: DisabledFeatures.Contains(Features.PROFILES) ? null : CleanBio(packet.Bio));
+
+            // Remember their mods (an older mod sends none, which forgets any list from before)
+            storeModList(uuid, packet.Mods);
 
             // Add their UUID/Session ID pair to connectedUsers
             lock (connectedUsersLock)
@@ -514,6 +612,7 @@ namespace UserManagement
                 Uuid = uuid,
                 DisplayName = displayName
             };
+            response.DisabledFeatures.AddRange(DisabledFeatures);
             Any packedResponse = ProtobufPacketHelper.Pack(response);
 
             // Send it on its way
@@ -610,6 +709,56 @@ namespace UserManagement
         }
 
         /// <summary>
+        /// Remembers the mods a player logged in with, trimmed to <see cref="MAX_MODS_PER_USER"/> mods and
+        /// <see cref="MAX_MOD_FIELD_LENGTH"/> characters per field.
+        /// </summary>
+        /// <param name="uuid">Player's UUID</param>
+        /// <param name="mods">Mods from their login packet</param>
+        private void storeModList(string uuid, IEnumerable<ModInfo> mods)
+        {
+            List<ModInfo> trimmed = mods
+                .Take(MAX_MODS_PER_USER)
+                .Select(mod => new ModInfo { PackageId = clip(mod.PackageId), Name = clip(mod.Name) })
+                .ToList();
+
+            lock (modListsLock)
+            {
+                if (trimmed.Count > 0) modLists[uuid] = trimmed;
+                else modLists.Remove(uuid);
+            }
+        }
+
+        private static string clip(string text) => text.Length > MAX_MOD_FIELD_LENGTH ? text.Substring(0, MAX_MOD_FIELD_LENGTH) : text;
+
+        /// <summary>
+        /// Handles incoming <see cref="ModListRequestPacket"/>s, sending back the mods the target player last logged in
+        /// with, or <c>Known = false</c> if we don't have them.
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming packet</param>
+        private void handleModListRequestPacket(string connectionId, ModListRequestPacket packet)
+        {
+            // Discard packets from non-authenticated or non-logged in sessions
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+            if (!IsLoggedIn(connectionId, packet.Uuid)) return;
+
+            ModListResponsePacket response = new ModListResponsePacket { TargetUuid = packet.TargetUuid };
+            lock (modListsLock)
+            {
+                if (packet.TargetUuid != null && modLists.TryGetValue(packet.TargetUuid, out List<ModInfo> mods))
+                {
+                    response.Known = true;
+                    response.Mods.AddRange(mods);
+                }
+            }
+
+            if (!netServer.TrySend(connectionId, MODULE_NAME, ProtobufPacketHelper.Pack(response).ToByteArray()))
+            {
+                RaiseLogEntry(new LogEventArgs("Failed to send ModListResponsePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
+            }
+        }
+
+        /// <summary>
         /// Handles incoming <see cref="UserUpdatePacket"/>s.
         /// </summary>
         /// <param name="connectionId">Original connection ID</param>
@@ -631,10 +780,12 @@ namespace UserManagement
             }
 
             // Discard packets with display names longer than the limit
-            if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength) return;
+            if (TextHelper.StripRichText(user.DisplayName).Length > maxDisplayNameLength || user.DisplayName.Length > maxDisplayNameLength * 10) return;
 
             // Update the user
-            UpdateUser(user.Uuid, TextHelper.SanitiseRichText(user.DisplayName), user.AcceptingTrades);
+            // Bios and colony stats are left as they are while profiles are switched off
+            bool profiles = !DisabledFeatures.Contains(Features.PROFILES);
+            UpdateUser(user.Uuid, TextHelper.SanitiseRichText(user.DisplayName), user.AcceptingTrades, profiles ? CleanBio(user.Bio) : null, profiles ? CleanColony(user.Colony) : null);
         }
     }
 }

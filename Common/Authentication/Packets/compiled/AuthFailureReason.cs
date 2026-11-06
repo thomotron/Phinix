@@ -25,9 +25,9 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Ch9QYWNrZXRzL0F1dGhGYWlsdXJlUmVhc29uLnByb3RvEg5BdXRoZW50aWNh",
-            "dGlvbipaChFBdXRoRmFpbHVyZVJlYXNvbhIMCghBdXRoVHlwZRAAEg8KC0Ny",
+            "dGlvbipvChFBdXRoRmFpbHVyZVJlYXNvbhIMCghBdXRoVHlwZRAAEg8KC0Ny",
             "ZWRlbnRpYWxzEAESDQoJU2Vzc2lvbklkEAISFwoTSW50ZXJuYWxTZXJ2ZXJF",
-            "cnJvchADYgZwcm90bzM="));
+            "cnJvchADEhMKD1Byb3RvY29sVmVyc2lvbhAEYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.AuthFailureReason), }, null, null));
@@ -41,6 +41,10 @@ namespace Authentication {
     [pbr::OriginalName("Credentials")] Credentials = 1,
     [pbr::OriginalName("SessionId")] SessionId = 2,
     [pbr::OriginalName("InternalServerError")] InternalServerError = 3,
+    /// <summary>
+    /// The client's mod is a different version to the server's
+    /// </summary>
+    [pbr::OriginalName("ProtocolVersion")] ProtocolVersion = 4,
   }
 
   #endregion

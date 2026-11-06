@@ -1,0 +1,29 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+
+// One bounty: "bring me these items and I'll pay you these".
+//
+// The big difference from a market listing is the reward. When a bounty is posted, the reward items are taken off
+// the poster's map and held by the server (this is called "escrow"). That's what makes a bounty trustworthy: the
+// reward really exists, and whoever fulfils the bounty is paid automatically without the poster needing to be online.
+// The reward only leaves escrow when someone fulfils the bounty, the poster cancels it, or it expires.
+message Bounty
+{
+  string BountyId = 1;                    // Random unique ID the server picks, like a listing ID
+  string PosterUuid = 2;                  // UUID of the player who posted it
+
+  // What the poster wants. For each item, Quality is the *lowest* quality they'll accept.
+  // Awful (0) is protobuf's default, which works out nicely as "any quality". Items that never have a quality,
+  // like steel, ignore it
+  repeated Trading.ProtoThing WantedItems = 3;
+
+  // What the poster will pay. Unlike WantedItems, these are real items with real qualities and hit points, since
+  // they were taken from the poster's colony
+  repeated Trading.ProtoThing RewardItems = 4;
+
+  string Note = 5;                        // Short free-text message from the poster
+  int64 PostedTime = 6;                   // Unix seconds, set by the server
+  int64 ExpiryTime = 7;                   // Unix seconds, set by the server. After this the reward goes back to the poster
+};

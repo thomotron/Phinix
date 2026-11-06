@@ -23,6 +23,18 @@ namespace UserManagement
         public override void RaiseLogEntry(LogEventArgs e) => OnLogEntry?.Invoke(this, e);
 
         /// <summary>
+        /// Features the server said it has switched off when we logged in (names from <see cref="Features"/>).
+        /// </summary>
+        private HashSet<string> disabledFeatures = new HashSet<string>();
+
+        /// <summary>
+        /// Whether the server has switched a feature off. False until we've logged in, and always false on servers from
+        /// before features could be switched off.
+        /// </summary>
+        /// <param name="feature">Feature name from <see cref="Features"/></param>
+        public bool IsFeatureDisabled(string feature) => disabledFeatures.Contains(feature);
+
+        /// <summary>
         /// Raised on a successful login attempt.
         /// </summary>
         public event EventHandler<LoginEventArgs> OnLoginSuccess;
@@ -54,6 +66,11 @@ namespace UserManagement
         public event EventHandler OnUserSync;
 
         /// <summary>
+        /// Raised when the server answers <see cref="RequestModList"/>.
+        /// </summary>
+        public event EventHandler<ModListEventArgs> OnModListReceived;
+
+        /// <summary>
         /// Whether the client is logged in to the server.
         /// </summary>
         public bool LoggedIn { get; private set; }
@@ -80,7 +97,13 @@ namespace UserManagement
         /// <summary>
         /// Lock for user store operations.
         /// </summary>
-        protected override object userStoreLock => new object();
+        /// <remarks>
+        /// This used to be <c>=> new object()</c>, which hands out a brand new object every time it's read. A lock only
+        /// works if everyone locks the <i>same</i> object (think of Python's <c>threading.Lock()</c>: creating a fresh
+        /// one inside every <c>with</c> block means nobody ever waits). So the network thread could add a user while the
+        /// UI thread was listing them, and the list crashed with "Collection was modified". One shared object fixes it.
+        /// </remarks>
+        protected override object userStoreLock { get; } = new object();
 
         public ClientUserManager(NetClient netClient, ClientAuthenticator authenticator)
         {
@@ -100,7 +123,9 @@ namespace UserManagement
         /// <param name="displayName">Display name to log in with</param>
         /// <param name="useServerDisplayName">Use the server's copy of the user's display name if it has one</param>
         /// <param name="acceptingTrades">Whether to accept trades from other users</param>
-        public void SendLogin(string displayName, bool useServerDisplayName = false, bool acceptingTrades = true)
+        /// <param name="mods">The mods we have loaded, so other players can be warned about items we can't receive</param>
+        /// <param name="bio">Our bio, shown to others when they hover over our name</param>
+        public void SendLogin(string displayName, bool useServerDisplayName = false, bool acceptingTrades = true, IEnumerable<ModInfo> mods = null, string bio = "")
         {
             if (!authenticator.Authenticated) return;
 
@@ -110,14 +135,34 @@ namespace UserManagement
                 SessionId = authenticator.SessionId,
                 DisplayName = displayName,
                 UseServerDisplayName = useServerDisplayName,
-                AcceptingTrades = acceptingTrades
+                AcceptingTrades = acceptingTrades,
+                Bio = CleanBio(bio)
             };
+            if (mods != null) packet.Mods.AddRange(mods);
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
 
             RaiseLogEntry(new LogEventArgs("Sending LoginPacket", LogLevel.DEBUG));
 
             // Send it on its way
             netClient.Send(MODULE_NAME, packedPacket.ToByteArray());
+        }
+
+        /// <summary>
+        /// Asks the server for the mods another player last logged in with. The answer arrives as
+        /// <see cref="OnModListReceived"/>. A server from before mod lists never answers.
+        /// </summary>
+        /// <param name="uuid">UUID of the player</param>
+        public void RequestModList(string uuid)
+        {
+            if (!authenticator.Authenticated || !LoggedIn) return;
+
+            ModListRequestPacket packet = new ModListRequestPacket
+            {
+                SessionId = authenticator.SessionId,
+                Uuid = Uuid,
+                TargetUuid = uuid
+            };
+            netClient.Send(MODULE_NAME, ProtobufPacketHelper.Pack(packet).ToByteArray());
         }
 
         /// <summary>
@@ -166,14 +211,16 @@ namespace UserManagement
         /// </summary>
         /// <param name="displayName">New display name</param>
         /// <param name="acceptingTrades">Whether to accept trades from other users</param>
+        /// <param name="bio">New bio</param>
+        /// <param name="colony">Colony stats to share, or an empty <see cref="ColonyStats"/> to stop sharing them</param>
         /// <returns>User update was successful and sent to server</returns>
-        public bool UpdateSelf(string displayName = null, bool? acceptingTrades = null)
+        public bool UpdateSelf(string displayName = null, bool? acceptingTrades = null, string bio = null, ColonyStats colony = null)
         {
             // Don't do anything unless we are logged in
             if (!LoggedIn) return false;
 
             // Don't do anything if the parameters are all null
-            if (displayName == null && acceptingTrades == null) return false;
+            if (displayName == null && acceptingTrades == null && bio == null && colony == null) return false;
 
             lock (userStoreLock)
             {
@@ -188,6 +235,12 @@ namespace UserManagement
 
                 // Set the user's trade acceptance if it is present
                 if (acceptingTrades.HasValue) user.AcceptingTrades = acceptingTrades.Value;
+
+                // Set the user's bio if it is present
+                if (bio != null) user.Bio = CleanBio(bio);
+
+                // Set the user's colony stats if they are present
+                if (colony != null) user.Colony = CleanColony(colony);
 
                 // Create and pack a user update packet
                 UserUpdatePacket packet = new UserUpdatePacket
@@ -231,6 +284,11 @@ namespace UserManagement
                     RaiseLogEntry(new LogEventArgs("Got a LoginResponsePacket", LogLevel.DEBUG));
                     loginResponsePacketHandler(connectionId, message.Unpack<LoginResponsePacket>());
                     break;
+                case "ModListResponsePacket":
+                    RaiseLogEntry(new LogEventArgs("Got a ModListResponsePacket", LogLevel.DEBUG));
+                    ModListResponsePacket modList = message.Unpack<ModListResponsePacket>();
+                    OnModListReceived?.Invoke(this, new ModListEventArgs(modList.TargetUuid, modList.Known, modList.Mods.ToList()));
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -249,6 +307,7 @@ namespace UserManagement
                 // Set module states
                 LoggedIn = true;
                 Uuid = packet.Uuid;
+                disabledFeatures = new HashSet<string>(packet.DisabledFeatures);
 
                 // Raise login success event
                 OnLoginSuccess?.Invoke(this, new LoginEventArgs());

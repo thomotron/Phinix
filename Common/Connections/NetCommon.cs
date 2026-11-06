@@ -95,7 +95,16 @@ namespace Connections
             // Invoke the packet handler responsible for this packet type
             if (registeredPacketHandlers.ContainsKey(type))
             {
-                registeredPacketHandlers[type].Invoke(type, connectionId, data);
+                // Handlers run on the poll thread. An exception escaping a background thread ends the process on
+                // .NET Core-based runtimes, so one bad packet (or one bad event subscriber) must not get out of here
+                try
+                {
+                    registeredPacketHandlers[type].Invoke(type, connectionId, data);
+                }
+                catch (Exception e)
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Packet handler for module {0} threw: {1}", type, e), LogLevel.ERROR));
+                }
             }
         }
     }

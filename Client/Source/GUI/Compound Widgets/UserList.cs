@@ -21,6 +21,16 @@ namespace PhinixClient.GUI
         private const float USER_BUTTON_PADDING_HORIZONTAL = 3f;
         private const float USER_BUTTON_PADDING_VERTICAL = 5f;
 
+        /// <summary>
+        /// Space between the sections of the list (friends, online, offline and blocked).
+        /// </summary>
+        private const float SECTION_GAP = 8f;
+
+        /// <summary>
+        /// Font size of the "last seen" line under offline friends, a little smaller than names.
+        /// </summary>
+        private const int LAST_SEEN_FONT_SIZE = 11;
+
         private readonly Texture2D blockedSpacerCollapseIcon = ContentFinder<Texture2D>.Get("collapse");
 
         /// <summary>
@@ -31,6 +41,41 @@ namespace PhinixClient.GUI
         /// Text colour for blocked users.
         /// </summary>
         private readonly Color blockedNameColour = new Color(0.6f, 0.6f, 0.6f);
+        /// <summary>
+        /// Text colour for offline friends, and for the name a friend had when they were friended.
+        /// </summary>
+        private readonly Color friendDetailColour = new Color(0.6f, 0.6f, 0.6f);
+        /// <summary>
+        /// Background colour for friends, so they stand out at the top of the list.
+        /// </summary>
+        private readonly Color friendBackgroundColour = new Color(0.3f, 0.6f, 0.3f, 0.12f);
+
+        /// <summary>
+        /// List of friends, online ones first.
+        /// </summary>
+        private readonly List<ImmutableUser> friendUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// Each friend's UUID and the display name they had when they were friended. Replaced along with
+        /// <see cref="friendUsers"/>.
+        /// </summary>
+        private Dictionary<string, string> friendNames = new Dictionary<string, string>();
+        /// <summary>
+        /// Subset of <see cref="friendUsers"/> filtered by <see cref="searchText"/>. Only used by the UI thread, like
+        /// <see cref="filteredOnlineUsers"/>.
+        /// </summary>
+        private readonly List<ImmutableUser> filteredFriendUsers = new List<ImmutableUser>();
+        /// <summary>
+        /// Whether <see cref="filteredFriendUsers"/> should be repopulated from <see cref="friendUsers"/>.
+        /// </summary>
+        private bool friendUsersChanged = false;
+        /// <summary>
+        /// Collection of pre-calculated heights for each friend, like <see cref="userRectHeights"/>.
+        /// </summary>
+        private readonly Dictionary<ImmutableUser, (float Normal, float Scrollbar)> friendUserRectHeights = new Dictionary<ImmutableUser, (float Normal, float Scrollbar)>();
+        /// <summary>
+        /// Total height of all friends. Derived from <see cref="friendUserRectHeights"/>.
+        /// </summary>
+        private (float Normal, float Scrollbar) friendUserRectHeightsSum = (0f, 0f);
 
         /// <summary>
         /// List of currently-online users.
@@ -108,12 +153,14 @@ namespace PhinixClient.GUI
         public UserList()
         {
             // Bind to events
+            // Friends can be online or offline and are sorted by it, so every change refreshes all of the lists
             Client.Instance.OnUserSync += (s, e) => refreshUserLists();
-            Client.Instance.OnUserCreated += (s, e) => refreshOnlineUserList();
-            Client.Instance.OnUserLoggedIn += (s, e) => refreshOnlineUserList();
-            Client.Instance.OnUserLoggedOut += (s, e) => refreshOnlineUserList();
-            Client.Instance.OnUserDisplayNameChanged += (s, e) => refreshOnlineUserList();
+            Client.Instance.OnUserCreated += (s, e) => refreshUserLists();
+            Client.Instance.OnUserLoggedIn += (s, e) => refreshUserLists();
+            Client.Instance.OnUserLoggedOut += (s, e) => refreshUserLists();
+            Client.Instance.OnUserDisplayNameChanged += (s, e) => refreshUserLists();
             Client.Instance.OnBlockedUsersChanged += (s, e) => refreshUserLists();
+            Client.Instance.OnFriendsChanged += (s, e) => refreshUserLists();
 
             // Populate the user lists before the first draw
             refreshUserLists();
@@ -125,8 +172,25 @@ namespace PhinixClient.GUI
         /// <param name="inRect">Container to draw within</param>
         public void Draw(Rect inRect)
         {
-            if (onlineUsersChanged || blockedUsersChanged)
+            if (onlineUsersChanged || blockedUsersChanged || friendUsersChanged)
             {
+                // Update the friends list if it's been changed
+                if (friendUsersChanged)
+                {
+                    // Try lock the unfiltered lists, otherwise wait until the next frame to refresh content
+                    if (Monitor.TryEnter(userListsLock))
+                    {
+                        // Match the search against their current name or the name they were friended as
+                        filteredFriendUsers.Clear();
+                        filteredFriendUsers.AddRange(friendUsers.Where(u => matchesSearch(u.DisplayName.StripTags()) ||
+                                                                            (friendNames.TryGetValue(u.Uuid, out string friendedAs) && matchesSearch(friendedAs))));
+
+                        // Unset the changed flag and release the lock
+                        friendUsersChanged = false;
+                        Monitor.Exit(userListsLock);
+                    }
+                }
+
                 // Update the online users list if it's been changed
                 if (onlineUsersChanged)
                 {
@@ -160,6 +224,16 @@ namespace PhinixClient.GUI
                 }
 
                 // Recalculate user heights
+                friendUserRectHeights.Clear();
+                friendUserRectHeightsSum = (0f, 0f);
+                foreach (ImmutableUser user in filteredFriendUsers)
+                {
+                    float normalHeight = Text.CalcHeight(formatFriend(user), inRect.width) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    float heightWithScrollbar = Text.CalcHeight(formatFriend(user), inRect.width - SCROLLBAR_WIDTH) + (USER_BUTTON_PADDING_VERTICAL * 2);
+                    friendUserRectHeights.Add(user, (normalHeight, heightWithScrollbar));
+                    friendUserRectHeightsSum.Normal += normalHeight;
+                    friendUserRectHeightsSum.Scrollbar += heightWithScrollbar;
+                }
                 userRectHeights.Clear();
                 userRectHeightsSum = (0f, 0f);
                 foreach (ImmutableUser user in filteredOnlineUsers)
@@ -182,31 +256,46 @@ namespace PhinixClient.GUI
                 }
             }
 
+            // The list is in sections, each under a small heading with a gap above it: online friends, everyone else
+            // who's on, then friends who are offline (with when they were last seen)
+            List<ImmutableUser> onlineFriends = filteredFriendUsers.Where(u => u.LoggedIn).ToList();
+            List<ImmutableUser> offlineFriends = filteredFriendUsers.Where(u => !u.LoggedIn).ToList();
+            List<(string Heading, List<ImmutableUser> Users, Dictionary<ImmutableUser, (float Normal, float Scrollbar)> Heights, bool Friend)> sections =
+                new List<(string, List<ImmutableUser>, Dictionary<ImmutableUser, (float Normal, float Scrollbar)>, bool)>();
+            if (onlineFriends.Any()) sections.Add(("Phinix_chat_friends".Translate(), onlineFriends, friendUserRectHeights, true));
+            // Everyone else only needs a heading to set them apart from friends; on their own the "Online" above the
+            // list already says what they are
+            if (filteredOnlineUsers.Any()) sections.Add((filteredFriendUsers.Any() ? "Phinix_chat_onlineSection".Translate().Resolve() : null, filteredOnlineUsers, userRectHeights, false));
+            if (offlineFriends.Any()) sections.Add(("Phinix_chat_offlineSection".Translate(), offlineFriends, friendUserRectHeights, true));
+
             // Set up the scrollable container
-            float totalHeight = userRectHeightsSum.Normal;
-            if (filteredBlockedUsers.Any())
+            float sectionsHeight(bool scrollbar)
             {
-                totalHeight += BLOCKED_SPACER_HEIGHT;
-                if (!Client.Instance.Settings.CollapseBlockedUsers) totalHeight += blockedUserRectHeightsSum.Normal;
+                float height = 0f;
+                for (int i = 0; i < sections.Count; i++)
+                {
+                    if (i > 0) height += SECTION_GAP;
+                    if (sections[i].Heading != null) height += BLOCKED_SPACER_HEIGHT;
+                    height += sections[i].Users.Sum(u => scrollbar ? sections[i].Heights[u].Scrollbar : sections[i].Heights[u].Normal);
+                }
+                if (filteredBlockedUsers.Any())
+                {
+                    height += SECTION_GAP + BLOCKED_SPACER_HEIGHT;
+                    if (!Client.Instance.Settings.CollapseBlockedUsers) height += scrollbar ? blockedUserRectHeightsSum.Scrollbar : blockedUserRectHeightsSum.Normal;
+                }
+                return height;
             }
 
             Rect contentRect = new Rect(
                 x: inRect.xMin,
                 y: inRect.yMin,
                 width: inRect.width,
-                height: totalHeight
+                height: sectionsHeight(false)
             );
             if (contentRect.height > inRect.height)
             {
-                totalHeight = userRectHeightsSum.Scrollbar;
-                if (filteredBlockedUsers.Any())
-                {
-                    totalHeight += BLOCKED_SPACER_HEIGHT;
-                    if (!Client.Instance.Settings.CollapseBlockedUsers) totalHeight += blockedUserRectHeightsSum.Scrollbar;
-                }
-
                 contentRect.width = inRect.width - SCROLLBAR_WIDTH;
-                contentRect.height = totalHeight;
+                contentRect.height = sectionsHeight(true);
             }
 
             // Start scrolling
@@ -215,17 +304,38 @@ namespace PhinixClient.GUI
             // Keep track of how far down the list we are
             float currentY = contentRect.yMin;
 
-            // Normal users
-            foreach (ImmutableUser user in filteredOnlineUsers)
+            for (int i = 0; i < sections.Count; i++)
             {
-                float height = contentRect.height > inRect.height ? userRectHeights[user].Scrollbar : userRectHeights[user].Normal;
-                drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, false);
-                currentY += height;
+                if (i > 0) currentY += SECTION_GAP;
+
+                if (sections[i].Heading != null)
+                {
+                    Rect headingRect = new Rect(
+                        x: contentRect.xMin,
+                        y: currentY + BLOCKED_SPACER_PADDING_TOP,
+                        width: contentRect.width,
+                        height: BLOCKED_SPACER_HEIGHT - BLOCKED_SPACER_PADDING_TOP - BLOCKED_SPACER_PADDING_BOTTOM
+                    );
+                    TextAnchor oldTextAnchor = Text.Anchor;
+                    Text.Anchor = TextAnchor.MiddleCenter;
+                    Widgets.Label(headingRect, sections[i].Heading);
+                    Text.Anchor = oldTextAnchor;
+                    currentY += BLOCKED_SPACER_HEIGHT;
+                }
+
+                foreach (ImmutableUser user in sections[i].Users)
+                {
+                    float height = contentRect.height > inRect.height ? sections[i].Heights[user].Scrollbar : sections[i].Heights[user].Normal;
+                    drawUser(new Rect(contentRect.xMin, currentY, contentRect.width, height), user, friend: sections[i].Friend);
+                    currentY += height;
+                }
             }
 
             // Blocked users
             if (filteredBlockedUsers.Any())
             {
+                currentY += SECTION_GAP;
+
                 // Draw the blocked users spacer
                 Rect paddedRect = new Rect(
                     x: contentRect.xMin,
@@ -288,53 +398,66 @@ namespace PhinixClient.GUI
             this.searchText = searchText;
             onlineUsersChanged = true;
             blockedUsersChanged = true;
+            friendUsersChanged = true;
         }
 
         /// <summary>
-        /// Repopulates both <see cref="onlineUsers"/> and <see cref="blockedUsers"/>.
+        /// Whether some text contains the search text, ignoring case.
         /// </summary>
+        private bool matchesSearch(string text) => text.IndexOf(searchText, StringComparison.InvariantCultureIgnoreCase) > -1;
+
+        /// <summary>
+        /// Repopulates <see cref="friendUsers"/>, <see cref="onlineUsers"/> and <see cref="blockedUsers"/>.
+        /// </summary>
+        /// <remarks>
+        /// Everything is fetched from the client before taking <see cref="userListsLock"/>. The user manager raises
+        /// the events that call this while holding its own lock, so asking it for users while holding ours would
+        /// take the two locks in the opposite order to the network thread, which can deadlock.
+        /// </remarks>
         private void refreshUserLists()
         {
-            refreshBlockedUserList();
-            refreshOnlineUserList();
-        }
+            Dictionary<string, string> friends = Client.Instance.GetFriends();
+            HashSet<string> blockedUuids = new HashSet<string>(Client.Instance.Settings.BlockedUsers);
 
-        /// <summary>
-        /// Repopulates <see cref="onlineUsers"/> with each online user.
-        /// </summary>
-        private void refreshOnlineUserList()
-        {
-            lock (userListsLock)
+            // Friends we know about on this server, online ones first, then alphabetically
+            List<ImmutableUser> newFriends = new List<ImmutableUser>();
+            foreach (string uuid in friends.Keys)
             {
-                // Repopulate the online list
-                onlineUsers.Clear();
-                onlineUsers.AddRange(Client.Instance.GetUsers(true).Where(u => !blockedUsers.Contains(u)));
+                if (Client.Instance.TryGetUser(uuid, out ImmutableUser user)) newFriends.Add(user);
+            }
+            newFriends = newFriends
+                .OrderByDescending(u => u.LoggedIn)
+                .ThenBy(u => u.DisplayName.StripTags(), StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+
+            List<ImmutableUser> newBlocked = new List<ImmutableUser>();
+            foreach (string uuid in blockedUuids)
+            {
+                if (Client.Instance.TryGetUser(uuid, out ImmutableUser user)) newBlocked.Add(user);
             }
 
-            // Flag the filtered list to be repopulated
-            onlineUsersChanged = true;
-        }
+            // Friends and blocked users have their own sections, so leave them out of the main list
+            List<ImmutableUser> newOnline = Client.Instance.GetUsers(true)
+                .Where(u => !friends.ContainsKey(u.Uuid) && !blockedUuids.Contains(u.Uuid))
+                .ToList();
 
-        /// <summary>
-        /// Repopulates <see cref="blockedUsers"/> with each blocked user.
-        /// </summary>
-        private void refreshBlockedUserList()
-        {
             lock (userListsLock)
             {
-                // Repopulate the online list
+                friendUsers.Clear();
+                friendUsers.AddRange(newFriends);
+                friendNames = friends;
+
                 blockedUsers.Clear();
-                foreach (string uuid in Client.Instance.Settings.BlockedUsers)
-                {
-                    if (Client.Instance.TryGetUser(uuid, out ImmutableUser user))
-                    {
-                        blockedUsers.Add(user);
-                    }
-                }
+                blockedUsers.AddRange(newBlocked);
+
+                onlineUsers.Clear();
+                onlineUsers.AddRange(newOnline);
             }
 
-            // Flag the filtered list to be repopulated
+            // Flag the filtered lists to be repopulated
+            friendUsersChanged = true;
             blockedUsersChanged = true;
+            onlineUsersChanged = true;
         }
 
         /// <summary>
@@ -343,14 +466,19 @@ namespace PhinixClient.GUI
         /// <param name="inRect">Container to draw within</param>
         /// <param name="user">User to draw</param>
         /// <param name="blocked">Whether the user is blocked</param>
-        private void drawUser(Rect inRect, ImmutableUser user, bool blocked = false)
+        /// <param name="friend">Whether the user is a friend</param>
+        private void drawUser(Rect inRect, ImmutableUser user, bool blocked = false, bool friend = false)
         {
-            string formattedDisplayName = formatDisplayName(user.DisplayName, blocked);
+            string formattedDisplayName = friend ? formatFriend(user) : formatDisplayName(user.DisplayName, blocked);
 
             if (blocked)
             {
                 // Draw a highlighted background
                 Widgets.DrawRectFast(inRect, blockedBackgroundColour);
+            }
+            else if (friend)
+            {
+                Widgets.DrawRectFast(inRect, friendBackgroundColour);
             }
 
             // Get a padded area to draw the text in
@@ -358,6 +486,9 @@ namespace PhinixClient.GUI
 
             // Draw the text
             Widgets.Label(paddedRect, Mouse.IsOver(inRect) ? formattedDisplayName.Colorize(Widgets.MouseoverOptionColor) : formattedDisplayName);
+
+            // Their bio, if they've written one
+            if (Client.Instance.TryGetBio(user.Uuid, out string bio)) TooltipHandler.TipRegion(inRect, bio);
 
             // Draw the button and optionally the context menu if clicked
             if (Widgets.ButtonInvisible(inRect, false))
@@ -374,12 +505,64 @@ namespace PhinixClient.GUI
             // Do nothing if this is our UUID
             if (user.Uuid == Client.Instance.Uuid) return;
 
+            // A blocked player only gets Unblock: no trading, messages, gifts, contracts or friending until then
+            if (Client.Instance.IsBlocked(user.Uuid))
+            {
+                Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
+                {
+                    new FloatMenuOption("Phinix_chat_contextMenu_unblockUser".Translate(), () => Client.Instance.UnBlockUser(user.Uuid))
+                }));
+                return;
+            }
+
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
+            if (Client.Instance.FeatureEnabled(Features.PROFILES)) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_viewProfile".Translate(), () => Find.WindowStack.Add(new PlayerCardWindow(user.Uuid))));
             items.Add(
                 new FloatMenuOption(
                     label: "Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(user.DisplayName)),
                     action: () => Client.Instance.CreateTrade(user.Uuid)
+                )
+            );
+            // Only offered when the server has private messages turned on
+            if (Client.Instance.DirectMessagesEnabled)
+            {
+                items.Add(
+                    new FloatMenuOption(
+                        label: "Phinix_chat_contextMenu_sendMessage".Translate(),
+                        action: () => ServerTab.OpenConversation(user.Uuid)
+                    )
+                );
+            }
+            // Only offered when the server or a companion can take gifts (an original Phinix server can't)
+            if (Client.Instance.GiftsAvailable)
+            {
+                items.Add(
+                    new FloatMenuOption(
+                        label: "Phinix_chat_contextMenu_sendGift".Translate(),
+                        action: () => Find.WindowStack.Add(new SendGiftWindow(user.Uuid))
+                    )
+                );
+            }
+            // Only offered when the server has contracts turned on, and only for players who could take one (through a
+            // companion, ones who have linked to it)
+            if (Client.Instance.ContractsEnabled && Client.Instance.CanProposeContractTo(user.Uuid))
+            {
+                items.Add(
+                    new FloatMenuOption(
+                        label: "Phinix_chat_contextMenu_proposeContract".Translate(),
+                        action: () => Find.WindowStack.Add(new ProposeContractWindow(user.Uuid))
+                    )
+                );
+            }
+            if (Client.Instance.FriendsEnabled) items.Add(
+                new FloatMenuOption(
+                    label: (Client.Instance.IsFriend(user.Uuid) ? "Phinix_chat_contextMenu_removeFriend" : "Phinix_chat_contextMenu_addFriend").Translate(),
+                    action: () =>
+                    {
+                        if (Client.Instance.IsFriend(user.Uuid)) Client.Instance.RemoveFriend(user.Uuid);
+                        else Client.Instance.AddFriend(user.Uuid);
+                    }
                 )
             );
             items.Add(
@@ -393,8 +576,37 @@ namespace PhinixClient.GUI
                 )
             );
 
+            // Dev mode only: their name with its formatting tags, for looking into names that draw wrong
+            if (Prefs.DevMode) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyRawName".Translate(), () => GUIUtility.systemCopyBuffer = user.DisplayName));
+
             // Draw the context menu
             Find.WindowStack.Add(new FloatMenu(items));
+        }
+
+        /// <summary>
+        /// Formats a friend's entry: their name (greyed out with "offline" if they're not on), plus the name they were
+        /// friended as on a second line if they've changed it since.
+        /// </summary>
+        /// <param name="user">The friend</param>
+        /// <returns>Formatted text</returns>
+        private string formatFriend(ImmutableUser user)
+        {
+            string text;
+            if (user.LoggedIn) text = formatDisplayName(user.DisplayName, false);
+            else if (Client.Instance.TryGetLastSeen(user.Uuid, out long lastSeen))
+            {
+                // Greyed out, with when they were last on in small text underneath
+                text = TextHelper.StripRichText(user.DisplayName).Colorize(friendDetailColour) +
+                       "\n" + ("<size=" + LAST_SEEN_FONT_SIZE + ">" + Client.FormatLastSeen(lastSeen) + "</size>").Colorize(friendDetailColour);
+            }
+            else text = (TextHelper.StripRichText(user.DisplayName) + " " + "Phinix_chat_friendOffline".Translate()).Colorize(friendDetailColour);
+
+            if (friendNames.TryGetValue(user.Uuid, out string friendedAs) && friendedAs != TextHelper.StripRichText(user.DisplayName))
+            {
+                text += "\n" + "Phinix_chat_friendedAs".Translate(friendedAs).Resolve().Colorize(friendDetailColour);
+            }
+
+            return text;
         }
 
         /// <summary>
@@ -412,7 +624,7 @@ namespace PhinixClient.GUI
             }
             else
             {
-                return Client.Instance.Settings.ShowNameFormatting ? displayName : TextHelper.StripRichText(displayName);
+                return Client.ShownName(displayName);
             }
         }
     }

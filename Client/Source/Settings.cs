@@ -26,12 +26,42 @@ namespace PhinixClient
             set => serverPort = value;
         }
 
+        private string originalCompanionAddress;
+        private string companionAddress;
+        /// <summary>
+        /// Address of a companion server, which provides Phime features the main server doesn't have. Empty for none.
+        /// </summary>
+        public string CompanionAddress
+        {
+            get => companionAddress;
+            set => companionAddress = value;
+        }
+
+        private int originalCompanionPort;
+        private int companionPort;
+        public int CompanionPort
+        {
+            get => companionPort;
+            set => companionPort = value;
+        }
+
         private string originalDisplayName;
         private string displayName;
         public string DisplayName
         {
             get => displayName;
             set => displayName = value;
+        }
+
+        private string originalBio;
+        private string bio;
+        /// <summary>
+        /// A short line about the player, shown to others when they hover over their name.
+        /// </summary>
+        public string Bio
+        {
+            get => bio;
+            set => bio = value;
         }
 
         private bool originalAcceptingTrades;
@@ -126,12 +156,46 @@ namespace PhinixClient
         private HashSet<string> blockedUsers;
         public HashSet<string> BlockedUsers => blockedUsers;
 
+        private Dictionary<string, string> originalFriends;
+        private Dictionary<string, string> friends;
+        /// <summary>
+        /// Friended users' UUIDs, each with the display name they had when they were friended (formatting stripped).
+        /// </summary>
+        /// <remarks>
+        /// Keyed by UUID because that never changes, so a friend who renames is still a friend. Use
+        /// <see cref="Client.AddFriend"/>, <see cref="Client.RemoveFriend"/> and <see cref="Client.GetFriends"/>
+        /// rather than this directly, since the user list reads it from the network thread.
+        /// </remarks>
+        public Dictionary<string, string> Friends => friends;
+
+        private bool originalShareColonyStats;
+        private bool shareColonyStats;
+        /// <summary>
+        /// Whether our player card shows the colony we're playing: its name, biome, day, colonists, animals and wealth.
+        /// </summary>
+        public bool ShareColonyStats
+        {
+            get => shareColonyStats;
+            set => shareColonyStats = value;
+        }
+
         private bool originalDropCurrentMap;
         private bool dropCurrentMap;
         public bool DropCurrentMap
         {
             get => dropCurrentMap;
             set => dropCurrentMap = value;
+        }
+
+        private GiftsFromStrangers originalGiftsFromStrangers;
+        private GiftsFromStrangers giftsFromStrangers;
+        /// <summary>
+        /// What to do with gifts from people who aren't friends. Friends' gifts always arrive straight away.
+        /// </summary>
+        public GiftsFromStrangers GiftsFromStrangers
+        {
+            get => giftsFromStrangers;
+            set => giftsFromStrangers = value;
         }
 
         private bool originalCollapseBlockedUsers;
@@ -149,7 +213,10 @@ namespace PhinixClient
             {
                 return serverAddress != originalServerAddress ||
                        serverPort != originalServerPort ||
+                       companionAddress != originalCompanionAddress ||
+                       companionPort != originalCompanionPort ||
                        displayName != originalDisplayName ||
+                       bio != originalBio ||
                        acceptingTrades != originalAcceptingTrades ||
                        showNameFormatting != originalShowNameFormatting ||
                        showChatFormatting != originalShowChatFormatting ||
@@ -161,8 +228,12 @@ namespace PhinixClient
                        allItemsTradable != originalAllItemsTradable ||
                        showBlockedTrades != originalShowBlockedTrades ||
                        !blockedUsers.SequenceEqual(originalBlockedUsers) ||
+                       friends.Count != originalFriends.Count ||
+                       friends.Any(friend => !originalFriends.TryGetValue(friend.Key, out string name) || name != friend.Value) ||
                        migrated != originalMigrated ||
                        dropCurrentMap != originalDropCurrentMap ||
+                       shareColonyStats != originalShareColonyStats ||
+                       giftsFromStrangers != originalGiftsFromStrangers ||
                        collapseBlockedUsers != originalCollapseBlockedUsers;
             }
         }
@@ -176,7 +247,10 @@ namespace PhinixClient
             // Always set defaults
             serverAddress = "phinix.chat";
             serverPort = 16200;
+            companionAddress = "";
+            companionPort = 16200;
             displayName = SteamUtility.SteamPersonaName;
+            bio = "";
             acceptingTrades = true;
             showNameFormatting = true;
             showChatFormatting = true;
@@ -189,10 +263,14 @@ namespace PhinixClient
             showBlockedTrades = false;
             migrated = false;
             dropCurrentMap = false;
+            shareColonyStats = true;
+            giftsFromStrangers = GiftsFromStrangers.AskFirst;
             collapseBlockedUsers = true;
 
             originalBlockedUsers = new HashSet<string>();
             blockedUsers = new HashSet<string>();
+            originalFriends = new Dictionary<string, string>();
+            friends = new Dictionary<string, string>();
 
             SetOriginalValues();
         }
@@ -205,7 +283,11 @@ namespace PhinixClient
         {
             Scribe_Values.Look(ref serverAddress, "serverAddress", "phinix.chat");
             Scribe_Values.Look(ref serverPort, "serverPort", 16200);
+            Scribe_Values.Look(ref companionAddress, "companionAddress", "");
+            Scribe_Values.Look(ref companionPort, "companionPort", 16200);
             Scribe_Values.Look(ref displayName, "displayName", SteamUtility.SteamPersonaName);
+            Scribe_Values.Look(ref bio, "bio", "");
+            if (bio is null) bio = "";
             Scribe_Values.Look(ref acceptingTrades, "acceptingTrades", true);
             Scribe_Values.Look(ref showNameFormatting, "showNameFormatting", true);
             Scribe_Values.Look(ref showChatFormatting, "showChatFormatting", true);
@@ -219,10 +301,14 @@ namespace PhinixClient
             Scribe_Values.Look(ref migrated, "migrated", false);
             Scribe_Collections.Look(ref blockedUsers, "blockedUsers", LookMode.Value);
             Scribe_Values.Look(ref dropCurrentMap, "dropCurrentMap", false);
+            Scribe_Values.Look(ref shareColonyStats, "shareColonyStats", true);
+            Scribe_Values.Look(ref giftsFromStrangers, "giftsFromStrangers", GiftsFromStrangers.AskFirst);
             Scribe_Values.Look(ref collapseBlockedUsers, "collapseBlockedUsers", true);
+            Scribe_Collections.Look(ref friends, "friends", LookMode.Value, LookMode.Value);
 
             // Prevent scribe from interpreting a missing value as null
             if (blockedUsers is null) blockedUsers = new HashSet<string>();
+            if (friends is null) friends = new Dictionary<string, string>();
         }
 
         /// <inheritdoc/>
@@ -273,7 +359,10 @@ namespace PhinixClient
         {
             originalServerAddress = serverAddress;
             originalServerPort = serverPort;
+            originalCompanionAddress = companionAddress;
+            originalCompanionPort = companionPort;
             originalDisplayName = displayName;
+            originalBio = bio;
             originalAcceptingTrades = acceptingTrades;
             originalShowNameFormatting = showNameFormatting;
             originalShowChatFormatting = showChatFormatting;
@@ -286,12 +375,29 @@ namespace PhinixClient
             originalShowBlockedTrades = showBlockedTrades;
             originalMigrated = migrated;
             originalDropCurrentMap = dropCurrentMap;
+            originalShareColonyStats = shareColonyStats;
+            originalGiftsFromStrangers = giftsFromStrangers;
             originalCollapseBlockedUsers = collapseBlockedUsers;
 
             originalBlockedUsers.Clear();
             originalBlockedUsers.AddRange(blockedUsers);
+
+            originalFriends = new Dictionary<string, string>(friends);
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// What to do with a gift from someone who isn't a friend.
+    /// </summary>
+    public enum GiftsFromStrangers
+    {
+        /// <summary>Drop it in like a friend's gift</summary>
+        AlwaysAccept,
+        /// <summary>Send a letter showing what's in it, with buttons to accept or send it back. The default</summary>
+        AskFirst,
+        /// <summary>Send it straight back</summary>
+        Never
     }
 }

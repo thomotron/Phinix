@@ -47,11 +47,41 @@ namespace Trading
         /// </summary>
         private object tradeDataLock = new object();
 
-        public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager)
+        /// <summary>
+        /// How long to keep receipts. A player who's away longer than this gets their held items put back, which
+        /// could duplicate them, but 30 days is far longer than anyone sits mid-trade.
+        /// </summary>
+        private static readonly TimeSpan TOKEN_RECEIPT_LIFETIME = TimeSpan.FromDays(30);
+
+        /// <summary>
+        /// Receipts for every trade offer we accepted, by token (see Packets/EscrowPackets.proto). Protected by
+        /// <see cref="tradeDataLock"/>, so a receipt and the offer it's for are always updated together.
+        /// </summary>
+        private Dictionary<string, AcceptedToken> acceptedTokens = new Dictionary<string, AcceptedToken>();
+
+        /// <summary>
+        /// Players whose client confirms each trade result once the items are in their colony
+        /// (<see cref="AckDeliveriesPacket"/>). Their finished trades stay in <see cref="completedTrades"/> until
+        /// confirmed and are sent again on their next login if they never were, so a result lost on the way still
+        /// arrives. Older clients never confirm, so theirs are let go once sent, as before. Protected by
+        /// <see cref="tradeDataLock"/>.
+        /// </summary>
+        private HashSet<string> ackingUuids = new HashSet<string>();
+
+        /// <summary>
+        /// Limits how often each user can open a trade. Every new trade pops a letter up for the other player, so
+        /// without this, opening and cancelling trades over and over would be an easy way to spam someone.
+        /// </summary>
+        private readonly RateLimiter tradeRateLimiter;
+
+        /// <param name="tradeRateLimitTrades">Most trades one user can open within <paramref name="tradeRateLimitSeconds"/></param>
+        /// <param name="tradeRateLimitSeconds">Length of the trade rate limit window in seconds</param>
+        public ServerTrading(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int tradeRateLimitTrades = 3, int tradeRateLimitSeconds = 60)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
+            this.tradeRateLimiter = new RateLimiter(tradeRateLimitTrades, TimeSpan.FromSeconds(tradeRateLimitSeconds));
 
             this.activeTrades = new Dictionary<string, Trade>();
             this.completedTrades = new Dictionary<string, CompletedTrade>();
@@ -75,24 +105,23 @@ namespace Trading
             lock (tradeDataLock)
             {
                 // Create the store from the trade list
+                // Drop receipts nobody is ever going to ask about
+                long cutoff = DateTimeOffset.UtcNow.Subtract(TOKEN_RECEIPT_LIFETIME).ToUnixTimeSeconds();
+                foreach (string oldToken in acceptedTokens.Values.Where(receipt => receipt.Time < cutoff).Select(receipt => receipt.Token).ToList())
+                {
+                    acceptedTokens.Remove(oldToken);
+                }
+
                 ActiveTradesStore store = new ActiveTradesStore
                 {
                     ActiveTrades = { activeTrades.Values.Select(Trade.ToTradeStore) },
-                    CompletedTrades = { completedTrades.Values.Select(CompletedTrade.ToStore) }
+                    CompletedTrades = { completedTrades.Values.Select(CompletedTrade.ToStore) },
+                    AcceptedTokens = { acceptedTokens.Values },
+                    AckingUuids = { ackingUuids }
                 };
 
-                // Create or truncate the file
-                FileStream fs = File.Exists(path)
-                    ? File.Open(path, FileMode.Truncate, FileAccess.Write)
-                    : File.Create(path);
-                using (fs)
-                {
-                    using (CodedOutputStream cos = new CodedOutputStream(fs))
-                    {
-                        // Write the store to disk
-                        store.WriteTo(cos);
-                    }
-                }
+                // Write the store without ever leaving a half-written file, since it holds items on offer (see SafeFile)
+                SafeFile.WriteAllBytes(path, store.ToByteArray());
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} active trade{1} and {2} trade{3} pending notification", activeTrades.Count, activeTrades.Count != 1 ? "s" : "", completedTrades.Count, completedTrades.Count != 1 ? "s" : "")));
             }
@@ -107,14 +136,17 @@ namespace Trading
         {
             lock (tradeDataLock)
             {
-                // Create a new store if one doesn't already exist
-                if (!File.Exists(path))
+                // Create a new store if there's no copy of it at all. A damaged one throws instead, so the items in it
+                // never get replaced by an empty store (see SafeFile)
+                if (!SafeFile.TryRead(path, ActiveTradesStore.Parser.ParseFrom, out ActiveTradesStore store, out string usedPath))
                 {
                     RaiseLogEntry(new LogEventArgs("No trades database, generating a new one"));
 
                     // Initialise new active and completed trade dictionaries
                     activeTrades = new Dictionary<string, Trade>();
                     completedTrades = new Dictionary<string, CompletedTrade>();
+                    acceptedTokens = new Dictionary<string, AcceptedToken>();
+                    ackingUuids = new HashSet<string>();
 
                     // Save the new dictionaries to disk
                     Save(path);
@@ -123,19 +155,13 @@ namespace Trading
                     return;
                 }
 
-                // Pull the store from disk
-                ActiveTradesStore store;
-                using (FileStream fs = new FileStream(path, FileMode.Open))
-                {
-                    using (CodedInputStream cis = new CodedInputStream(fs))
-                    {
-                        store = ActiveTradesStore.Parser.ParseFrom(cis);
-                    }
-                }
+                if (usedPath != path) RaiseLogEntry(new LogEventArgs(string.Format("The trades database was damaged or missing, so loaded {0} instead", usedPath), LogLevel.WARNING));
 
                 // Set the active and completed trade dictionaries to the data that was just loaded
                 activeTrades = store.ActiveTrades.Select(Trade.FromTradeStore).ToDictionary(item => item.TradeId, item => item);
                 completedTrades = store.CompletedTrades.Select(CompletedTrade.FromStore).ToDictionary(item => item.Trade.TradeId, item => item);
+                acceptedTokens = store.AcceptedTokens.ToDictionary(receipt => receipt.Token);
+                ackingUuids = new HashSet<string>(store.AckingUuids);
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} active trade{1} and {2} trade{3} pending notification", activeTrades.Count, activeTrades.Count != 1 ? "s" : "", completedTrades.Count, completedTrades.Count != 1 ? "s" : "")));
             }
@@ -167,6 +193,14 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs(string.Format("Got an UpdateTradeStatusPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
                     updateTradeStatusPacketHandler(connectionId, message.Unpack<UpdateTradeStatusPacket>());
                     break;
+                case "CheckTokensPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got a CheckTokensPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
+                    checkTokensPacketHandler(connectionId, message.Unpack<CheckTokensPacket>());
+                    break;
+                case "AckDeliveriesPacket":
+                    RaiseLogEntry(new LogEventArgs(string.Format("Got an AckDeliveriesPacket from {0}", connectionId.Highlight(HighlightType.ConnectionID)), LogLevel.DEBUG));
+                    ackDeliveriesPacketHandler(connectionId, message.Unpack<AckDeliveriesPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -188,49 +222,11 @@ namespace Trading
                     sendSyncTradesPacket(args.ConnectionId, trades, args.Uuid);
                 }
 
-                // Notify the user of trades they were not notified of earlier
-                // Get all trades where the user is pending notification
-                IEnumerable<CompletedTrade> tradesPendingNotification = completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid));
-
-                List<string> tradesToRemove = new List<string>();
-                foreach (CompletedTrade completedTrade in tradesPendingNotification)
+                // Notify the user of trades they were not notified of earlier (or never confirmed). ToList() takes a copy,
+                // since notifyCompleted can remove finished ones from the dictionary
+                foreach (CompletedTrade completedTrade in completedTrades.Values.Where(trade => trade.PendingNotification.Contains(args.Uuid)).ToList())
                 {
-                    Trade trade = completedTrade.Trade;
-
-                    // Try get the other party's UUID, continuing on failure
-                    if (!trade.TryGetOtherParty(args.Uuid, out string otherPartyUuid)) continue;
-
-                    if (completedTrade.Cancelled)
-                    {
-                        // Try get the user's items, continuing on failure
-                        if (!trade.TryGetItemsOnOffer(args.Uuid, out ProtoThing[] things)) continue;
-
-                        // Send a cancelled trade completion packet
-                        sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, true, otherPartyUuid, things);
-                    }
-                    else
-                    {
-                        // Try get the other party's items, continuing on failure
-                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] things)) continue;
-
-                        // Send a successful trade completion packet
-                        sendCompleteTradePacket(args.ConnectionId, completedTrade.Trade.TradeId, false, otherPartyUuid, things);
-                    }
-
-                    // Check them off the pending notification list
-                    completedTrade.PendingNotification.Remove(args.Uuid);
-
-                    // Queue the cancelled trade for removal if this was the last user pending notification
-                    if (completedTrade.PendingNotification.Count == 0)
-                    {
-                        tradesToRemove.Add(trade.TradeId);
-                    }
-                }
-
-                // Remove all of the completed trades pending removal
-                foreach (string tradeId in tradesToRemove)
-                {
-                    completedTrades.Remove(tradeId);
+                    notifyCompleted(completedTrade, args.Uuid, args.ConnectionId);
                 }
             }
         }
@@ -272,6 +268,13 @@ namespace Trading
                 return;
             }
 
+            // On a companion, players from different main servers can't see each other, so they can't trade either
+            if (!userManager.SameHomeServer(packet.Uuid, packet.OtherPartyUuid))
+            {
+                sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.OtherPartyDoesNotExist, "Cannot create a trade because the other party is on a different server.");
+                return;
+            }
+
             // Make sure the other party is logged in
             // TODO: Offline trade offers
             if (!otherPartyLoggedIn)
@@ -288,6 +291,9 @@ namespace Trading
             {
                 // Fail the trade creation request because the other party is not accepting trades
                 sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.NotAcceptingTrades, "Cannot create a trade because the other party is not accepting trades.");
+
+                // Stop here
+                return;
             }
 
             lock (tradeDataLock)
@@ -308,6 +314,17 @@ namespace Trading
                 {
                     // Fail the trade creation request because the other party's connection ID cannot be retrieved
                     sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.InternalServerError, "Cannot create a trade because the server could not find the other party's connection.");
+
+                    // Stop here
+                    return;
+                }
+
+                // Refuse users opening trades too quickly. Checked last so refused attempts above don't use up the
+                // allowance
+                if (!tradeRateLimiter.TryAct(packet.Uuid))
+                {
+                    RaiseLogEntry(new LogEventArgs(string.Format("Rate limited a trade from {0}", packet.Uuid.Highlight(HighlightType.UUID)), LogLevel.DEBUG));
+                    sendFailedCreateTradeResponsePacket(connectionId, TradeFailureReason.RateLimited, "You're opening trades too quickly. Wait a little and try again.");
 
                     // Stop here
                     return;
@@ -407,30 +424,16 @@ namespace Trading
                     activeTrades.Remove(trade.TradeId);
                     trade = completedTrade.Trade;
 
-                    // Try to get the sender's items on offer, returning on failure
-                    if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
+                    // Items are going back to both sides, so get it on disk soon
+                    SaveRequests.Request();
 
-                    // Return the sender's items to them and check them off the pending notification list
-                    sendCompleteTradePacket(connectionId, trade.TradeId, true, otherPartyUuid, items);
-                    completedTrade.PendingNotification.Remove(packet.Uuid);
-
-                    // Try to get the other party's items on offer, returning on failure
-                    if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
-
-                    // Check if the other party is logged in
-                    if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-
-                    // Try to get the other party's connection ID
-                    if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-
-                    // Return the other party's items to them and check them off the pending notification list
-                    sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, true, packet.Uuid, otherPartyItems);
-                    completedTrade.PendingNotification.Remove(otherPartyUuid);
-
-                    // Prune the trade if there aren't any parties awaiting notification
-                    if (completedTrade.PendingNotification.Count == 0)
+                    // Return the sender's items to them, and the other party's to them if they're online (otherwise
+                    // when they next log in)
+                    notifyCompleted(completedTrade, packet.Uuid, connectionId);
+                    if (userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) && otherPartyLoggedIn &&
+                        userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId))
                     {
-                        completedTrades.Remove(trade.TradeId);
+                        notifyCompleted(completedTrade, otherPartyUuid, otherPartyConnectionId);
                     }
                 }
                 else
@@ -462,30 +465,16 @@ namespace Trading
                         activeTrades.Remove(trade.TradeId);
                         trade = completedTrade.Trade;
 
-                        // Try to get the sender's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(packet.Uuid, out ProtoThing[] items)) return;
+                        // Items are changing hands, so get it on disk soon
+                        SaveRequests.Request();
 
-                        // Try to get the other party's items on offer, returning on failure
-                        if (!trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] otherPartyItems)) return;
-
-                        // Give the other party's items to the sender and check them off the pending notification list
-                        sendCompleteTradePacket(connectionId, trade.TradeId, false, otherPartyUuid, otherPartyItems);
-                        completedTrade.PendingNotification.Remove(packet.Uuid);
-
-                        // Check if the other party is logged in
-                        if (!userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) || !otherPartyLoggedIn) return;
-
-                        // Try to get the other party's connection ID
-                        if (!userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId)) return;
-
-                        // Give the sender's items to the other party and check them off the pending notification list
-                        sendCompleteTradePacket(otherPartyConnectionId, trade.TradeId, false, packet.Uuid, items);
-                        completedTrade.PendingNotification.Remove(otherPartyUuid);
-
-                        // Prune the trade if there aren't any parties awaiting notification
-                        if (completedTrade.PendingNotification.Count == 0)
+                        // Give each side the other's items: the sender now, the other party now if they're online
+                        // (otherwise when they next log in)
+                        notifyCompleted(completedTrade, packet.Uuid, connectionId);
+                        if (userManager.TryGetLoggedIn(otherPartyUuid, out bool otherPartyLoggedIn) && otherPartyLoggedIn &&
+                            userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId))
                         {
-                            completedTrades.Remove(trade.TradeId);
+                            notifyCompleted(completedTrade, otherPartyUuid, otherPartyConnectionId);
                         }
                     }
                     else
@@ -525,7 +514,9 @@ namespace Trading
         /// <param name="cancelled">Whether the trade was cancelled</param>
         /// <param name="otherPartyUuid">Other party's UUID</param>
         /// <param name="items">Collection of items to send</param>
-        private void sendCompleteTradePacket(string connectionId, string tradeId, bool cancelled, string otherPartyUuid, IEnumerable<ProtoThing> items)
+        /// <param name="returned">Whether these are things the other player's game couldn't use, coming back</param>
+        /// <returns>Whether it was sent</returns>
+        private bool sendCompleteTradePacket(string connectionId, string tradeId, bool cancelled, string otherPartyUuid, IEnumerable<ProtoThing> items, bool returned = false)
         {
             // Create and pack a response
             CompleteTradePacket packet = new CompleteTradePacket
@@ -533,7 +524,8 @@ namespace Trading
                 TradeId = tradeId,
                 Success = !cancelled,
                 OtherPartyUuid = otherPartyUuid,
-                Items = {items}
+                Items = {items},
+                Returned = returned
             };
             Any packedPacket = ProtobufPacketHelper.Pack(packet);
 
@@ -541,6 +533,73 @@ namespace Trading
             if (!netServer.TrySend(connectionId, MODULE_NAME, packedPacket.ToByteArray()))
             {
                 RaiseLogEntry(new LogEventArgs("Failed to send CompleteTradePacket to connection " + connectionId.Highlight(HighlightType.ConnectionID), LogLevel.ERROR));
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Sends one party the result of a finished trade: their own items back if it was cancelled, the other party's
+        /// if it went through. They're checked off once it's sent, or for a client that confirms results, once it
+        /// confirms. The trade is forgotten when nobody is left waiting. Must be called while holding
+        /// <see cref="tradeDataLock"/>.
+        /// </summary>
+        /// <param name="completedTrade">The finished trade</param>
+        /// <param name="uuid">Party to tell</param>
+        /// <param name="connectionId">Their connection</param>
+        private void notifyCompleted(CompletedTrade completedTrade, string uuid, string connectionId)
+        {
+            Trade trade = completedTrade.Trade;
+            if (!trade.TryGetOtherParty(uuid, out string otherPartyUuid)) return;
+
+            // Things being sent back sit on the receiver's side, like a cancelled trade's
+            string whoseItems = completedTrade.Cancelled ? uuid : otherPartyUuid;
+            if (!trade.TryGetItemsOnOffer(whoseItems, out ProtoThing[] items)) return;
+
+            bool sent = sendCompleteTradePacket(connectionId, trade.TradeId, completedTrade.Cancelled, otherPartyUuid, items, completedTrade.Returned);
+            if (sent && !ackingUuids.Contains(uuid)) completedTrade.PendingNotification.Remove(uuid);
+            if (completedTrade.PendingNotification.Count == 0) completedTrades.Remove(trade.TradeId);
+        }
+
+        /// <summary>
+        /// Handles a client confirming trade results have arrived in its colony. The first one (sent right after logging
+        /// in, even if empty) marks the player as confirming, so their results are kept until confirmed from then on.
+        /// Things from the other player that their game couldn't use are sent back to that player.
+        /// </summary>
+        private void ackDeliveriesPacketHandler(string connectionId, AckDeliveriesPacket packet)
+        {
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
+
+            lock (tradeDataLock)
+            {
+                if (ackingUuids.Add(packet.Uuid)) SaveRequests.Request();
+
+                foreach (DeliveryAck ack in packet.Acks)
+                {
+                    if (!completedTrades.TryGetValue(ack.DeliveryId, out CompletedTrade completedTrade) || !completedTrade.PendingNotification.Remove(packet.Uuid)) continue;
+                    if (completedTrade.PendingNotification.Count == 0) completedTrades.Remove(ack.DeliveryId);
+                    SaveRequests.Request();
+
+                    // Only things that came from the other player can go back to them; things already coming back
+                    // never go back again
+                    Trade trade = completedTrade.Trade;
+                    if (completedTrade.Cancelled || completedTrade.Returned || ack.UnusableItems.Count == 0) continue;
+                    if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid) || !trade.TryGetItemsOnOffer(otherPartyUuid, out ProtoThing[] received)) continue;
+
+                    List<ProtoThing> unusable = ack.UnusableItems.Where(i => i >= 0 && i < received.Length).Distinct().Select(i => received[i]).ToList();
+                    if (unusable.Count == 0) continue;
+
+                    RaiseLogEntry(new LogEventArgs(string.Format("Sending {0} unusable thing(s) from trade {1} back to {2}", unusable.Count, trade.TradeId.Highlight(HighlightType.TradeID), otherPartyUuid.Highlight(HighlightType.UUID))));
+                    Trade sendBack = new Trade(new[] { packet.Uuid, otherPartyUuid });
+                    sendBack.TrySetItemsOnOffer(otherPartyUuid, unusable);
+                    CompletedTrade returned = new CompletedTrade(sendBack, new[] { otherPartyUuid }, true) { Returned = true };
+                    completedTrades.Add(sendBack.TradeId, returned);
+                    if (userManager.TryGetConnection(otherPartyUuid, out string otherPartyConnectionId))
+                    {
+                        notifyCompleted(returned, otherPartyUuid, otherPartyConnectionId);
+                    }
+                }
             }
         }
 
@@ -609,6 +668,16 @@ namespace Trading
                 // Only send an update on a successful change
                 if (success)
                 {
+                    // Keep a receipt, in the same locked block that changed the offer, so a client whose connection
+                    // drops before our answer arrives can still find out we took its items
+                    if (!string.IsNullOrEmpty(packet.Token))
+                    {
+                        acceptedTokens[packet.Token] = new AcceptedToken { Token = packet.Token, Uuid = packet.Uuid, Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds() };
+                    }
+
+                    // The offer changed hands, so get it on disk soon
+                    SaveRequests.Request();
+
                     // Try to get the other party's UUID, returning on failure
                     if (!trade.TryGetOtherParty(packet.Uuid, out string otherPartyUuid)) return;
 
@@ -642,6 +711,27 @@ namespace Trading
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Answers a client asking which of its held trade tokens we accepted (see Packets/EscrowPackets.proto).
+        /// </summary>
+        /// <param name="connectionId">Original connection ID</param>
+        /// <param name="packet">Incoming <see cref="CheckTokensPacket"/></param>
+        private void checkTokensPacketHandler(string connectionId, CheckTokensPacket packet)
+        {
+            if (!authenticator.IsAuthenticated(connectionId, packet.SessionId)) return;
+            if (!userManager.IsLoggedIn(connectionId, packet.Uuid)) return;
+
+            TokenResultsPacket results = new TokenResultsPacket();
+            results.Checked.AddRange(packet.Tokens);
+            lock (tradeDataLock)
+            {
+                // Only answer for receipts that belong to whoever is asking
+                results.Accepted.AddRange(packet.Tokens.Where(token => acceptedTokens.TryGetValue(token, out AcceptedToken receipt) && receipt.Uuid == packet.Uuid));
+            }
+
+            netServer.TrySend(connectionId, MODULE_NAME, ProtobufPacketHelper.Pack(results).ToByteArray());
         }
 
         /// <summary>

@@ -1,0 +1,114 @@
+syntax = "proto3";
+package Hermes;
+
+// Hermes is the messenger god, so this module carries things between two specific players:
+//   - direct messages (private chat, only the two of you can see it)
+//   - gifts (items sent to someone with no trade needed, even if they're offline)
+//
+// Like the bounty packets, everything lives in this one file. Every packet a client sends carries SessionId and Uuid
+// so the server can check who sent it.
+
+import "Packets/Thing.proto";
+
+// One private message between two players
+message DirectMessage
+{
+  string MessageId = 1;                   // Random unique ID the server picks
+  string SenderUuid = 2;
+  string RecipientUuid = 3;
+  string Text = 4;
+  int64 SentTime = 5;                     // Unix seconds, set by the server
+};
+
+// Client -> server: send a private message to someone
+message SendDirectMessagePacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string RecipientUuid = 3;
+  string Text = 4;
+};
+
+// Server -> client: a message was refused (e.g. sending too fast). Successful messages don't get one of these,
+// they come back as a DirectMessagePacket instead
+message SendDirectMessageFailedPacket
+{
+  string RecipientUuid = 1;
+  string FailureMessage = 2;
+};
+
+// Server -> client: a new private message. Sent to the recipient AND back to the sender, so the sender's copy has the
+// server's ID and time and both players see exactly the same thing
+message DirectMessagePacket
+{
+  DirectMessage Message = 1;
+};
+
+// Server -> client: every recent private message involving this player, sent when they log in
+message SyncDirectMessagesPacket
+{
+  repeated DirectMessage Messages = 1;
+
+  // IDs of the messages above that arrived while the player was offline, so the client can say
+  // "while you were away, X messaged you"
+  repeated string MissedMessageIds = 2;
+
+  // Whether this server has private messages turned on (EnableDirectMessages in server.conf). The mod hides the
+  // Messages tab when it's off, so the server's config is the only switch. Gifts work either way
+  bool Enabled = 3;
+};
+
+// Client -> server: send items to someone. The items have already been taken off the sender's map
+message SendGiftPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;                       // Matches the response to the held items, same as bounties
+  string RecipientUuid = 4;
+  repeated Trading.ProtoThing Items = 5;
+  string Note = 6;
+};
+
+// Server -> client: whether the gift was accepted. If not, the sender's client puts the items back
+message SendGiftResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string FailureMessage = 3;
+
+  // True when the recipient couldn't take the gift right now (offline, or their mod needs updating), so it's
+  // waiting on the server until they next log in. Lets the sender's mod say so instead of just "Gift sent"
+  bool Waiting = 4;
+  string RecipientUuid = 5;
+};
+
+// Server -> client: a gift arriving. If the recipient is offline, the server keeps this until they log in
+message GiftDeliveryPacket
+{
+  string SenderUuid = 1;
+  repeated Trading.ProtoThing Items = 2;
+  string Note = 3;
+  int64 SentTime = 4;
+  string GiftId = 5;                      // Random ID the client confirms it with (AckDeliveriesPacket)
+  GiftReturnReason ReturnReason = 6;      // Set when this is a gift of ours coming back. SenderUuid is then who it was for
+};
+
+// Why a gift came back to whoever sent it
+enum GiftReturnReason
+{
+  NotReturned = 0;                        // An ordinary gift
+  Refused = 1;                            // The recipient has blocked the sender
+  Unusable = 2;                           // The recipient's game couldn't use these (a mod it lacks)
+  Expired = 3;                            // The recipient didn't log in to collect it in time
+  Unanswered = 4;                         // The recipient was asked whether to take it and didn't answer in time
+};
+
+// Client -> server: the player has been asked whether to take these gifts (they're from someone who isn't a friend)
+// and hasn't answered yet. The server sends them back if nobody answers for long enough. A separate packet rather
+// than part of AckDeliveriesPacket, so an older server ignores it instead of taking it as "arrived"
+message GiftsWaitingPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  repeated string GiftIds = 3;
+};

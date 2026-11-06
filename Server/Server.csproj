@@ -52,6 +52,14 @@
     <Compile Include="Commands\VersionCommand.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Agora\Agora.csproj">
+      <Project>{A792C551-20D4-414D-A4D4-97632E697DD3}</Project>
+      <Name>Agora</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Hermes\Hermes.csproj">
+      <Project>{0FBCB3E9-1FFD-41F8-AF02-446BE1FB69CD}</Project>
+      <Name>Hermes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Authentication\Authentication.csproj">
       <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
       <Name>Authentication</Name>

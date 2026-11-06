@@ -1,0 +1,30 @@
+syntax = "proto3";
+package UserManagement;
+
+// One mod a player has loaded, as RimWorld names it
+message ModInfo
+{
+    string PackageId = 1;   // e.g. "vanillaexpanded.vfecore", always lower case
+
+    string Name = 2;        // e.g. "Vanilla Expanded Framework"
+}
+
+// Asks the server for another player's mod list, e.g. to warn about items they won't be able to receive
+message ModListRequestPacket
+{
+    string SessionId = 1;
+
+    string Uuid = 2;
+
+    string TargetUuid = 3;
+}
+
+message ModListResponsePacket
+{
+    string TargetUuid = 1;
+
+    // False when the server doesn't know their mods (they haven't logged in since it started, or use an older mod)
+    bool Known = 2;
+
+    repeated ModInfo Mods = 3;
+}

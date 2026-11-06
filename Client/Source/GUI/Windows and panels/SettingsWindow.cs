@@ -23,7 +23,11 @@ namespace PhinixClient
 
         private const float DISPLAY_NAME_SET_BUTTON_WIDTH = 120f;
 
-        public override Vector2 InitialSize => new Vector2(600f, 156f); // (30f * rows) + (10f * (rows - 1)) + 36f
+        private const float NAME_STYLE_BUTTON_WIDTH = 80f;
+
+        private const float BIO_LABEL_WIDTH = 30f;
+
+        public override Vector2 InitialSize => new Vector2(600f, 216f); // Server row, name row and its preview, bio row, with spacing and the close button
 
         private static string serverAddress = Client.Instance.Settings.ServerAddress;
         private static string serverPortString = Client.Instance.Settings.ServerPort.ToString();
@@ -62,6 +66,15 @@ namespace PhinixClient
                     childIfTrue: GenerateEditableDisplayName(),
                     childIfFalse: new BlankWidget(),
                     condition: () => Client.Instance.Online
+                )
+            );
+
+            // Bio, shown to others when they hover over our name
+            contents.Add(
+                new ConditionalContainer(
+                    childIfTrue: GenerateEditableBio(),
+                    childIfFalse: new BlankWidget(),
+                    condition: () => Client.Instance.Online && Client.Instance.FeatureEnabled(UserManagement.Features.PROFILES)
                 )
             );
         }
@@ -246,7 +259,7 @@ namespace PhinixClient
         {
             // Make the name preview early so we can bind to it's update method
             DynamicTextWidget namePreview = new DynamicTextWidget(
-                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.Instance.Settings.DisplayName).Resolve(),
+                textCallback: () => "Phinix_settings_displayNamePreview".Translate(Client.ShownName(Client.Instance.Settings.DisplayName)).Resolve(),
                 wrap: false
             );
 
@@ -257,15 +270,32 @@ namespace PhinixClient
             HorizontalFlexContainer editableRow = new HorizontalFlexContainer();
 
             // Editable display name text box
+            TextFieldWidget nameField = new TextFieldWidget(
+                initialText: Client.Instance.Settings.DisplayName,
+                onChange: newDisplayName =>
+                {
+                    Client.Instance.Settings.DisplayName = newDisplayName;
+                    Client.Instance.Settings.AcceptChanges();
+                    namePreview.Update();
+                }
+            );
+            editableRow.Add(nameField);
+
+            // Style button: colours, gradients, bold and italic without typing the tags. Applying it sets the name
             editableRow.Add(
-                new TextFieldWidget(
-                    initialText: Client.Instance.Settings.DisplayName,
-                    onChange: newDisplayName =>
-                    {
-                        Client.Instance.Settings.DisplayName = newDisplayName;
-                        Client.Instance.Settings.AcceptChanges();
-                        namePreview.Update();
-                    }
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_settings_styleNameButton".Translate(),
+                        clickAction: () => Find.WindowStack.Add(new NameStyleWindow(Client.Instance.Settings.DisplayName, styledName =>
+                        {
+                            nameField.Text = styledName;
+                            Client.Instance.Settings.DisplayName = styledName;
+                            Client.Instance.Settings.AcceptChanges();
+                            namePreview.Update();
+                            Client.Instance.UpdateDisplayName(styledName);
+                        }))
+                    ),
+                    width: NAME_STYLE_BUTTON_WIDTH
                 )
             );
 
@@ -293,6 +323,50 @@ namespace PhinixClient
 
             // Return the generated column
             return column;
+        }
+
+        /// <summary>
+        /// Generates an editable bio field and a button to apply the changes.
+        /// </summary>
+        /// <returns><see cref="HorizontalFlexContainer"/> containing a bio label, an editable bio field, and a button to apply the changes</returns>
+        private HorizontalFlexContainer GenerateEditableBio()
+        {
+            string bio = Client.Instance.Settings.Bio;
+
+            HorizontalFlexContainer row = new HorizontalFlexContainer();
+
+            // Bio label
+            row.Add(
+                new Container(
+                    new TextWidget(
+                        text: "Phinix_settings_bioLabel".Translate(),
+                        anchor: TextAnchor.MiddleLeft
+                    ),
+                    width: BIO_LABEL_WIDTH
+                )
+            );
+
+            // Editable bio text box, which stops taking text at the length limit
+            row.Add(
+                new TextFieldWidget(
+                    initialText: bio,
+                    onChange: newBio => bio = newBio,
+                    validator: new Regex("^.{0," + UserManagement.UserManager.MAX_BIO_LENGTH + "}$")
+                )
+            );
+
+            // Set bio button
+            row.Add(
+                new Container(
+                    new ButtonWidget(
+                        label: "Phinix_settings_setBioButton".Translate(),
+                        clickAction: () => Client.Instance.UpdateBio(bio)
+                    ),
+                    width: DISPLAY_NAME_SET_BUTTON_WIDTH
+                )
+            );
+
+            return row;
         }
     }
 }

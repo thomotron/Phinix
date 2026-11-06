@@ -11,4 +11,5 @@ enum TradeFailureReason
     AlreadyTrading = 5;
     TradeDoesNotExist = 6;
     NotAcceptingTrades = 7;
+    RateLimited = 8;                    // Opening trades too quickly
 };

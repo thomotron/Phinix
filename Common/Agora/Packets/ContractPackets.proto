@@ -1,0 +1,75 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+import "Packets/Contract.proto";
+
+// Packets for contracts. Same conventions as BountyPackets.proto: client packets carry SessionId and Uuid, and the
+// ones that move items carry a Token so the client knows which held items the answer is about.
+//
+// Items moved by contracts arrive as BountyDeliveryPackets (with a Contract... reason), so the delivery, offline
+// storage and drop pod code is all shared with bounties.
+
+// Client -> server (buyer): propose a contract. HeldPayment has already been taken off the buyer's map
+message ProposeContractPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  Contract Contract = 4;                  // The server fills in the ID, buyer, state and times itself
+};
+
+// Server -> client: whether the proposal went through
+message ProposeContractResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string FailureMessage = 3;
+};
+
+// Client -> server (supplier): accept a proposed contract
+message AcceptContractPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string ContractId = 3;
+};
+
+// Client -> server (either side): end a contract. For a proposal this means "decline" (supplier) or "withdraw"
+// (buyer). Whatever payment is left goes back to the buyer
+message CancelContractPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string ContractId = 3;
+};
+
+// Client -> server (supplier): one delivery's goods, already taken off the supplier's map
+message DeliverContractPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  string ContractId = 4;
+  repeated Trading.ProtoThing Items = 5;
+};
+
+// Server -> client: whether the delivery was accepted. If it was, the payment follows as a BountyDeliveryPacket
+message DeliverContractResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string FailureMessage = 3;
+};
+
+// Server -> client: every contract this player is part of. Unlike bounties, contracts are private, so each player
+// only ever gets their own
+message SyncContractsPacket
+{
+  repeated Contract Contracts = 1;
+
+  // Whether this server lets players make new contracts (EnableContracts in server.conf). The mod hides the
+  // Contracts tab when this is off, so the server's config is the only switch. An older server never sends it,
+  // which reads as false: off, the safe choice
+  bool Enabled = 2;
+};

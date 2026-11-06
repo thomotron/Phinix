@@ -1,0 +1,32 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+
+// A player's market: a named shop that holds items for sale, each with a silver price per unit.
+//
+// Like a bounty's reward, everything in a shop really exists: the owner's client takes the items off the map when they
+// put them up, and the server holds them. That means people can buy from a shop while its owner is offline. Buyers pay
+// in silver, which goes into the shop's till until the owner collects it. Closing the shop sends the unsold items and
+// the till back to the owner.
+
+// One stack for sale
+message ShopStock
+{
+  string StockId = 1;                     // Random unique ID the server picks
+  Trading.ProtoThing Item = 2;            // The real item. StackCount is how many are left
+  int32 PricePerUnit = 3;                 // Silver for one of them
+};
+
+message Shop
+{
+  string ShopId = 1;                      // Random unique ID the server picks
+  string OwnerUuid = 2;
+  string Name = 3;
+  repeated ShopStock Stock = 4;
+
+  // Silver from sales, waiting for the owner to collect it. Only sent to the owner: everyone else sees 0
+  int64 Till = 5;
+
+  int64 OpenedTime = 6;                   // Unix seconds, set by the server
+};

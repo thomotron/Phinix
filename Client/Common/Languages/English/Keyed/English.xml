@@ -2,15 +2,91 @@
 <LanguageData>
     <Phinix_tabs_chat>Chat</Phinix_tabs_chat>
     <Phinix_tabs_trades>Trades</Phinix_tabs_trades>
+    <Phinix_tabs_market>Market</Phinix_tabs_market>
+    <Phinix_tabs_bounties>Bounties</Phinix_tabs_bounties>
+    <Phinix_tabs_inbox>Inbox</Phinix_tabs_inbox>
+    <Phinix_tabs_contracts>Contracts</Phinix_tabs_contracts>
+    <Phinix_tabs_newCount>{0} ({1})</Phinix_tabs_newCount>
 
     <Phinix_chat_settingsButton>Settings</Phinix_chat_settingsButton>
+    <Phinix_chat_searchPlaceholder>Search players...</Phinix_chat_searchPlaceholder>
+    <Phinix_chat_onlineHeading>ONLINE: {0}</Phinix_chat_onlineHeading>
     <Phinix_chat_sendButton>Send</Phinix_chat_sendButton>
     <Phinix_chat_pleaseLogInPlaceholder>You are not logged in.\nTry connecting to a server in the settings menu (top right of the chat tab).</Phinix_chat_pleaseLogInPlaceholder>
     <Phinix_chat_contextMenu_tradeWith>Trade with {0}</Phinix_chat_contextMenu_tradeWith>
+    <Phinix_chat_contextMenu_sendMessage>Send message</Phinix_chat_contextMenu_sendMessage>
+    <Phinix_chat_contextMenu_sendGift>Send gift</Phinix_chat_contextMenu_sendGift>
+    <Phinix_chat_contextMenu_proposeContract>Propose contract</Phinix_chat_contextMenu_proposeContract>
     <Phinix_chat_contextMenu_copyToClipboard>Copy message to clipboard</Phinix_chat_contextMenu_copyToClipboard>
+    <Phinix_chat_contextMenu_copyRawName>Copy raw name (dev)</Phinix_chat_contextMenu_copyRawName>
+    <Phinix_report_menuOption>Report message</Phinix_report_menuOption>
+    <Phinix_report_title>Report message</Phinix_report_title>
+    <Phinix_report_from>From {0} · {1}</Phinix_report_from>
+    <Phinix_report_reasonLabel>Why are you reporting it? (optional)</Phinix_report_reasonLabel>
+    <Phinix_report_savedLocallyNote>For now, reports are only saved on your computer (PhimeReports.jsonl in RimWorld's Config folder). They aren't sent to anyone yet.</Phinix_report_savedLocallyNote>
+    <Phinix_report_button>Report</Phinix_report_button>
+    <Phinix_report_saved>Report saved.</Phinix_report_saved>
+    <Phinix_report_saveFailed>Couldn't save the report. The log has the details.</Phinix_report_saveFailed>
+
+    <!-- Screenshots shared in chat -->
+    <Phinix_screenshot_button>Screenshot</Phinix_screenshot_button>
+    <Phinix_emoji_buttonTip>Emojis. You can also type them, like :smile: or :+1:</Phinix_emoji_buttonTip>
+    <Phinix_emoji_searchHint>Search emojis...</Phinix_emoji_searchHint>
+    <Phinix_emoji_noMatches>No emojis found</Phinix_emoji_noMatches>
+    <Phinix_screenshot_link>[Screenshot, click to view]</Phinix_screenshot_link>
+    <Phinix_screenshot_view>View screenshot</Phinix_screenshot_view>
+    <Phinix_screenshot_shareTitle>Share this screenshot?</Phinix_screenshot_shareTitle>
+    <Phinix_screenshot_captionPlaceholder>Say something with it (optional)</Phinix_screenshot_captionPlaceholder>
+    <Phinix_screenshot_shareNote>Everyone in chat can open it. The server keeps it for {0} minutes, then it's gone.</Phinix_screenshot_shareNote>
+    <Phinix_screenshot_sendTitle>Send this screenshot to {0}?</Phinix_screenshot_sendTitle>
+    <Phinix_screenshot_sendNote>It goes to {0} as a private message. The server keeps it for {1} minutes, then it's gone.</Phinix_screenshot_sendNote>
+    <Phinix_screenshot_shareButton>Share</Phinix_screenshot_shareButton>
+    <Phinix_screenshot_retake>Retake</Phinix_screenshot_retake>
+    <Phinix_screenshot_captureFailed>Couldn't take a screenshot. The log may have the details.</Phinix_screenshot_captureFailed>
+    <Phinix_screenshot_shareFailed>Screenshot not shared: {0}</Phinix_screenshot_shareFailed>
+    <Phinix_screenshot_unavailable>Your server doesn't keep screenshots.</Phinix_screenshot_unavailable>
+    <Phinix_screenshot_loading>Loading the screenshot...</Phinix_screenshot_loading>
+    <Phinix_screenshot_noAnswer>The screenshot didn't arrive. Try opening it again.</Phinix_screenshot_noAnswer>
+    <Phinix_screenshot_gone>This screenshot has expired, or isn't on your server.</Phinix_screenshot_gone>
+    <Phinix_screenshot_blocked>This screenshot is from someone you've blocked.</Phinix_screenshot_blocked>
+    <Phinix_screenshot_from>From {0} · gone in {1} min</Phinix_screenshot_from>
     <Phinix_chat_blockedUsers>Blocked users</Phinix_chat_blockedUsers>
     <Phinix_chat_contextMenu_blockUser>Block user</Phinix_chat_contextMenu_blockUser>
     <Phinix_chat_contextMenu_unblockUser>Unblock user</Phinix_chat_contextMenu_unblockUser>
+    <Phinix_chat_friends>Friends</Phinix_chat_friends>
+    <Phinix_chat_friendOffline>(offline)</Phinix_chat_friendOffline>
+    <Phinix_chat_onlineSection>Online</Phinix_chat_onlineSection>
+    <Phinix_chat_offlineSection>Offline</Phinix_chat_offlineSection>
+    <Phinix_chat_lastSeen>Last seen {0} ago</Phinix_chat_lastSeen>
+    <Phinix_chat_lastSeenJustNow>Last seen just now</Phinix_chat_lastSeenJustNow>
+    <Phinix_chat_contextMenu_viewProfile>View profile</Phinix_chat_contextMenu_viewProfile>
+    <Phinix_card_online>Online</Phinix_card_online>
+    <Phinix_card_offline>Offline</Phinix_card_offline>
+    <Phinix_card_friend>Friend</Phinix_card_friend>
+    <Phinix_card_blocked>Blocked</Phinix_card_blocked>
+    <Phinix_card_bioHeading>Bio</Phinix_card_bioHeading>
+    <Phinix_card_noBio>No bio yet.</Phinix_card_noBio>
+    <Phinix_card_colonyHeading>Colony</Phinix_card_colonyHeading>
+    <Phinix_card_colonyShare>Show mine</Phinix_card_colonyShare>
+    <Phinix_card_noColony>Not sharing a colony.</Phinix_card_noColony>
+    <Phinix_card_colonyDay>Day {0}</Phinix_card_colonyDay>
+    <Phinix_card_colonyColonist>{0} colonist</Phinix_card_colonyColonist>
+    <Phinix_card_colonyColonists>{0} colonists</Phinix_card_colonyColonists>
+    <Phinix_card_colonyAnimal>{0} animal</Phinix_card_colonyAnimal>
+    <Phinix_card_colonyAnimals>{0} animals</Phinix_card_colonyAnimals>
+    <Phinix_card_colonyWealth>{0} wealth</Phinix_card_colonyWealth>
+    <Phinix_card_modsHeading>Mods</Phinix_card_modsHeading>
+    <Phinix_card_modsOwn>You have {0} mods loaded.</Phinix_card_modsOwn>
+    <Phinix_card_modsUnknown>Their mods aren't known yet. The server only knows the mods of players who have logged in since it last started.</Phinix_card_modsUnknown>
+    <Phinix_card_modsCount>They have {0} mods loaded.</Phinix_card_modsCount>
+    <Phinix_card_modsSame>You both have the same mods.</Phinix_card_modsSame>
+    <Phinix_card_modsWeLack>You don't have {0} of their mods:</Phinix_card_modsWeLack>
+    <Phinix_card_modsTheyLack>They don't have {0} of your mods:</Phinix_card_modsTheyLack>
+    <Phinix_card_trade>Trade</Phinix_card_trade>
+    <Phinix_card_gift>Send gift</Phinix_card_gift>
+    <Phinix_chat_friendedAs>friended as {0}</Phinix_chat_friendedAs>
+    <Phinix_chat_contextMenu_addFriend>Add friend</Phinix_chat_contextMenu_addFriend>
+    <Phinix_chat_contextMenu_removeFriend>Remove friend</Phinix_chat_contextMenu_removeFriend>
     <Phinix_chat_contextMenu_openInBrowser>Open link in browser: {0}</Phinix_chat_contextMenu_openInBrowser>
 
     <Phinix_settings_connectButton>Connect</Phinix_settings_connectButton>
@@ -19,10 +95,30 @@
     <Phinix_settings_addressLabel>Address</Phinix_settings_addressLabel>
     <Phinix_settings_portLabel>Port</Phinix_settings_portLabel>
     <Phinix_settings_setDisplayNameButton>Set Name</Phinix_settings_setDisplayNameButton>
+    <Phinix_settings_styleNameButton>Style</Phinix_settings_styleNameButton>
+    <Phinix_nameStyle_title>Style your name</Phinix_nameStyle_title>
+    <Phinix_nameStyle_bold>Bold</Phinix_nameStyle_bold>
+    <Phinix_nameStyle_italic>Italic</Phinix_nameStyle_italic>
+    <Phinix_nameStyle_solid>One colour</Phinix_nameStyle_solid>
+    <Phinix_nameStyle_gradient>Gradient</Phinix_nameStyle_gradient>
+    <Phinix_nameStyle_addColour>Add a colour</Phinix_nameStyle_addColour>
+    <Phinix_nameStyle_removeColour>Remove the last colour</Phinix_nameStyle_removeColour>
+    <Phinix_nameStyle_hex>Hex</Phinix_nameStyle_hex>
+    <Phinix_nameStyle_brightness>Brightness</Phinix_nameStyle_brightness>
+    <Phinix_nameStyle_tooLong>That name is too long for a gradient. Try a shorter one or one colour.</Phinix_nameStyle_tooLong>
+    <Phinix_nameStyle_cancel>Cancel</Phinix_nameStyle_cancel>
+    <Phinix_nameStyle_apply>Apply</Phinix_nameStyle_apply>
     <Phinix_settings_displayNamePreview>Your name will look like: {0}</Phinix_settings_displayNamePreview>
+    <Phinix_settings_bioLabel>Bio:</Phinix_settings_bioLabel>
+    <Phinix_settings_setBioButton>Set Bio</Phinix_settings_setBioButton>
 
     <Phinix_modSettings_serverAddressTitle>Server address</Phinix_modSettings_serverAddressTitle>
     <Phinix_modSettings_serverPortTitle>Server port</Phinix_modSettings_serverPortTitle>
+    <Phinix_modSettings_companionAddressTitle>Companion server address (optional, for Phime features the main server lacks; takes effect next time you connect)</Phinix_modSettings_companionAddressTitle>
+    <Phinix_modSettings_companionPortTitle>Companion server port</Phinix_modSettings_companionPortTitle>
+    <Phinix_companion_linked>Connected to the companion server. Private messages now work on this server.</Phinix_companion_linked>
+    <Phinix_companion_failed>Couldn't use the companion server: {0}</Phinix_companion_failed>
+    <Phinix_companion_notCompanion>that server isn't in companion mode. Ask its owner to set CompanionMode to true in server.conf.</Phinix_companion_notCompanion>
     <Phinix_modSettings_displayNameTitle>Display name</Phinix_modSettings_displayNameTitle>
     <Phinix_modSettings_acceptingTradesTitle>Accepting trades</Phinix_modSettings_acceptingTradesTitle>
     <Phinix_modSettings_showNameFormatting>Show name formatting</Phinix_modSettings_showNameFormatting>
@@ -37,7 +133,13 @@
     <Phinix_modSettings_chatMessageLimit>Number of chat messages to keep</Phinix_modSettings_chatMessageLimit>
     <Phinix_modSettings_forceMessageFieldFocus>Keep focus on chat message text box</Phinix_modSettings_forceMessageFieldFocus>
     <Phinix_modSettings_forceMessageFieldFocus_description>Keeps the chat message box selected until you click outside of it. Turn this off if you have trouble with other text boxes not being selected properly.</Phinix_modSettings_forceMessageFieldFocus_description>
+	<Phinix_modSettings_shareColonyStats>Show my colony on my player card</Phinix_modSettings_shareColonyStats>
 	<Phinix_modSettings_dropCurrentMap>Always drop traded items on the current map</Phinix_modSettings_dropCurrentMap>
+	<Phinix_modSettings_giftsFromStrangers>Gifts from people who aren't friends</Phinix_modSettings_giftsFromStrangers>
+	<Phinix_modSettings_giftsFromStrangers_AlwaysAccept>Always accept</Phinix_modSettings_giftsFromStrangers_AlwaysAccept>
+	<Phinix_modSettings_giftsFromStrangers_AskFirst>Ask first</Phinix_modSettings_giftsFromStrangers_AskFirst>
+	<Phinix_modSettings_giftsFromStrangers_Never>Never</Phinix_modSettings_giftsFromStrangers_Never>
+	<Phinix_modSettings_giftsFromStrangers_tip>Gifts from friends always arrive straight away. "Ask first" sends a letter showing what's in the gift so you can take it or send it back. Gifts you turn away go back to whoever sent them.</Phinix_modSettings_giftsFromStrangers_tip>
 
     <Phinix_login_logInLabel>Log in to</Phinix_login_logInLabel>
     <Phinix_login_submitButton>Submit</Phinix_login_submitButton>
@@ -50,14 +152,79 @@
     <Phinix_trade_confirmTheirTradeCheckboxChecked>{0} has confirmed</Phinix_trade_confirmTheirTradeCheckboxChecked>
     <Phinix_trade_confirmTheirTradeCheckboxUnchecked>{0} has not confirmed</Phinix_trade_confirmTheirTradeCheckboxUnchecked>
     <Phinix_trade_updateButton>Update</Phinix_trade_updateButton>
+    <Phinix_trade_takeBackTip>Right-click to take this back off your offer.</Phinix_trade_takeBackTip>
+    <Phinix_trade_takeBackAsked>Take back {0}, as {1} asked</Phinix_trade_takeBackAsked>
+    <Phinix_trade_ignoreAsked>Ignore {0}'s request</Phinix_trade_ignoreAsked>
+    <Phinix_trade_askedTip>{0} asked you to take {1} of this out of the trade. Right-click to take it back or ignore the request.</Phinix_trade_askedTip>
+    <Phinix_trade_askTip>Right-click to ask them to take this out of the trade.</Phinix_trade_askTip>
+    <Phinix_trade_youAskedTip>You asked them to take {0} of this out.</Phinix_trade_youAskedTip>
+    <Phinix_trade_askSome>Ask them to take out {0}</Phinix_trade_askSome>
+    <Phinix_trade_askAll>Ask them to take it all out</Phinix_trade_askAll>
+    <Phinix_trade_askAmount>Ask them to take out...</Phinix_trade_askAmount>
+    <Phinix_trade_askAmountTitle>Ask them to take out how many?</Phinix_trade_askAmountTitle>
+    <Phinix_trade_askLeaves>Leaves {0} of {1} on their offer</Phinix_trade_askLeaves>
+    <Phinix_trade_askText>Could you take {0} x {1} out of the trade?</Phinix_trade_askText>
+    <Phinix_trade_takeBackSome>Take back {0}</Phinix_trade_takeBackSome>
+    <Phinix_trade_takeBackAll>Take back all</Phinix_trade_takeBackAll>
+    <Phinix_trade_takeBackAmount>Take back...</Phinix_trade_takeBackAmount>
+    <Phinix_trade_takeBackAmountTitle>Take back how many?</Phinix_trade_takeBackAmountTitle>
+    <Phinix_trade_takeBackLeaves>Leaves {0} of {1} on your offer</Phinix_trade_takeBackLeaves>
+    <Phinix_trade_offerValue>Value: {0}</Phinix_trade_offerValue>
+    <Phinix_trade_offerValueTheirs>({0}'s game: {1})</Phinix_trade_offerValueTheirs>
+    <Phinix_trade_offerValueTip>What this offer is worth in silver at your game's prices. Colonists and animals use the price from the game they come from.</Phinix_trade_offerValueTip>
+    <Phinix_trade_valueYours>In your game: {0}</Phinix_trade_valueYours>
+    <Phinix_trade_valueTheirs>In {0}'s game: {1}</Phinix_trade_valueTheirs>
+    <Phinix_trade_pricesDifferTip>Your games price this quite differently, probably because one of you has a mod that changes prices.</Phinix_trade_pricesDifferTip>
     <Phinix_trade_resetButton>Reset</Phinix_trade_resetButton>
+    <Phinix_trade_waitingForServer>Still waiting for the server to confirm your last change. Try again in a moment.</Phinix_trade_waitingForServer>
+    <Phinix_trade_strippedWarning>This trade with {0} goes through a server running the original Phinix, which only passes on what an item is, its material, quality, condition and count. These would arrive changed:\n\n{1}\n\nTo keep them intact, you and {0} can both link to the same companion server first (in Phinix's settings). Offer them anyway?</Phinix_trade_strippedWarning>
+    <Phinix_trade_stripped_genes>gets random genes</Phinix_trade_stripped_genes>
+    <Phinix_trade_stripped_pawn>can't be carried and will stay home</Phinix_trade_stripped_pawn>
+    <Phinix_trade_stripped_art>its art is re-rolled</Phinix_trade_stripped_art>
+    <Phinix_trade_stripped_book>its title and contents are re-rolled</Phinix_trade_stripped_book>
+    <Phinix_trade_stripped_unique>its unique traits are re-rolled</Phinix_trade_stripped_unique>
+    <Phinix_trade_pawnsNotSupported>This server can't trade animals or colonists, so they've stayed in your colony. If you and the other player both link to the same companion server, new trades between you go through it and can carry pawns.</Phinix_trade_pawnsNotSupported>
     <Phinix_trade_cancelButton>Cancel</Phinix_trade_cancelButton>
     <Phinix_trade_sortByLabel>Sort by</Phinix_trade_sortByLabel>
     <Phinix_trade_searchLabel>Search</Phinix_trade_searchLabel>
     <Phinix_trade_noItemsAvailable>You have no items available to trade.</Phinix_trade_noItemsAvailable>
     <Phinix_trade_noItemsAvailableWithSearch>No items found that match the search criteria.</Phinix_trade_noItemsAvailableWithSearch>
     <Phinix_trade_tradeReceivedLetter_label>Trade from {0}</Phinix_trade_tradeReceivedLetter_label>
-    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nCheck the 'Trades' tab in the Phinix chat panel for details.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_trade_tradeReceivedMessage>{0} wants to trade with you.</Phinix_trade_tradeReceivedMessage>
+    <Phinix_trade_tradeReceivedLetter_description>{0} has sent you a trade offer.\n\nOpen it below, or find it later in the Inbox tab of the Phinix chat panel.</Phinix_trade_tradeReceivedLetter_description>
+    <Phinix_tradeHistory_button>Past trades</Phinix_tradeHistory_button>
+    <Phinix_tradeHistory_title>Past trades with {0}</Phinix_tradeHistory_title>
+    <Phinix_tradeHistory_none>No finished trades with this player yet.</Phinix_tradeHistory_none>
+    <Phinix_tradeHistory_completed>Completed</Phinix_tradeHistory_completed>
+    <Phinix_tradeHistory_cancelled>Cancelled</Phinix_tradeHistory_cancelled>
+    <Phinix_tradeHistory_gave>You gave</Phinix_tradeHistory_gave>
+    <Phinix_tradeHistory_got>{0} gave</Phinix_tradeHistory_got>
+    <Phinix_tradeHistory_cameBack>Your offer came back</Phinix_tradeHistory_cameBack>
+    <Phinix_tradeHistory_nothing>Nothing</Phinix_tradeHistory_nothing>
+    <Phinix_trade_foodVegetarian>vegetarian</Phinix_trade_foodVegetarian>
+    <Phinix_trade_foodMeat>meat</Phinix_trade_foodMeat>
+    <Phinix_trade_foodMixed>meat + veg</Phinix_trade_foodMixed>
+    <Phinix_trade_foodHumanMeat>human meat</Phinix_trade_foodHumanMeat>
+    <Phinix_trade_foodInsectMeat>insect meat</Phinix_trade_foodInsectMeat>
+    <Phinix_trade_variantPlain>standard</Phinix_trade_variantPlain>
+    <Phinix_trade_variantCondition>{0} condition</Phinix_trade_variantCondition>
+    <Phinix_trade_sortButton>Sort: {0}</Phinix_trade_sortButton>
+    <Phinix_trade_sortDefault>Default</Phinix_trade_sortDefault>
+    <Phinix_trade_sortName>Name</Phinix_trade_sortName>
+    <Phinix_trade_sortValue>Value</Phinix_trade_sortValue>
+    <Phinix_trade_sortAmount>Amount</Phinix_trade_sortAmount>
+    <Phinix_trade_copyLastButton>Copy last trade</Phinix_trade_copyLastButton>
+    <Phinix_trade_stepTip>Each + and - changes the amount by {0}. Hold Shift for 10, Ctrl for 100, or both for 1,000.</Phinix_trade_stepTip>
+    <Phinix_trade_valueEach>{0} each</Phinix_trade_valueEach>
+    <Phinix_trade_valueAll>{1} for all {0}</Phinix_trade_valueAll>
+    <Phinix_trade_copyLastTip>Pick the same things you gave in your last trade with this player. Check the amounts, then press Update.</Phinix_trade_copyLastTip>
+    <Phinix_trade_copyLastNone>You haven't finished a trade with this player yet.</Phinix_trade_copyLastNone>
+    <Phinix_trade_copyLastShort>Picked what you have. Short of: {0}</Phinix_trade_copyLastShort>
+    <Phinix_trade_copyLastDone>Picked everything from your last trade. Press Update to offer it.</Phinix_trade_copyLastDone>
+    <Phinix_trade_offerSearchHint>Search this offer</Phinix_trade_offerSearchHint>
+    <Phinix_trade_offerSearchNone>Nothing in this offer matches</Phinix_trade_offerSearchNone>
+    <Phinix_trade_letter_open>Open trade</Phinix_trade_letter_open>
+    <Phinix_trade_letter_gone>That trade has ended, or you're not connected.</Phinix_trade_letter_gone>
     <Phinix_trade_tradeCompletedLetter_label>Trade successful</Phinix_trade_tradeCompletedLetter_label>
     <Phinix_trade_tradeCompletedLetter_description>Your trade with {0} was successful.</Phinix_trade_tradeCompletedLetter_description>
     <Phinix_trade_tradeCancelled_label>Trade cancelled</Phinix_trade_tradeCancelled_label>
@@ -79,4 +246,291 @@
     <Phinix_error_tradeCreationFailedMessage>Could not start a trade: {0} ({1})</Phinix_error_tradeCreationFailedMessage>
     <Phinix_error_tradeUpdateFailedTitle>Trade update failed</Phinix_error_tradeUpdateFailedTitle>
     <Phinix_error_tradeUpdateFailedMessage>Could not update your trade with {0}: {1} ({2})\nYour items have been shipped back to you.</Phinix_error_tradeUpdateFailedMessage>
+
+    <!-- Market board -->
+    <Phinix_market_openTradesButton>Open trades ({0})</Phinix_market_openTradesButton>
+    <Phinix_market_openTradesLabel>Open trades</Phinix_market_openTradesLabel>
+    <Phinix_market_heading>Markets</Phinix_market_heading>
+    <Phinix_market_summary>{0} open · {1} listings</Phinix_market_summary>
+    <Phinix_market_typeToSearch>Type at least 2 letters to search.</Phinix_market_typeToSearch>
+    <Phinix_market_addButton>Add</Phinix_market_addButton>
+    <Phinix_market_owned>{0} owned</Phinix_market_owned>
+    <Phinix_market_nothingAdded>Add some items from the search above.</Phinix_market_nothingAdded>
+    <Phinix_market_noteLabel>Note (optional):</Phinix_market_noteLabel>
+    <!-- Player markets -->
+    <Phinix_shop_noShops>Nobody has opened a market yet.</Phinix_shop_noShops>
+    <Phinix_shop_openButton>Open a market</Phinix_shop_openButton>
+    <Phinix_shop_myShopButton>My market</Phinix_shop_myShopButton>
+    <Phinix_shop_browseButton>Browse</Phinix_shop_browseButton>
+    <Phinix_shop_manageButton>Manage</Phinix_shop_manageButton>
+    <Phinix_shop_byOwner>run by {0}</Phinix_shop_byOwner>
+    <Phinix_shop_andMore>{0} and {1} more</Phinix_shop_andMore>
+    <Phinix_shop_noStock>Nothing for sale yet.</Phinix_shop_noStock>
+    <Phinix_shop_yours>your market</Phinix_shop_yours>
+    <Phinix_shop_ownerOffline>{0} · offline, still selling</Phinix_shop_ownerOffline>
+    <Phinix_shop_listing>1 listing</Phinix_shop_listing>
+    <Phinix_shop_listings>{0} listings</Phinix_shop_listings>
+    <Phinix_shop_tillToCollect>{0} silver to collect</Phinix_shop_tillToCollect>
+    <Phinix_shop_each>{0} ea</Phinix_shop_each>
+    <Phinix_shop_unknownShort>mod?</Phinix_shop_unknownShort>
+    <Phinix_time_openedJustNow>opened just now</Phinix_time_openedJustNow>
+    <Phinix_time_openedMinute>opened a minute ago</Phinix_time_openedMinute>
+    <Phinix_time_openedMinutes>opened {0} minutes ago</Phinix_time_openedMinutes>
+    <Phinix_time_openedHour>opened an hour ago</Phinix_time_openedHour>
+    <Phinix_time_openedHours>opened {0} hours ago</Phinix_time_openedHours>
+    <Phinix_time_openedYesterday>opened yesterday</Phinix_time_openedYesterday>
+    <Phinix_time_openedDay>opened a day ago</Phinix_time_openedDay>
+    <Phinix_time_openedDays>opened {0} days ago</Phinix_time_openedDays>
+    <Phinix_shop_ownerNoStock>Nothing for sale yet. Press Add items to put things up.</Phinix_shop_ownerNoStock>
+    <Phinix_shop_closed>This market has closed.</Phinix_shop_closed>
+    <Phinix_shop_defaultName>{0}'s market</Phinix_shop_defaultName>
+    <Phinix_shop_nameTitle>Name your market</Phinix_shop_nameTitle>
+    <Phinix_shop_renameTitle>Rename your market</Phinix_shop_renameTitle>
+    <Phinix_shop_till>Till: {0} silver</Phinix_shop_till>
+    <Phinix_shop_collectButton>Collect till</Phinix_shop_collectButton>
+    <Phinix_shop_addItemsButton>Add items</Phinix_shop_addItemsButton>
+    <Phinix_shop_renameButton>Rename</Phinix_shop_renameButton>
+    <Phinix_shop_closeButton>Close market</Phinix_shop_closeButton>
+    <Phinix_shop_confirmClose>Close your market? Everything left in it, and the silver in the till, will come back to you by drop pod.</Phinix_shop_confirmClose>
+    <Phinix_shop_priceEach>{0} silver each</Phinix_shop_priceEach>
+    <Phinix_shop_total>= {0} silver</Phinix_shop_total>
+    <Phinix_shop_buyButton>Buy</Phinix_shop_buyButton>
+    <Phinix_shop_setPriceButton>Set price</Phinix_shop_setPriceButton>
+    <Phinix_shop_withdrawButton>Take back</Phinix_shop_withdrawButton>
+    <Phinix_shop_priceLabel>Price each (silver)</Phinix_shop_priceLabel>
+    <Phinix_shop_countLabel>Amount</Phinix_shop_countLabel>
+    <Phinix_shop_yourSilver>Your silver: {0}</Phinix_shop_yourSilver>
+    <Phinix_shop_unidentified>Unidentified item ({0})</Phinix_shop_unidentified>
+    <Phinix_shop_cantIdentify>Your game doesn't have this item (probably a mod you don't have), so you can't buy it.</Phinix_shop_cantIdentify>
+    <Phinix_shop_notEnoughSilver>You need {0} silver in your stockpiles.</Phinix_shop_notEnoughSilver>
+    <Phinix_shop_stockTitle>Put items up for sale</Phinix_shop_stockTitle>
+    <Phinix_shop_stockButton>Put up for sale</Phinix_shop_stockButton>
+    <Phinix_shop_stockSubtitle>Choose what to sell and the price for each one. It leaves your map now and the server holds it until someone buys it.</Phinix_shop_stockSubtitle>
+    <Phinix_shop_priceColumn>Price each</Phinix_shop_priceColumn>
+    <Phinix_shop_pawnsSection>Colonists and animals</Phinix_shop_pawnsSection>
+    <Phinix_shop_itemsSection>Items</Phinix_shop_itemsSection>
+    <Phinix_shop_stockSummary>{0} picked · asking {1} silver in total</Phinix_shop_stockSummary>
+    <Phinix_shop_priceHint>Prices start at what a trader would pay. Type to change them.</Phinix_shop_priceHint>
+    <Phinix_shop_notEnough>You don't have enough of those items any more.</Phinix_shop_notEnough>
+    <Phinix_shop_failed>Market: {0}</Phinix_shop_failed>
+    <Phinix_shop_sold>{0} bought {1}x {2} from your market for {3} silver.</Phinix_shop_sold>
+    <Phinix_shop_confirmColonists>Put {0} up for sale? They leave your colony now and wait in your market until someone buys them (or you take them back).</Phinix_shop_confirmColonists>
+    <!-- Pawn inspector -->
+    <Phinix_pawn_inspectTip>See who this is: skills, traits, health and more</Phinix_pawn_inspectTip>
+    <Phinix_pawn_notAPawn>This is not an animal or colonist.</Phinix_pawn_notAPawn>
+    <Phinix_pawn_unidentified>Your game doesn't have this race (probably a mod you don't have), so they can't come to your colony.</Phinix_pawn_unidentified>
+    <Phinix_pawn_value>Worth about {0} silver</Phinix_pawn_value>
+    <Phinix_pawn_bondedTo>Bonded to {0} (the bond stays behind)</Phinix_pawn_bondedTo>
+    <Phinix_pawn_age>Age {0}</Phinix_pawn_age>
+    <Phinix_pawn_ageBoth>Age {0} (born {1} years ago)</Phinix_pawn_ageBoth>
+    <Phinix_pawn_backstory>Backstory</Phinix_pawn_backstory>
+    <Phinix_pawn_childhood>Childhood: {0}</Phinix_pawn_childhood>
+    <Phinix_pawn_adulthood>Adulthood: {0}</Phinix_pawn_adulthood>
+    <Phinix_pawn_traits>Traits</Phinix_pawn_traits>
+    <Phinix_pawn_skills>Skills</Phinix_pawn_skills>
+    <Phinix_pawn_incapable>Incapable</Phinix_pawn_incapable>
+    <Phinix_pawn_health>Health</Phinix_pawn_health>
+    <Phinix_pawn_healthy>No health conditions</Phinix_pawn_healthy>
+    <Phinix_pawn_genes>Genes</Phinix_pawn_genes>
+    <Phinix_pawn_xenotype>Xenotype: {0}</Phinix_pawn_xenotype>
+    <Phinix_pawn_gear>Gear they bring</Phinix_pawn_gear>
+    <Phinix_pawn_training>Training</Phinix_pawn_training>
+    <Phinix_pawn_trick>{0}: {1}/{2}</Phinix_pawn_trick>
+    <Phinix_pawn_untrained>Untrained</Phinix_pawn_untrained>
+    <Phinix_pawn_none>None</Phinix_pawn_none>
+    <Phinix_pawn_unknownDef>Your game doesn't have this (probably from a mod).</Phinix_pawn_unknownDef>
+    <!-- Parts of a pawn this game does not have -->
+    <Phinix_pawnCheck_heading>Won't arrive with them</Phinix_pawnCheck_heading>
+    <Phinix_pawnCheck_explanation>These come from mods your game doesn't have, so they'll be left behind if this pawn joins you:</Phinix_pawnCheck_explanation>
+    <Phinix_pawnCheck_rowTip>Some of this pawn comes from mods you don't have and will be left behind:\n{0}\n\nOpen the info card for details.</Phinix_pawnCheck_rowTip>
+    <Phinix_pawnCheck_partsLeftBehind>Some of the animals or colonists you'd get come with parts from mods you don't have. Those parts will be left behind:\n\n{0}</Phinix_pawnCheck_partsLeftBehind>
+    <Phinix_modCheck_itemsLeftBehind>Some items you'd get come from mods you don't have, so they won't arrive:\n\n{0}</Phinix_modCheck_itemsLeftBehind>
+    <Phinix_trade_acceptAnyway>Accept the trade anyway?</Phinix_trade_acceptAnyway>
+    <Phinix_modCheck_youreMissingOne>You're missing a mod used in this offer</Phinix_modCheck_youreMissingOne>
+    <Phinix_modCheck_youreMissingMany>You're missing {1} mods used in this offer</Phinix_modCheck_youreMissingMany>
+    <Phinix_modCheck_theyreMissingOne>{0} is missing a mod used in your offer</Phinix_modCheck_theyreMissingOne>
+    <Phinix_modCheck_theyreMissingMany>{0} is missing {1} mods used in your offer</Phinix_modCheck_theyreMissingMany>
+    <Phinix_modCheck_modRow>{0} ({1})</Phinix_modCheck_modRow>
+    <Phinix_modCheck_tip>Items from a mod the other player doesn't have can't be made in their game, so they won't arrive. Click to see which mods and items.</Phinix_modCheck_tip>
+    <Phinix_modCheck_unknownMod>An unknown mod</Phinix_modCheck_unknownMod>
+    <Phinix_pawnCheck_confirmBuy>This pawn comes with parts from mods you don't have. Those parts will be left behind:\n\n{0}\n\nBuy anyway?</Phinix_pawnCheck_confirmBuy>
+    <Phinix_pawnCheck_arrived>{0} arrived without some things your game doesn't have: {1}</Phinix_pawnCheck_arrived>
+    <Phinix_pawnCheck_race>Race: {0} (the whole colonist would be lost)</Phinix_pawnCheck_race>
+    <Phinix_pawnCheck_species>Species: {0} (the whole animal would be lost)</Phinix_pawnCheck_species>
+    <Phinix_pawnCheck_backstory>Backstory: {0}</Phinix_pawnCheck_backstory>
+    <Phinix_pawnCheck_trait>Trait: {0}</Phinix_pawnCheck_trait>
+    <Phinix_pawnCheck_skill>Skill: {0}</Phinix_pawnCheck_skill>
+    <Phinix_pawnCheck_xenotype>Xenotype: {0}</Phinix_pawnCheck_xenotype>
+    <Phinix_pawnCheck_gene>Gene: {0}</Phinix_pawnCheck_gene>
+    <Phinix_pawnCheck_item>Item: {0}</Phinix_pawnCheck_item>
+    <Phinix_pawnCheck_looks>Looks: {0}</Phinix_pawnCheck_looks>
+    <Phinix_pawnCheck_training>Training: {0}</Phinix_pawnCheck_training>
+    <Phinix_pawnCheck_health>Health: {0}</Phinix_pawnCheck_health>
+    <Phinix_pawnCheck_honor>Honor: {0} with {1} (that faction isn't in your world, so its titles can't come along)</Phinix_pawnCheck_honor>
+    <Phinix_pawnCheck_bodyPart>Health: {0} (on a body part your game doesn't have: {1})</Phinix_pawnCheck_bodyPart>
+    <Phinix_pawnCheck_level>{0}: level {1} (your game's maximum is {2}, so it'll be lowered)</Phinix_pawnCheck_level>
+    <Phinix_pawnCheck_psycast>Psycast: {0}</Phinix_pawnCheck_psycast>
+    <Phinix_pawnCheck_psycastRefund>Psycast: {0} (they get its point back to spend)</Phinix_pawnCheck_psycastRefund>
+    <Phinix_pawnCheck_psycastPath>Psycast path: {0} (they get its point back to spend)</Phinix_pawnCheck_psycastPath>
+    <Phinix_pawnCheck_meditationFocus>Meditation type: {0} (they get its point back to spend)</Phinix_pawnCheck_meditationFocus>
+    <Phinix_pawnCheck_vpeMissing>Psycasts from Vanilla Psycasts Expanded (they keep their psylink level and get random vanilla psycasts instead)</Phinix_pawnCheck_vpeMissing>
+    <Phinix_pawnCheck_vpeConvert>Vanilla psycasts (you use Vanilla Psycasts Expanded, so they get points to spend instead)</Phinix_pawnCheck_vpeConvert>
+    <Phinix_pawnCheck_vpeUnknownVersion>Psycasts (your version of Vanilla Psycasts Expanded isn't one Phime understands, so they get points to spend instead)</Phinix_pawnCheck_vpeUnknownVersion>
+
+    <!-- Bounties -->
+    <Phinix_bounty_noBountiesPlaceholder>No bounties are up right now.</Phinix_bounty_noBountiesPlaceholder>
+    <Phinix_bounty_newBountyButton>Post a bounty</Phinix_bounty_newBountyButton>
+    <Phinix_bounty_heading>Bounties</Phinix_bounty_heading>
+    <Phinix_bounty_summary>{0} up · {1} yours</Phinix_bounty_summary>
+    <Phinix_bounty_postTitle>New bounty</Phinix_bounty_postTitle>
+    <Phinix_bounty_wantLabel>I want:</Phinix_bounty_wantLabel>
+    <Phinix_bounty_payLabel>I'll pay (taken from your colony now, held until the bounty ends):</Phinix_bounty_payLabel>
+    <Phinix_bounty_postButton>Post bounty</Phinix_bounty_postButton>
+    <Phinix_bounty_anyQuality>Any quality</Phinix_bounty_anyQuality>
+    <Phinix_bounty_titleLabel>Bounty · {0}</Phinix_bounty_titleLabel>
+    <Phinix_bounty_wantsLabel>Wants: {0}</Phinix_bounty_wantsLabel>
+    <Phinix_bounty_rewardLabel>Reward: {0}</Phinix_bounty_rewardLabel>
+    <Phinix_bounty_fulfilButton>Fulfil</Phinix_bounty_fulfilButton>
+    <Phinix_bounty_cancelButton>Cancel</Phinix_bounty_cancelButton>
+    <Phinix_bounty_cantFulfilTip>Your colony doesn't have everything this bounty wants (in a stockpile, at a good enough quality).</Phinix_bounty_cantFulfilTip>
+    <Phinix_bounty_confirmFulfil>Give {0} {1}?\n\nIn return you'll receive {2} by drop pod.</Phinix_bounty_confirmFulfil>
+    <Phinix_bounty_notEnoughItems>Your colony no longer has everything this bounty wants.</Phinix_bounty_notEnoughItems>
+    <Phinix_bounty_notEnoughReward>Your colony no longer has everything you picked as the reward.</Phinix_bounty_notEnoughReward>
+    <Phinix_bounty_tooManyRewardItems>A reward can hold at most {0} items. Things that stack, like steel, count as one item however many you pay; things that don't, like dusters, count one each.</Phinix_bounty_tooManyRewardItems>
+    <Phinix_bounty_postFailed>Couldn't post your bounty, so its reward was put back: {0}</Phinix_bounty_postFailed>
+    <Phinix_bounty_fulfilFailed>Couldn't fulfil that bounty, so your items were put back: {0}</Phinix_bounty_fulfilFailed>
+    <Phinix_bounty_expiringNow>expiring now</Phinix_bounty_expiringNow>
+    <Phinix_bounty_minutesLeft>{0} min left</Phinix_bounty_minutesLeft>
+    <Phinix_bounty_hoursLeft>{0} h left</Phinix_bounty_hoursLeft>
+    <Phinix_bounty_daysLeft>{0} d left</Phinix_bounty_daysLeft>
+    <Phinix_bounty_delivery_Fulfilled_label>Bounty fulfilled</Phinix_bounty_delivery_Fulfilled_label>
+    <Phinix_bounty_delivery_Fulfilled_description>{0} fulfilled your bounty. What you asked for is arriving by drop pod.</Phinix_bounty_delivery_Fulfilled_description>
+    <Phinix_bounty_delivery_Reward_label>Bounty reward</Phinix_bounty_delivery_Reward_label>
+    <Phinix_bounty_delivery_Reward_description>You fulfilled {0}'s bounty. Your reward is arriving by drop pod.</Phinix_bounty_delivery_Reward_description>
+    <Phinix_bounty_delivery_Cancelled_label>Bounty cancelled</Phinix_bounty_delivery_Cancelled_label>
+    <Phinix_bounty_delivery_Cancelled_description>You cancelled your bounty. Its reward is being returned by drop pod.</Phinix_bounty_delivery_Cancelled_description>
+    <Phinix_bounty_delivery_Expired_label>Bounty expired</Phinix_bounty_delivery_Expired_label>
+    <Phinix_bounty_delivery_Expired_description>Nobody fulfilled your bounty in time, so its reward is being returned by drop pod.</Phinix_bounty_delivery_Expired_description>
+
+    <!-- Private messages -->
+    <Phinix_inbox_empty>Nothing here yet. Right-click someone in the chat's user list to trade with them or send a message.</Phinix_inbox_empty>
+    <Phinix_inbox_pick>Pick someone on the left.</Phinix_inbox_pick>
+    <Phinix_inbox_tradeOpen>Trade open</Phinix_inbox_tradeOpen>
+    <Phinix_inbox_tradeAccepted>They've accepted</Phinix_inbox_tradeAccepted>
+    <Phinix_inbox_tradeButton>Trade</Phinix_inbox_tradeButton>
+    <Phinix_inbox_tradeAlreadyOpenTip>You already have a trade open with them. Use its Open button above.</Phinix_inbox_tradeAlreadyOpenTip>
+    <Phinix_inbox_heading>Conversations</Phinix_inbox_heading>
+    <Phinix_inbox_online>Online</Phinix_inbox_online>
+    <Phinix_inbox_offline>Offline</Phinix_inbox_offline>
+    <Phinix_inbox_viaCompanion>· via companion</Phinix_inbox_viaCompanion>
+    <Phinix_inbox_messagePlaceholder>Message {0}...</Phinix_inbox_messagePlaceholder>
+    <Phinix_inbox_youPrefix>You: {0}</Phinix_inbox_youPrefix>
+    <Phinix_inbox_today>Today</Phinix_inbox_today>
+    <Phinix_inbox_yesterday>Yesterday</Phinix_inbox_yesterday>
+    <Phinix_inbox_trade_yourTurn>They have accepted · your turn</Phinix_inbox_trade_yourTurn>
+    <Phinix_inbox_trade_waitingForThem>You have accepted · waiting for them</Phinix_inbox_trade_waitingForThem>
+    <Phinix_inbox_event_opened>Trade opened</Phinix_inbox_event_opened>
+    <Phinix_inbox_event_theyAccepted>{0} accepted the trade</Phinix_inbox_event_theyAccepted>
+    <Phinix_inbox_event_youAccepted>You accepted the trade</Phinix_inbox_event_youAccepted>
+    <Phinix_inbox_event_completed>Trade completed</Phinix_inbox_event_completed>
+    <Phinix_inbox_event_cancelled>Trade cancelled</Phinix_inbox_event_cancelled>
+    <Phinix_dm_emptyConversation>Say hello to {0}!</Phinix_dm_emptyConversation>
+    <Phinix_dm_you>You</Phinix_dm_you>
+    <Phinix_dm_sendGiftButton>Send gift</Phinix_dm_sendGiftButton>
+    <Phinix_dm_received>{0}: {1}</Phinix_dm_received>
+    <Phinix_dm_sendFailed>Message not sent: {0}</Phinix_dm_sendFailed>
+    <Phinix_dm_missed_label>Messages while you were away</Phinix_dm_missed_label>
+    <Phinix_dm_missed_description>You got {0} private message(s) while you were offline, from: {1}.\n\nOpen the Phinix window's Inbox tab to read them.</Phinix_dm_missed_description>
+
+    <!-- Gifts -->
+    <Phinix_gift_title>Send a gift to {0}</Phinix_gift_title>
+    <Phinix_gift_sendButton>Send gift</Phinix_gift_sendButton>
+    <Phinix_gift_subtitle>Pick what to send from your colony. It leaves straight away.</Phinix_gift_subtitle>
+    <Phinix_gift_itemCount>{0} of {1} items · worth about {2} silver</Phinix_gift_itemCount>
+    <Phinix_gift_tooManyItems>A gift can hold at most {0} items. Things that stack, like steel, count as one item however many you send; things that don't, like dusters, count one each.</Phinix_gift_tooManyItems>
+    <Phinix_picker_inColonyTip>How many your colony has</Phinix_picker_inColonyTip>
+    <Phinix_gift_notEnough>The colony no longer has enough of those items.</Phinix_gift_notEnough>
+    <Phinix_gift_sent>Gift sent.</Phinix_gift_sent>
+    <Phinix_gift_sentWaiting>Gift sent, but {0} isn't online. It's waiting on the server and will arrive when they next log in.</Phinix_gift_sentWaiting>
+    <Phinix_gift_confirmOffline>{0} isn't online right now.\n\nThe items will leave your colony now and wait on the server until {0} next logs in with an up-to-date Phinix. Send anyway?</Phinix_gift_confirmOffline>
+    <Phinix_gift_sendFailed>Gift not sent, the items have been put back: {0}</Phinix_gift_sendFailed>
+    <Phinix_gift_received_label>Gift from {0}</Phinix_gift_received_label>
+    <Phinix_gift_received_description>{0} sent you a gift. It's arriving by drop pod.</Phinix_gift_received_description>
+    <Phinix_gift_received_note>Their note: "{0}"</Phinix_gift_received_note>
+    <Phinix_gift_offer_label>Gift offered by {0}</Phinix_gift_offer_label>
+    <Phinix_gift_offer_description>{0} wants to send you a gift:\n\n{1}</Phinix_gift_offer_description>
+    <Phinix_gift_offer_accept>Accept the gift</Phinix_gift_offer_accept>
+    <Phinix_gift_offer_decline>Send it back</Phinix_gift_offer_decline>
+    <Phinix_gift_offer_gone>Close (it'll be offered again next time you connect)</Phinix_gift_offer_gone>
+    <Phinix_gift_offer_deadline>If you don't take it by {0}, it goes back to them.</Phinix_gift_offer_deadline>
+    <Phinix_gift_offer_tooLate>A gift from {0} waited too long to be taken, so it's going back to them.</Phinix_gift_offer_tooLate>
+
+    <!-- Contracts -->
+    <Phinix_contract_noContracts>No contracts yet. Use "Propose contract" to ask someone for regular deliveries.</Phinix_contract_noContracts>
+    <Phinix_contract_newContractButton>Propose contract</Phinix_contract_newContractButton>
+    <Phinix_contract_heading>Contracts</Phinix_contract_heading>
+    <Phinix_contract_summary>{0} active · {1} proposed</Phinix_contract_summary>
+    <Phinix_contract_noPlayers>No one can take a contract right now. Through a companion server, only players who have linked to it can.</Phinix_contract_noPlayers>
+    <Phinix_contract_partnerOffline>{0} (offline)</Phinix_contract_partnerOffline>
+    <Phinix_contract_buyingFrom>Buying from {0}</Phinix_contract_buyingFrom>
+    <Phinix_contract_supplying>Supplying {0}</Phinix_contract_supplying>
+    <Phinix_contract_stateProposed>Proposed</Phinix_contract_stateProposed>
+    <Phinix_contract_stateProgress>Delivery {0} of {1}</Phinix_contract_stateProgress>
+    <Phinix_contract_goodsLabel>Each delivery: {0}</Phinix_contract_goodsLabel>
+    <Phinix_contract_paymentLabel>Pays per delivery: {0}</Phinix_contract_paymentLabel>
+    <Phinix_contract_schedule>Every {0}h, {1} deliveries</Phinix_contract_schedule>
+    <Phinix_contract_opensIn>next delivery opens in {0}</Phinix_contract_opensIn>
+    <Phinix_contract_dueIn>next delivery due in {0}</Phinix_contract_dueIn>
+    <Phinix_contract_acceptButton>Accept</Phinix_contract_acceptButton>
+    <Phinix_contract_declineButton>Decline</Phinix_contract_declineButton>
+    <Phinix_contract_withdrawButton>Withdraw</Phinix_contract_withdrawButton>
+    <Phinix_contract_deliverButton>Deliver</Phinix_contract_deliverButton>
+    <Phinix_contract_cancelButton>Cancel</Phinix_contract_cancelButton>
+    <Phinix_contract_notYetTip>The next delivery isn't open yet.</Phinix_contract_notYetTip>
+    <Phinix_contract_missingGoodsTip>Your colony doesn't have the goods for a delivery.</Phinix_contract_missingGoodsTip>
+    <Phinix_contract_confirmAccept>Supply {0} with {1}, {2} times, one delivery every {3} hours?\n\nYou'll be paid {4} per delivery. If you miss a delivery the contract ends, but you keep what you've already been paid.</Phinix_contract_confirmAccept>
+    <Phinix_contract_confirmCancel>End your contract with {0}? Any unspent payment goes back to the buyer. This can't be undone.</Phinix_contract_confirmCancel>
+    <Phinix_contract_proposeTitle>Propose a contract to {0}</Phinix_contract_proposeTitle>
+    <Phinix_contract_goodsColumn>You want, each delivery</Phinix_contract_goodsColumn>
+    <Phinix_contract_paymentColumn>You pay, each delivery</Phinix_contract_paymentColumn>
+    <Phinix_contract_deliveriesLabel>Deliveries:</Phinix_contract_deliveriesLabel>
+    <Phinix_contract_intervalLabel>Hours between deliveries:</Phinix_contract_intervalLabel>
+    <Phinix_contract_totalPayment>Taken from your colony now (unspent payment comes back): {0}</Phinix_contract_totalPayment>
+    <Phinix_contract_proposeButton>Propose</Phinix_contract_proposeButton>
+    <Phinix_contract_cantAfford>The colony doesn't have enough for the whole payment.</Phinix_contract_cantAfford>
+    <Phinix_contract_proposed>Contract proposed.</Phinix_contract_proposed>
+    <Phinix_contract_proposeFailed>Contract not proposed, your payment has been put back: {0}</Phinix_contract_proposeFailed>
+    <Phinix_contract_deliverFailed>Delivery not made, your goods have been put back: {0}</Phinix_contract_deliverFailed>
+    <Phinix_contract_proposalReceived>{0} proposed a contract. See the Contracts tab.</Phinix_contract_proposalReceived>
+    <Phinix_contract_deliveryReady>Your contract delivery to {0} is ready. Due in {1}.</Phinix_contract_deliveryReady>
+
+    <!-- Contract letters (reuse the bounty delivery letters, so the keys follow that pattern) -->
+    <Phinix_bounty_delivery_ContractGoods_label>Contract delivery</Phinix_bounty_delivery_ContractGoods_label>
+    <Phinix_bounty_delivery_ContractGoods_description>{0} made a contract delivery. It's arriving by drop pod.</Phinix_bounty_delivery_ContractGoods_description>
+    <Phinix_bounty_delivery_ContractPayment_label>Contract payment</Phinix_bounty_delivery_ContractPayment_label>
+    <Phinix_bounty_delivery_ContractPayment_description>{0} paid you for a contract delivery. It's arriving by drop pod.</Phinix_bounty_delivery_ContractPayment_description>
+    <Phinix_bounty_delivery_ContractRefund_label>Contract ended</Phinix_bounty_delivery_ContractRefund_label>
+    <Phinix_bounty_delivery_ContractRefund_description>Your contract with {0} has ended. The payment that wasn't spent is coming back by drop pod.</Phinix_bounty_delivery_ContractRefund_description>
+    <Phinix_bounty_delivery_ContractEnded_label>Contract ended</Phinix_bounty_delivery_ContractEnded_label>
+    <Phinix_bounty_delivery_ContractEnded_description>Your contract with {0} has ended.</Phinix_bounty_delivery_ContractEnded_description>
+    <Phinix_bounty_delivery_ShopReturned_label>Market items returned</Phinix_bounty_delivery_ShopReturned_label>
+    <Phinix_bounty_delivery_ShopReturned_description>Items from your market are coming back to you by drop pod.</Phinix_bounty_delivery_ShopReturned_description>
+    <Phinix_bounty_delivery_ShopTill_label>Market takings</Phinix_bounty_delivery_ShopTill_label>
+    <Phinix_bounty_delivery_ShopTill_description>The silver from your market's till is arriving by drop pod.</Phinix_bounty_delivery_ShopTill_description>
+    <Phinix_receivedItemsLost>Some things couldn't be rebuilt in this game: {0}. They go back to whoever sent them where that's possible. The details are in the log.</Phinix_receivedItemsLost>
+    <Phinix_receivedItemsUnknown>These come from mods this game doesn't have, so they couldn't arrive: {0}. They go back to whoever sent them where that's possible.</Phinix_receivedItemsUnknown>
+    <Phinix_trade_returned_label>Traded things came back</Phinix_trade_returned_label>
+    <Phinix_trade_returned_description>{0}'s game couldn't use some of what you traded them (probably a mod they don't have), so it has come back to you.</Phinix_trade_returned_description>
+    <Phinix_gift_returned_label>Your gift came back</Phinix_gift_returned_label>
+    <Phinix_gift_returned_Refused_description>{0} isn't accepting gifts from you, so your gift has come back.</Phinix_gift_returned_Refused_description>
+    <Phinix_gift_returned_Unusable_description>{0}'s game couldn't use some of your gift (probably a mod they don't have), so that part has come back.</Phinix_gift_returned_Unusable_description>
+    <Phinix_gift_returned_Expired_description>{0} didn't log in to collect your gift in time, so it has come back.</Phinix_gift_returned_Expired_description>
+    <Phinix_gift_returned_Unanswered_description>{0} didn't say whether they wanted your gift, so it has come back.</Phinix_gift_returned_Unanswered_description>
+    <Phinix_bounty_delivery_Unusable_label>Things came back</Phinix_bounty_delivery_Unusable_label>
+    <Phinix_bounty_delivery_Unusable_description>{0}'s game couldn't use some of what you sent (probably a mod they don't have), so it has come back to you.</Phinix_bounty_delivery_Unusable_description>
+    <Phinix_pendingDrops_waiting>Something arrived from another player, but there's no colony map to drop it on. It's kept safe and will drop in once you have a home map again.</Phinix_pendingDrops_waiting>
+    <Phinix_pendingDrops_arrived>{0} thing(s) that were waiting for a home map have dropped in.</Phinix_pendingDrops_arrived>
+    <Phinix_trade_selectionChanged>Some of what you picked isn't there any more (used, moved or merged since you opened this window). The amounts have been trimmed; check them and press Update again.</Phinix_trade_selectionChanged>
+    <Phinix_bounty_delivery_ShopPurchase_label>Market purchase</Phinix_bounty_delivery_ShopPurchase_label>
+    <Phinix_bounty_delivery_ShopPurchase_description>What you bought from {0}'s market is arriving by drop pod.</Phinix_bounty_delivery_ShopPurchase_description>
 </LanguageData>

@@ -3,10 +3,15 @@ package Trading;
 
 import "Stores/TradeStore.proto";
 import "Stores/CompletedTradeStore.proto";
+import "Packets/EscrowPackets.proto";
 
 message ActiveTradesStore
 {
     repeated TradeStore ActiveTrades = 1;
 
     repeated CompletedTradeStore CompletedTrades = 2;
+
+    // Receipts for trade offers the server accepted, so a client that lost its connection can find out what happened
+    repeated AcceptedToken AcceptedTokens = 3;
+    repeated string AckingUuids = 4;        // Players whose client confirms trade results, so theirs are kept until confirmed
 };

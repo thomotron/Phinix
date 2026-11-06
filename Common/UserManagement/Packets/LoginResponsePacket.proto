@@ -14,4 +14,8 @@ message LoginResponsePacket
     LoginFailureReason FailureReason = 4;
     
     string FailureMessage = 5;
+
+    // Features the server has switched off (see Features), so the mod can hide them. Empty from older servers, which
+    // means everything is on
+    repeated string DisabledFeatures = 6;
 }

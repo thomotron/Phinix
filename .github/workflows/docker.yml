@@ -14,6 +14,8 @@ on:
 jobs:
   build_and_push:
     name: Build and push image to Docker Hub
+    # Publishes to thomotron/phinix on Docker Hub, so only the main Phinix repo should run it
+    if: github.repository == 'thomotron/Phinix'
     runs-on: ubuntu-latest
     steps:
     - name: Pull repo

@@ -93,10 +93,37 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Emoji.cs" />
+    <Compile Include="EmojiIndex.cs" />
+    <Compile Include="AnimalConverter.cs" />
     <Compile Include="BlockedUsersChangedEventArgs.cs" />
+    <Compile Include="ItemEscrow.cs" />
+    <Compile Include="ShopItems.cs" />
+    <Compile Include="TradeEventLog.cs" />
+    <Compile Include="TradeRequests.cs" />
+    <Compile Include="PawnCheck.cs" />
+    <Compile Include="ItemSaveData.cs" />
+    <Compile Include="ItemArt.cs" />
+    <Compile Include="GiftOfferLetter.cs" />
+    <Compile Include="TradeOfferLetter.cs" />
+    <Compile Include="PawnPortraits.cs" />
+    <Compile Include="TradeHistory.cs" />
+    <Compile Include="ModCheck.cs" />
+    <Compile Include="PsycastConverter.cs" />
+    <Compile Include="ColonyItems.cs" />
+    <Compile Include="ColonyTransferables.cs" />
+    <Compile Include="ParkedPawns.cs" />
+    <Compile Include="DeliveryLog.cs" />
+    <Compile Include="DropSpot.cs" />
+    <Compile Include="PendingDrops.cs" />
+    <Compile Include="MessageReports.cs" />
+    <Compile Include="ScreenshotSharing.cs" />
+    <Compile Include="ColonistConverter.cs" />
     <Compile Include="GUI\GUIUtils.cs" />
+    <Compile Include="HediffConverter.cs" />
     <Compile Include="LegacySettings.cs" />
     <Compile Include="Patches\RootPatch.cs" />
+    <Compile Include="Patches\CompArtDescriptionPatch.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UIChatMessage.cs" />
     <Compile Include="Client.cs" />
@@ -110,6 +137,13 @@
     <Compile Include="GUI\Basic Widgets\TextWidget.cs" />
     <Compile Include="GUI\Basic Widgets\ThingIconWidget.cs" />
     <Compile Include="GUI\Compound Widgets\ChatMessageList.cs" />
+    <Compile Include="GUI\Compound Widgets\MarketList.cs" />
+    <Compile Include="GUI\Compound Widgets\BountyBoardList.cs" />
+    <Compile Include="GUI\Compound Widgets\InboxPanel.cs" />
+    <Compile Include="GUI\PhimeStyle.cs" />
+    <Compile Include="GUI\Compound Widgets\ContractList.cs" />
+    <Compile Include="GUI\RowText.cs" />
+    <Compile Include="GUI\Compound Widgets\ItemPicker.cs" />
     <Compile Include="GUI\Compound Widgets\DynamicTextWidget.cs" />
     <Compile Include="GUI\Compound Widgets\ItemStackRow.cs" />
     <Compile Include="GUI\Compound Widgets\TradeList.cs" />
@@ -127,11 +161,25 @@
     <Compile Include="GUI\Containers\VerticalPaddedContainer.cs" />
     <Compile Include="GUI\Displayable.cs" />
     <Compile Include="GUI\Windows and panels\CredentialsWindow.cs" />
+    <Compile Include="GUI\Windows and panels\ShopWindow.cs" />
+    <Compile Include="GUI\Windows and panels\NameShopWindow.cs" />
+    <Compile Include="GUI\Windows and panels\StockShopWindow.cs" />
+    <Compile Include="GUI\Windows and panels\PawnInspectWindow.cs" />
+    <Compile Include="GUI\Windows and panels\PostBountyWindow.cs" />
+    <Compile Include="GUI\Windows and panels\EmojiPickerWindow.cs" />
+    <Compile Include="GUI\Windows and panels\NameStyleWindow.cs" />
+    <Compile Include="GUI\Windows and panels\PlayerCardWindow.cs" />
+    <Compile Include="GUI\Windows and panels\ReportMessageWindow.cs" />
+    <Compile Include="GUI\Windows and panels\ScreenshotViewerWindow.cs" />
+    <Compile Include="GUI\Windows and panels\ShareScreenshotWindow.cs" />
+    <Compile Include="GUI\Windows and panels\SendGiftWindow.cs" />
+    <Compile Include="GUI\Windows and panels\ProposeContractWindow.cs" />
     <Compile Include="GUI\Windows and panels\ServerTab.cs" />
     <Compile Include="GUI\Windows and panels\ServerTabButtonWorker.cs" />
     <Compile Include="GUI\Windows and panels\SettingsWindow.cs" />
     <Compile Include="GUI\Windows and panels\TradeWindow.cs" />
-    <Compile Include="PendingThings.cs" />
+    <Compile Include="GUI\Windows and panels\TakeBackWindow.cs" />
+    <Compile Include="GUI\Windows and panels\TradeHistoryWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StackedThings.cs" />
     <Compile Include="TradingThingConverter.cs" />
@@ -152,6 +200,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Agora\Agora.csproj">
+      <Project>{A792C551-20D4-414D-A4D4-97632E697DD3}</Project>
+      <Name>Agora</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Hermes\Hermes.csproj">
+      <Project>{0FBCB3E9-1FFD-41F8-AF02-446BE1FB69CD}</Project>
+      <Name>Hermes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Authentication\Authentication.csproj">
       <Project>{E983D5C7-A573-44E4-A8BB-D5A9D78EA538}</Project>
       <Name>Authentication</Name>
@@ -198,6 +254,8 @@
     <Copy SourceFiles="$(TargetDir)\UserManagement.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\6-UserManagement.dll" />
     <Copy SourceFiles="$(TargetDir)\Chat.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\7-Chat.dll" />
     <Copy SourceFiles="$(TargetDir)\Trading.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\8-Trading.dll" />
+    <Copy SourceFiles="$(TargetDir)\Agora.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\9-Agora.dll" />
+    <Copy SourceFiles="$(TargetDir)\Hermes.dll" DestinationFiles="$(SolutionDir)\Client\Common\Assemblies\9-Hermes.dll" />
     <Copy SourceFiles="$(TargetDir)\PhinixClient.dll" DestinationFiles="$(SolutionDir)\Client\$(GameVersion)\Assemblies\9-PhinixClient.dll" />
   </Target>
 </Project>

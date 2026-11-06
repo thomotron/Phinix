@@ -13,4 +13,5 @@ message CompletedTradeStore
 
     // Whether the trade was cancelled
     bool Cancelled = 3;
+    bool Returned = 4;                      // Unusable things being sent back (see CompleteTradePacket.Returned)
 }

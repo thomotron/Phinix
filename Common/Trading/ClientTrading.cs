@@ -36,6 +36,12 @@ namespace Trading
         public event EventHandler<CompleteTradeEventArgs> OnTradeCancelled;
 
         /// <summary>
+        /// Raised when things we traded away come back because the other player's game couldn't use them. Not tied to
+        /// any trade we have open.
+        /// </summary>
+        public event EventHandler<CompleteTradeEventArgs> OnTradeItemsReturned;
+
+        /// <summary>
         /// Raised when a trade is updated successfully.
         /// </summary>
         public event EventHandler<TradeUpdateEventArgs> OnTradeUpdateSuccess;
@@ -48,6 +54,10 @@ namespace Trading
         /// Raised when trades are synced from the server.
         /// </summary>
         public event EventHandler<TradesSyncedEventArgs> OnTradesSynced;
+        /// <summary>
+        /// Raised when the server answers <see cref="CheckTokens"/>.
+        /// </summary>
+        public event EventHandler<TokenResultsPacket> OnTokenResults;
 
         /// <summary>
         /// <see cref="NetClient"/> instance to bind events and send data through.
@@ -411,6 +421,37 @@ namespace Trading
         }
 
         /// <summary>
+        /// Asks the server which of these held-item tokens it accepted. Used after logging back in, to settle trade
+        /// offers that were on their way when the connection dropped (see Packets/EscrowPackets.proto).
+        /// </summary>
+        /// <param name="tokens">Tokens we're still holding items for</param>
+        /// <summary>
+        /// Tells the server these deliveries are in our colony, so it can stop holding them, and which of their things
+        /// this game couldn't use, so it can send them back. Calling it with nothing right after logging in tells the
+        /// server we confirm, so it keeps our deliveries until we do.
+        /// </summary>
+        /// <param name="acks">One per delivery</param>
+        public void AckDeliveries(IEnumerable<DeliveryAck> acks)
+        {
+            if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
+
+            AckDeliveriesPacket packet = new AckDeliveriesPacket { SessionId = authenticator.SessionId, Uuid = userManager.Uuid };
+            packet.Acks.AddRange(acks);
+            netClient.Send(MODULE_NAME, ProtobufPacketHelper.Pack(packet).ToByteArray());
+        }
+
+        public void CheckTokens(IEnumerable<string> tokens)
+        {
+            if (!(netClient.Connected && authenticator.Authenticated && userManager.LoggedIn)) return;
+
+            CheckTokensPacket packet = new CheckTokensPacket { SessionId = authenticator.SessionId, Uuid = userManager.Uuid };
+            packet.Tokens.AddRange(tokens);
+            if (packet.Tokens.Count == 0) return;  // Nothing to ask about
+
+            netClient.Send(MODULE_NAME, ProtobufPacketHelper.Pack(packet).ToByteArray());
+        }
+
+        /// <summary>
         /// Sends a status update for the given trade to the server.
         /// </summary>
         /// <param name="tradeId">Trade ID</param>
@@ -523,6 +564,10 @@ namespace Trading
                     RaiseLogEntry(new LogEventArgs("Got a SyncTradesPacket", LogLevel.DEBUG));
                     syncTradesPacketHandler(connectionId, message.Unpack<SyncTradesPacket>());
                     break;
+                case "TokenResultsPacket":
+                    RaiseLogEntry(new LogEventArgs("Got a TokenResultsPacket", LogLevel.DEBUG));
+                    OnTokenResults?.Invoke(this, message.Unpack<TokenResultsPacket>());
+                    break;
                 default:
                     RaiseLogEntry(new LogEventArgs("Got an unknown packet type (" + typeUrl.Type + "), discarding...", LogLevel.DEBUG));
                     break;
@@ -564,6 +609,13 @@ namespace Trading
         /// <param name="packet">Incoming <see cref="CompleteTradePacket"/></param>
         private void completeTradePacketHandler(string connectionId, CompleteTradePacket packet)
         {
+            // Things coming back aren't the end of any trade we have open
+            if (packet.Returned)
+            {
+                OnTradeItemsReturned?.Invoke(this, new CompleteTradeEventArgs(packet.TradeId, false, packet.OtherPartyUuid, packet.Items));
+                return;
+            }
+
             // Raise finalised trade events
             if (packet.Success)
             {

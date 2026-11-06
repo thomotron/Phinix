@@ -173,9 +173,10 @@ namespace PhinixClient.GUI
         {
             lock (tradesLock)
             {
-                // Repopulate trade list with this set and mark the rows to be updated
+                // Repopulate the trade list and mark the rows to be updated. The sync only carries one server's trades
+                // (the main server's or the companion's), so take both from the client rather than just this set
                 trades.Clear();
-                trades.AddRange(args.Trades);
+                trades.AddRange(Client.Instance.GetTrades());
                 tradesChanged = true;
             }
         }

@@ -10,4 +10,7 @@ enum AuthFailureReason
     SessionId = 2;
     
     InternalServerError = 3;
+
+    // The client's mod is a different version to the server's
+    ProtocolVersion = 4;
 };

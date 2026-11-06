@@ -1,0 +1,58 @@
+syntax = "proto3";
+package Agora;
+
+// Settling items the client was holding when its connection dropped.
+//
+// When a player hands items over (a bounty, gift or contract), their client takes the items off the map and waits
+// for the server's answer. If the connection drops before that answer arrives, the client can't know whether the
+// server got the items or not:
+//   - put them back, and if the server DID get them, the player now has them twice
+//   - destroy them, and if the server DIDN'T, the player has lost them
+//
+// So the server keeps a receipt for every token it accepted. After logging back in, the client asks about every
+// token it's still holding, and the server says which ones it accepted. Accepted means destroy (the server has
+// them), anything else means put them back (the server never got them).
+//
+// Agora has its own copy of these packets (Agora and Hermes each have one) because each module keeps its own receipts.
+
+// Client -> server: "did you accept any of these?"
+message CheckTokensPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  repeated string Tokens = 3;
+};
+
+// Server -> client: the answer. Every token from the question is in Checked; the ones the server accepted are also
+// in Accepted
+message TokenResultsPacket
+{
+  repeated string Checked = 1;
+  repeated string Accepted = 2;
+};
+
+// What the server saves for each accepted token. Old ones are forgotten after a while (see the server code)
+message AcceptedToken
+{
+  string Token = 1;
+  string Uuid = 2;                        // Who handed the items over. Only they can ask about it
+  int64 Time = 3;                         // Unix seconds
+};
+
+// Client -> server: these deliveries have arrived and are in the colony, so the server can stop holding them. A client
+// that sends this, even with nothing in it right after logging in, has every later delivery kept on the server until it
+// confirms it, and sent again on its next login if it never did. Items its game couldn't use are named by position, so
+// the server can send them back to whoever they came from
+message AckDeliveriesPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  repeated DeliveryAck Acks = 3;
+};
+
+message DeliveryAck
+{
+  string DeliveryId = 1;                  // Agora: the delivery's DeliveryId. Hermes: the gift's GiftId. Trading: the trade ID
+  repeated int32 UnusableItems = 2;       // Positions in the delivery's Items that this game couldn't build
+  bool Refused = 3;                       // Hermes only: a gift from a player we've blocked, turned away whole
+};

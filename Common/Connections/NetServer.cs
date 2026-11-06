@@ -49,6 +49,11 @@ namespace Connections
         /// </summary>
         private Thread pollThread;
 
+        /// <summary>
+        /// Tells <see cref="pollThread"/> to stop.
+        /// </summary>
+        private CancellationTokenSource pollCancellation = new CancellationTokenSource();
+
         public NetServer(IPEndPoint endpoint, int maxConnections)
         {
             this.Endpoint = endpoint;
@@ -100,9 +105,12 @@ namespace Connections
             server.Start(Endpoint.Port);
             
             // Start a polling thread to check for incoming packets
+            // Stopped by Stop() through this token rather than Thread.Abort(), which modern .NET doesn't support
+            // (see NetClient.threadsCancellation for the longer explanation)
+            CancellationToken token = pollCancellation.Token;
             pollThread = new Thread(() =>
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     server.PollEvents();
                     Thread.Sleep(10);
@@ -119,10 +127,12 @@ namespace Connections
             server.Stop();
             connectedPeers.Clear();
             
-            // Kill the poll thread and clear the variable
+            // Tell the poll thread to finish, wait for it, and give the next Start a fresh token
+            pollCancellation.Cancel();
+            pollCancellation = new CancellationTokenSource();
             if (pollThread != null)
             {
-                pollThread.Abort();
+                if (pollThread != Thread.CurrentThread) pollThread.Join(1000);
                 pollThread = null;
             }
         }

@@ -1,0 +1,100 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+import "Packets/Bounty.proto";
+
+// All the packets bounties send back and forth live in this one file, since each one is small.
+// (Agora's listing packets are one per file, which is the style the rest of Phinix uses. Either works, protoc
+// doesn't mind how messages are split between files.)
+//
+// Every packet a client sends carries SessionId and Uuid, so the server can check who it's from, exactly like
+// PostListingPacket. Packets the server sends don't need them.
+//
+// Several packets carry a "Token". That's a random ID the client makes up and the server sends straight back in its
+// response. The client uses it to match the response to the items it took off the map, so it knows whether to
+// destroy them (the server has them now) or put them back (the server said no). The trade window does the same thing.
+
+// Client -> server: put a new bounty up. The reward items have already been taken off the poster's map
+message PostBountyPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  Bounty Bounty = 4;                      // The server fills in BountyId, PosterUuid and the times itself
+};
+
+// Server -> client: whether the bounty went up
+message PostBountyResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string BountyId = 3;
+  string FailureMessage = 4;
+};
+
+// Client -> server: take one of our bounties down. The reward comes back as a BountyDeliveryPacket
+message CancelBountyPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string BountyId = 3;
+};
+
+// Client -> server: here are the items a bounty wants. They've already been taken off the fulfiller's map
+message FulfilBountyPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  string BountyId = 4;
+  repeated Trading.ProtoThing Items = 5;
+};
+
+// Server -> client: whether the fulfilment worked. If it did, the reward follows as a BountyDeliveryPacket
+message FulfilBountyResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string FailureMessage = 3;
+};
+
+// Server -> client: every bounty on the board, sent on login and whenever the board changes
+message SyncBountiesPacket
+{
+  repeated Bounty Bounties = 1;
+};
+
+// Why some items are being delivered
+enum BountyDeliveryReason
+{
+  Fulfilled = 0;                          // Someone fulfilled your bounty, here's what you asked for
+  Reward = 1;                             // You fulfilled someone's bounty, here's your reward
+  Cancelled = 2;                          // You cancelled your bounty, here's your reward back
+  Expired = 3;                            // Nobody fulfilled your bounty in time, here's your reward back
+
+  // Contracts reuse these deliveries (see ContractPackets.proto). BountyId then holds the contract's ID
+  ContractGoods = 4;                      // Buyer: a supplier delivered your goods
+  ContractPayment = 5;                    // Supplier: your payment for one delivery
+  ContractRefund = 6;                     // Buyer: the contract ended, here's the payment that wasn't spent
+  ContractEnded = 7;                      // Supplier: the contract ended early. No items, just the news
+
+  // Player markets reuse them too (see ShopPackets.proto). BountyId then holds the shop's ID
+  ShopReturned = 8;                       // Owner: stock taken off sale, or the market closed, here it is back
+  ShopTill = 9;                           // Owner: the silver from your market's till
+  ShopPurchase = 10;                      // Buyer: what you bought from someone's market
+  ShopSale = 11;                          // Owner: someone bought from your market. No items, just the news
+  Unusable = 12;                          // Sender: things the other player's game couldn't use (a mod it lacks), sent back
+};
+
+// Server -> client: items arriving from a bounty. If the player is offline, the server keeps this and sends it when
+// they next log in
+message BountyDeliveryPacket
+{
+  string BountyId = 1;
+  BountyDeliveryReason Reason = 2;
+  string OtherPartyUuid = 3;              // The other player involved, empty for Cancelled and Expired
+  repeated Trading.ProtoThing Items = 4;
+  string Detail = 5;                      // Extra explanation for the letter, e.g. why a contract ended. Often empty
+  string DeliveryId = 6;                  // Random ID the client confirms it with (AckDeliveriesPacket)
+};

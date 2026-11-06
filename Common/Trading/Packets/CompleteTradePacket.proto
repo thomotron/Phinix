@@ -12,4 +12,5 @@ message CompleteTradePacket
     bool Success = 3;
     
     repeated ProtoThing Items = 4;
+    bool Returned = 5;                      // Not a trade ending: things the other player's game couldn't use, sent back
 };

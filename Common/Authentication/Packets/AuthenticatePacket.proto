@@ -12,4 +12,7 @@ message AuthenticatePacket
     string Username = 4;
     
     string Password = 5;
+
+    // Which version of the network protocol the client speaks. Clients from before this existed send 0
+    int32 ProtocolVersion = 6;
 }

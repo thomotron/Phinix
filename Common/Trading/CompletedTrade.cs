@@ -23,6 +23,12 @@ namespace Trading
         /// </summary>
         public bool Cancelled;
 
+        /// <summary>
+        /// Not really a trade ending: things the other player's game couldn't use, being sent back to the party in
+        /// <see cref="PendingNotification"/>. Kept on their side of the trade, like a cancelled trade's.
+        /// </summary>
+        public bool Returned;
+
         public CompletedTrade(Trade trade, IEnumerable<string> pendingNotification, bool cancelled)
         {
             this.Trade = trade;
@@ -36,13 +42,14 @@ namespace Trading
             {
                 Trade = Trade.ToTradeStore(completedTrade.Trade),
                 PendingNotification = { completedTrade.PendingNotification },
-                Cancelled = completedTrade.Cancelled
+                Cancelled = completedTrade.Cancelled,
+                Returned = completedTrade.Returned
             };
         }
 
         public static CompletedTrade FromStore(CompletedTradeStore store)
         {
-            return new CompletedTrade(Trade.FromTradeStore(store.Trade), store.PendingNotification, store.Cancelled);
+            return new CompletedTrade(Trade.FromTradeStore(store.Trade), store.PendingNotification, store.Cancelled) { Returned = store.Returned };
         }
     }
 }

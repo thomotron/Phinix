@@ -57,6 +57,46 @@ namespace Connections
         private readonly List<NetPeer> probePeers = new List<NetPeer>();
 
         /// <summary>
+        /// Tells <see cref="pollThread"/> and <see cref="probeThread"/> to stop. Replaced with a fresh one on every
+        /// disconnect.
+        /// </summary>
+        /// <remarks>
+        /// These threads used to be stopped with <c>Thread.Abort()</c>, which kills a thread from the outside wherever
+        /// it happens to be. Modern .NET (which RimWorld 1.7 runs on) doesn't allow that any more, because killing a
+        /// thread halfway through something can leave things broken. Instead each loop checks this token and finishes
+        /// by itself, a bit like setting a <c>threading.Event</c> in Python that a worker loop keeps checking.
+        /// </remarks>
+        private CancellationTokenSource threadsCancellation = new CancellationTokenSource();
+
+        /// <summary>
+        /// Starts <see cref="pollThread"/>, which hands incoming packets to the event handlers until told to stop.
+        /// </summary>
+        private void startPollThread()
+        {
+            // Copy the token now, so this thread keeps listening to *its* token even after Disconnect swaps in a new one
+            CancellationToken token = threadsCancellation.Token;
+            pollThread = new Thread(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    clientNetManager.PollEvents();
+                    Thread.Sleep(10);
+                }
+            });
+            pollThread.Start();
+        }
+
+        /// <summary>
+        /// Waits briefly for a thread we've told to stop, unless it's the thread doing the waiting (Disconnect can be
+        /// called from inside an event handler on the poll thread, and a thread can't wait for itself to finish).
+        /// </summary>
+        /// <param name="thread">Thread to wait for</param>
+        private static void waitForThread(Thread thread)
+        {
+            if (thread != null && thread != Thread.CurrentThread) thread.Join(1000);
+        }
+
+        /// <summary>
         /// Creates a new <see cref="NetClient"/> instance.
         /// </summary>
         /// <param name="checkInterval">Interval in milliseconds between keepalive transmissions</param>
@@ -89,15 +129,7 @@ namespace Connections
             serverPeer = clientNetManager.Connect(endpoint.Address.ToString(), endpoint.Port);
 
             // Start a polling thread to check for incoming packets
-            pollThread = new Thread(() =>
-            {
-                while (true)
-                {
-                    clientNetManager.PollEvents();
-                    Thread.Sleep(10);
-                }
-            });
-            pollThread.Start();
+            startPollThread();
 
             // Raise the connection event
             OnConnecting?.Invoke(this, EventArgs.Empty);
@@ -122,25 +154,21 @@ namespace Connections
             }
 
             // Start a polling thread to check for incoming packets
-            pollThread = new Thread(() =>
-            {
-                while (true)
-                {
-                    clientNetManager.PollEvents();
-                    Thread.Sleep(10);
-                }
-            });
-            pollThread.Start();
+            startPollThread();
 
             // Invoke the OnConnecting event early before we shard off into another thread
             OnConnecting?.Invoke(this, EventArgs.Empty);
 
             // Connect to each peer asynchronously and keep the one that works
+            CancellationToken probeToken = threadsCancellation.Token;
             probeThread = new Thread(() =>
             {
                 // Spin until one of the peers connects
                 while (true)
                 {
+                    // Give up if we've been told to disconnect in the meantime
+                    if (probeToken.IsCancellationRequested) return;
+
                     // Make sure there is at least one non-null peer
                     if (probePeers.All(peer => peer == null)) break;
                     // ...and that none are connected
@@ -232,10 +260,14 @@ namespace Connections
         /// </summary>
         public void Disconnect()
         {
-            // Kill the probe thread and clear the variable
+            // Tell the probe and poll threads to finish, and give the next connection a fresh token
+            threadsCancellation.Cancel();
+            threadsCancellation = new CancellationTokenSource();
+
+            // Clear out the probe thread
             if (probeThread != null)
             {
-                probeThread.Abort();
+                waitForThread(probeThread);
                 probeThread = null;
                 clearProbePeers();
             }
@@ -250,10 +282,10 @@ namespace Connections
                 OnDisconnect?.Invoke(this, EventArgs.Empty);
             }
 
-            // Kill the poll thread and clear the variable
+            // Wait for the poll thread to notice it's been told to stop, so it can't overlap with the next connection's
             if (pollThread != null)
             {
-                pollThread.Abort();
+                waitForThread(pollThread);
                 pollThread = null;
             }
         }

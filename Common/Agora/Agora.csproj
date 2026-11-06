@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A792C551-20D4-414D-A4D4-97632E697DD3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Agora</RootNamespace>
+    <AssemblyName>Agora</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Agora.cs" />
+    <Compile Include="ClientAgora.cs" />
+    <Compile Include="Packets\compiled\Bounty.cs" />
+    <Compile Include="Packets\compiled\BountyPackets.cs" />
+    <Compile Include="Packets\compiled\Contract.cs" />
+    <Compile Include="Packets\compiled\ContractPackets.cs" />
+    <Compile Include="Packets\compiled\Listing.cs" />
+    <Compile Include="Packets\compiled\Shop.cs" />
+    <Compile Include="Packets\compiled\ShopPackets.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerAgora.cs" />
+    <Compile Include="ServerAgora.Bounties.cs" />
+    <Compile Include="ServerAgora.Contracts.cs" />
+    <Compile Include="ServerAgora.Escrow.cs" />
+    <Compile Include="Packets\compiled\EscrowPackets.cs" />
+    <Compile Include="ClientAgora.Contracts.cs" />
+    <Compile Include="ClientAgora.Bounties.cs" />
+    <Compile Include="ClientAgora.Shops.cs" />
+    <Compile Include="ServerAgora.Shops.cs" />
+    <Compile Include="Stores\compiled\BountyStore.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Packets\Listing.proto" />
+    <Content Include="Packets\PostListingPacket.proto" />
+    <Content Include="Packets\PostListingResponsePacket.proto" />
+    <Content Include="Packets\RemoveListingPacket.proto" />
+    <Content Include="Packets\SyncListingsPacket.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="compile-proto.sh" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj">
+      <Project>{d5bbfa59-db31-40f8-a8bf-7333be984316}</Project>
+      <Name>Google.Protobuf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Authentication\Authentication.csproj">
+      <Project>{e983d5c7-a573-44e4-a8bb-d5a9d78ea538}</Project>
+      <Name>Authentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Connections\Connections.csproj">
+      <Project>{38cb6bed-e751-42fe-a847-c0ddd482ac62}</Project>
+      <Name>Connections</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Trading\Trading.csproj">
+      <Project>{b63ede99-90e5-47b5-8411-0d1d3eb97adb}</Project>
+      <Name>Trading</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UserManagement\UserManagement.csproj">
+      <Project>{4e8c099f-dcab-418a-a2fe-2705a7065ec3}</Project>
+      <Name>UserManagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{b6ff1583-c75a-42c1-9b75-2b16215a0cf7}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+</Project>

@@ -25,15 +25,16 @@ namespace UserManagement {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiFQYWNrZXRzL0xvZ2luUmVzcG9uc2VQYWNrZXQucHJvdG8SDlVzZXJNYW5h",
-            "Z2VtZW50GiBQYWNrZXRzL0xvZ2luRmFpbHVyZVJlYXNvbi5wcm90byKcAQoT",
+            "Z2VtZW50GiBQYWNrZXRzL0xvZ2luRmFpbHVyZVJlYXNvbi5wcm90byK2AQoT",
             "TG9naW5SZXNwb25zZVBhY2tldBIPCgdTdWNjZXNzGAEgASgIEgwKBFV1aWQY",
             "AiABKAkSEwoLRGlzcGxheU5hbWUYAyABKAkSOQoNRmFpbHVyZVJlYXNvbhgE",
             "IAEoDjIiLlVzZXJNYW5hZ2VtZW50LkxvZ2luRmFpbHVyZVJlYXNvbhIWCg5G",
-            "YWlsdXJlTWVzc2FnZRgFIAEoCWIGcHJvdG8z"));
+            "YWlsdXJlTWVzc2FnZRgFIAEoCRIYChBEaXNhYmxlZEZlYXR1cmVzGAYgAygJ",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::UserManagement.LoginFailureReasonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginResponsePacket), global::UserManagement.LoginResponsePacket.Parser, new[]{ "Success", "Uuid", "DisplayName", "FailureReason", "FailureMessage" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginResponsePacket), global::UserManagement.LoginResponsePacket.Parser, new[]{ "Success", "Uuid", "DisplayName", "FailureReason", "FailureMessage", "DisabledFeatures" }, null, null, null, null)
           }));
     }
     #endregion
@@ -70,6 +71,7 @@ namespace UserManagement {
       displayName_ = other.displayName_;
       failureReason_ = other.failureReason_;
       failureMessage_ = other.failureMessage_;
+      disabledFeatures_ = other.disabledFeatures_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -133,6 +135,20 @@ namespace UserManagement {
       }
     }
 
+    /// <summary>Field number for the "DisabledFeatures" field.</summary>
+    public const int DisabledFeaturesFieldNumber = 6;
+    private static readonly pb::FieldCodec<string> _repeated_disabledFeatures_codec
+        = pb::FieldCodec.ForString(50);
+    private readonly pbc::RepeatedField<string> disabledFeatures_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Features the server has switched off (see Features), so the mod can hide them. Empty from older servers, which
+    /// means everything is on
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> DisabledFeatures {
+      get { return disabledFeatures_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as LoginResponsePacket);
@@ -151,6 +167,7 @@ namespace UserManagement {
       if (DisplayName != other.DisplayName) return false;
       if (FailureReason != other.FailureReason) return false;
       if (FailureMessage != other.FailureMessage) return false;
+      if(!disabledFeatures_.Equals(other.disabledFeatures_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -162,6 +179,7 @@ namespace UserManagement {
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (FailureReason != global::UserManagement.LoginFailureReason.SessionId) hash ^= FailureReason.GetHashCode();
       if (FailureMessage.Length != 0) hash ^= FailureMessage.GetHashCode();
+      hash ^= disabledFeatures_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -195,6 +213,7 @@ namespace UserManagement {
         output.WriteRawTag(42);
         output.WriteString(FailureMessage);
       }
+      disabledFeatures_.WriteTo(output, _repeated_disabledFeatures_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -218,6 +237,7 @@ namespace UserManagement {
       if (FailureMessage.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(FailureMessage);
       }
+      size += disabledFeatures_.CalculateSize(_repeated_disabledFeatures_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -244,6 +264,7 @@ namespace UserManagement {
       if (other.FailureMessage.Length != 0) {
         FailureMessage = other.FailureMessage;
       }
+      disabledFeatures_.Add(other.disabledFeatures_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -273,6 +294,10 @@ namespace UserManagement {
           }
           case 42: {
             FailureMessage = input.ReadString();
+            break;
+          }
+          case 50: {
+            disabledFeatures_.AddEntriesFrom(input, _repeated_disabledFeatures_codec);
             break;
           }
         }

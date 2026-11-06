@@ -68,6 +68,11 @@ namespace Authentication
         private GetCredentialsDelegate getCredentials;
 
         /// <summary>
+        /// Turns the client key into the ClientKey username, or null to send the key as it is.
+        /// </summary>
+        private Func<string, string> clientKeyUsername;
+
+        /// <summary>
         /// Whether the client has authenticated with the server.
         /// </summary>
         public bool Authenticated { get; private set; }
@@ -108,11 +113,14 @@ namespace Authentication
         /// <param name="netClient"><see cref="NetClient"/> to bind to</param>
         /// <param name="getCredentialsDelegate"><see cref="GetCredentialsDelegate"/> to call when credentials are required from the user</param>
         /// <param name="credentialStorePath">Path to the credential store file</param>
-        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string credentialStorePath = "PhinixCredentials.bin")
+        /// <param name="clientKeyUsername">Optional: turns the client key into the username sent for ClientKey
+        /// authentication. A companion connection uses this to add which player it is on its main server.</param>
+        public ClientAuthenticator(NetClient netClient, GetCredentialsDelegate getCredentialsDelegate, string credentialStorePath = "PhinixCredentials.bin", Func<string, string> clientKeyUsername = null)
         {
             this.netClient = netClient;
             this.getCredentials = getCredentialsDelegate;
             this.CredentialStorePath = credentialStorePath;
+            this.clientKeyUsername = clientKeyUsername;
             this.credentialStore = getCredentialStore();
 
             // Set up the session extension timer
@@ -317,7 +325,7 @@ namespace Authentication
                         credential = new Credential
                         {
                             AuthType = AuthTypes.ClientKey,
-                            Username = credentialStore.ClientKey,
+                            Username = clientKeyUsername != null ? clientKeyUsername(credentialStore.ClientKey) : credentialStore.ClientKey,
                             Password = ""
                         };
                     }
@@ -381,7 +389,8 @@ namespace Authentication
                 AuthType = credential.AuthType,
                 SessionId = sessionId,
                 Username = credential.Username,
-                Password = credential.Password
+                Password = credential.Password,
+                ProtocolVersion = PROTOCOL_VERSION
             };
 
             // Pack it into an Any for transmission

@@ -24,14 +24,16 @@ namespace UserManagement {
     static LoginPacketReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChlQYWNrZXRzL0xvZ2luUGFja2V0LnByb3RvEg5Vc2VyTWFuYWdlbWVudCJs",
-            "CgtMb2dpblBhY2tldBIRCglTZXNzaW9uSWQYASABKAkSHAoUVXNlU2VydmVy",
-            "RGlzcGxheU5hbWUYAiABKAgSEwoLRGlzcGxheU5hbWUYAyABKAkSFwoPQWNj",
-            "ZXB0aW5nVHJhZGVzGAQgASgIYgZwcm90bzM="));
+            "ChlQYWNrZXRzL0xvZ2luUGFja2V0LnByb3RvEg5Vc2VyTWFuYWdlbWVudBoc",
+            "UGFja2V0cy9Nb2RMaXN0UGFja2V0cy5wcm90byKgAQoLTG9naW5QYWNrZXQS",
+            "EQoJU2Vzc2lvbklkGAEgASgJEhwKFFVzZVNlcnZlckRpc3BsYXlOYW1lGAIg",
+            "ASgIEhMKC0Rpc3BsYXlOYW1lGAMgASgJEhcKD0FjY2VwdGluZ1RyYWRlcxgE",
+            "IAEoCBIlCgRNb2RzGAUgAygLMhcuVXNlck1hbmFnZW1lbnQuTW9kSW5mbxIL",
+            "CgNCaW8YBiABKAliBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::UserManagement.ModListPacketsReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginPacket), global::UserManagement.LoginPacket.Parser, new[]{ "SessionId", "UseServerDisplayName", "DisplayName", "AcceptingTrades" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.LoginPacket), global::UserManagement.LoginPacket.Parser, new[]{ "SessionId", "UseServerDisplayName", "DisplayName", "AcceptingTrades", "Mods", "Bio" }, null, null, null, null)
           }));
     }
     #endregion
@@ -67,6 +69,8 @@ namespace UserManagement {
       useServerDisplayName_ = other.useServerDisplayName_;
       displayName_ = other.displayName_;
       acceptingTrades_ = other.acceptingTrades_;
+      mods_ = other.mods_.Clone();
+      bio_ = other.bio_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -119,6 +123,33 @@ namespace UserManagement {
       }
     }
 
+    /// <summary>Field number for the "Mods" field.</summary>
+    public const int ModsFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::UserManagement.ModInfo> _repeated_mods_codec
+        = pb::FieldCodec.ForMessage(42, global::UserManagement.ModInfo.Parser);
+    private readonly pbc::RepeatedField<global::UserManagement.ModInfo> mods_ = new pbc::RepeatedField<global::UserManagement.ModInfo>();
+    /// <summary>
+    /// The mods this player has loaded, so others can be warned about items they can't receive. Empty from older mods
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::UserManagement.ModInfo> Mods {
+      get { return mods_; }
+    }
+
+    /// <summary>Field number for the "Bio" field.</summary>
+    public const int BioFieldNumber = 6;
+    private string bio_ = "";
+    /// <summary>
+    /// Their bio (see User.Bio). Empty clears it, and older mods always send it empty
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Bio {
+      get { return bio_; }
+      set {
+        bio_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as LoginPacket);
@@ -136,6 +167,8 @@ namespace UserManagement {
       if (UseServerDisplayName != other.UseServerDisplayName) return false;
       if (DisplayName != other.DisplayName) return false;
       if (AcceptingTrades != other.AcceptingTrades) return false;
+      if(!mods_.Equals(other.mods_)) return false;
+      if (Bio != other.Bio) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -146,6 +179,8 @@ namespace UserManagement {
       if (UseServerDisplayName != false) hash ^= UseServerDisplayName.GetHashCode();
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (AcceptingTrades != false) hash ^= AcceptingTrades.GetHashCode();
+      hash ^= mods_.GetHashCode();
+      if (Bio.Length != 0) hash ^= Bio.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -175,6 +210,11 @@ namespace UserManagement {
         output.WriteRawTag(32);
         output.WriteBool(AcceptingTrades);
       }
+      mods_.WriteTo(output, _repeated_mods_codec);
+      if (Bio.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Bio);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -194,6 +234,10 @@ namespace UserManagement {
       }
       if (AcceptingTrades != false) {
         size += 1 + 1;
+      }
+      size += mods_.CalculateSize(_repeated_mods_codec);
+      if (Bio.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Bio);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -217,6 +261,10 @@ namespace UserManagement {
       }
       if (other.AcceptingTrades != false) {
         AcceptingTrades = other.AcceptingTrades;
+      }
+      mods_.Add(other.mods_);
+      if (other.Bio.Length != 0) {
+        Bio = other.Bio;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -243,6 +291,14 @@ namespace UserManagement {
           }
           case 32: {
             AcceptingTrades = input.ReadBool();
+            break;
+          }
+          case 42: {
+            mods_.AddEntriesFrom(input, _repeated_mods_codec);
+            break;
+          }
+          case 50: {
+            Bio = input.ReadString();
             break;
           }
         }

@@ -202,8 +202,9 @@ namespace Authentication
         {
             lock (credentialStoreLock)
             {
-                // Create a new credential store if one doesn't already exist
-                if (!File.Exists(path))
+                // Create a new credential store if there's no copy of it at all. A damaged one throws instead, so
+                // nobody's login gets replaced by an empty store (see SafeFile)
+                if (!SafeFile.TryRead(path, CredentialStore.Parser.ParseFrom, out CredentialStore loaded, out string usedPath))
                 {
                     RaiseLogEntry(new LogEventArgs("No credentials database, generating a new one"));
 
@@ -216,18 +217,8 @@ namespace Authentication
                     // Stop here
                     return;
                 }
-
-                // Pull the store from disk
-                using (FileStream fs = new FileStream(path, FileMode.Open))
-                {
-                    using (CodedInputStream cis = new CodedInputStream(fs))
-                    {
-                        lock (credentialStoreLock)
-                        {
-                            credentialStore = CredentialStore.Parser.ParseFrom(cis);
-                        }
-                    }
-                }
+                if (usedPath != path) RaiseLogEntry(new LogEventArgs(string.Format("The credentials database was damaged or missing, so loaded {0} instead", usedPath), LogLevel.WARNING));
+                credentialStore = loaded;
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Loaded {0} credential{1}", credentialStore.Credentials.Count, credentialStore.Credentials.Count != 1 ? "s" : "")));
             }
@@ -241,18 +232,8 @@ namespace Authentication
         {
             lock (credentialStoreLock)
             {
-                // Create or truncate the credentials file
-                FileStream fs = File.Exists(path)
-                    ? File.Open(path, FileMode.Truncate, FileAccess.Write)
-                    : File.Create(path);
-                using (fs)
-                {
-                    using (CodedOutputStream cos = new CodedOutputStream(fs))
-                    {
-                        // Write the credential store to disk
-                        credentialStore.WriteTo(cos);
-                    }
-                }
+                // Write the credential store without ever leaving a half-written file (see SafeFile)
+                SafeFile.WriteAllBytes(path, credentialStore.ToByteArray());
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} credential{1}", credentialStore.Credentials.Count, credentialStore.Credentials.Count != 1 ? "s" : "")));
             }
@@ -368,6 +349,19 @@ namespace Authentication
         /// <param name="packet">Incoming packet</param>
         private void authenticatePacketHandler(string connectionId, AuthenticatePacket packet)
         {
+            // Turn away clients running a different version of the mod before anything else
+            if (packet.ProtocolVersion != PROTOCOL_VERSION)
+            {
+                string reason = packet.ProtocolVersion < PROTOCOL_VERSION
+                    ? "Your Phinix mod is out of date. Please update it to join this server."
+                    : "This server is running an older version of Phinix than your mod. Ask the server owner to update it.";
+                sendFailedAuthResponsePacket(connectionId, AuthFailureReason.ProtocolVersion, string.Format("{0} (Your version: {1}, server version: {2})", reason, packet.ProtocolVersion, PROTOCOL_VERSION));
+
+                RaiseLogEntry(new LogEventArgs(string.Format("Auth failure for {0}: Protocol version {1} doesn't match ours ({2})", connectionId.Highlight(HighlightType.ConnectionID), packet.ProtocolVersion, PROTOCOL_VERSION), LogLevel.INFO));
+
+                return;
+            }
+
             // Check the supplied credentials are of the appropriate type
             if (packet.AuthType != authType)
             {

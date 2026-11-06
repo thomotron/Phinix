@@ -24,14 +24,19 @@ namespace UserManagement {
     static UserReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChBVc2Vycy9Vc2VyLnByb3RvEg5Vc2VyTWFuYWdlbWVudCJmCgRVc2VyEgwK",
-            "BFV1aWQYASABKAkSEAoIVXNlcm5hbWUYBCABKAkSEwoLRGlzcGxheU5hbWUY",
-            "AiABKAkSEAoITG9nZ2VkSW4YAyABKAgSFwoPQWNjZXB0aW5nVHJhZGVzGAUg",
-            "ASgIYgZwcm90bzM="));
+            "ChBVc2Vycy9Vc2VyLnByb3RvEg5Vc2VyTWFuYWdlbWVudCKyAQoEVXNlchIM",
+            "CgRVdWlkGAEgASgJEhAKCFVzZXJuYW1lGAQgASgJEhMKC0Rpc3BsYXlOYW1l",
+            "GAIgASgJEhAKCExvZ2dlZEluGAMgASgIEhcKD0FjY2VwdGluZ1RyYWRlcxgF",
+            "IAEoCBILCgNCaW8YBiABKAkSEAoITGFzdFNlZW4YByABKAMSKwoGQ29sb255",
+            "GAggASgLMhsuVXNlck1hbmFnZW1lbnQuQ29sb255U3RhdHMibAoLQ29sb255",
+            "U3RhdHMSDAoETmFtZRgBIAEoCRINCgVCaW9tZRgCIAEoCRIMCgREYXlzGAMg",
+            "ASgFEhEKCUNvbG9uaXN0cxgEIAEoBRIPCgdBbmltYWxzGAUgASgFEg4KBldl",
+            "YWx0aBgGIAEoAmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.User), global::UserManagement.User.Parser, new[]{ "Uuid", "Username", "DisplayName", "LoggedIn", "AcceptingTrades" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.User), global::UserManagement.User.Parser, new[]{ "Uuid", "Username", "DisplayName", "LoggedIn", "AcceptingTrades", "Bio", "LastSeen", "Colony" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserManagement.ColonyStats), global::UserManagement.ColonyStats.Parser, new[]{ "Name", "Biome", "Days", "Colonists", "Animals", "Wealth" }, null, null, null, null)
           }));
     }
     #endregion
@@ -68,6 +73,9 @@ namespace UserManagement {
       displayName_ = other.displayName_;
       loggedIn_ = other.loggedIn_;
       acceptingTrades_ = other.acceptingTrades_;
+      bio_ = other.bio_;
+      lastSeen_ = other.lastSeen_;
+      colony_ = other.colony_ != null ? other.colony_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -131,6 +139,48 @@ namespace UserManagement {
       }
     }
 
+    /// <summary>Field number for the "Bio" field.</summary>
+    public const int BioFieldNumber = 6;
+    private string bio_ = "";
+    /// <summary>
+    /// A short line about themselves, shown when hovering over their name. Plain text, at most UserManager.MAX_BIO_LENGTH
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Bio {
+      get { return bio_; }
+      set {
+        bio_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "LastSeen" field.</summary>
+    public const int LastSeenFieldNumber = 7;
+    private long lastSeen_;
+    /// <summary>
+    /// When they last logged out, in Unix seconds by the server's clock. 0 if the server doesn't know
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long LastSeen {
+      get { return lastSeen_; }
+      set {
+        lastSeen_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Colony" field.</summary>
+    public const int ColonyFieldNumber = 8;
+    private global::UserManagement.ColonyStats colony_;
+    /// <summary>
+    /// The colony they're playing, shown on their player card. Unset if they haven't shared one
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::UserManagement.ColonyStats Colony {
+      get { return colony_; }
+      set {
+        colony_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as User);
@@ -149,6 +199,9 @@ namespace UserManagement {
       if (DisplayName != other.DisplayName) return false;
       if (LoggedIn != other.LoggedIn) return false;
       if (AcceptingTrades != other.AcceptingTrades) return false;
+      if (Bio != other.Bio) return false;
+      if (LastSeen != other.LastSeen) return false;
+      if (!object.Equals(Colony, other.Colony)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -160,6 +213,9 @@ namespace UserManagement {
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (LoggedIn != false) hash ^= LoggedIn.GetHashCode();
       if (AcceptingTrades != false) hash ^= AcceptingTrades.GetHashCode();
+      if (Bio.Length != 0) hash ^= Bio.GetHashCode();
+      if (LastSeen != 0L) hash ^= LastSeen.GetHashCode();
+      if (colony_ != null) hash ^= Colony.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -193,6 +249,18 @@ namespace UserManagement {
         output.WriteRawTag(40);
         output.WriteBool(AcceptingTrades);
       }
+      if (Bio.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Bio);
+      }
+      if (LastSeen != 0L) {
+        output.WriteRawTag(56);
+        output.WriteInt64(LastSeen);
+      }
+      if (colony_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Colony);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -215,6 +283,15 @@ namespace UserManagement {
       }
       if (AcceptingTrades != false) {
         size += 1 + 1;
+      }
+      if (Bio.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Bio);
+      }
+      if (LastSeen != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastSeen);
+      }
+      if (colony_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Colony);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -241,6 +318,18 @@ namespace UserManagement {
       }
       if (other.AcceptingTrades != false) {
         AcceptingTrades = other.AcceptingTrades;
+      }
+      if (other.Bio.Length != 0) {
+        Bio = other.Bio;
+      }
+      if (other.LastSeen != 0L) {
+        LastSeen = other.LastSeen;
+      }
+      if (other.colony_ != null) {
+        if (colony_ == null) {
+          Colony = new global::UserManagement.ColonyStats();
+        }
+        Colony.MergeFrom(other.Colony);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -271,6 +360,311 @@ namespace UserManagement {
           }
           case 40: {
             AcceptingTrades = input.ReadBool();
+            break;
+          }
+          case 50: {
+            Bio = input.ReadString();
+            break;
+          }
+          case 56: {
+            LastSeen = input.ReadInt64();
+            break;
+          }
+          case 66: {
+            if (colony_ == null) {
+              Colony = new global::UserManagement.ColonyStats();
+            }
+            input.ReadMessage(Colony);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// A few facts about the colony a player is playing, shown on their player card
+  /// </summary>
+  public sealed partial class ColonyStats : pb::IMessage<ColonyStats> {
+    private static readonly pb::MessageParser<ColonyStats> _parser = new pb::MessageParser<ColonyStats>(() => new ColonyStats());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ColonyStats> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::UserManagement.UserReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ColonyStats() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ColonyStats(ColonyStats other) : this() {
+      name_ = other.name_;
+      biome_ = other.biome_;
+      days_ = other.days_;
+      colonists_ = other.colonists_;
+      animals_ = other.animals_;
+      wealth_ = other.wealth_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ColonyStats Clone() {
+      return new ColonyStats(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    /// <summary>
+    /// The colony's name, at most UserManager.MAX_COLONY_NAME_LENGTH
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Biome" field.</summary>
+    public const int BiomeFieldNumber = 2;
+    private string biome_ = "";
+    /// <summary>
+    /// The biome it's in, as their game labels it
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Biome {
+      get { return biome_; }
+      set {
+        biome_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Days" field.</summary>
+    public const int DaysFieldNumber = 3;
+    private int days_;
+    /// <summary>
+    /// Days since the game started
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Days {
+      get { return days_; }
+      set {
+        days_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Colonists" field.</summary>
+    public const int ColonistsFieldNumber = 4;
+    private int colonists_;
+    /// <summary>
+    /// Free colonists on the map
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Colonists {
+      get { return colonists_; }
+      set {
+        colonists_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Animals" field.</summary>
+    public const int AnimalsFieldNumber = 5;
+    private int animals_;
+    /// <summary>
+    /// Tame animals on the map
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Animals {
+      get { return animals_; }
+      set {
+        animals_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Wealth" field.</summary>
+    public const int WealthFieldNumber = 6;
+    private float wealth_;
+    /// <summary>
+    /// The map's total wealth, in silver
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float Wealth {
+      get { return wealth_; }
+      set {
+        wealth_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ColonyStats);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ColonyStats other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if (Biome != other.Biome) return false;
+      if (Days != other.Days) return false;
+      if (Colonists != other.Colonists) return false;
+      if (Animals != other.Animals) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Wealth, other.Wealth)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Biome.Length != 0) hash ^= Biome.GetHashCode();
+      if (Days != 0) hash ^= Days.GetHashCode();
+      if (Colonists != 0) hash ^= Colonists.GetHashCode();
+      if (Animals != 0) hash ^= Animals.GetHashCode();
+      if (Wealth != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Wealth);
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (Biome.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Biome);
+      }
+      if (Days != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Days);
+      }
+      if (Colonists != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(Colonists);
+      }
+      if (Animals != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(Animals);
+      }
+      if (Wealth != 0F) {
+        output.WriteRawTag(53);
+        output.WriteFloat(Wealth);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Biome.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Biome);
+      }
+      if (Days != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Days);
+      }
+      if (Colonists != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Colonists);
+      }
+      if (Animals != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Animals);
+      }
+      if (Wealth != 0F) {
+        size += 1 + 4;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ColonyStats other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Biome.Length != 0) {
+        Biome = other.Biome;
+      }
+      if (other.Days != 0) {
+        Days = other.Days;
+      }
+      if (other.Colonists != 0) {
+        Colonists = other.Colonists;
+      }
+      if (other.Animals != 0) {
+        Animals = other.Animals;
+      }
+      if (other.Wealth != 0F) {
+        Wealth = other.Wealth;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            Biome = input.ReadString();
+            break;
+          }
+          case 24: {
+            Days = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            Colonists = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            Animals = input.ReadInt32();
+            break;
+          }
+          case 53: {
+            Wealth = input.ReadFloat();
             break;
           }
         }

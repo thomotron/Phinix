@@ -1,6 +1,8 @@
 syntax = "proto3";
 package UserManagement;
 
+import "Packets/ModListPackets.proto";
+
 message LoginPacket
 {
     string SessionId = 1;
@@ -10,4 +12,10 @@ message LoginPacket
     string DisplayName = 3;
     
     bool AcceptingTrades = 4;
+
+    // The mods this player has loaded, so others can be warned about items they can't receive. Empty from older mods
+    repeated ModInfo Mods = 5;
+
+    // Their bio (see User.Bio). Empty clears it, and older mods always send it empty
+    string Bio = 6;
 }

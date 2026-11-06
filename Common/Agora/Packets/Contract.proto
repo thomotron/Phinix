@@ -1,0 +1,45 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+
+// A contract is a repeating deal between two players: "send me these goods every N hours, K times, and I'll pay this
+// much for each delivery".
+//
+// The BUYER proposes it and pays for every delivery up front. Those items leave the buyer's map and the server holds
+// them (just like a bounty's reward). Each time the SUPPLIER delivers, the server hands the goods to the buyer and
+// one delivery's worth of payment to the supplier. That way nobody has to trust anybody:
+//   - the supplier knows the payment exists, because the server is already holding it
+//   - the buyer only pays for deliveries that actually happen, because anything unspent comes back to them
+//
+// Times are real-world Unix seconds (like Python's time.time()), because every player's game has its own clock.
+
+enum ContractState
+{
+  Proposed = 0;                           // Waiting for the supplier to accept or decline
+  Active = 1;                             // Accepted, deliveries are happening
+};
+
+message Contract
+{
+  string ContractId = 1;
+  string BuyerUuid = 2;
+  string SupplierUuid = 3;
+
+  // What the supplier sends each delivery. A description, like a bounty's wanted items: Quality is the lowest accepted
+  repeated Trading.ProtoThing Goods = 4;
+
+  // What the buyer pays each delivery. Also a description (def name and amount)
+  repeated Trading.ProtoThing PaymentPerDelivery = 5;
+
+  // The real payment items the server is holding: PaymentPerDelivery times the deliveries still to come
+  repeated Trading.ProtoThing HeldPayment = 6;
+
+  int32 TotalDeliveries = 7;
+  int32 DeliveriesMade = 8;
+  int32 IntervalHours = 9;                // Each delivery has its own window this long, one after another
+  string Note = 10;
+  ContractState State = 11;
+  int64 ProposedTime = 12;
+  int64 AcceptedTime = 13;                // 0 until accepted
+};

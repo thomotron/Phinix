@@ -244,8 +244,8 @@ namespace PhinixClient.GUI
                 string formattedMessage = string.Format(
                     "[{0:HH:mm}] {1}: {2}",
                     chatMessage.Timestamp,
-                    Client.Instance.Settings.ShowNameFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName),
-                    Client.Instance.Settings.ShowChatFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.Message : TextHelper.StripRichText(chatMessage.Message)
+                    chatMessage.Status == ChatMessageStatus.CONFIRMED ? Client.ShownName(chatMessage.User.DisplayName) : TextHelper.StripRichText(chatMessage.User.DisplayName),
+                    ScreenshotSharing.ShowLinks(Emoji.Placeholders(Emoji.Mark(Client.Instance.Settings.ShowChatFormatting && chatMessage.Status == ChatMessageStatus.CONFIRMED ? chatMessage.Message : TextHelper.StripRichText(chatMessage.Message), new List<string>()), hidden: false), colour: false)
                 );
 
                 // Calculate the message sizing
@@ -284,7 +284,7 @@ namespace PhinixClient.GUI
                 height: timestampSize.y
             );
 
-            string displayName = Client.Instance.Settings.ShowNameFormatting ? chatMessage.User.DisplayName : TextHelper.StripRichText(chatMessage.User.DisplayName);
+            string displayName = Client.ShownName(chatMessage.User.DisplayName);
             Vector2 displayNameSize = Text.CurFontStyle.CalcSize(new GUIContent(displayName));
             Rect displayNameRect = new Rect(
                 x: inRect.x + timestampRect.width,
@@ -295,6 +295,13 @@ namespace PhinixClient.GUI
 
             string message = chatMessage.Message;
             if (!Client.Instance.Settings.ShowChatFormatting) message = TextHelper.StripRichText(message);
+
+            // :shortcodes: become emojis
+            List<string> emojis = new List<string>();
+            message = Emoji.Mark(message, emojis);
+
+            // A shared screenshot's tag shows as a link (clicking the message opens it, see below)
+            message = ScreenshotSharing.ShowLinks(message, colour: true);
 
             // Put all the pieces together
             string formattedText = string.Format("{0}{1}: {2}", timestamp, displayName, message);
@@ -319,7 +326,10 @@ namespace PhinixClient.GUI
             }
 
             // Draw the message
-            Widgets.Label(inRect, formattedText);
+            Emoji.Label(inRect, formattedText, emojis);
+
+            // Hovering over their name shows their bio, if they've written one
+            if (chatMessage.User.Uuid != null && Client.Instance.TryGetBio(chatMessage.User.Uuid, out string bio)) TooltipHandler.TipRegion(displayNameRect, bio);
 
             // Handle any button clicks
             if (Widgets.ButtonInvisible(timestampRect, false))
@@ -332,7 +342,15 @@ namespace PhinixClient.GUI
             }
             else if (Widgets.ButtonInvisible(inRect, false))
             {
-                drawMessageContextMenu(chatMessage);
+                // Left-clicking a message with a screenshot opens it; right-click still gives the menu
+                if (Event.current.button == 0 && ScreenshotSharing.TryFindId(chatMessage.Message, out string screenshotId))
+                {
+                    ScreenshotSharing.Open(screenshotId);
+                }
+                else
+                {
+                    drawMessageContextMenu(chatMessage);
+                }
             }
         }
 
@@ -344,8 +362,25 @@ namespace PhinixClient.GUI
             // Only add the trade option if this is not our message
             if (user.Uuid != Client.Instance.Uuid)
             {
+                // Their card: bio, last seen, mods
+                if (Client.Instance.FeatureEnabled(Features.PROFILES)) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_viewProfile".Translate(), () => Find.WindowStack.Add(new PlayerCardWindow(user.Uuid))));
+
                 // Trade with...
                 items.Add(new FloatMenuOption("Phinix_chat_contextMenu_tradeWith".Translate(TextHelper.StripRichText(user.DisplayName)), () => Client.Instance.CreateTrade(user.Uuid)));
+
+                // Add/Remove friend
+                if (!Client.Instance.FriendsEnabled)
+                {
+                    // Switched off on this server
+                }
+                else if (Client.Instance.IsFriend(user.Uuid))
+                {
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_removeFriend".Translate(), () => Client.Instance.RemoveFriend(user.Uuid)));
+                }
+                else
+                {
+                    items.Add(new FloatMenuOption("Phinix_chat_contextMenu_addFriend".Translate(), () => Client.Instance.AddFriend(user.Uuid)));
+                }
 
                 // Block/Unblock user
                 if (Client.Instance.Settings.BlockedUsers.Contains(user.Uuid))
@@ -360,6 +395,9 @@ namespace PhinixClient.GUI
                 }
             }
 
+            // Dev mode only: their name with its formatting tags, for looking into names that draw wrong
+            if (Prefs.DevMode) items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyRawName".Translate(), () => GUIUtility.systemCopyBuffer = user.DisplayName));
+
             // Draw the context menu
             if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));
         }
@@ -369,6 +407,11 @@ namespace PhinixClient.GUI
             // Create and populate a list of context menu items
             List<FloatMenuOption> items = new List<FloatMenuOption>();
 
+            if (ScreenshotSharing.TryFindId(chatMessage.Message, out string screenshotId))
+            {
+                items.Add(new FloatMenuOption("Phinix_screenshot_view".Translate(), () => ScreenshotSharing.Open(screenshotId)));
+            }
+
             foreach (string url in parseUrls(chatMessage.Message.StripTags()))
             {
                 string ellipsisedUrl = url.Length > 100 ? $"{url.Substring(0, 100)}..." : url;
@@ -376,6 +419,12 @@ namespace PhinixClient.GUI
             }
 
             items.Add(new FloatMenuOption("Phinix_chat_contextMenu_copyToClipboard".Translate(), () => GUIUtility.systemCopyBuffer = chatMessage.Message));
+
+            // Someone else's message the server has confirmed (so it has its real ID) can be reported
+            if (chatMessage.SenderUuid != Client.Instance.Uuid && chatMessage.Status == ChatMessageStatus.CONFIRMED)
+            {
+                items.Add(new FloatMenuOption("Phinix_report_menuOption".Translate(), () => Find.WindowStack.Add(new ReportMessageWindow(MessageReports.ForChatMessage(chatMessage)))));
+            }
 
             // Draw the context menu
             if (items.Count > 0) Find.WindowStack.Add(new FloatMenu(items));

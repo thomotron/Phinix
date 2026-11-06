@@ -38,10 +38,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientUserManager.cs" />
+    <Compile Include="CompanionClaim.cs" />
+    <Compile Include="Features.cs" />
     <Compile Include="LoginEventArgs.cs" />
+    <Compile Include="ModListEventArgs.cs" />
     <Compile Include="Packets\compiled\LoginFailureReason.cs" />
     <Compile Include="Packets\compiled\LoginPacket.cs" />
     <Compile Include="Packets\compiled\LoginResponsePacket.cs" />
+    <Compile Include="Packets\compiled\ModListPackets.cs" />
     <Compile Include="Packets\compiled\UserSyncPacket.cs" />
     <Compile Include="Packets\compiled\UserUpdatePacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

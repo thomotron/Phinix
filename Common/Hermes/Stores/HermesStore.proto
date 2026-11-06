@@ -1,0 +1,32 @@
+syntax = "proto3";
+package Hermes;
+
+import "Packets/HermesPackets.proto";
+import "Packets/EscrowPackets.proto";
+
+// What the server saves to disk for Hermes.
+//
+// Only gifts are saved, because they're real items that would vanish otherwise. Private messages are kept in memory
+// only, the same as public chat, so a server restart clears them.
+
+// A gift waiting for its recipient to log in
+message PendingGift
+{
+  string RecipientUuid = 1;
+  GiftDeliveryPacket Gift = 2;
+  bool Sent = 3;                          // Sent at least once and waiting to be confirmed, so it can't expire
+  bool Waiting = 4;                       // The recipient was asked whether to take it and hasn't answered, so it can
+};
+
+message HermesStore
+{
+  repeated PendingGift PendingGifts = 1;
+
+  // Receipts for gifts the server accepted, so a client that lost its connection can find out what happened
+  repeated AcceptedToken AcceptedTokens = 2;
+
+  // Everyone who has logged in with a mod that understands gifts. Gifts to anyone else are refused, so they can't
+  // end up waiting forever for someone who never updates
+  repeated string GiftCapableUuids = 3;
+  repeated string AckingUuids = 4;        // Players whose client confirms gifts, so theirs are kept until confirmed
+};

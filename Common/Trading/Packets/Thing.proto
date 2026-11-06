@@ -2,6 +2,7 @@ syntax = "proto3";
 package Trading;
 
 import "Packets/Quality.proto";
+import "Packets/ProtoAnimal.proto";
 
 message ProtoThing
 {
@@ -16,4 +17,177 @@ message ProtoThing
     int32 HitPoints = 5;
 
     ProtoThing InnerProtoThing = 6;
+
+    // Set when this thing is a tame animal, empty otherwise
+    ProtoAnimal Animal = 7;
+
+    // Set when this thing is a colonist, empty otherwise
+    ProtoColonist Colonist = 8;
+
+    // The whole item as the sender's game saves it, so anything mods keep on it (art, upgrades, rot, biocoding...)
+    // arrives too. Empty for animals, colonists and anything holding a pawn, and from older mods. The receiver falls
+    // back on the fields above when it can't load it
+    string SaveData = 9;
+
+    // The mods this item and its material come from, Core left out. Lets the receiver name a mod it's missing
+    repeated ProtoMod Mods = 10;
+
+    // The art on this item as the sender sees it, empty if it has none. Kept apart from SaveData so the art survives
+    // even when the receiver can't load that
+    ProtoArt Art = 11;
+
+    // Set on a colonist's gear that's biocoded to that colonist, so it can be biocoded to them again when they arrive.
+    // Biocoded items can't be traded on their own
+    bool BiocodedToCarrier = 12;
+
+    // Names the very pawn an animal or colonist was made from (the sender's world and the pawn's ID), so if it comes
+    // back to that world (a cancelled trade, market stock taken back) the original returns instead of a rebuilt copy
+    string OriginId = 13;
+
+    // What one of this is worth in silver in the sender's game (for a stack, each one). Shown next to what it's worth
+    // in the receiver's game, so players can see when a mod has changed prices on one side. 0 from older mods
+    float MarketValue = 14;
+};
+
+// An artwork: a sculpture, or the art on a weapon or piece of furniture
+message ProtoArt
+{
+    string Title = 1;
+    string Author = 2;
+
+    // The description as text. Art often shows an event (a "tale") from the sender's world, which can't come along,
+    // so the receiver would otherwise make up a different one
+    string Description = 3;
+};
+
+// A mod an item comes from
+message ProtoMod
+{
+    string PackageId = 1;   // e.g. "oskarpotocki.vanillafactionsexpanded.core", always lower case
+
+    string Name = 2;
+};
+
+// A colonist being traded. Carried inside ProtoThing.Colonist.
+// This lives in Thing.proto rather than its own file because it holds ProtoThings (their gear) and ProtoThing
+// holds it, and protobuf files aren't allowed to import each other in a circle.
+message ProtoColonist
+{
+    // Identification
+    string DefName = 1;                     // Race ThingDef name ("Human", or a modded race)
+    string KindDefName = 2;                 // PawnKindDef name
+    string FirstName = 3;
+    string NickName = 4;
+    string LastName = 5;
+
+    // Biology & age
+    int64 BiologicalAgeTicks = 6;
+    int64 ChronologicalAgeTicks = 7;
+    bool IsFemale = 8;
+    int32 DevelopmentalStage = 9;           // RimWorld's DevelopmentalStage as a number (baby, child, adult)
+
+    // Story
+    string ChildhoodDefName = 10;           // BackstoryDef names, empty if they don't have one
+    string AdulthoodDefName = 11;
+    repeated ProtoTrait Traits = 12;        // Only traits they chose or were born with; gene traits come back with the genes
+    repeated ProtoSkill Skills = 13;
+
+    // Health conditions, including implants, scars and missing parts
+    repeated ProtoHediff Hediffs = 14;
+
+    // Genes (Biotech)
+    string XenotypeDefName = 15;            // Empty for a custom xenotype
+    string CustomXenotypeName = 16;         // Name of a custom xenotype, empty otherwise
+    repeated string Endogenes = 17;         // GeneDef names they were born with
+    repeated string Xenogenes = 18;         // GeneDef names from their xenotype or an implanter
+
+    // Looks
+    ProtoAppearance Appearance = 19;
+
+    // Gear they take with them
+    repeated ProtoThing Apparel = 20;       // Worn clothes and armour
+    repeated ProtoThing Equipment = 21;     // Held weapon
+    repeated ProtoThing Inventory = 22;     // Things in their pockets (e.g. packed meals, medicine)
+
+    // Royal titles (Royalty), as total honor per faction. The receiver works the titles out again from that, so they
+    // follow the receiving world's own (possibly modded) title ladder
+    repeated ProtoHonor Honor = 23;
+
+    // Learned psycasts, empty if they have none. The psylink itself travels with the other health conditions
+    ProtoPsycasts Psycasts = 24;
+
+    // Immunity to diseases they have or had recently. Without it a sick colonist starts over at no immunity
+    repeated ProtoImmunity Immunities = 25;
+};
+
+message ProtoPsycasts
+{
+    repeated string VanillaPsycasts = 1;    // Royalty's AbilityDef names
+    ProtoVpePsycasts Vpe = 2;               // Set when the sender uses Vanilla Psycasts Expanded, empty otherwise
+};
+
+// Vanilla Psycasts Expanded keeps its own progress in a hidden "psylink" condition, and its psycasts in the
+// Vanilla Expanded Framework's ability list rather than Royalty's
+message ProtoVpePsycasts
+{
+    int32 Level = 1;                        // Psylink level
+    float Experience = 2;                   // Progress towards the next level
+    int32 Points = 3;                       // Unspent points
+    int32 StatPoints = 4;                   // Points spent on stats
+    repeated string Paths = 5;              // Unlocked PsycasterPathDef names
+    repeated string LockedPaths = 6;        // Paths they unlocked but can't use right now (e.g. a meme they no longer follow)
+    repeated string MeditationFoci = 7;     // Unlocked MeditationFocusDef names
+    repeated string Abilities = 8;          // Learned VEF AbilityDef names
+    repeated ProtoPsySet PsySets = 9;
+    int32 PsySetIndex = 10;                 // Which psyset the gizmos show, equal to the number of psysets for "all"
+    int32 MaxLevelFromTitles = 11;
+};
+
+// A named group of psycasts the player made to keep the gizmo bar short
+message ProtoPsySet
+{
+    string Name = 1;
+    repeated string Abilities = 2;          // VEF AbilityDef names
+};
+
+message ProtoHonor
+{
+    string FactionDefName = 1;              // FactionDef name of the faction that gives the titles, e.g. "Empire"
+    int32 TotalHonor = 2;                   // Honor they have now, plus what every title up to their current one cost
+};
+
+message ProtoTrait
+{
+    string DefName = 1;
+    int32 Degree = 2;                       // Which version of the trait, e.g. "Optimist" vs "Pessimist" share a def
+};
+
+message ProtoSkill
+{
+    string DefName = 1;
+    int32 Level = 2;
+    float XpSinceLastLevel = 3;             // Progress towards the next level
+    int32 Passion = 4;                      // 0 none, 1 minor, 2 major (or a modded passion)
+};
+
+message ProtoAppearance
+{
+    string BodyTypeDefName = 1;
+    string HeadTypeDefName = 2;
+    string HairDefName = 3;
+    string BeardDefName = 4;
+    string FaceTattooDefName = 5;
+    string BodyTattooDefName = 6;
+    string FurDefName = 7;
+    string FavoriteColorDefName = 8;
+    ProtoColor HairColor = 9;
+    ProtoColor SkinColorOverride = 10;      // Only set when something overrides the skin colour from genes
+};
+
+message ProtoColor
+{
+    float R = 1;
+    float G = 2;
+    float B = 3;
+    float A = 4;
 };

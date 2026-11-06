@@ -1,0 +1,44 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Bounty.proto";
+import "Packets/BountyPackets.proto";
+import "Packets/Listing.proto";
+import "Packets/Contract.proto";
+import "Packets/EscrowPackets.proto";
+import "Packets/Shop.proto";
+
+// What the server saves to disk for bounties, and the market board too.
+//
+// (It's still called BountyStore because it started out holding only bounties. Renaming the message wouldn't change
+// the saved bytes at all, but keeping the name avoids touching every file that uses it.)
+//
+// This has to be saved, unlike chat or the market board, because bounties hold real items in escrow. If the server
+// forgot them on restart, those items would simply vanish.
+
+// A delivery waiting for its recipient to log in
+message PendingBountyDelivery
+{
+  string RecipientUuid = 1;
+  BountyDeliveryPacket Delivery = 2;
+};
+
+message BountyStore
+{
+  repeated Bounty Bounties = 1;
+  repeated PendingBountyDelivery PendingDeliveries = 2;
+
+  // The old market board, replaced by player markets (Shops below). Kept so old save files still load; the server
+  // ignores it now. (Added after the first two fields, so files written before it existed load fine too)
+  repeated Listing Listings = 3;
+
+  // Contracts, added the same way. They hold the buyers' payments, so they must be saved
+  repeated Contract Contracts = 4;
+
+  // Receipts for items the server accepted, so a client that lost its connection can find out what happened
+  repeated AcceptedToken AcceptedTokens = 5;
+
+  // Player markets, added the same way. They hold the owners' stock and takings, so they must be saved
+  repeated Shop Shops = 6;
+  repeated string AckingUuids = 7;        // Players whose client confirms deliveries, so theirs are kept until confirmed
+};

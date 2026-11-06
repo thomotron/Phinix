@@ -1,0 +1,54 @@
+syntax = "proto3";
+package Hermes;
+
+// Screenshots shared in chat. A player takes one with Phime (never a picture from their computer), the server keeps it
+// in memory for a short while (LifetimeMinutes, two hours by default), and the chat message carries a tag that Phime
+// shows as a link. Clicking it asks the server for the picture. Players on the original Phinix just see the tag.
+//
+// These packets are handled by their own module ("Screenshots", see ServerScreenshots), so a server without it simply
+// never sends ScreenshotsInfoPacket and Phime hides the button.
+
+// Server -> client, right after logging in: this server keeps screenshots, and its limits
+message ScreenshotsInfoPacket
+{
+  bool Enabled = 1;
+  int32 MaxBytes = 2;                     // Largest picture the server takes
+  int32 LifetimeMinutes = 3;              // How long it keeps each one
+};
+
+// Client -> server: keep this screenshot. The answer comes back as an UploadScreenshotResponsePacket
+message UploadScreenshotPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;                       // Matches the answer to this upload
+  bytes Jpeg = 4;
+};
+
+// Server -> client: whether the screenshot was kept, and the ID to put in chat if it was
+message UploadScreenshotResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string ScreenshotId = 3;
+  string FailureMessage = 4;
+};
+
+// Client -> server: send me this screenshot
+message GetScreenshotPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string ScreenshotId = 3;
+};
+
+// Server -> client: the screenshot asked for, or Found = false when it has expired or never existed
+message ScreenshotPacket
+{
+  string ScreenshotId = 1;
+  bool Found = 2;
+  string OwnerUuid = 3;                   // Who took it, so the client can hide pictures from blocked players
+  bytes Jpeg = 4;
+  int64 TakenTime = 5;                    // Unix seconds
+  int64 ExpiresTime = 6;                  // Unix seconds
+};

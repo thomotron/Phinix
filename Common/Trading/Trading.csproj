@@ -45,6 +45,8 @@
     <Compile Include="Packets\compiled\CompleteTradePacket.cs" />
     <Compile Include="Packets\compiled\CreateTradePacket.cs" />
     <Compile Include="Packets\compiled\CreateTradeResponsePacket.cs" />
+    <Compile Include="Packets\compiled\EscrowPackets.cs" />
+    <Compile Include="Packets\compiled\ProtoAnimal.cs" />
     <Compile Include="Packets\compiled\Quality.cs" />
     <Compile Include="Packets\compiled\SyncTradesPacket.cs" />
     <Compile Include="Packets\compiled\Thing.cs" />

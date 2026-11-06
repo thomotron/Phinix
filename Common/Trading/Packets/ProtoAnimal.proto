@@ -1,0 +1,51 @@
+syntax = "proto3";
+package Trading;
+
+// A tame animal being traded. Carried inside ProtoThing.Animal.
+message ProtoAnimal
+{
+    // Identification
+    string DefName = 1;                     // Species ThingDef name (e.g. "Muffalo", "Thrumbo")
+    string KindDefName = 2;                 // PawnKindDef name
+    string CustomName = 3;                  // Nickname, empty if unnamed
+
+    // Biology & age
+    int64 BiologicalAgeTicks = 4;
+    int64 ChronologicalAgeTicks = 5;
+    bool IsFemale = 6;
+
+    // Training: TrainableDef name -> steps learned (keeps partial progress, e.g. halfway through "Release")
+    map<string, int32> TrainingSteps = 7;
+
+    // Health conditions (injuries, missing parts, pregnancy, etc.)
+    repeated ProtoHediff Hediffs = 8;
+
+    // Name of the colonist this animal is bonded to, empty if none.
+    // The receiving colony can't link to that pawn, so this is informational only.
+    string BondedPawnName = 9;
+
+    // Immunity to diseases they have or had recently
+    repeated ProtoImmunity Immunities = 10;
+};
+
+// How far a pawn has got towards being immune to a disease. The game keeps this apart from the disease itself,
+// and it stays for a while after they recover.
+message ProtoImmunity
+{
+    string DefName = 1;                     // HediffDef name of the disease (e.g. "Flu", "Plague")
+    string SourceDefName = 2;               // HediffDef name of what gave the immunity, usually the disease itself
+    float Immunity = 3;                     // 0 to 1, fully immune at 1
+};
+
+// A single health condition on an animal.
+message ProtoHediff
+{
+    string DefName = 1;                     // HediffDef name (e.g. "MissingBodyPart", "Pregnant")
+    string BodyPartDefName = 2;             // BodyPartDef name, empty for whole-body conditions
+    int32 BodyPartIndex = 3;                // Which part when there are several of the same def (e.g. left vs right leg)
+    float Severity = 4;
+    bool Permanent = 5;                     // Old scars and wounds that never heal, rather than fresh ones that bleed
+    float TendQuality = 6;                  // How well it was bandaged, 0 if never tended
+    int32 TendTicksLeft = 7;                // How long the bandage lasts, 0 or less if it has run out
+    int32 Level = 8;                        // Level of a levelled condition like a psylink, 0 for everything else
+};

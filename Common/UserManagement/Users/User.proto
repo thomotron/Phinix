@@ -12,4 +12,21 @@ message User
     bool LoggedIn = 3;
     
     bool AcceptingTrades = 5;
+
+    string Bio = 6;         // A short line about themselves, shown when hovering over their name. Plain text, at most UserManager.MAX_BIO_LENGTH
+
+    int64 LastSeen = 7;     // When they last logged out, in Unix seconds by the server's clock. 0 if the server doesn't know
+
+    ColonyStats Colony = 8; // The colony they're playing, shown on their player card. Unset if they haven't shared one
+}
+
+// A few facts about the colony a player is playing, shown on their player card
+message ColonyStats
+{
+    string Name = 1;        // The colony's name, at most UserManager.MAX_COLONY_NAME_LENGTH
+    string Biome = 2;       // The biome it's in, as their game labels it
+    int32 Days = 3;         // Days since the game started
+    int32 Colonists = 4;    // Free colonists on the map
+    int32 Animals = 5;      // Tame animals on the map
+    float Wealth = 6;       // The map's total wealth, in silver
 }

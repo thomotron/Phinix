@@ -47,18 +47,35 @@ namespace Chat
         private int messageHistoryCapacity;
 
         /// <summary>
+        /// Limits how many chat messages each user can send in a short period, to stop spam.
+        /// </summary>
+        private RateLimiter messageRateLimiter;
+
+        /// <summary>
+        /// Longest a chat message can be, in characters (after unsafe formatting is removed).
+        /// </summary>
+        /// <remarks>
+        /// The mod's chat box doesn't limit length, and a modified client could send a message megabytes long that the
+        /// server would then send to every player and keep in its history. Anything longer is cut short.
+        /// </remarks>
+        public const int MAX_MESSAGE_LENGTH = 1000;
+
+        /// <summary>
         /// Initialises a new <see cref="ServerChat"/> instance.
         /// </summary>
         /// <param name="netServer"></param>
         /// <param name="authenticator"></param>
         /// <param name="userManager"></param>
         /// <param name="messageHistoryCapacity"></param>
-        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity)
+        /// <param name="rateLimitMessages">Maximum messages a user can send within <paramref name="rateLimitSeconds"/></param>
+        /// <param name="rateLimitSeconds">Length of the rate limit window in seconds</param>
+        public ServerChat(NetServer netServer, ServerAuthenticator authenticator, ServerUserManager userManager, int messageHistoryCapacity, int rateLimitMessages = 5, int rateLimitSeconds = 10)
         {
             this.netServer = netServer;
             this.authenticator = authenticator;
             this.userManager = userManager;
             this.messageHistoryCapacity = messageHistoryCapacity;
+            this.messageRateLimiter = new RateLimiter(rateLimitMessages, TimeSpan.FromSeconds(rateLimitSeconds));
 
             this.messageHistory = new List<ChatMessage>();
 
@@ -94,18 +111,8 @@ namespace Chat
                     ChatMessages = { messageHistory.Select(message => message.ToChatMessageStore()) }
                 };
 
-                // Create or truncate the file
-                FileStream fs = File.Exists(path)
-                    ? File.Open(path, FileMode.Truncate, FileAccess.Write)
-                    : File.Create(path);
-                using (fs)
-                {
-                    using (CodedOutputStream cos = new CodedOutputStream(fs))
-                    {
-                        // Write the store to disk
-                        store.WriteTo(cos);
-                    }
-                }
+                // Write the store without ever leaving a half-written file (see SafeFile)
+                SafeFile.WriteAllBytes(path, store.ToByteArray());
 
                 RaiseLogEntry(new LogEventArgs(string.Format("Saved {0} chat message{1}", messageHistory.Count, messageHistory.Count != 1 ? "s" : "")));
             }
@@ -120,8 +127,8 @@ namespace Chat
         {
             lock (messageHistoryLock)
             {
-                // Create a new store if one doesn't already exist
-                if (!File.Exists(path))
+                // Create a new store if there's no copy of it at all (see SafeFile)
+                if (!SafeFile.TryRead(path, ChatHistoryStore.Parser.ParseFrom, out ChatHistoryStore store, out string usedPath))
                 {
                     RaiseLogEntry(new LogEventArgs("No chat history file, generating a new one"));
 
@@ -134,16 +141,7 @@ namespace Chat
                     // Stop here
                     return;
                 }
-
-                // Pull the store from disk
-                ChatHistoryStore store;
-                using (FileStream fs = new FileStream(path, FileMode.Open))
-                {
-                    using (CodedInputStream cis = new CodedInputStream(fs))
-                    {
-                        store = ChatHistoryStore.Parser.ParseFrom(cis);
-                    }
-                }
+                if (usedPath != path) RaiseLogEntry(new LogEventArgs(string.Format("The chat history was damaged or missing, so loaded {0} instead", usedPath), LogLevel.WARNING));
 
                 // Parse the messages
                 messageHistory = store.ChatMessages.Select(ChatMessage.FromChatMessageStore).ToList();
@@ -234,6 +232,18 @@ namespace Chat
                 return;
             }
 
+            // Refuse messages from users sending too many too quickly
+            // The client shows a refused message as failed, so the sender knows it didn't go through
+            if (!messageRateLimiter.TryAct(packet.Uuid))
+            {
+                RaiseLogEntry(new LogEventArgs(string.Format("Rate limited a chat message from {0}", packet.Uuid.Highlight(HighlightType.UUID)), LogLevel.DEBUG));
+
+                sendFailedChatMessageResponse(connectionId, packet.MessageId);
+
+                // Stop here
+                return;
+            }
+
             // Get a copy of the packet's original message ID
             string originalMessageId = packet.MessageId;
 
@@ -241,7 +251,8 @@ namespace Chat
             string newMessageId = Guid.NewGuid().ToString();
 
             // Sanitise the message content
-            string sanitisedMessage = TextHelper.SanitiseRichText(packet.Message);
+            string sanitisedMessage = TextHelper.SanitiseRichText(packet.Message ?? "");
+            if (sanitisedMessage.Length > MAX_MESSAGE_LENGTH) sanitisedMessage = sanitisedMessage.Substring(0, MAX_MESSAGE_LENGTH);
 
             // Get the current time
             DateTime timestamp = DateTime.UtcNow;
@@ -386,7 +397,9 @@ namespace Chat
         /// <param name="originalMessageId">The original message ID</param>
         private void sendFailedChatMessageResponse(string connectionId, string originalMessageId)
         {
-            sendChatMessageResponse(connectionId, false, originalMessageId, "", "");
+            // Echo the original ID back as the "new" ID, since clients replace a message's ID with this even on failure
+            // Sending an empty ID would give every refused message the same ID and make them draw on top of each other
+            sendChatMessageResponse(connectionId, false, originalMessageId, originalMessageId, "");
         }
     }
 }

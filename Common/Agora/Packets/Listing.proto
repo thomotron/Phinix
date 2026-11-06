@@ -1,0 +1,24 @@
+syntax = "proto3";
+package Agora;
+
+// Thing.proto lives in the Trading project. compile-proto.sh tells protoc to look there too,
+// so this path is relative to Common/Trading/
+import "Packets/Thing.proto";
+
+// Whether someone has something to give or is looking for something
+enum ListingType
+{
+  Offering = 0;
+  Wanted = 1;
+};
+
+// One post on the market board
+message Listing
+{
+  string ListingId = 1;                   // Random unique ID the server picks, like a trade ID
+  string PosterUuid = 2;                  // UUID of the player who posted it
+  ListingType Type = 3;
+  repeated Trading.ProtoThing Items = 4;
+  string Note = 5;                        // Short free-text message from the poster
+  int64 PostedTime = 6;                   // Unix seconds
+};

@@ -1,0 +1,85 @@
+syntax = "proto3";
+package Agora;
+
+import "Packets/Thing.proto";
+import "Packets/Shop.proto";
+
+// Every packet for player markets (shops). Client packets carry SessionId and Uuid like the bounty packets, and the
+// ones that hand items over carry a Token so the client can settle the items it took off the map (see BountyPackets.proto).
+// Items coming back to a player (unsold stock, the till, a purchase) arrive as a BountyDeliveryPacket with a Shop reason.
+
+// Client -> server: open our market with this name, or rename it if it's already open
+message OpenShopPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Name = 3;
+};
+
+// Client -> server: close our market. Unsold stock and the till come back as deliveries
+message CloseShopPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+};
+
+// Client -> server: put these items up for sale in our market. They've already been taken off the owner's map
+message StockShopPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  repeated ShopStock Stock = 4;           // The server fills in each StockId
+};
+
+// Client -> server: change the price of one of our stacks
+message SetShopPricePacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string StockId = 3;
+  int32 PricePerUnit = 4;
+};
+
+// Client -> server: take some of one of our stacks off sale. They come back as a delivery
+message WithdrawShopStockPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string StockId = 3;
+  int32 Count = 4;                        // 0 means all of it
+};
+
+// Client -> server: send us the silver in our market's till
+message CollectShopTillPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+};
+
+// Client -> server: buy some of a stack. The payment (silver) has already been taken off the buyer's map
+message BuyFromShopPacket
+{
+  string SessionId = 1;
+  string Uuid = 2;
+  string Token = 3;
+  string ShopId = 4;
+  string StockId = 5;
+  int32 Count = 6;
+  int32 ExpectedPricePerUnit = 7;         // The price the buyer saw. If the owner changed it since, the sale is refused
+  repeated Trading.ProtoThing Payment = 8;
+};
+
+// Server -> client: the answer to any shop packet. Token is empty for packets that don't hand items over
+message ShopResponsePacket
+{
+  bool Success = 1;
+  string Token = 2;
+  string FailureMessage = 3;
+};
+
+// Server -> client: every market the player can see, sent on login and whenever one changes
+message SyncShopsPacket
+{
+  repeated Shop Shops = 1;
+};

@@ -25,14 +25,15 @@ namespace Authentication {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiBQYWNrZXRzL0F1dGhlbnRpY2F0ZVBhY2tldC5wcm90bxIOQXV0aGVudGlj",
-            "YXRpb24aF1BhY2tldHMvQXV0aFR5cGVzLnByb3RvIngKEkF1dGhlbnRpY2F0",
-            "ZVBhY2tldBIrCghBdXRoVHlwZRgBIAEoDjIZLkF1dGhlbnRpY2F0aW9uLkF1",
-            "dGhUeXBlcxIRCglTZXNzaW9uSWQYAiABKAkSEAoIVXNlcm5hbWUYBCABKAkS",
-            "EAoIUGFzc3dvcmQYBSABKAliBnByb3RvMw=="));
+            "YXRpb24aF1BhY2tldHMvQXV0aFR5cGVzLnByb3RvIpEBChJBdXRoZW50aWNh",
+            "dGVQYWNrZXQSKwoIQXV0aFR5cGUYASABKA4yGS5BdXRoZW50aWNhdGlvbi5B",
+            "dXRoVHlwZXMSEQoJU2Vzc2lvbklkGAIgASgJEhAKCFVzZXJuYW1lGAQgASgJ",
+            "EhAKCFBhc3N3b3JkGAUgASgJEhcKD1Byb3RvY29sVmVyc2lvbhgGIAEoBWIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.AuthTypesReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthenticatePacket), global::Authentication.AuthenticatePacket.Parser, new[]{ "AuthType", "SessionId", "Username", "Password" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AuthenticatePacket), global::Authentication.AuthenticatePacket.Parser, new[]{ "AuthType", "SessionId", "Username", "Password", "ProtocolVersion" }, null, null, null, null)
           }));
     }
     #endregion
@@ -68,6 +69,7 @@ namespace Authentication {
       sessionId_ = other.sessionId_;
       username_ = other.username_;
       password_ = other.password_;
+      protocolVersion_ = other.protocolVersion_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -120,6 +122,20 @@ namespace Authentication {
       }
     }
 
+    /// <summary>Field number for the "ProtocolVersion" field.</summary>
+    public const int ProtocolVersionFieldNumber = 6;
+    private int protocolVersion_;
+    /// <summary>
+    /// Which version of the network protocol the client speaks. Clients from before this existed send 0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ProtocolVersion {
+      get { return protocolVersion_; }
+      set {
+        protocolVersion_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as AuthenticatePacket);
@@ -137,6 +153,7 @@ namespace Authentication {
       if (SessionId != other.SessionId) return false;
       if (Username != other.Username) return false;
       if (Password != other.Password) return false;
+      if (ProtocolVersion != other.ProtocolVersion) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -147,6 +164,7 @@ namespace Authentication {
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
       if (Username.Length != 0) hash ^= Username.GetHashCode();
       if (Password.Length != 0) hash ^= Password.GetHashCode();
+      if (ProtocolVersion != 0) hash ^= ProtocolVersion.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -176,6 +194,10 @@ namespace Authentication {
         output.WriteRawTag(42);
         output.WriteString(Password);
       }
+      if (ProtocolVersion != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(ProtocolVersion);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -195,6 +217,9 @@ namespace Authentication {
       }
       if (Password.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Password);
+      }
+      if (ProtocolVersion != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ProtocolVersion);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -218,6 +243,9 @@ namespace Authentication {
       }
       if (other.Password.Length != 0) {
         Password = other.Password;
+      }
+      if (other.ProtocolVersion != 0) {
+        ProtocolVersion = other.ProtocolVersion;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -244,6 +272,10 @@ namespace Authentication {
           }
           case 42: {
             Password = input.ReadString();
+            break;
+          }
+          case 48: {
+            ProtocolVersion = input.ReadInt32();
             break;
           }
         }
